@@ -175,10 +175,10 @@
 
 	
 .common_section .article{
-	margin: 30px;
-	padding:0 0 20px 0;
+	margin: 0;
+	padding:0;
 	background:#fff;
-	border:1px solid #e7e7e7;
+	border-bottom :2px dashed #e7e7e7;
 	font-family: 'open_sansregular';
 	font-size:20px;
 	color:#333;
@@ -197,6 +197,11 @@
 	margin-left: 20px;
 	margin-right: 20px;
 	border-bottom: 0.5px solid #333;
+}
+
+.article .article-title .article-title-left{
+    float: left;
+    width: 80%;
 }
 
 .article .article-content{

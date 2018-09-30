@@ -1,0 +1,226 @@
+.service_grid {
+	box-sizing: border-box;
+	overflow: hidden;
+	margin: 0;
+	width: 100%;
+	list-style: none;
+	text-align: center;
+	background-color: #fff;
+}
+
+/* Common style */
+.service_grid figure {
+	box-sizing: border-box;
+	position: relative;
+	z-index: 1;
+	display: inline-block;
+	overflow: hidden;
+	margin: 1px;
+	/*background: #3085a3;*/
+	background: #3085a3;
+	text-align: center;
+	cursor: pointer;
+	width: 33%;
+}
+
+.service_grid figure img {
+	box-sizing: border-box;
+	position: relative;
+	display: block;
+	width: 100%;
+/*	min-height: 100%;*/
+	opacity: 1;
+}
+
+.service_grid figure figcaption {
+	box-sizing: border-box;
+	padding: 2em;
+	color: #fff;
+	font-size: 1.25em;
+	-webkit-backface-visibility: hidden;
+	backface-visibility: hidden;
+}
+
+.service_grid figure figcaption::before,
+.service_grid figure figcaption::after {
+	box-sizing: border-box;
+	pointer-events: none;
+}
+
+.service_grid figure figcaption{
+	box-sizing: border-box;
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+}
+
+/* Anchor will cover the whole item by default */
+/* For some effects it will show as a button */
+
+
+
+.service_grid figure h2 {
+	box-sizing: border-box;
+	word-spacing: -0.15em;
+	
+	font-weight: 10;
+}
+
+.service_grid figure h4 {
+	margin: 0;
+}
+
+.service_grid figure h2 span {
+
+	box-sizing: border-box;
+	font-weight: 100;
+}
+.service_grid figure h3 {
+	box-sizing: border-box;
+	word-spacing: -0.15em;
+	
+	font-weight: 50;
+}
+
+.service_grid figure h3 span {
+	box-sizing: border-box;
+	font-weight: 400;
+	font-size: 1.75em;
+}
+
+.service_grid figure h4 span {
+	box-sizing: border-box;
+	font-weight: 200;
+	font-size: 1.25em;
+}
+.service_grid figure a{
+	text-decoration: none;
+	color:#fff;
+}
+
+.service_grid figure a:hover{
+	text-decoration: underline;
+	color:#fff;
+}
+
+
+.service_grid figure h2,
+.service_grid figure h3,
+.service_grid figure p {
+	
+	margin: 0;
+
+	letter-spacing: 1px;
+
+}
+
+
+
+
+/* Individual effects */
+
+/*---------------*/
+/***** Ruby *****/
+/*---------------*/
+
+figure.effect-ruby2 {
+	background-color: #000;
+}
+
+figure.effect-ruby2 img {
+	opacity: 1;
+	-webkit-transition: opacity 0.35s, -webkit-transform 0.35s;
+	transition: opacity 0.35s, transform 0.35s;
+	-webkit-transform: scale(1.0);
+	transform: scale(1.0);
+}
+
+figure.effect-ruby2:hover img {
+	opacity: 0.5;
+	-webkit-transform: scale(1.15);
+	transform: scale(1.15);
+}
+
+figure.effect-ruby2 h2 {
+	margin-top: 5%;
+	padding-bottom: 10px;
+	-webkit-transition: -webkit-transform 0.35s;
+	transition: transform 0.35s;
+	-webkit-transform: translate3d(0,0,0);
+	transform: translate3d(0,0,0);
+}
+
+
+figure.effect-ruby2:hover h2 {
+	-webkit-transform: translate3d(0,-130px,0);
+	transform: translate3d(0,-130px,0);
+}
+
+
+
+
+figure.effect-ruby2 h3 {
+
+	padding-bottom: 10px;
+	-webkit-transition: -webkit-transform 0.35s;
+	transition: transform 0.35s;
+	-webkit-transform: translate3d(0,0,0);
+	transform: translate3d(0,0,0);
+}
+
+
+figure.effect-ruby2:hover h3 {
+	-webkit-transform: translate3d(0,-80px,0);
+	transform: translate3d(0,-80px,0);
+}
+
+
+figure.effect-ruby2 h4 {
+
+	padding-bottom: 10px;
+	-webkit-transition: -webkit-transform 0.35s;
+	transition: transform 0.35s;
+	-webkit-transform: translate3d(0,0,0);
+	transform: translate3d(0,0,0);
+}
+
+
+figure.effect-ruby2:hover h4 {
+	-webkit-transform: translate3d(0,-80px,0);
+	transform: translate3d(0,-80px,0);
+}
+
+figure.effect-ruby2 p {
+	margin: 40px 0 80px 0;
+	opacity: 0;
+
+	-webkit-transition: opacity 0.35s, -webkit-transform 0.35s;
+	transition: opacity 0.35s, transform 0.35s;
+	-webkit-transform: translate3d(0,0px,0) scale(1.1);
+	transform: translate3d(0,0px,0) scale(1.1);
+} 
+
+
+
+figure.effect-ruby2:hover p {
+	opacity: 1;
+	-webkit-transform: translate3d(0,-20px,0) scale(1);
+	transform: translate3d(0,-20px,0) scale(1);
+}
+
+.plink{
+	margin: 30px;
+	
+	padding: 5px 20px 5px 20px;
+	border: 1px solid #ffffff;
+	border-radius: 3px;
+
+}
+
+.service_grid figure figcaption img{
+	margin: 0 auto;
+	width: 60px;
+}
+
