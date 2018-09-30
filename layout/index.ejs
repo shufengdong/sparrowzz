@@ -14,6 +14,7 @@
 <link href="css/font-awesome.css" rel="stylesheet" type="text/css" />
 <link rel="stylesheet" href="css/bootstrap.min.css">
 <link rel="stylesheet" href="css/libs/animate.css">
+<link rel="stylesheet" href="css/featureSection.css">
 <link rel="stylesheet" href="css/main.css">
 
 <!-- bxSlider CSS file -->
@@ -112,12 +113,13 @@ $(document).ready(function() {
 			<div class="nav mobile">
 			<div class="title">Menu <span class="fa "></span></div>
 			<ul>
-			<li><a href="#faqs_part">FAQs</a></li>
-			<li><a href="#features">FEATURES</a></li>
-			<li><a href="#testimonials_part">Testimonials </a></li>
-			<li><a href="#pricing_part">Pricing</a></li>
-			<li><a href="#contact_part">Contact</a></li>
-			<li><a href="#subscribe_part">Sign Up</a></li>
+			<!-- <li><a href="#faqs_part">FAQs</a></li> -->
+			<li><a href="#features">平台特点</a></li>
+			<li><a href="#services_part">计算服务</a></li>
+			<li><a href="#news_part">新闻公告</a></li>
+			<li><a href="#downloads_part">下载专区</a></li>
+			<li><a href="#introduction_part">平台简介</a></li>
+			<li><a href="#contact_part">联系我们</a></li>
 			</ul>
 			</div>
 
@@ -156,84 +158,166 @@ $(document).ready(function() {
 	
 	
 	
-	<div class="ls-slide" data-ls="transition2d:1;timeshift:-1000;">
-	<img src="images/slider/slide-bg.jpg" class="ls-bg" alt="Slide background"/>
-	
-	
-	<div class="ls-l videopreview" style="top:40px;left:40px;white-space: nowrap;" data-ls="offsetxin:-200;durationin:2000;offsetxout:-200;">
-
-	<img src="images/biglogo.png" alt="" style="width: 400px;" />
-	</div>
-	
-	
-	<div class="ls-l" style="top:140px;left:638px;white-space: nowrap;" data-ls="offsetxin:0;delayin:1000;easingin:easeInOutQuart;scalexin:0.7;scaleyin:0.7;offsetxout:-800;durationout:1000;">
-	<h2 class="l1">高性能计算平台</h2>
-	</div>
-	
-	<div class="ls-l" style="top:200px;left:583px;white-space: nowrap;" data-ls="offsetxin:0;delayin:1000;easingin:easeInOutQuart;scalexin:0.7;scaleyin:0.7;offsetxout:-800;durationout:1000;">
-	<h2 class="l2">高效 地为您计算算例</h2>
-	</div>
-	
+		<div class="ls-slide" data-ls="transition2d:1;timeshift:-1000;">
+		<img src="images/slider/slide-bg.jpg" class="ls-bg" alt="Slide background"/>
 
 	
-	<div class="ls-l" style="top:265px;left:598px;" data-ls="offsetxin:0;delayin:1000;easingin:easeInOutQuart;scalexin:0.7;scaleyin:0.7;offsetxout:-800;durationout:1000;">
-	<a href="#" class="button2">Learn More</a>
-	</div>
+	
+		<div class="ls-l videopreview" style="top:40px;left:40px;white-space: nowrap;" data-ls="offsetxin:-200;durationin:2000;offsetxout:-200;">
+
+			<img src="images/biglogo.png" alt="" style="width: 400px;" />
+		</div>
 	
 	
-	<div class="ls-l" style="top:265px;left:810px;" data-ls="offsetxin:0;delayin:1000;easingin:easeInOutQuart;scalexin:0.7;scaleyin:0.7;offsetxout:-800;durationout:1000;">
-	<a href="#" class="button1">Start Now</a>
-	</div>
+		<div class="ls-l" style="top:140px;left:638px;white-space: nowrap;" data-ls="offsetxin:0;delayin:1000;easingin:easeInOutQuart;scalexin:0.7;scaleyin:0.7;offsetxout:-800;durationout:1000;">
+			<h2 class="l1">高性能计算平台</h2>
+		</div>
+	
+		<div class="ls-l" style="top:200px;left:583px;white-space: nowrap;" data-ls="offsetxin:0;delayin:1000;easingin:easeInOutQuart;scalexin:0.7;scaleyin:0.7;offsetxout:-800;durationout:1000;">
+			<h2 class="l2">高效 地为您计算算例</h2>
+		</div>
+	
+
+	
+		<div class="ls-l" style="top:265px;left:598px;" data-ls="offsetxin:0;delayin:1000;easingin:easeInOutQuart;scalexin:0.7;scaleyin:0.7;offsetxout:-800;durationout:1000;">
+			<a href="#" class="button2">Learn More</a>
+		</div>
+	
+	
+		<div class="ls-l" style="top:265px;left:810px;" data-ls="offsetxin:0;delayin:1000;easingin:easeInOutQuart;scalexin:0.7;scaleyin:0.7;offsetxout:-800;durationout:1000;">
+			<a href="#" class="button1">Start Now</a>
+		</div>
 	
    
-	</div><!--FIRST SLIDE-->	
+		</div><!--FIRST SLIDE-->	
+	  </div>
+	</div> 
+  </div>
 </div>
-</div> 
+
+
+<!-- 平台特点 -->
+
+<div class="feature_section" id="features">
+<div class="feature_container">
+	<div class="row"></div>
+	<div class="sectionTitle"><h2>值得信赖的电力系统高性能计算平台</h2></div>
+	
+    <div class="feature_grid">
+
+        <figure class="effect-ruby">
+            <img src="images/2_03.png" alt="img15"/>
+            <figcaption>
+                <h2><i class="fa fa-paper-plane fa-2x"></i></h2>
+                <h3><span>成熟框架</span></h3>
+                <h3><p>采用成熟的protobuf数据存储格式和gRPC通信框架，轻便快捷，可扩张能力强不受语音限制</p></h3>
+                <p class="checkDetail"><span class="plink">查看详情</span></p>
+                <a href="http://baidu.com/" target="_blank">View more</a>
+            </figcaption>           
+        </figure>
+
+        <figure class="effect-ruby">
+            <img src="images/2_03.png" alt="img15"/>
+            <figcaption>
+                <h2><i class="fa fa-paper-plane fa-2x"></i></h2>
+                <h2><span>成熟框架</span></h2>
+                <p>采用成熟的数据存储格式</p>
+                <p class="plink">查看详情</p>
+                <a href="http://baidu.com/" target="_blank">View more</a>
+            </figcaption>           
+        </figure>
+
+        <figure class="effect-ruby">
+            <img src="images/2_03.png" alt="img15"/>
+            <figcaption>
+                <h2><i class="fa fa-paper-plane fa-2x"></i></h2>
+                <h2><span>成熟框架</span></h2>
+                <p>采用成熟的数据存储格式</p>
+                <p class="plink">查看详情</p>
+                <a href="http://baidu.com/" target="_blank">View more</a>
+            </figcaption>           
+        </figure>
+
+        <figure class="effect-ruby">
+            <img src="images/2_03.png" alt="img15"/>
+            <figcaption>
+                <h2><i class="fa fa-paper-plane fa-2x"></i></h2>
+                <h2><span>成熟框架</span></h2>
+                <p>采用成熟的数据存储格式</p>
+                <p class="plink">查看详情</p>
+                <a href="http://baidu.com/" target="_blank">View more</a>
+            </figcaption>           
+        </figure>
+
+        <figure class="effect-ruby">
+            <img src="images/2_03.png" alt="img15"/>
+            <figcaption>
+                <h2><i class="fa fa-paper-plane fa-2x"></i></h2>
+                <h2><span>成熟框架</span></h2>
+                <p>采用成熟的数据存储格式</p>
+                <p class="plink">查看详情</p>
+                <a href="http://baidu.com/" target="_blank">View more</a>
+            </figcaption>           
+        </figure>
+    </div>
+
+</div>
 </div>
 
+<!-- 新闻公告 -->
 
-
-
-<div class="feature_section ano_feature_section">
+<div class="common_section">
 <div class="container">
-
-				
-				<div class="leftside">
-				<h2>电力系统高性能计算平台</h2>
-				<p>
-				
-				</p>
-				
-				<div class="feature">
-				<span class="fa fa-life-ring"></span>
-				<div class="description">
-				<strong>平台特点</strong> <br/>
-				<p>
-					采用成熟的Protobuf数据存储格式和gRPC通信框架，轻便快捷，可扩展能力强，不受语言限制。用户可以根据实际情况，选用常见的高级语言调用本平台的各项计算功能。本平台采用微服务架构，各项功能的更新升级以及功能的增加可以独立进行，不影响其他功能的正常运行。本平台支持电力系统多种常见的标准数据格式，同时后期会不断补充常见标准数据格式间的转换功能。本平台各项功能的算法计算效率高，部分算法结合课题组最新研究成果进行编制，较传统算法相比具有更优的性能。
-				</p>
+	<h2>最新公告</h2>
+	<section class="posts">
+	<% var count = 0 %>
+	<% site.pages.each(function (post) { %>
+   	<% if (post.categories == "news") { %></p>
+   	<% count += 1%>
+    <div class="article" style="display:none">
+    	
+      <div class="article-title"><h3><%- post.title %></h3><h5><%- date(post.date, "YYYY-MM-DD") %></h5><h5><%- count %></h5></div>
+      <div class="article-content">
+        <%- post.excerpt %>
+      </div>
+        <a class="article-readmore" href="<%- url_for(post.path) %>">查看详情</a>
+      
+<!--       <div class="post-meta">
+        <span class="post-time"><%- date(post.date, "YYYY-MM-DD") %></span>
+      </div> -->
+    </div>
     
+<% } }) %>
 
-				</div>
-				<br clear="all" />
-				
-				<a href="#" class="button3">使用文档</a>
-			<!-- 	<a href="#" class="button4">Start Now</a>	 -->
-				</div>
-				
+    <nav aria-label="Page navigation">
+  <ul class="pagination">
+    <li class="previous">
+      <a href="#previous" aria-label="Previous">
+        <span aria-hidden="true">&laquo;</span>
+      </a>
+    </li>
 
-				
-				</div>
-				
-				
-				<div class="rightside">
-				<img src="images/thumbs/server.jpg" alt="" class="wow bounceInRight animated imagethumb2" data-wow-offset="300" data-wow-delay="0.2s" style="height:300px;" />
-				</div>	
+    <% for (var i = 1; i <= Math.floor(count/4); i++) { %>
+    	<li id="pageList<%= i %>" ><a href="#<%= i %>" flag='listPage'> 
+    		<%= i %></a></li>
 
+	<% } %>    
+    <li class="next">
+      <a href="#next" aria-label="Next">
+        <span aria-hidden="true">&raquo;</span>
+      </a>
+    </li>
+  </ul>
+</nav>
+
+</section>
+
+<%- partial('_partial/paginator') %>
+
+			
 
 </div>
 </div>
-
-
 
 <div class="pricing_table_section" id="pricing_part">
 <div class="container">
@@ -418,33 +502,7 @@ $(document).ready(function() {
 
 
 
-<div class="common_section">
-<div class="container">
 
-	<h2>最新公告</h2>
-	<section class="posts">
-<% site.pages.each(function (post) { %>
-   <% if (post.categories == "news") { %></p>
-    <div class="article">
-    	
-      <div class="article-title"><h3><%- post.title %></h3><h5><%- date(post.date, "YYYY-MM-DD") %></h5></div>
-      <div class="article-content">
-        <%- post.excerpt %>
-      </div>
-        <a class="article-readmore" href="<%- url_for(post.path) %>">查看详情</a>
-      
-<!--       <div class="post-meta">
-        <span class="post-time"><%- date(post.date, "YYYY-MM-DD") %></span>
-      </div> -->
-    </div>
-    <% } }) %>
-</section>
-<%- partial('_partial/paginator') %>
-
-			
-
-</div>
-</div>
 
 
 
@@ -639,7 +697,7 @@ $(document).ready(function() {
 
 </script>
 
-<script src="js/wow.js"></script>
+<!-- <script src="js/wow.js"></script>
 <script>
 wow = new WOW(
   {
@@ -649,38 +707,102 @@ wow = new WOW(
 );
 wow.init();
 document.getElementById('moar').onclick = function() {
-  var section = document.createElement('section');
-  section.className = 'section--purple wow fadeInDown';
-  this.parentNode.insertBefore(section, this);
+  	var section = document.createElement('section');
+  	section.className = 'section--purple wow fadeInDown';
+  	this.parentNode.insertBefore(section, this);
 };
-</script>
+</script> -->
+
+
+
+
+
+
 
 <script type="text/javascript">
+
+var pt = 0;
+var articles = $(".article");
+var lastPage = $("li#pageList1");
+lastPage.addClass('active');
+
+
+var len = articles.length;
+var step = 4;
+var maxpt = Math.ceil(len/step);
+var currentPage = 1;
+for (var i=0;i<step;i++){
+	articles.eq(i).css("display","");
+}
+
+
+
+
+
 $(function() {
-// $("a[data-toggle=collapse]").click(function()
-// {
-// 		$('#collapseExample').collapse('toggle');
-// 		return false;
-// });
+function prev(){
+	if (currentPage == 1 ) return false;
+	currentPage -= 1;	
+	jumpPage(currentPage);
+}
+function next(){
+	if (currentPage == maxpt) return false;
+	currentPage += 1;
+	jumpPage(currentPage);
 
-$('a[href*=#]:not([href=#])').click(function() {
-
-if ($(this).attr('data-toggle')=='collapse'){
-		$('#collapseExample').collapse('toggle');
-		return false;
 }
 
-if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
-var target = $(this.hash);
-target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
-if (target.length) {
-$('html,body').animate({
-scrollTop: target.offset().top - 132
-}, 2000);
-return false;
-}
-}
-});
+	function jumpPage(p){
+		lastPage.removeClass("active");
+		lastPage = $("li#pageList"+p);
+		lastPage.addClass("active");
+		for (var i=0;i<len;i++){
+			articles.eq(i).css("display","None");
+		}
+		for (var i = (p-1) * 4;i<p*4;i++){
+			articles.eq(i).css("display","");
+		}
+
+	}
+
+jumpPage(1);
+	// $("a[data-toggle=collapse]").click(function()
+	// {
+	// 		$('#collapseExample').collapse('toggle');
+	// 		return false;
+	// });
+	$('a[href*=#]:not([href=#])').click(function() {	
+		if ($(this).attr('data-toggle')=='collapse'){
+				$('#collapseExample').collapse('toggle');
+				return false;
+		}
+
+		if ($(this).attr('aria-label')=='Next'){
+			next();
+			return false;
+
+		}
+		if ($(this).attr('aria-label')=='Previous'){
+			prev();
+			return false;
+		}
+
+		if ($(this).attr('flag')=='listPage'){
+			currentPage = parseInt($(this).text().trim());
+			jumpPage(currentPage);
+			return false;
+		}
+
+
+		if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+			var target = $(this.hash);
+			target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+			if (target.length) {
+				$('html,body').animate({scrollTop: target.offset().top - 132}, 2000);
+				return false;
+			}
+		}
+	});
 });
 </script>
 
@@ -691,25 +813,20 @@ return false;
 $(document).ready(function() {
 
 if($(window).width() <= 1200){
-
-
-$(function() {
-$('a[href*=#]:not([href=#])').click(function() {
-if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
-var target = $(this.hash);
-target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
-if (target.length) {
-$('html,body').animate({
-scrollTop: target.offset().top - 132
-}, 2000);
-return false;
-}
-}
-});
-});
-
-
-
+	$(function() {
+		$('a[href*=#]:not([href=#])').click(function() {
+			if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'') && location.hostname == this.hostname) {
+				var target = $(this.hash);
+				target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+				if (target.length) {
+					$('html,body').animate({
+						scrollTop: target.offset().top - 132
+					}, 2000);
+					return false;
+				}
+			}
+		});
+	});
 }
 
 });

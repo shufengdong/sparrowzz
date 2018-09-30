@@ -225,7 +225,7 @@ div.videopreview{
 	}
 
 h2.l1{
-	text-align:center;
+	text-align: center;
 	font-family: 'open_sansbold';
 	font-size:36px;
 	color:#fff;
@@ -407,7 +407,8 @@ a.button2:hover{
 
 /*============== Features Section =================*/
 .feature_section{
-	float:left;
+	/*//float:left;*/
+	margin-top: 200px;
 	width:100%;
 	background:#f8f8fa;
 	padding:80px 0 80px 0;
@@ -430,12 +431,12 @@ a.button2:hover{
 	}
 	
 .feature_section h2{
-	text-align:left;
+	text-align:center;
 	font-family: 'open_sansregular';
 	font-size:30px;
 	color:#333;
 	font-weight:normal;
-	margin:0 0 30px 0;
+	margin:30px 0 30px 0;
 	padding:0 0 0 0;
 	}
 	
@@ -499,6 +500,23 @@ a.button2:hover{
 	background:url(images/icons/i5.png) no-repeat left top;
 	}
 
+.feature_row{
+
+	background-color: #000000;
+
+}
+
+.feature_container{
+	width: 100%;
+}
+
+.feature_cart{
+	filter:blur(1px);
+	-webkit-filter:blur(1px);
+	-moz-filter:blur(1px);
+	-ms-filter:blur(1px);
+	-o-filter:blur(1px);
+}
 
 a.button3{
 	float:left;
@@ -938,8 +956,16 @@ form.hpform input[type="text"]:focus, form.hpform input[type="email"]:focus, for
 	background:#e3eef6;
 	border:1px solid #187cc2;
 	}
+
+.sectionTitle{
+	box-sizing: content-box;
+	background-color: #fff;
+/*	margin: 50px;*/
+	padding-top: 50px;
+	text-align: center;
+}
 	
-/*============== Pricing Table =================*/
+/*============== ubscribe_section Table =================*/
 .subscribe_section{
 	float:left;
 	width:100%;
