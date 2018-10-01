@@ -1,5 +1,4 @@
 .service_grid {
-	box-sizing: border-box;
 	overflow: hidden;
 	margin: 0;
 	width: 100%;
@@ -10,7 +9,6 @@
 
 /* Common style */
 .service_grid figure {
-	box-sizing: border-box;
 	position: relative;
 	z-index: 1;
 	display: inline-block;
@@ -55,6 +53,9 @@
 	width: 100%;
 	height: 100%;
 }
+
+
+
 
 /* Anchor will cover the whole item by default */
 /* For some effects it will show as a button */
@@ -117,6 +118,18 @@
 }
 
 
+.service_grid div.midleFigure h5{
+	/*margin-top: 20px;*/
+	/*padding-top: 20px;*/
+	font-weight: normal;
+	font-family: 'open_sansregular';
+	font-size: 35px;
+	line-height: 1.1;
+	letter-spacing: 0.15em;
+	
+
+}
+
 
 
 /* Individual effects */
@@ -127,6 +140,13 @@
 
 figure.effect-ruby2 {
 	background-color: #000;
+}
+
+
+.service_grid figure.noEffect{
+	background-color: #fff;
+	display: inline-block;
+	margin-bottom: 40px;
 }
 
 figure.effect-ruby2 img {

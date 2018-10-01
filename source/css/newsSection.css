@@ -1,0 +1,22 @@
+.news_section{
+	margin: 50px;
+	
+}
+
+.news_container{
+
+	display:table;
+	margin:0 auto 0 auto;
+	width: 80%;
+	position:relative;
+}
+
+.news_section h2 {
+	padding: 30px;
+	font-size: 35px;
+	text-align: center;
+	box-sizing: border-box;
+	word-spacing: -0.15em;
+	
+	font-weight: 10;
+}

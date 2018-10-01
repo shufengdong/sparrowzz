@@ -1,3 +1,21 @@
+.feature_section{
+	margin-top: 50px;
+}
+
+.feature_section h2 {
+	padding: 30px;
+	font-size: 35px;
+	text-align: center;
+	box-sizing: border-box;
+	word-spacing: -0.15em;
+	
+	font-weight: 10;
+}
+
+.feature_container{
+	width: 100%;
+	background-color: #fff;
+}
 
 .feature_grid {
 	overflow: hidden;
@@ -8,9 +26,8 @@
 	background-color: #373d41;
 }
 
-.feature_container{
-	background-color: #fff;
-}
+
+
 
 /* Common style */
 .feature_grid figure {
