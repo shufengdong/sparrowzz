@@ -1,5 +1,6 @@
 .download_section{
 	background-color: #fff;
+	margin: 80px;
 }
 
 .download_section h2 {
@@ -15,7 +16,7 @@
 
 .download_container{
 	margin: 0 auto;
-	padding-top: 80px;
+	padding: 30px;
 	text-align: center;
 	/*background-color: #eee;*/
 	background-color: #fff;

@@ -42,7 +42,7 @@
 	cursor: pointer;
 }
 
-.feature_grid figure img {
+.feature_grid figure img.bigPic {
 	box-sizing: border-box;
 	position: relative;
 	display: block;
@@ -113,8 +113,6 @@
 	color: #fff;
 }
 
-
-
 /* Individual effects */
 
 /*---------------*/
@@ -125,7 +123,7 @@ figure.effect-ruby {
 	background-color: #373d41;
 }
 
-figure.effect-ruby img {
+figure.effect-ruby img.bigPic {
 	opacity: 0.6;
 	-webkit-transition: opacity 0.35s, -webkit-transform 0.35s;
 	transition: opacity 0.35s, transform 0.35s;
@@ -133,7 +131,7 @@ figure.effect-ruby img {
 	transform: scale(1.15);
 }
 
-figure.effect-ruby:hover img {
+figure.effect-ruby:hover img.bigPic {
 	opacity: 0.3;
 	-webkit-transform: scale(1.0);
 	transform: scale(1.0);
@@ -150,8 +148,8 @@ figure.effect-ruby h2 {
 
 
 figure.effect-ruby:hover h2 {
-	-webkit-transform: translate3d(0,-150px,0);
-	transform: translate3d(0,-150px,0);
+	-webkit-transform: translate3d(0,-180px,0);
+	transform: translate3d(0,-180px,0);
 }
 
 figure.effect-ruby h2::after {
@@ -159,9 +157,9 @@ figure.effect-ruby h2::after {
 	text-align: center;
 	bottom: 0;
 	left: 0;
-	width: 50%;
+	width: 40%;
 	height: 3px;
-	margin-left: 25%;
+	margin-left: 30%;
 	background: #fff;
 	content: '';
 }
@@ -211,3 +209,9 @@ figure.effect-ruby:hover p.checkDetail {
 }
 
 /*020D31*/
+
+
+figcaption img{
+
+
+}

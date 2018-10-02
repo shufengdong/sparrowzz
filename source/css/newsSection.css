@@ -20,3 +20,32 @@
 	
 	font-weight: 10;
 }
+
+.article{
+	border-bottom: 1px dashed #000;
+}
+.article-title{
+	display: inline-block;
+	/*padding-right:10px;*/ 
+	width: 100%;
+}
+
+.article-title  a{
+	margin-top: 20px;
+	margin-bottom: 5px;
+	float: left;
+	font-size:1.75em;
+	font-weight: 400;
+	color: #000;
+}
+
+.article-title p{
+	float:right;
+	font-size:1.15em;
+}
+
+.article-content{
+	width: 100%;
+	color: #666666;
+	font-size:1.15em;
+}
