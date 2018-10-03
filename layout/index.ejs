@@ -129,7 +129,7 @@ $(document).ready(function() {
 			<li><a href="#service">计算服务</a></li>
 			<li><a href="#download">下载专区</a></li>
 			<li><a href="#introduction">平台简介</a></li>
-			<li><a href="#contact">联系我们</a></li>
+			<li><a href="about">关于我们</a></li>
 			</ul>
 			</div>
 
@@ -280,8 +280,8 @@ $(document).ready(function() {
 	
 
 	<% var count = 0 %>
-	<% site.pages.each(function (post) { %>
-   	<% if (post.categories == "news") { %>
+	<% page.posts.each(function (post) { %>
+   	<% if (post.categories.data[0].name == "news") { %>
    	<% count += 1%>
     <div class="article" style="display:none">
       	<div class="article-title">
@@ -293,6 +293,9 @@ $(document).ready(function() {
       	</div>
     </div>
     
+<% } else {  %>
+
+<p><%= post.categories.data[0].name %></p>
 <% } }) %>
 
   <nav aria-label="Page navigation">
