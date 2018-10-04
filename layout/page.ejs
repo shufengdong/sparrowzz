@@ -1,3 +1,5 @@
-<div class="container main-container" relag="page">
-    <%- partial('_partial/article', {item: page, index: false, extra: false}) %>
-</div>
+<% if ((page.categories == "testcase") || (page.categories == "usage")) { %>
+<%- partial('post') %>
+<% } else { %>
+<%- partial('_partial/teams/teamMember') %> 
+<% } %>
