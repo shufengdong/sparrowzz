@@ -26,13 +26,14 @@
 }
 .article-title{
 	display: inline-block;
+	margin-top: 5px;
+	vertical-align:middle;  
 	/*padding-right:10px;*/ 
 	width: 100%;
 }
 
 .article-title  a{
-	margin-top: 20px;
-	margin-bottom: 5px;
+
 	float: left;
 	font-size:1.75em;
 	font-weight: 400;
@@ -40,6 +41,7 @@
 }
 
 .article-title p{
+	
 	float:right;
 	font-size:1.15em;
 }
@@ -47,5 +49,10 @@
 .article-content{
 	width: 100%;
 	color: #666666;
-	font-size:1.15em;
+	font-size:1.05em;
+}
+
+.article-content p{
+	margin-top: 5px;
+	margin-bottom: 10px;
 }

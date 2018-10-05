@@ -1,12 +1,47 @@
 .slider {
 	width: 100%;
 	background-color: #187cc2;
+
+}
+
+.slider .row{
+	margin: 0;
+}
+
+.slider .left_content {
+	margin-top: 150px;
+}
+
+.slider .slider_right {
+	height: 500px;
+	padding: 0px;
 	background-image: url("../images/campus2.jpg");
 }
 
-.slider_left img{
-	height: 500px;
-	margin-top: 50px;
-	margin-bottom: 50px;
-	margin-left: 20%;
+.slider .slider_left img{
+
+	height: 200px;
+	margin-left: 100px;
+}
+
+.slider h2{
+	margin-top: 40px;
+	color: #fff;
+	font-size: 30px;
+	margin-bottom: 20px;
+}
+.slider p{
+	color: #fff;
+	margin-bottom: 25px;
+}
+.slider a{
+	font-size: 18px;
+	border-radius: 3px;
+	border: 1px solid #fff;
+	color: #fff;
+	padding: 3px;
+}
+
+.slider .col-lg-6{
+	padding: 0;
 }
