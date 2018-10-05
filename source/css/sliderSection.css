@@ -1,81 +1,12 @@
-.slider_main{
-	float:left;
-	width:100%;
-	padding:0 0 0 0;
-	}
+.slider {
+	width: 100%;
+	background-color: #187cc2;
+	background-image: url("../images/campus2.jpg");
+}
 
-div.videopreview{
-	width:443px;
-	height:290px;
-	float:left;
-	background:rgba(0, 0, 0, 0);
-	margin:0 0 0 0;
-	}
-
-h2.l1{
-	text-align: center;
-	font-family: 'open_sansbold';
-	font-size:36px;
-	color:#fff;
-	font-weight:normal;
-	text-transform:uppercase;
-	}
-	
-h2.l2{
-	text-align:center;
-	font-family: 'open_sanslight';
-	font-size:18px;
-	color:#fff;
-	font-weight:normal;
-	}
-	
-a.button1{
-	float:left;
-	width:145px;
-	height:41px;
-	border:1px solid #fff;
-	text-align:center;
-	font-family: 'open_sanslight';
-	font-size:14px;
-	color:#fff;
-	font-weight:normal;
-	text-transform:uppercase;
-	line-height:41px;
-	margin:0 0 0 0;
-	border-radius:5px; -webkit-border-radius:5px; 
-	transition:0.5s; -webkit-transition:0.5s;
-	text-decoration:none;
-	}
-	
-a.button1:hover{
-	background:#11598b;
-	border:1px solid #11598b;
-	text-decoration:none;
-	color:#fff;
-	}
-	
-a.button2{
-	float:left;
-	width:145px;
-	height:41px;
-	border:1px solid #11598b;
-	text-align:center;
-	font-family: 'open_sanslight';
-	font-size:14px;
-	color:#fff;
-	font-weight:normal;
-	text-transform:uppercase;
-	line-height:41px;
-	margin:0 0 0 0;
-	border-radius:5px; -webkit-border-radius:5px; 
-	transition:0.5s; -webkit-transition:0.5s;
-	background:#11598b;
-	text-decoration:none;
-	}
-	
-a.button2:hover{
-	text-decoration:none;
-	background:none;
-	border:1px solid #fff;
-	color:#fff;
-	}
+.slider_left img{
+	height: 500px;
+	margin-top: 50px;
+	margin-bottom: 50px;
+	margin-left: 20%;
+}
