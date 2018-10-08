@@ -1,5 +1,7 @@
-<% if ((page.categories == "testcase") || (page.categories == "usage")) { %>
-<%- partial('post') %>
-<% } else { %>
+<% if (page.categories == "member") { %>
 <%- partial('_partial/teams/teamMember') %> 
+<% } else { %>
+
+<%- partial('post') %>
+
 <% } %>
