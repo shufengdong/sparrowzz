@@ -204,10 +204,13 @@ $(document).ready(function() {
 <div class="news_section" id="news">
 <h2>最新公告</h2>
 <div class="news_container">
+
+
+
 	
 
 	<% var count = 0 %>
-	<% page.posts.each(function (post) { %>
+	<% site.posts.each(function (post) { %>
    	<% if (post.categories.data[0].name == "news") { %>
    	<% count += 1%>
     <div class="article" style="display:none">
@@ -220,10 +223,9 @@ $(document).ready(function() {
       	</div>
     </div>
     
-<% } else {  %>
 
-<p><%= post.categories.data[0].name %></p>
-<% } }) %>
+    <%  }}) %>
+
 
   <nav aria-label="Page navigation">
   <ul class="pagination">
@@ -233,7 +235,7 @@ $(document).ready(function() {
       </a>
     </li>
 
-    <% for (var i = 1; i <= Math.floor(count/4); i++) { %>
+    <% for (var i = 1; i <= Math.floor(count/4)+1; i++) { %>
 
     <% if(i <= 0) { %>
     	<li id="pageList<%= i %>" ><a href="#<%= i %>" flag='listPage'> 
@@ -330,7 +332,7 @@ $(document).ready(function() {
                     <img src="images/2_15.png" />
                 </h2>
                 <h3><span>配电网潮流计算</span></h3>
-                <h4><span class="author">Author: 唐坤杰</span>
+                <h4><span class="author">Author: 方睿</span>
                 </h4>
                 <p>
                     <span class="plink"><a href="/usage/配电网潮流计算.html">使用说明</a></span>
@@ -355,7 +357,7 @@ $(document).ready(function() {
                     <img src="images/2_15.png" />
                 </h2>
                 <h3><span>配电网故障重构</span></h3>
-                <h4><span class="author">Author: 唐坤杰</span>
+                <h4><span class="author">Author: 徐成司</span>
                 </h4>
                 <p>
                     <span class="plink"><a href="/usage/配电网故障重构.html">使用说明</a></span>
@@ -371,7 +373,7 @@ $(document).ready(function() {
                     <img src="images/2_15.png" />
                 </h2>
                 <h3><span>输电网潮流计算</span></h3>
-                <h4><span class="author">Author: 唐坤杰</span>
+                <h4><span class="author">Author: 朱嘉麒</span>
                 </h4>
                 <p>
                     <span class="plink"><a href="/usage/输电网潮流计算.html">使用说明</a></span>
@@ -387,7 +389,7 @@ $(document).ready(function() {
                     <img src="images/2_15.png" />
                 </h2>
                 <h3><span>输电网状态估计</span></h3>
-                <h4><span class="author">Author: 唐坤杰</span>
+                <h4><span class="author">Author: 许恩超</span>
                 </h4>
                 <p>
                     <span class="plink"><a href="/usage/输电网状态估计.html">使用说明</a></span>
@@ -403,7 +405,7 @@ $(document).ready(function() {
                     <img src="images/2_15.png" />
                 </h2>
                 <h3><span>最优潮流计算</span></h3>
-                <h4><span class="author">Author: 唐坤杰</span>
+                <h4><span class="author">Author: 许恩超</span>
                 </h4>
                 <p>
                     <span class="plink"><a href="/usage/最优潮流计算.html">使用说明</a></span>
@@ -426,26 +428,26 @@ $(document).ready(function() {
 	<div class="download_container">
 		<div class="download_card">
 			<img src="images/downloadIcon1.png" />
+			<a href="/download/examples.html">
+				<p class="download_chinese">算例下载</p>
+				<p class="download_english">Examples Download</p>
+			</a>
+		</div>
+
+		<div class="download_card">
+			<img src="images/downloadIcon2.png" />
 			<a href="/download/paper.html">
 				<p class="download_chinese">相关文献</p>
 				<p class="download_english">Articles Related</p>
 			</a>
 		</div>
 
-		<div class="download_card">
-			<img src="images/downloadIcon2.png" />
-			<a href="/download/courseware.html">
-				<p class="download_chinese">算例下载</p>
-				<p class="download_english">Courses Document</p>
-			</a>
-		</div>
-
 
 		<div class="download_card">
 			<img src="images/downloadIcon3.png" />
-			<a href="http://baidu.com">
-				<p class="download_chinese">课件下载</p>
-				<p class="download_english">Examples Download</p>
+			<a href="/download/courseware.html">
+				<p class="download_chinese">课件资料</p>
+				<p class="download_english">Courses Document</p>
 			</a>
 		</div>
 	</div>
