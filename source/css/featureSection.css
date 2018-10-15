@@ -14,16 +14,16 @@
 
 .feature_container{
 	width: 100%;
-	background-color: #fff;
+	background-color: #187cc2;
 }
-
+/*#187cc2; this is blue*/
 .feature_grid {
 	overflow: hidden;
 	margin: 0;
 	width: 100%;
 	list-style: none;
 	text-align: center;
-	background-color: #373d41;
+	background-color: #fff;
 }
 
 
@@ -37,7 +37,7 @@
 	display: inline-block;
 	overflow: hidden;
 	margin: -0.135em;
-	background: #3085a3;
+	background: #187cc2;
 	text-align: center;
 	cursor: pointer;
 }
@@ -107,8 +107,9 @@
 }
 
 .feature_grid figure p {
+	line-height: 1.4;
 
-	letter-spacing: 1px;
+	letter-spacing: 2px;
 	font-size: 68.5%;
 	color: #fff;
 }
@@ -122,6 +123,9 @@
 figure.effect-ruby {
 	background-color: #373d41;
 }
+
+
+
 
 figure.effect-ruby img.bigPic {
 	opacity: 0.6;
@@ -201,10 +205,12 @@ figure.effect-ruby:hover p.checkDetail {
 
 .plink{
 
-	padding: 3px;
+	padding: 6px;
 	font-size: 130%;
 	border: 1px solid #ffffff;
-	border-radius: 3px;
+	border-radius: 5px;
+	padding-left: 25px;
+	padding-right: 25px;
 
 }
 

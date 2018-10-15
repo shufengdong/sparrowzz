@@ -22,7 +22,7 @@
 }
 
 .article{
-	border-bottom: 1px dashed #000;
+	border-bottom: 2px dashed #dedede;
 }
 .article-title{
 	display: inline-block;
@@ -37,7 +37,7 @@
 	float: left;
 	font-size:1.75em;
 	font-weight: 400;
-	color: #000;  
+	color: #333;  
 }
 
 .article-title p{
