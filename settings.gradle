@@ -1,2 +1,3 @@
-include 'availCap'
+include 'jinyun:availCap',
+        'jinyun:web'
 
