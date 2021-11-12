@@ -658,6 +658,9 @@ public class AvailCapModel {
                     List<String> sqls = new LinkedList<>();
                     for (int j = 0; j < pointNum; j++) {
                         // 电流不转成容量
+                        if (availCap[season - 1][j] < 0) {
+                            availCap[season - 1][j] = 0;
+                        }
                         String insertSql = "insert into " + resultTableName + " values(" +
                                 "'" + ps.getResource(edge.getEquips().get(0)).getProperty("NAME") + "','" + mRID +
                                 "'," + season + "," + availCap[season - 1][j] + ")";

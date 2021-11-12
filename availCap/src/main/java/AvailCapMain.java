@@ -388,6 +388,11 @@ public class AvailCapMain {
                     tfUbs.addAll(sqliteDb.queryTfMonthUb(feeder + tfMonthUbTableName));
                 }
                 System.out.println(tfUbs.size());
+//                TfUb tfUb = tfUbs.get(4);
+//                System.out.println(tfUb.devName);
+//                for (int i = 0; i < 30; i++) {
+//                    System.out.println(tfUb.monthUb[i] + ",");
+//                }
                 break;
             }
             case "linePassRate": {
@@ -442,8 +447,15 @@ public class AvailCapMain {
                 }
                 double[] seasonCluster2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonClusterTable, args[3], 2, 96);
                 double[] seasonMax2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonTable, args[3], 2, 96);
+                double[] cap1 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 1, 96);
                 double[] cap2 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 2, 96);
-                System.out.println();
+                double[] cap3 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 3, 96);
+                double[] cap4 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 4, 96);
+//                System.out.println("时段,1,2,3,4");
+//                for (int i = 0; i < 24; i++) {
+//                    System.out.println(i + "," + cap1[4 * i] + "," + cap2[4 * i] + "," + cap3[4 * i] + "," + cap4[4 * i]);
+//                }
+//                System.out.println();
                 break;
             }
             case "lineWinter": {

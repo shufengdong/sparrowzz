@@ -891,7 +891,7 @@ public class HistoryData {
                 Iterator<TFData> iterator = tfDatas.iterator();
                 while (iterator.hasNext()) {
                     TFData tfData = iterator.next();
-                    long time = tfData.getData().getTime();
+                    long time = tfData.getDate().getTime();
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTimeInMillis(time);
                     int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -1076,7 +1076,7 @@ public class HistoryData {
                 Iterator<TFData> iterator = tfDatas.iterator();
                 while (iterator.hasNext()) {
                     TFData tfData = iterator.next();
-                    long time = tfData.getData().getTime();
+                    long time = tfData.getDate().getTime();
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTimeInMillis(time);
                     int day = calendar.get(Calendar.DAY_OF_MONTH);
@@ -1138,7 +1138,7 @@ public class HistoryData {
                 Iterator<TFData> iterator = tfDatas.iterator();
                 while (iterator.hasNext()) {
                     TFData tfData = iterator.next();
-                    long time = tfData.getData().getTime();
+                    long time = tfData.getDate().getTime();
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTimeInMillis(time);
                     int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -1193,7 +1193,7 @@ public class HistoryData {
                     Iterator<TFData> iterator = tfDatas.iterator();
                     while (iterator.hasNext()) {
                         TFData tfData = iterator.next();
-                        long time = tfData.getData().getTime();
+                        long time = tfData.getDate().getTime();
                         Calendar calendar = Calendar.getInstance();
                         calendar.setTimeInMillis(time);
                         int hour = calendar.get(Calendar.HOUR_OF_DAY);
