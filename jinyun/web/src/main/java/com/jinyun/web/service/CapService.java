@@ -151,7 +151,7 @@ public class CapService {
         return result;
     }
 
-    public Map<String, Object> baseInfo(String mRID) {
+    public Map<String, Object> baseInfoList(String mRID) {
         SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
         double lineRatedI = sqliteDb.queryOneLineParam(feederDbName + oneLineParamTableName, mRID);
         double lineMaxI = sqliteDb.queryMaxSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, -1);
@@ -230,5 +230,167 @@ public class CapService {
         SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
         LoadPosTf loadPosTf = sqliteDb.queryLoadPosTf(loadPosTable, Integer.parseInt(mRID), 1);
         return loadPosTf;
+    }
+
+    public Map<String, Object> lineInfo(String mRID) {
+        // mouseOverSw为鼠标放置在开关上，查询线路限额，最大电流，可开放容量。args[1]为馈线数据库文件夹的路径，feederDbName为馈线名称，mRID为线路mRID
+        SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
+        double lineRatedI = sqliteDb.queryOneLineParam(feederDbName + oneLineParamTableName, mRID);
+        double lineMaxI = sqliteDb.queryMaxSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, -1);
+        double[] cap1 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 1, 96);
+        double[] cap2 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 2, 96);
+        double[] cap3 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 3, 96);
+        double[] cap4 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 4, 96);
+        Map<String,Object> result = new HashMap<>();
+        result.put("lineRatedI",lineRatedI);
+        result.put("lineMaxI",lineMaxI);
+        result.put("cap1",cap1);
+        result.put("cap2",cap2);
+        result.put("cap3",cap3);
+        result.put("cap4",cap4);
+        return result;
+    }
+
+    public Map<String, Object> transformerInfo(String mRID) {
+        // mouseOverSw为鼠标放置在开关上，查询线路限额，最大电流，可开放容量。args[1]为馈线数据库文件夹的路径，feederDbName为馈线名称，mRID为线路mRID
+        SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
+        double tFRatedCap = sqliteDb.queryTFCap(feederDbName + tfParamTableName, mRID);
+        double tFMaxP = sqliteDb.queryMaxTFP(feederDbName + transformerTableName + HistoryData.seasonTable, mRID, -1);
+        double[] ub = sqliteDb.queryTFUb(feederDbName + transformerTableName + HistoryData.unbalanceTable, mRID, -1);
+        // 低压负荷接入相别
+        String phase = sqliteDb.queryMinIPhase(feederDbName + transformerTableName + HistoryData.minITable, mRID, -1);
+        Map<String,Object> result = new HashMap<>();
+        result.put("tFRatedCap",tFRatedCap);
+        result.put("tFMaxP",tFMaxP);
+        result.put("ub0",ub[0]);
+        result.put("ub1",ub[1]);
+        result.put("phase",phase);
+        return result;
+    }
+
+    public Map<String, Object> lineInfoDetail(String mRID) {
+        // mouseClickSw为鼠标点击开关上，查询线路限额，最大电流，可开放容量。args[1]为馈线数据库文件夹的路径，feederDbName为馈线名称，mRID为开关mRID
+        SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
+        double lineRatedI = sqliteDb.queryOneLineParam(feederDbName + oneLineParamTableName, mRID);
+        double lineMaxI = sqliteDb.queryMaxSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, -1);
+        double lineAvgI = sqliteDb.queryMaxSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, -2);
+        double[] cap1 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 1, 96);
+        double[] cap2 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 2, 96);
+        double[] cap3 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 3, 96);
+        double[] cap4 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 4, 96);
+        double[] seasonCluster1 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonClusterTable, mRID, 1, 96);
+        double[] seasonCluster2 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonClusterTable, mRID, 2, 96);
+        double[] seasonCluster3 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonClusterTable, mRID, 3, 96);
+        double[] seasonCluster4 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonClusterTable, mRID, 4, 96);
+        double[] psCluster1 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.psClusterTable, mRID, 1, 96);
+        double[] psCluster2 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.psClusterTable, mRID, 2, 96);
+        double[] psCluster3 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.psClusterTable, mRID, 3, 96);
+        double[] psCluster4 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.psClusterTable, mRID, 4, 96);
+        double[] seasonMax1 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, 1, 96);
+        double[] seasonMax2 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, 2, 96);
+        double[] seasonMax3 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, 3, 96);
+        double[] seasonMax4 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, 4, 96);
+        for (int i = 0; i < 96; i++) {
+            System.out.println(lineRatedI + "," + seasonCluster1[i] + "," + seasonMax1[i] + "," + seasonCluster2[i] + "," + seasonMax2[i] + "," +
+                    seasonCluster3[i] + "," + seasonMax3[i] + "," + seasonCluster4[i] + "," + seasonMax4[i]);
+        }
+        System.out.println();
+        for (int i = 0; i < 96; i++) {
+            System.out.println(lineRatedI + "," + psCluster1[i] + "," + seasonMax1[i] + "," + psCluster2[i] + "," + seasonMax2[i] + "," +
+                    psCluster3[i] + "," + seasonMax3[i] + "," + psCluster4[i] + "," + seasonMax4[i]);
+        }
+        Map<String,Object> result = new HashMap<>();
+        result.put("lineRatedI",lineRatedI);
+        result.put("lineMaxI",lineMaxI);
+        result.put("lineAvgI",lineAvgI);
+        result.put("cap1",cap1);
+        result.put("cap2",cap2);
+        result.put("cap3",cap3);
+        result.put("cap4",cap4);
+        result.put("seasonCluster1",seasonCluster1);
+        result.put("seasonCluster2",seasonCluster2);
+        result.put("seasonCluster3",seasonCluster3);
+        result.put("seasonCluster4",seasonCluster4);
+        result.put("psCluster1",psCluster1);
+        result.put("psCluster2",psCluster2);
+        result.put("psCluster3",psCluster3);
+        result.put("psCluster4",psCluster4);
+        result.put("seasonMax1",seasonMax1);
+        result.put("seasonMax2",seasonMax2);
+        result.put("seasonMax3",seasonMax3);
+        result.put("seasonMax4",seasonMax4);
+        return result;
+    }
+
+    public Map<String, Object> transformerInfoDetail(String mRID) {
+        // mouseClickTF为鼠标点击公变上，查询公变容量，最大负荷，三相不平衡度。args[1]为馈线数据库文件夹的路径，feederDbName为馈线名称，mRID为公变mRID
+        SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
+        double tFRatedCap = sqliteDb.queryTFCap(feederDbName + tfParamTableName, mRID);
+        double tFMaxI = sqliteDb.queryMaxTFP(feederDbName + transformerTableName + HistoryData.seasonTable, mRID, -2);
+        double[] ub = sqliteDb.queryTFUb(feederDbName + transformerTableName + HistoryData.unbalanceTable, mRID, -1);
+        // 负荷
+        double[] seasonMax1 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.seasonTable, mRID, 1, 96);
+        double[] seasonMax2 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.seasonTable, mRID, 2, 96);
+        double[] seasonMax3 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.seasonTable, mRID, 3, 96);
+        double[] seasonMax4 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.seasonTable, mRID, 4, 96);
+        double[] seasonCluster1 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.seasonClusterTable, mRID, 1, 96);
+        double[] seasonCluster2 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.seasonClusterTable, mRID, 2, 96);
+        double[] seasonCluster3 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.seasonClusterTable, mRID, 3, 96);
+        double[] seasonCluster4 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.seasonClusterTable, mRID, 4, 96);
+        double[] psCluster1 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.psClusterTable, mRID, 1, 96);
+        double[] psCluster2 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.psClusterTable, mRID, 2, 96);
+        double[] psCluster3 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.psClusterTable, mRID, 3, 96);
+        double[] psCluster4 = sqliteDb.querySeasonTFP(feederDbName + transformerTableName + HistoryData.psClusterTable, mRID, 4, 96);
+        // 三相不平衡度
+        double[] seasonMaxUb1 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.ubMaxTable, mRID, 1, 96);
+        double[] seasonMaxUb2 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.ubMaxTable, mRID, 2, 96);
+        double[] seasonMaxUb3 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.ubMaxTable, mRID, 3, 96);
+        double[] seasonMaxUb4 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.ubMaxTable, mRID, 4, 96);
+        double[] seasonClusterUb1 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.seasonClusterTable, mRID, 1, 96);
+        double[] seasonClusterUb2 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.seasonClusterTable, mRID, 2, 96);
+        double[] seasonClusterUb3 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.seasonClusterTable, mRID, 3, 96);
+        double[] seasonClusterUb4 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.seasonClusterTable, mRID, 4, 96);
+        double[] psClusterUb1 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.psClusterTable, mRID, 1, 96);
+        double[] psClusterUb2 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.psClusterTable, mRID, 2, 96);
+        double[] psClusterUb3 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.psClusterTable, mRID, 3, 96);
+        double[] psClusterUb4 = sqliteDb.querySeasonTFUb(feederDbName + transformerTableName + HistoryData.psClusterTable, mRID, 4, 96);
+        // 公变可开放容量
+        double[] cap1 = sqliteDb.queryAvailCap(feederDbName + transformerTableName + HistoryData.tfAvailCapTable, mRID, 1, 96);
+        double[] cap2 = sqliteDb.queryAvailCap(feederDbName + transformerTableName + HistoryData.tfAvailCapTable, mRID, 2, 96);
+        double[] cap3 = sqliteDb.queryAvailCap(feederDbName + transformerTableName + HistoryData.tfAvailCapTable, mRID, 3, 96);
+        double[] cap4 = sqliteDb.queryAvailCap(feederDbName + transformerTableName + HistoryData.tfAvailCapTable, mRID, 4, 96);
+        Map<String,Object> result = new HashMap<>();
+        result.put("tFRatedCap",tFRatedCap);
+        result.put("tFMaxI",tFMaxI);
+        result.put("ub",ub);
+        result.put("seasonMax1",seasonMax1);
+        result.put("seasonMax2",seasonMax2);
+        result.put("seasonMax3",seasonMax3);
+        result.put("seasonMax4",seasonMax4);
+        result.put("seasonCluster1",seasonCluster1);
+        result.put("seasonCluster2",seasonCluster2);
+        result.put("seasonCluster3",seasonCluster3);
+        result.put("seasonCluster4",seasonCluster4);
+        result.put("psCluster1",psCluster1);
+        result.put("psCluster2",psCluster2);
+        result.put("psCluster3",psCluster3);
+        result.put("psCluster4",psCluster4);
+        result.put("seasonMaxUb1",seasonMaxUb1);
+        result.put("seasonMaxUb2",seasonMaxUb2);
+        result.put("seasonMaxUb3",seasonMaxUb3);
+        result.put("seasonMaxUb4",seasonMaxUb4);
+        result.put("seasonClusterUb1",seasonClusterUb1);
+        result.put("seasonClusterUb2",seasonClusterUb2);
+        result.put("seasonClusterUb3",seasonClusterUb3);
+        result.put("seasonClusterUb4",seasonClusterUb4);
+        result.put("psClusterUb1",psClusterUb1);
+        result.put("psClusterUb2",psClusterUb2);
+        result.put("psClusterUb3",psClusterUb3);
+        result.put("psClusterUb4",psClusterUb4);
+        result.put("cap1",cap1);
+        result.put("cap2",cap2);
+        result.put("cap3",cap3);
+        result.put("cap4",cap4);
+        return result;
     }
 }

@@ -18,13 +18,13 @@ public class LineBaseController {
     @Autowired
     CapService capService;
 
-    @ApiOperation(value = "基础信息", notes = "")
+    @ApiOperation(value = "基础信息列表", notes = "")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "mRID", value = "开关ID", dataType = "string", paramType = "query",required = true),
     })
-    @RequestMapping(value = "/baseInfo",method = RequestMethod.GET)
-    public Object baseInfo(@RequestParam("mRID") String mRID) {
-        Map<String,Object> result = capService.baseInfo(mRID);
+    @RequestMapping(value = "/baseInfoList",method = RequestMethod.GET)
+    public Object baseInfoList(@RequestParam("mRID") String mRID) {
+        Map<String,Object> result = capService.baseInfoList(mRID);
         return result;
     }
 
@@ -55,6 +55,47 @@ public class LineBaseController {
     @RequestMapping(value = "/linePs",method = RequestMethod.GET)
     public Object linePs(@RequestParam("mRID") String mRID) {
         Map<String,Object> result = capService.linePs(mRID);
+        return result;
+    }
+
+    @ApiOperation(value = "开关线路信息", notes = "")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "mRID", value = "线路ID", dataType = "string", paramType = "query",required = true),
+    })
+    @RequestMapping(value = "/lineInfo",method = RequestMethod.GET)
+    public Object lineInfo(@RequestParam("mRID") String mRID) {
+        Map<String,Object> result = capService.lineInfo(mRID);
+        return result;
+    }
+
+    @ApiOperation(value = "公变信息", notes = "")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "mRID", value = "公变ID", dataType = "string", paramType = "query",required = true),
+    })
+    @RequestMapping(value = "/transformerInfo",method = RequestMethod.GET)
+    public Object transformerInfo(@RequestParam("mRID") String mRID) {
+        Map<String,Object> result = capService.transformerInfo(mRID);
+        return result;
+    }
+
+    @ApiOperation(value = "线路信息明细", notes = "")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "mRID", value = "公变ID", dataType = "string", paramType = "query",required = true),
+    })
+    @RequestMapping(value = "/lineInfoDetail",method = RequestMethod.GET)
+    public Object lineInfoDetail(@RequestParam("mRID") String mRID) {
+        Map<String,Object> result = capService.lineInfoDetail(mRID);
+        return result;
+    }
+
+
+    @ApiOperation(value = "公变信息明细", notes = "")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "mRID", value = "公变ID", dataType = "string", paramType = "query",required = true),
+    })
+    @RequestMapping(value = "/transformerInfoDetail",method = RequestMethod.GET)
+    public Object transformerInfoDetail(@RequestParam("mRID") String mRID) {
+        Map<String,Object> result = capService.transformerInfoDetail(mRID);
         return result;
     }
 }

@@ -18,12 +18,12 @@ import static java.lang.Math.sqrt;
 public class HistoryData {
 
     public static String seasonTable = "_season";
-    static String unbalanceTable = "_ub";
-    static String minITable = "_minI";
+    public static String unbalanceTable = "_ub";
+    public static String minITable = "_minI";
     public static String seasonClusterTable = "_seasonCluster";
     public static String psClusterTable = "_psCluster";
-    static String ubMaxTable = "_ubMax";
-    static String tfAvailCapTable = "_availCap";
+    public static String ubMaxTable = "_ubMax";
+    public static String tfAvailCapTable = "_availCap";
 
     static Map<String, Double> ratedIJK = new HashMap<String, Double>(){{
         put("35", 150.);
