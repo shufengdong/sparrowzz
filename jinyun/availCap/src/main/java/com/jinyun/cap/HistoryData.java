@@ -17,11 +17,11 @@ import static java.lang.Math.sqrt;
 
 public class HistoryData {
 
-    static String seasonTable = "_season";
+    public static String seasonTable = "_season";
     static String unbalanceTable = "_ub";
     static String minITable = "_minI";
-    static String seasonClusterTable = "_seasonCluster";
-    static String psClusterTable = "_psCluster";
+    public static String seasonClusterTable = "_seasonCluster";
+    public static String psClusterTable = "_psCluster";
     static String ubMaxTable = "_ubMax";
     static String tfAvailCapTable = "_availCap";
 
