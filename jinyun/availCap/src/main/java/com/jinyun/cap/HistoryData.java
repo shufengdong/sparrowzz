@@ -893,7 +893,7 @@ public class HistoryData {
                 Iterator<TFData> iterator = tfDatas.iterator();
                 while (iterator.hasNext()) {
                     TFData tfData = iterator.next();
-                    long time = tfData.getData().getTime();
+                    long time = tfData.getDate().getTime();
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTimeInMillis(time);
                     int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -1067,18 +1067,18 @@ public class HistoryData {
         Map<String, String> tfNameToMRID = sqliteDb.queryNameToMRID(tfTable);
         for (String name : tfNameToMRID.keySet()) {
             String mRID = tfNameToMRID.get(name);
+            double tfRatedCap = sqliteDb.queryTFCap(tfParamTable, mRID);
+            double tfMaxP = sqliteDb.queryMaxTFP(tfSeasonTable, mRID, -1) / 1000;
+            double ub = 0;  // 年平均三相不平衡度
+            int ubCount = 0;
+            double[] monthUb = new double[31];  // 月三相不平衡度
+            int[] count = new int[31];
             for (int season = 1; season < 5; season++) {
-                double tfRatedCap = sqliteDb.queryTFCap(tfParamTable, mRID);
-                double tfMaxP = sqliteDb.queryMaxTFP(tfSeasonTable, mRID, -1) / 1000;
-                double ub = 0;  // 年平均三相不平衡度
-                int ubCount = 0;
-                double[] monthUb = new double[31];  // 月三相不平衡度
-                int[] count = new int[31];
                 List<TFData> tfDatas = sqliteDb.queryTFData(tfTable, mRID, season);
                 Iterator<TFData> iterator = tfDatas.iterator();
                 while (iterator.hasNext()) {
                     TFData tfData = iterator.next();
-                    long time = tfData.getData().getTime();
+                    long time = tfData.getDate().getTime();
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTimeInMillis(time);
                     int day = calendar.get(Calendar.DAY_OF_MONTH);
@@ -1091,31 +1091,31 @@ public class HistoryData {
                     monthUb[day - 1] += ubI[0];
                     count[day - 1]++;
                 }
-                ub /= ubCount;
-                for (int j = 0; j < 31; j++) {
-                    if (count[j] > 0) {
-                        monthUb[j] /= count[j];
-                    }
+            }
+            ub /= ubCount;
+            for (int j = 0; j < 31; j++) {
+                if (count[j] > 0) {
+                    monthUb[j] /= count[j];
                 }
-                // 公变对应的线路名称
-                List<String[]> lines = sqliteDb.querySwToDev(tfToLineTable, mRID);
-                if (lines.size() > 0) {
-                    String[] line = lines.get(0);
-                    // 公变月三相不平衡度存库
-                    List<String> sqls = new LinkedList<>();
-                    String insertSql = "insert into " + tfMonthUbTable + " values(" +
-                            "'" + name + "','" + mRID + "','" + line[0] + "','" + line[1] + "','" + substation + "'," +
-                            tfMaxP + "," + tfRatedCap + "," + ub + "," + monthUb[0] + "," + monthUb[1] + "," + monthUb[2] + "," +
-                            monthUb[3] + "," + monthUb[4] + "," + monthUb[5] + "," + monthUb[6] + "," + monthUb[7] + "," +
-                            monthUb[8] + "," + monthUb[9] + "," + monthUb[10] + "," + monthUb[11] + "," + monthUb[12] + "," +
-                            monthUb[13] + "," + monthUb[14] + "," + monthUb[15] + "," + monthUb[16] + "," + monthUb[17] + "," +
-                            monthUb[18] + "," + monthUb[19] + "," + monthUb[20] + "," + monthUb[21] + "," + monthUb[22] + "," +
-                            monthUb[23] + "," + monthUb[24] + "," + monthUb[25] + "," + monthUb[26] + "," + monthUb[27] + "," +
-                            monthUb[28] + "," + monthUb[29] + "," + monthUb[30] + ")";
-                    sqls.add(insertSql);
-                    sqliteDb.executeSqls(sqls);
-                    sqls.clear();
-                }
+            }
+            // 公变对应的线路名称
+            List<String[]> lines = sqliteDb.querySwToDev(tfToLineTable, mRID);
+            if (lines.size() > 0) {
+                String[] line = lines.get(0);
+                // 公变月三相不平衡度存库
+                List<String> sqls = new LinkedList<>();
+                String insertSql = "insert into " + tfMonthUbTable + " values(" +
+                        "'" + name + "','" + mRID + "','" + line[0] + "','" + line[1] + "','" + substation + "'," +
+                        tfMaxP + "," + tfRatedCap + "," + ub + "," + monthUb[0] + "," + monthUb[1] + "," + monthUb[2] + "," +
+                        monthUb[3] + "," + monthUb[4] + "," + monthUb[5] + "," + monthUb[6] + "," + monthUb[7] + "," +
+                        monthUb[8] + "," + monthUb[9] + "," + monthUb[10] + "," + monthUb[11] + "," + monthUb[12] + "," +
+                        monthUb[13] + "," + monthUb[14] + "," + monthUb[15] + "," + monthUb[16] + "," + monthUb[17] + "," +
+                        monthUb[18] + "," + monthUb[19] + "," + monthUb[20] + "," + monthUb[21] + "," + monthUb[22] + "," +
+                        monthUb[23] + "," + monthUb[24] + "," + monthUb[25] + "," + monthUb[26] + "," + monthUb[27] + "," +
+                        monthUb[28] + "," + monthUb[29] + "," + monthUb[30] + ")";
+                sqls.add(insertSql);
+                sqliteDb.executeSqls(sqls);
+                sqls.clear();
             }
         }
     }
@@ -1140,7 +1140,7 @@ public class HistoryData {
                 Iterator<TFData> iterator = tfDatas.iterator();
                 while (iterator.hasNext()) {
                     TFData tfData = iterator.next();
-                    long time = tfData.getData().getTime();
+                    long time = tfData.getDate().getTime();
                     Calendar calendar = Calendar.getInstance();
                     calendar.setTimeInMillis(time);
                     int hour = calendar.get(Calendar.HOUR_OF_DAY);
@@ -1195,7 +1195,7 @@ public class HistoryData {
                     Iterator<TFData> iterator = tfDatas.iterator();
                     while (iterator.hasNext()) {
                         TFData tfData = iterator.next();
-                        long time = tfData.getData().getTime();
+                        long time = tfData.getDate().getTime();
                         Calendar calendar = Calendar.getInstance();
                         calendar.setTimeInMillis(time);
                         int hour = calendar.get(Calendar.HOUR_OF_DAY);

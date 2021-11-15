@@ -5,7 +5,7 @@ import java.sql.Timestamp;
 public class TFData {
     String devName;
     String mRID;
-    Timestamp data;
+    Timestamp date;
     double Ia;
     double Ib;
     double Ic;
@@ -29,12 +29,12 @@ public class TFData {
         return mRID;
     }
 
-    public void setData(Timestamp data) {
-        this.data = data;
+    public void setDate(Timestamp date) {
+        this.date = date;
     }
 
-    public Timestamp getData() {
-        return data;
+    public Timestamp getDate() {
+        return date;
     }
 
     public void setIa(double ia) {

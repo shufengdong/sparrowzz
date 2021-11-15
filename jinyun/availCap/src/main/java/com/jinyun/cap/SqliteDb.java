@@ -597,7 +597,7 @@ public class SqliteDb {
                 TFData tfData = new TFData();
                 tfData.setDevName(rs.getString("devName"));
                 tfData.setmRID(mRID);
-                tfData.setData(rs.getTimestamp("date"));
+                tfData.setDate(rs.getTimestamp("date"));
                 tfData.setIa(rs.getDouble("Ia"));
                 tfData.setIb(rs.getDouble("Ib"));
                 tfData.setIc(rs.getDouble("Ic"));
@@ -644,7 +644,7 @@ public class SqliteDb {
                 TFData tfData = new TFData();
                 tfData.setDevName(rs.getString("devName"));
                 tfData.setmRID(mRID);
-                tfData.setData(rs.getTimestamp("date"));
+                tfData.setDate(rs.getTimestamp("date"));
                 tfData.setIa(rs.getDouble("Ia"));
                 tfData.setIb(rs.getDouble("Ib"));
                 tfData.setIc(rs.getDouble("Ic"));
@@ -1193,7 +1193,7 @@ public class SqliteDb {
                 tfUb.setUb(rs.getDouble("ub"));
                 double[] monthUb = new double[30];
                 for (int i = 0; i < 30; i++) {
-                    monthUb[0] = rs.getDouble("monthUb" + (i + 1));
+                    monthUb[i] = rs.getDouble("monthUb" + (i + 1));
                 }
                 tfUb.setMonthUb(monthUb);
                 tfUbs.add(tfUb);
