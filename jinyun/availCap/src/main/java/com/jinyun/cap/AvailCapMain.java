@@ -134,36 +134,85 @@ public class AvailCapMain {
                 break;
             }
             case "loadPos": {
-                // loadPos为分析负荷接入位置，args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为.xml文件的路径
-                // args[4]为负荷数据，4个数据用,分隔，args[5]为存储所有馈线数据的数据库文件的路径
+                // loadPos为分析负荷接入位置，args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为.xml文件夹的路径
+                // args[4]为负荷容量，args[5]为负荷特征（1为峰用电，2为谷用电，3为峰谷用电），args[6]为存储所有馈线数据的数据库文件的路径
                 SqliteDb sqliteDb = new SqliteDb(args[1] + "\\" + args[2] + ".db");
                 String[] sourceStationNames = new String[]{sqliteDb.querySubstationName(args[2] + substationTableName)};
                 JyPowerSystem ps = new JyPowerSystem(sourceStationNames);
                 try {
-                    ps.loadFromCimXML(new FileInputStream(new File(args[3])));
+                    ps.loadFromCimXML(new FileInputStream(new File(args[3] + "\\" + args[2] + "单线图.sln.xml")));
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                 }
                 ps.createActiveIslands();
                 availCapModel = new AvailCapModel(ps);
                 availCapModel.buildPaths();
-                availCapModel.createLoadPosTable(args[5], loadPosTable);
-                String[] loadStr = args[4].split(",");
-                double[] loadFt = new double[4];
-                for (int i = 0; i < 4; i++) {
-                    loadFt[i] = Double.parseDouble(loadStr[i]);
-                }
-                // 生成负荷数据
+                availCapModel.createLoadPosTable(args[6], loadPosTable);
+                double loadCap = Double.parseDouble(args[4]);
+                int loadType = Integer.parseInt(args[5]);
+                // 生成负荷曲线
                 double[] load = new double[96];
-                for (int i = 0; i < 32; i++) {
-                    load[i] = loadFt[2];
+                double peakAvg = 0.75 * loadCap;
+                double valleyAvg = 0.4 * loadCap;
+                double pvAvg = 0.7 * loadCap;
+                double minLoad = 0.2 * loadCap;
+                if (loadType == 1) {
+                    load[0] = valleyAvg;
+                    for (int i = 1; i < 32; i++) {
+                        double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                    load[32] = peakAvg;
+                    for (int i = 33; i < 88; i++) {
+                        double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                    load[88] = valleyAvg;
+                    for (int i = 89; i < 96; i++) {
+                        double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                } else if (loadType == 2) {
+                    load[0] = peakAvg;
+                    for (int i = 1; i < 32; i++) {
+                        double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                    load[32] = valleyAvg;
+                    for (int i = 33; i < 88; i++) {
+                        double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                    load[88] = peakAvg;
+                    for (int i = 89; i < 96; i++) {
+                        double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                } else if (loadType == 3) {
+                    load[0] = pvAvg;
+                    for (int i = 1; i < 96; i++) {
+                        double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
                 }
-                for (int i = 32; i < 88; i++) {
-                    load[i] = loadFt[1];
+                for (int i = 0; i < 96; i++) {
+                    System.out.println(load[i] + ",");
                 }
-                for (int i = 88; i < 96; i++) {
-                    load[i] = loadFt[2];
-                }
+                // 负荷接入分析
                 LoadPos loadPos = availCapModel.loadPosOpt(load, args[2] + switchTableName,
                         args[2] + availCapTableName, args[1] + "\\" + args[2] + ".db",
                         args[2] + substationTableName, args[2] + feederTableName,
@@ -171,7 +220,7 @@ public class AvailCapMain {
                         args[2] + swToTfTableName, args[2] + tfParamTableName,
                         args[2] + transformerTableName + HistoryData.tfAvailCapTable,
                         args[2] + transformerTableName + HistoryData.seasonClusterTable,
-                        args[2] + transformerTableName + HistoryData.minITable, args[5], loadPosTable);
+                        args[2] + transformerTableName + HistoryData.minITable, args[6], loadPosTable);
                 break;
             }
             case "mouseOverSw": {
@@ -315,6 +364,14 @@ public class AvailCapMain {
                 availCapModel.createMaxMinAvailCap(args[1], maxMinAvailCapTable);
                 availCapModel.maxMinAvailCap(args[1], allFeederNameTable, args[2], maxMinAvailCapTable);
                 System.out.println();
+                break;
+            }
+            case "allFeederName": {
+                // allFeederName为查询所有馈线名称。args[1]为存储所有馈线数据的数据库文件的路径
+                // feederNames为馈线名称列表
+                SqliteDb sqliteDb = new SqliteDb(args[1]);
+                List<String> feederNames = sqliteDb.queryAllFeederName(allFeederNameTable);
+                System.out.println(feederNames.size());
                 break;
             }
             case "allPsWarnDev": {
@@ -513,6 +570,32 @@ public class AvailCapMain {
                 SqliteDb sqliteDb = new SqliteDb(args[1]);
                 LoadPosTf loadPosTf = sqliteDb.queryLoadPosTf(loadPosTable, Integer.parseInt(args[2]), 1);
                 System.out.println();
+                break;
+            }
+            case "feederWarnDev": {
+                // feederWarnDev为查询预警元件颜色。args[1]为馈线数据库文件夹路径，args[2]为查询的馈线名称
+                // yellowTfs为显示黄色的公变列表，redTfs为显示红色的公变列表，yellowLines为显示黄色的线路列表，redLines为显示红色的线路列表，
+                // 属性loadState为1表示黄色，为2表示红色，属性mRID为设备mRID
+                SqliteDb sqliteDb = new SqliteDb(args[1] + "\\" + args[2] + ".db");
+                List<WarnTf> warnTfs = sqliteDb.queryWarnTf(args[2] + tfWarnTableName);
+                List<WarnLine> warnLines = sqliteDb.queryWarnLine(args[2] + lineWarnTableName);
+                List<WarnTf> yellowTfs = new LinkedList<>();    // 显示黄色的公变
+                List<WarnTf> redTfs = new LinkedList<>();   // 显示红色的公变
+                List<WarnLine> yellowLines = new LinkedList<>();   // 显示黄色的线路
+                List<WarnLine> redLines = new LinkedList<>();    // 显示红色的线路
+                for (WarnTf warnTf : warnTfs) {
+                    if (warnTf.loadState == 1)
+                        yellowTfs.add(warnTf);
+                    else
+                        redTfs.add(warnTf);
+                }
+                for (WarnLine warnLine : warnLines) {
+                    if (warnLine.loadRate == 1)
+                        yellowLines.add(warnLine);
+                    else
+                        redLines.add(warnLine);
+                }
+                System.out.println(yellowTfs.size() + ", " + redTfs.size() + ", " + yellowLines.size() + ", " + redLines.size());
                 break;
             }
         }
