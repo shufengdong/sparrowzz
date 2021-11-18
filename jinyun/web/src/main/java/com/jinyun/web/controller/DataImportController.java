@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.Map;
 
 @Api(value = "desc of class", tags="DataImport",description = "数据导入")
-@RestController
+//@RestController
 @RequestMapping("import")
 public class DataImportController {
     @Autowired

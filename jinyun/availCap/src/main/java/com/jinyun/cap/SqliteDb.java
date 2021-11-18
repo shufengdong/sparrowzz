@@ -1293,17 +1293,52 @@ public class SqliteDb {
         return tfOverLoadRates;
     }
 
+
+    /**
+     * 按季节查询负荷接入分析结果总数
+     * @param tableName 表名
+     * @param season 季节
+     * @return
+     */
+    public int queryLoadPosSeasonCount(String tableName, int season) {
+        Connection conn = createConn();
+        String sql;
+        sql = "select count(*) from " + tableName + " where season=" + season;
+        Statement stmt = null;
+        ResultSet rs = null;
+        int count = 0;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+            rs.next();
+            count = rs.getInt(1);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                rs.close();
+                stmt.close();
+            } catch (SQLException e) {
+            }
+        }
+        return count;
+    }
+
     /**
      * 按季节查询负荷接入分析结果总表
      * @param tableName 表名
      * @param season 季节
      * @return
      */
-    public List<LoadPosSeason> queryLoadPosSeason(String tableName, int season) {
+    public List<LoadPosSeason> queryLoadPosSeason(String tableName, int season,int page,int rows) {
         List<LoadPosSeason> loadPosSeasons = new LinkedList<>();
         Connection conn = createConn();
         String sql;
         sql = "select * from " + tableName + " where season=" + season;
+        if(page>0 && rows>0){
+            sql +=" limit " + (page-1)*rows + "," + rows;
+        }
         Statement stmt = null;
         ResultSet rs = null;
         try {

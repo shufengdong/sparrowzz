@@ -1,5 +1,5 @@
 server:
-  port: 6112
+  port: 8080
 spring:
   datasource:
     driverClassName: org.sqlite.JDBC

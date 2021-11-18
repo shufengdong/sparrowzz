@@ -69,7 +69,7 @@ public class MainPageController {
     @ApiOperation(value = "配变三相不平衡度列表", notes = "")
     @RequestMapping(value = "/transformerUnbalanceList",method = RequestMethod.GET)
     public Object transformerUnbalanceList() {
-        Map<String,Object> result = capService.transformerUnbalanceList();
+        List result = capService.transformerUnbalanceList();
         return result;
     }
 
@@ -90,7 +90,7 @@ public class MainPageController {
     @ApiOperation(value = "线路可开放容量大小", notes = "")
     @RequestMapping(value = "/maxMinAvailCap",method = RequestMethod.GET)
     public Object maxMinAvailCap() {
-        List result = capService.maxMinAvailCap();
+        Map<String, Object> result = capService.maxMinAvailCap();
         return result;
     }
 }

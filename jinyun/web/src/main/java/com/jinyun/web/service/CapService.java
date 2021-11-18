@@ -2,8 +2,13 @@ package com.jinyun.web.service;
 
 import com.jinyun.cap.*;
 import com.jinyun.web.entity.ImportData;
+import com.jinyun.web.entity.LinePassRateWeb;
+import com.jinyun.web.entity.TfOverLoadRateWeb;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.util.*;
 
 /**
@@ -38,6 +43,7 @@ public class CapService {
     static String allPsDbFile = "D:\\others\\yunqi\\项目\\缙云项目\\test\\allPsDb\\allPs.db";
     static String feederDbFile = "D:\\others\\yunqi\\项目\\缙云项目\\test\\feederDb";
     static String feederDbName = "溪南G134线";
+    static String cimFile = "D:\\others\\yunqi\\项目\\缙云项目\\test\\CIM";
 
     public Map<String, Object> gridStatistics() {
         Map<String,Object> result = new HashMap<>();
@@ -83,7 +89,7 @@ public class CapService {
         return result;
     }
 
-    public Map<String, Object> transformerUnbalanceList() {
+    public List transformerUnbalanceList() {
         SqliteDb allPsDb = new SqliteDb(allPsDbFile);
         List<String> feeders = allPsDb.queryAllFeederName(allFeederNameTable);  // 查询馈线名称
         List<TfUb> tfUbs = new LinkedList<>();
@@ -91,11 +97,7 @@ public class CapService {
             SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feeder + ".db");
             tfUbs.addAll(sqliteDb.queryTfMonthUb(feeder + tfMonthUbTableName));
         }
-        Map<String,Object> result = new HashMap<>();
-        for(TfUb tfUb:tfUbs){
-            result.put(tfUb.getmRID(),tfUb);
-        }
-        return result;
+        return tfUbs;
     }
 
     public List hardLineList() {
@@ -125,7 +127,13 @@ public class CapService {
     public List linePassRate() {
         SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
         List<LinePassRate> linePassRates = sqliteDb.queryLinePassRate(feederDbName + linePassRateTableName);
-        return linePassRates;
+        List<LinePassRateWeb> linePassRateWebs = new ArrayList<>();
+        for(LinePassRate it:linePassRates){
+            LinePassRateWeb linePassRateWeb = new LinePassRateWeb(it.getFeederName(),
+                    it.getSubstation(),it.getPassRate()[0],it.getPassRate()[1],it.getPassRate()[2],it.getPassRate()[3]);
+            linePassRateWebs.add(linePassRateWeb);
+        }
+        return linePassRateWebs;
     }
 
     public Object transformerOverLoadRate() {
@@ -136,16 +144,19 @@ public class CapService {
             SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feeder + ".db");
             tfOverLoadRates.addAll(sqliteDb.queryTfOverLoadRate(feeder + tfOverLoadRateTableName));
         }
-        return tfOverLoadRates.get(0); //todo 先取第一个
+        TfOverLoadRate it = tfOverLoadRates.get(0); //todo 先取第一个
+        TfOverLoadRateWeb tfOverLoadRateWeb = new TfOverLoadRateWeb(it.getFeederName(),it.getDevName(),it.getmRID(),it.getLineName(),it.getLineMRID(),
+                it.getSubstation(),it.getOverLoadRate()[0],it.getOverLoadRate()[1],it.getOverLoadRate()[2],it.getOverLoadRate()[3]);
+        return tfOverLoadRateWeb;
     }
 
-    public List maxMinAvailCap() {
+    public Map<String, Object> maxMinAvailCap() {
         SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
         MaxMinAvailCap maxFeeder = sqliteDb.queryMaxMinAvailCap(maxMinAvailCapTable, 1);
         MaxMinAvailCap minFeeder = sqliteDb.queryMaxMinAvailCap(maxMinAvailCapTable, 2);
-        List result = new LinkedList<>();
-        result.add(maxFeeder);
-        result.add(minFeeder);
+        Map<String,Object> result = new HashMap<>();
+        result.put("max",maxFeeder);
+        result.put("min",minFeeder);
         return result;
     }
 
@@ -217,9 +228,15 @@ public class CapService {
         return result;
     }
 
-    public List loadPosList() {
+    public int loadPosListCout() {
         SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
-        List<LoadPosSeason> loadPosSeason = sqliteDb.queryLoadPosSeason(loadPosTable, 1);
+        int total = sqliteDb.queryLoadPosSeasonCount(loadPosTable, 1);
+        return total;
+    }
+
+    public List loadPosList(int page, int rows) {
+        SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
+        List<LoadPosSeason> loadPosSeason = sqliteDb.queryLoadPosSeason(loadPosTable, 1,page,rows);
         return loadPosSeason;
     }
 
@@ -255,7 +272,7 @@ public class CapService {
     }
 
     public Map<String, Object> transformerInfo(String mRID) {
-        // mouseOverTF为鼠标放置在公变上，查询公变容量，最大负荷，三相不平衡度。args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为公变mRID
+        // mouseOverTF为鼠标放置在公变上，查询公变容量，最大负荷，三相不平衡度。args[1]为馈线数据库文件夹的路径，feederDbName为馈线名称，cimFile为公变mRID
         SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
         double tFRatedCap = sqliteDb.queryTFCap(feederDbName + tfParamTableName, mRID);
         double tFMaxP = sqliteDb.queryMaxTFP(feederDbName + transformerTableName + HistoryData.seasonTable, mRID, -1);
@@ -404,6 +421,137 @@ public class CapService {
         result.add(importData1);
         result.add(importData2);
         result.add(importData3);
+        return result;
+    }
+
+    public List lineNameList() {
+        // allFeederName为查询所有馈线名称。args[1]为存储所有馈线数据的数据库文件的路径
+        // feederNames为馈线名称列表
+        SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
+        List<String> feederNames = sqliteDb.queryAllFeederName(allFeederNameTable);
+        return feederNames;
+    }
+
+    public Object loadPosAnalysis(String lineName, int cap, int type) {
+        // loadPos为分析负荷接入位置，args[1]为馈线数据库文件夹的路径，feederDbName为馈线名称，cimFile为.xml文件夹的路径
+        // args[4]为负荷容量，args[5]为负荷特征（1为峰用电，2为谷用电，3为峰谷用电），args[6]为存储所有馈线数据的数据库文件的路径
+        SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
+        String[] sourceStationNames = new String[]{sqliteDb.querySubstationName(feederDbName + substationTableName)};
+        JyPowerSystem ps = new JyPowerSystem(sourceStationNames);
+        try {
+            ps.loadFromCimXML(new FileInputStream(new File(cimFile + "\\" + feederDbName + "单线图.sln.xml")));
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        ps.createActiveIslands();
+        AvailCapModel availCapModel = new AvailCapModel(ps);
+        availCapModel.buildPaths();
+        availCapModel.createLoadPosTable(allPsDbFile, loadPosTable);
+        double loadCap = cap;
+        int loadType = type;
+        // 生成负荷曲线
+        double[] load = new double[96];
+        double peakAvg = 0.75 * loadCap;
+        double valleyAvg = 0.4 * loadCap;
+        double pvAvg = 0.7 * loadCap;
+        double minLoad = 0.2 * loadCap;
+        if (loadType == 1) {
+            load[0] = valleyAvg;
+            for (int i = 1; i < 32; i++) {
+                double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                load[i] = load[i - 1] + r;
+                load[i] = Math.min(load[i], loadCap);
+                load[i] = Math.max(load[i], minLoad);
+            }
+            load[32] = peakAvg;
+            for (int i = 33; i < 88; i++) {
+                double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                load[i] = load[i - 1] + r;
+                load[i] = Math.min(load[i], loadCap);
+                load[i] = Math.max(load[i], minLoad);
+            }
+            load[88] = valleyAvg;
+            for (int i = 89; i < 96; i++) {
+                double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                load[i] = load[i - 1] + r;
+                load[i] = Math.min(load[i], loadCap);
+                load[i] = Math.max(load[i], minLoad);
+            }
+        } else if (loadType == 2) {
+            load[0] = peakAvg;
+            for (int i = 1; i < 32; i++) {
+                double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                load[i] = load[i - 1] + r;
+                load[i] = Math.min(load[i], loadCap);
+                load[i] = Math.max(load[i], minLoad);
+            }
+            load[32] = valleyAvg;
+            for (int i = 33; i < 88; i++) {
+                double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                load[i] = load[i - 1] + r;
+                load[i] = Math.min(load[i], loadCap);
+                load[i] = Math.max(load[i], minLoad);
+            }
+            load[88] = peakAvg;
+            for (int i = 89; i < 96; i++) {
+                double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                load[i] = load[i - 1] + r;
+                load[i] = Math.min(load[i], loadCap);
+                load[i] = Math.max(load[i], minLoad);
+            }
+        } else if (loadType == 3) {
+            load[0] = pvAvg;
+            for (int i = 1; i < 96; i++) {
+                double r = 0.1 * (Math.random() - 0.5) * loadCap;
+                load[i] = load[i - 1] + r;
+                load[i] = Math.min(load[i], loadCap);
+                load[i] = Math.max(load[i], minLoad);
+            }
+        }
+        for (int i = 0; i < 96; i++) {
+            System.out.println(load[i] + ",");
+        }
+        // 负荷接入分析
+        LoadPos loadPos = availCapModel.loadPosOpt(load, feederDbName + switchTableName,
+                feederDbName + availCapTableName, feederDbFile + "\\" + feederDbName + ".db",
+                feederDbName + substationTableName, feederDbName + feederTableName,
+                feederDbName + oneLineParamTableName, feederDbName + switchTableName + HistoryData.seasonClusterTable,
+                feederDbName + swToTfTableName, feederDbName + tfParamTableName,
+                feederDbName + transformerTableName + HistoryData.tfAvailCapTable,
+                feederDbName + transformerTableName + HistoryData.seasonClusterTable,
+                feederDbName + transformerTableName + HistoryData.minITable, allPsDbFile, loadPosTable);
+
+        return loadPos;
+    }
+
+    public Map<String,Object> lowMarginAnalysis() {
+        // feederWarnDev为查询预警元件颜色。args[1]为馈线数据库文件夹路径，feederDbName为查询的馈线名称
+        // yellowTfs为显示黄色的公变列表，redTfs为显示红色的公变列表，yellowLines为显示黄色的线路列表，redLines为显示红色的线路列表，
+        // 属性loadState为1表示黄色，为2表示红色，属性mRID为设备mRID
+        SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
+        List<WarnTf> warnTfs = sqliteDb.queryWarnTf(feederDbName + tfWarnTableName);
+        List<WarnLine> warnLines = sqliteDb.queryWarnLine(feederDbName + lineWarnTableName);
+        List<WarnTf> yellowTfs = new LinkedList<>();    // 显示黄色的公变
+        List<WarnTf> redTfs = new LinkedList<>();   // 显示红色的公变
+        List<WarnLine> yellowLines = new LinkedList<>();   // 显示黄色的线路
+        List<WarnLine> redLines = new LinkedList<>();    // 显示红色的线路
+        for (WarnTf warnTf : warnTfs) {
+            if (warnTf.getLoadState() == 1)
+                yellowTfs.add(warnTf);
+            else
+                redTfs.add(warnTf);
+        }
+        for (WarnLine warnLine : warnLines) {
+            if (warnLine.getLoadState() == 1)
+                yellowLines.add(warnLine);
+            else
+                redLines.add(warnLine);
+        }
+        Map<String,Object> result = new HashMap<>();
+        result.put("yellowTfs",yellowTfs);
+        result.put("redTfs",redTfs);
+        result.put("yellowLines",yellowLines);
+        result.put("redLines",redLines);
         return result;
     }
 }

@@ -550,7 +550,7 @@ public class AvailCapMain {
                 // loadPosSeason为负荷接入分析结果列表，属性substation;feederName;canIn;tfName;phase;time对应界面表格的
                 // 变电站、线路名称、能否接入、接入点、接入相别、分析时间
                 SqliteDb sqliteDb = new SqliteDb(args[1]);
-                List<LoadPosSeason> loadPosSeason = sqliteDb.queryLoadPosSeason(loadPosTable, 1);
+                List<LoadPosSeason> loadPosSeason = sqliteDb.queryLoadPosSeason(loadPosTable, 1,-1,-1);
                 System.out.println(loadPosSeason.size());
                 break;
             }
