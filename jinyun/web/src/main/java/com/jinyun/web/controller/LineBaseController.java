@@ -18,13 +18,13 @@ public class LineBaseController {
     @Autowired
     CapService capService;
 
-    @ApiOperation(value = "基础信息列表", notes = "")
+    @ApiOperation(value = "基础信息", notes = "")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "mRID", value = "开关ID", dataType = "string", paramType = "query",required = true),
     })
-    @RequestMapping(value = "/baseInfoList",method = RequestMethod.GET)
-    public Object baseInfoList(@RequestParam("mRID") String mRID) {
-        Map<String,Object> result = capService.baseInfoList(mRID);
+    @RequestMapping(value = "/baseInfo",method = RequestMethod.GET)
+    public Object baseInfo(@RequestParam("mRID") String mRID) {
+        Map<String,Object> result = capService.baseInfo(mRID);
         return result;
     }
 
@@ -80,7 +80,7 @@ public class LineBaseController {
 
     @ApiOperation(value = "线路信息明细", notes = "")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "mRID", value = "公变ID", dataType = "string", paramType = "query",required = true),
+            @ApiImplicitParam(name = "mRID", value = "线路ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/lineInfoDetail",method = RequestMethod.GET)
     public Object lineInfoDetail(@RequestParam("mRID") String mRID) {

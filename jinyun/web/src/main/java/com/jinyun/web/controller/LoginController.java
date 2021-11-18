@@ -49,34 +49,4 @@ public class LoginController {
         return "你已通过验证";
     }
 
-    @ApiOperation("数据导入")
-    @PostMapping("/upload")
-    public String upload(@RequestBody MultipartFile[] files) throws IOException {
-        for(MultipartFile file:files){
-            String fileName = file.getOriginalFilename();
-            String target = "d:/";
-            File dest = new File(target+fileName);
-            try {
-                file.transferTo(dest);
-                System.out.println( "上传成功");;
-            } catch (IOException e) {
-                e.printStackTrace();
-            } catch (IllegalStateException e) {
-                e.printStackTrace();
-            }
-            System.out.println( "上传失败");;
-        }
-//        String fileName = file.getOriginalFilename();
-//        String target = "d:/";
-//        File dest = new File(target+fileName);
-//        try {
-//            file.transferTo(dest);
-//            return "上传成功";
-//        } catch (IOException e) {
-//            e.printStackTrace();
-//        } catch (IllegalStateException e) {
-//            e.printStackTrace();
-//        }
-        return "上传成功";
-    }
 }

@@ -1,12 +1,10 @@
 package com.jinyun.web.service;
 
 import com.jinyun.cap.*;
+import com.jinyun.web.entity.ImportData;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author jinbin
@@ -151,7 +149,7 @@ public class CapService {
         return result;
     }
 
-    public Map<String, Object> baseInfoList(String mRID) {
+    public Map<String, Object> baseInfo(String mRID) {
         SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
         double lineRatedI = sqliteDb.queryOneLineParam(feederDbName + oneLineParamTableName, mRID);
         double lineMaxI = sqliteDb.queryMaxSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, -1);
@@ -165,6 +163,7 @@ public class CapService {
 
     public Map<String, Object> lineSummer(String mRID) {
         SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
+        // lineRatedICv为线路限额，seasonCluster2为负荷聚类曲线，seasonMax2为最大负荷曲线，cap2为可开放容量
         double lineRatedI = sqliteDb.queryOneLineParam(feederDbName + oneLineParamTableName, mRID);
         double[] lineRatedICv = new double[96];
         for (int i = 0; i < 96; i++) {
@@ -173,7 +172,9 @@ public class CapService {
         double[] seasonCluster2 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonClusterTable, mRID, 2, 96);
         double[] seasonMax2 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, 2, 96);
         double[] cap2 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 2, 96);
+
         Map<String,Object> result = new HashMap<>();
+        result.put("lineRatedICv",lineRatedICv);
         result.put("seasonCluster2",seasonCluster2);
         result.put("seasonMax2",seasonMax2);
         result.put("cap2",cap2);
@@ -191,6 +192,7 @@ public class CapService {
         double[] seasonMax4 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, 4, 96);
         double[] cap4 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 4, 96);
         Map<String,Object> result = new HashMap<>();
+        result.put("lineRatedICv",lineRatedICv);
         result.put("seasonCluster4",seasonCluster4);
         result.put("seasonMax4",seasonMax4);
         result.put("cap4",cap4);
@@ -208,6 +210,7 @@ public class CapService {
         double[] seasonMax2 = sqliteDb.querySeasonSwitchI(feederDbName + switchTableName + HistoryData.seasonTable, mRID, 2, 96);
         double[] cap2 = sqliteDb.queryAvailCap(feederDbName + availCapTableName, mRID, 2, 96);
         Map<String,Object> result = new HashMap<>();
+        result.put("lineRatedICv",lineRatedICv);
         result.put("psCluster2",psCluster2);
         result.put("seasonMax2",seasonMax2);
         result.put("cap2",cap2);
@@ -252,7 +255,7 @@ public class CapService {
     }
 
     public Map<String, Object> transformerInfo(String mRID) {
-        // mouseOverSw为鼠标放置在开关上，查询线路限额，最大电流，可开放容量。args[1]为馈线数据库文件夹的路径，feederDbName为馈线名称，mRID为线路mRID
+        // mouseOverTF为鼠标放置在公变上，查询公变容量，最大负荷，三相不平衡度。args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为公变mRID
         SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feederDbName + ".db");
         double tFRatedCap = sqliteDb.queryTFCap(feederDbName + tfParamTableName, mRID);
         double tFMaxP = sqliteDb.queryMaxTFP(feederDbName + transformerTableName + HistoryData.seasonTable, mRID, -1);
@@ -262,8 +265,7 @@ public class CapService {
         Map<String,Object> result = new HashMap<>();
         result.put("tFRatedCap",tFRatedCap);
         result.put("tFMaxP",tFMaxP);
-        result.put("ub0",ub[0]);
-        result.put("ub1",ub[1]);
+        result.put("ub",ub);
         result.put("phase",phase);
         return result;
     }
@@ -391,6 +393,17 @@ public class CapService {
         result.put("cap2",cap2);
         result.put("cap3",cap3);
         result.put("cap4",cap4);
+        return result;
+    }
+
+    public List dataImportList() {
+        ImportData importData1 = new ImportData("新建变电站","溪南G134线","2021.11.11 15:11:23");
+        ImportData importData2 = new ImportData("新建变电站","溪南G134线","2021.11.12 13:32:32");
+        ImportData importData3 = new ImportData("新建变电站","溪南G134线","2021.11.14 09:34:43");
+        List<ImportData> result = new ArrayList<ImportData>();
+        result.add(importData1);
+        result.add(importData2);
+        result.add(importData3);
         return result;
     }
 }
