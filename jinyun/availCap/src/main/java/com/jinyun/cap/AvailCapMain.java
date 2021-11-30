@@ -202,7 +202,21 @@ public class AvailCapMain {
                     }
                 } else if (loadType == 3) {
                     load[0] = pvAvg;
-                    for (int i = 1; i < 96; i++) {
+                    for (int i = 1; i < 32; i++) {
+                        double r = 0.08 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                    load[32] = pvAvg;
+                    for (int i = 33; i < 88; i++) {
+                        double r = 0.05 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                    load[88] = pvAvg;
+                    for (int i = 89; i < 96; i++) {
                         double r = 0.1 * (Math.random() - 0.5) * loadCap;
                         load[i] = load[i - 1] + r;
                         load[i] = Math.min(load[i], loadCap);
@@ -502,12 +516,9 @@ public class AvailCapMain {
                 for (int i = 0; i < 96; i++) {
                     lineRatedICv[i] = lineRatedI;
                 }
-                double[] seasonCluster2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonClusterTable, args[3], 2, 96);
-                double[] seasonMax2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonTable, args[3], 2, 96);
-                double[] cap1 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 1, 96);
-                double[] cap2 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 2, 96);
-                double[] cap3 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 3, 96);
-                double[] cap4 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 4, 96);
+                double[] seasonCluster2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonClusterTable, args[3], 3, 96);
+                double[] seasonMax2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonTable, args[3], 3, 96);
+                double[] cap2 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 3, 96);
 //                System.out.println("时段,1,2,3,4");
 //                for (int i = 0; i < 24; i++) {
 //                    System.out.println(i + "," + cap1[4 * i] + "," + cap2[4 * i] + "," + cap3[4 * i] + "," + cap4[4 * i]);
