@@ -13,7 +13,7 @@ import java.util.*
 import javax.xml.parsers.SAXParserFactory
 
 class TN(var id : String = "", val cns : LinkedList<String> = LinkedList())
-class Edge(val equips : LinkedList<String> = LinkedList(), var limI : Double = 867.0, var type : Int = 1)
+class Edge(val equips : LinkedList<String> = LinkedList(), var limI : Double = 754.0, var type : Int = 1)
 
 /**
  * 该类用于管理电网资源(MapObject)的方法

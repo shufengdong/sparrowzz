@@ -511,7 +511,7 @@ public class AvailCapMain {
                 // lineSummer为线路夏季分析。args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为开关mRID
                 // lineRatedICv为线路限额，seasonCluster2为负荷聚类曲线，seasonMax2为最大负荷曲线，cap2为可开放容量
                 SqliteDb sqliteDb = new SqliteDb(args[1] + "\\" + args[2] + ".db");
-                double lineRatedI = sqliteDb.queryOneLineParam(args[2] + oneLineParamTableName, args[3]);
+                double lineRatedI = sqliteDb.queryOneLineSeasonParam(args[2] + oneLineParamTableName, args[3], 1);
                 double[] lineRatedICv = new double[96];
                 for (int i = 0; i < 96; i++) {
                     lineRatedICv[i] = lineRatedI;
@@ -530,7 +530,7 @@ public class AvailCapMain {
                 // lineWinter为线路冬季分析。args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为开关mRID
                 // lineRatedICv为线路限额，seasonCluster4为负荷聚类曲线，seasonMax4为最大负荷曲线，cap4为可开放容量
                 SqliteDb sqliteDb = new SqliteDb(args[1] + "\\" + args[2] + ".db");
-                double lineRatedI = sqliteDb.queryOneLineParam(args[2] + oneLineParamTableName, args[3]);
+                double lineRatedI = sqliteDb.queryOneLineSeasonParam(args[2] + oneLineParamTableName, args[3], 2);
                 double[] lineRatedICv = new double[96];
                 for (int i = 0; i < 96; i++) {
                     lineRatedICv[i] = lineRatedI;

@@ -69,7 +69,9 @@ public class AvailCapModel {
         String initSql = "CREATE TABLE "  + tableName + " (" +
                 " devName     varchar(200) NOT NULL," +
                 " mRID     varchar(50) NOT NULL," +
-                " ratedCurrent       decimal(6,2) NULL" +
+                " ratedCurrent       decimal(6,2) NULL," +
+                " smRatedI       decimal(6,2) NULL," +
+                " winRatedI       decimal(6,2) NULL" +
                 ")";
         sqliteDb.initDb(initSql);
         // 清空表格
@@ -936,9 +938,18 @@ public class AvailCapModel {
         SqliteDb sqliteDb = new SqliteDb(dbFile);
         List<String> sqls = new LinkedList<>();
         for (Edge e : edges) {
+            double smLimI = e.getLimI();
+            double winLimI = e.getLimI();
+            if (e.getType() == 1) {
+                smLimI = e.getLimI() * JKsm;
+                winLimI = e.getLimI() * JKwin;
+            } else if (e.getType() == 2) {
+                smLimI = e.getLimI() * LGJsm;
+                winLimI = e.getLimI() * LGJwin;
+            }
             String insertSql = "insert into " + oneLineTableName + " values(" +
                     "'" + ps.getResource(e.getEquips().get(0)).getProperty("NAME") +
-                    "','" + e.getEquips().get(0).substring(3) + "'," + e.getLimI() + ")";
+                    "','" + e.getEquips().get(0).substring(3) + "'," + e.getLimI() + "," + smLimI + "," + winLimI + ")";
             sqls.add(insertSql);
         }
         sqliteDb.executeSqls(sqls);

@@ -240,32 +240,6 @@ public class SqliteDb {
         return mRIDNames;
     }
 
-    public List<Object> queryData(String tableName, String psId) {
-        List<Object> objs = new LinkedList<>();
-        Connection conn = createConn();
-        String sql = "select * from " + tableName + " where psId='" + psId + "'";
-        Statement stmt = null;
-        ResultSet rs = null;
-        try {
-            stmt = conn.createStatement();
-            rs = stmt.executeQuery(sql);
-            while (rs.next()) {
-                Object obj = createObj(tableName, rs);
-                objs.add(obj);
-            }
-        } catch (SQLException e) {
-            System.out.println(e.getMessage());
-            e.printStackTrace();
-        } finally {
-            try {
-                rs.close();
-                stmt.close();
-            } catch (SQLException e) {
-            }
-        }
-        return objs;
-    }
-
     /**
      * 查询变电站名称
      * @param tableName 表名
@@ -947,7 +921,7 @@ public class SqliteDb {
      * @return
      */
     public double queryOneLineParam(String tableName, String mRID) {
-        double oneLineParam = 1000;
+        double oneLineParam = 754;
         Connection conn = createConn();
         String sql = "select * from " + tableName + " where mRID='" + mRID + "'";
         Statement stmt = null;
@@ -957,6 +931,40 @@ public class SqliteDb {
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
                 oneLineParam = rs.getDouble("ratedCurrent");
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                rs.close();
+                stmt.close();
+            } catch (SQLException e) {
+            }
+        }
+        return oneLineParam;
+    }
+
+    /**
+     * 查询单线夏季、冬季电流限值
+     * @param tableName 表名
+     * @return
+     */
+    public double queryOneLineSeasonParam(String tableName, String mRID, int season) {
+        double oneLineParam = 754;
+        Connection conn = createConn();
+        String sql = "select * from " + tableName + " where mRID='" + mRID + "'";
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                if (season == 1) {
+                    oneLineParam = rs.getDouble("smRatedI");
+                } else {
+                    oneLineParam = rs.getDouble("winRatedI");
+                }
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -1596,9 +1604,5 @@ public class SqliteDb {
             }
         }
         return maxMinAvailCap;
-    }
-
-    private Object createObj(String tableName, ResultSet rs) throws SQLException {
-        return null;
     }
 }
