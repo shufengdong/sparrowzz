@@ -404,7 +404,7 @@ public class AvailCapMain {
                 // hardLine为重载线路列表数据，属性devName;substation;maxI;switchName;ratedCurrent对应界面表格中
                 // 线路名、所属变电站、最大电流、智能开关、限额
                 SqliteDb sqliteDb = new SqliteDb(args[1]);
-                List<WarnLine> hardLine = sqliteDb.queryWarnLine(allPsLineWarnTable, 1);
+                List<WarnLine> hardLine = sqliteDb.queryWarnLine(allPsLineWarnTable, 1,-1,-1);
                 System.out.println(hardLine.size());
                 break;
             }
@@ -413,7 +413,7 @@ public class AvailCapMain {
                 // overLine为超载线路列表数据，属性devName;substation;maxI;switchName;ratedCurrent对应界面表格中
                 // 线路名、所属变电站、最大电流、智能开关、限额
                 SqliteDb sqliteDb = new SqliteDb(args[1]);
-                List<WarnLine> overLine = sqliteDb.queryWarnLine(allPsLineWarnTable, 2);
+                List<WarnLine> overLine = sqliteDb.queryWarnLine(allPsLineWarnTable, 2,-1,-1);
                 System.out.println(overLine.size());
                 break;
             }
@@ -422,7 +422,7 @@ public class AvailCapMain {
                 // hardTf为重载公变列表数据，属性devName;lineName;substation;maxLoad;ratedCap对应界面表格中
                 // 配变名、线路、变电站、最大负荷、容量
                 SqliteDb sqliteDb = new SqliteDb(args[1]);
-                List<WarnTf> hardTf = sqliteDb.queryWarnTf(allPsTfWarnTable, 1);
+                List<WarnTf> hardTf = sqliteDb.queryWarnTf(allPsTfWarnTable, 1,-1,-1);
                 System.out.println(hardTf.size());
                 break;
             }
@@ -430,7 +430,7 @@ public class AvailCapMain {
                 // allPsOverTf为查询所有馈线超载公变。args[1]为存储所有馈线数据的数据库文件的路径
                 // overTf为超载公变列表数据，属性devName;lineName;substation;maxLoad;ratedCap对应界面表格中配变名、线路、变电站、最大负荷、容量
                 SqliteDb sqliteDb = new SqliteDb(args[1]);
-                List<WarnTf> overTf = sqliteDb.queryWarnTf(allPsTfWarnTable, 2);
+                List<WarnTf> overTf = sqliteDb.queryWarnTf(allPsTfWarnTable, 2,-1,-1);
                 System.out.println(overTf.size());
                 break;
             }
