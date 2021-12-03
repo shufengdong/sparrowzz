@@ -202,7 +202,21 @@ public class AvailCapMain {
                     }
                 } else if (loadType == 3) {
                     load[0] = pvAvg;
-                    for (int i = 1; i < 96; i++) {
+                    for (int i = 1; i < 32; i++) {
+                        double r = 0.08 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                    load[32] = pvAvg;
+                    for (int i = 33; i < 88; i++) {
+                        double r = 0.05 * (Math.random() - 0.5) * loadCap;
+                        load[i] = load[i - 1] + r;
+                        load[i] = Math.min(load[i], loadCap);
+                        load[i] = Math.max(load[i], minLoad);
+                    }
+                    load[88] = pvAvg;
+                    for (int i = 89; i < 96; i++) {
                         double r = 0.1 * (Math.random() - 0.5) * loadCap;
                         load[i] = load[i - 1] + r;
                         load[i] = Math.min(load[i], loadCap);
@@ -497,17 +511,14 @@ public class AvailCapMain {
                 // lineSummer为线路夏季分析。args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为开关mRID
                 // lineRatedICv为线路限额，seasonCluster2为负荷聚类曲线，seasonMax2为最大负荷曲线，cap2为可开放容量
                 SqliteDb sqliteDb = new SqliteDb(args[1] + "\\" + args[2] + ".db");
-                double lineRatedI = sqliteDb.queryOneLineParam(args[2] + oneLineParamTableName, args[3]);
+                double lineRatedI = sqliteDb.queryOneLineSeasonParam(args[2] + oneLineParamTableName, args[3], 1);
                 double[] lineRatedICv = new double[96];
                 for (int i = 0; i < 96; i++) {
                     lineRatedICv[i] = lineRatedI;
                 }
-                double[] seasonCluster2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonClusterTable, args[3], 2, 96);
-                double[] seasonMax2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonTable, args[3], 2, 96);
-                double[] cap1 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 1, 96);
-                double[] cap2 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 2, 96);
-                double[] cap3 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 3, 96);
-                double[] cap4 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 4, 96);
+                double[] seasonCluster2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonClusterTable, args[3], 3, 96);
+                double[] seasonMax2 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonTable, args[3], 3, 96);
+                double[] cap2 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 3, 96);
 //                System.out.println("时段,1,2,3,4");
 //                for (int i = 0; i < 24; i++) {
 //                    System.out.println(i + "," + cap1[4 * i] + "," + cap2[4 * i] + "," + cap3[4 * i] + "," + cap4[4 * i]);
@@ -519,7 +530,7 @@ public class AvailCapMain {
                 // lineWinter为线路冬季分析。args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为开关mRID
                 // lineRatedICv为线路限额，seasonCluster4为负荷聚类曲线，seasonMax4为最大负荷曲线，cap4为可开放容量
                 SqliteDb sqliteDb = new SqliteDb(args[1] + "\\" + args[2] + ".db");
-                double lineRatedI = sqliteDb.queryOneLineParam(args[2] + oneLineParamTableName, args[3]);
+                double lineRatedI = sqliteDb.queryOneLineSeasonParam(args[2] + oneLineParamTableName, args[3], 2);
                 double[] lineRatedICv = new double[96];
                 for (int i = 0; i < 96; i++) {
                     lineRatedICv[i] = lineRatedI;

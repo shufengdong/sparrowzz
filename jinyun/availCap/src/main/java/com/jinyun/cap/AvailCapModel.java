@@ -69,7 +69,9 @@ public class AvailCapModel {
         String initSql = "CREATE TABLE "  + tableName + " (" +
                 " devName     varchar(200) NOT NULL," +
                 " mRID     varchar(50) NOT NULL," +
-                " ratedCurrent       decimal(6,2) NULL" +
+                " ratedCurrent       decimal(6,2) NULL," +
+                " smRatedI       decimal(6,2) NULL," +
+                " winRatedI       decimal(6,2) NULL" +
                 ")";
         sqliteDb.initDb(initSql);
         // 清空表格
@@ -626,14 +628,19 @@ public class AvailCapModel {
                 noPush = false;
                 double[][] availCap = edgeAvailCap.get(e);
                 for (Edge edge : edgeStack) {
+                    if (!ps.getResource(edge.getEquips().getFirst()).getType().toUpperCase().equals("BREAKER"))
+                        continue;
                     double[][] pathAvailCap = edgeAvailCap.get(edge);
                     for (int season = 0; season < 4; season++) {
                         for (int j = 0; j < pointNum; j++) {
                             if (availCap[season][j] > pathAvailCap[season][j]) {
                                 availCap[season][j] = pathAvailCap[season][j];
-//                                if (availCap[season][j] < 0) {
-//                                    availCap[season][j] = 0;
-//                                }
+                                if (availCap[season][j] < 0) {
+                                    if (j > 0)
+                                        availCap[season][j] = availCap[season][j - 1];
+                                    else
+                                        availCap[season][j] = 0;
+                                }
                             }
                         }
                     }
@@ -931,9 +938,18 @@ public class AvailCapModel {
         SqliteDb sqliteDb = new SqliteDb(dbFile);
         List<String> sqls = new LinkedList<>();
         for (Edge e : edges) {
+            double smLimI = e.getLimI();
+            double winLimI = e.getLimI();
+            if (e.getType() == 1) {
+                smLimI = e.getLimI() * JKsm;
+                winLimI = e.getLimI() * JKwin;
+            } else if (e.getType() == 2) {
+                smLimI = e.getLimI() * LGJsm;
+                winLimI = e.getLimI() * LGJwin;
+            }
             String insertSql = "insert into " + oneLineTableName + " values(" +
                     "'" + ps.getResource(e.getEquips().get(0)).getProperty("NAME") +
-                    "','" + e.getEquips().get(0).substring(3) + "'," + e.getLimI() + ")";
+                    "','" + e.getEquips().get(0).substring(3) + "'," + e.getLimI() + "," + smLimI + "," + winLimI + ")";
             sqls.add(insertSql);
         }
         sqliteDb.executeSqls(sqls);
@@ -1067,9 +1083,118 @@ public class AvailCapModel {
                     }
                 }
             }
+//            if (e.getEquips().getFirst().equals("PD_11100000_10612548")) {
+//                for (int i = 0; i < pointNum; i++) {
+//                    System.out.println(availCap[0][i] + "," + availCap[1][i] + "," + availCap[2][i] + "," + availCap[3][i]);
+//                }
+//            }
             edgeAvailCap.put(e, availCap);
         }
 //        }
+    }
+
+    /**
+     * 查询主线电流和参数
+     * @param lineISeasontableName 线路电流按季度分析结果表名
+     * @param swISeasontableName 开关电流按季度分析结果表名
+     * @param dbFile 数据库名
+     */
+    public void mainLineI(String lineISeasontableName, String swISeasontableName, String dbFile) {
+        SqliteDb sqliteDb = new SqliteDb(dbFile);
+        // 查询主线电流数据
+        double[][] mainLineI = new double[4][pointNum];
+        for (int season = 1; season < 5; season++) {
+            int pNTimes = 3;
+            double[] I = sqliteDb.querySeasonLineI(lineISeasontableName, season, pNTimes * pointNum);
+            for (int i = 0; i < pointNum; i++) {
+                mainLineI[season - 1][i] = I[pNTimes * i];
+                if (mainLineI[season - 1][i] < I[pNTimes * i + 1]) {
+                    mainLineI[season - 1][i] = I[pNTimes * i + 1];
+                }
+                if (mainLineI[season - 1][i] < I[pNTimes * i + 2]) {
+                    mainLineI[season - 1][i] = I[pNTimes * i + 2];
+                }
+            }
+        }
+        // 主线电流裕度，按第一条有额定电流的线路算
+        String supplyCn = ps.getSourceCns().get(0);
+        UndirectedGraph<String, Edge> g = ps.getActiveIslands().get(0);
+        Edge mainLine = g.edgesOf(supplyCn).iterator().next();
+        // 初始化节点为未访问状态
+        HashMap<String, Boolean> visited = new HashMap<>(g.vertexSet().size());
+        for (String cn : g.vertexSet()) {
+            visited.put(cn, false);
+        }
+        //用于深度优先搜索的栈
+        Deque<String> stack = new ArrayDeque<>();
+        Deque<Edge> edgeStack = new ArrayDeque<>();
+        stack.push(supplyCn);   // 将电源节点压入栈内
+        while (!stack.isEmpty()) {
+            boolean noPush = true;
+            String cn = stack.peek();
+            for (Edge e: g.edgesOf(cn)) {
+                if (!edgeStack.isEmpty() && edgeStack.peek().equals(e))
+                    continue;
+                if (e.getLimI() < 10000) {
+                    mainLine = e;
+                    stack.clear();
+                    break;
+                }
+                String neighbor = g.getEdgeTarget(e);
+                if (neighbor.equals(cn))
+                    neighbor = g.getEdgeSource(e);
+                // 如果顶点已经被遍历过，则不进行处理
+                if (visited.get(neighbor))
+                    continue;
+                // 未遍历过的节点
+                stack.push(neighbor);
+                noPush = false;
+                edgeStack.push(e);
+                break;
+            }
+            if (noPush) {
+                if (!stack.isEmpty()) {
+                    visited.put(stack.pop(), true);
+                }
+                if (!edgeStack.isEmpty()) {
+                    edgeStack.pop();
+                }
+            }
+        }
+        double mainLineLimI = mainLine.getLimI();
+        double mainLineType = mainLine.getType();
+        double[][] mainLineAvailCap = new double[4][pointNum];
+        for (int season = 0; season < 4; season++) {
+            for (int j = 0; j < pointNum; j++) {
+                if (season == 1 || season == 2) {
+                    if (mainLineType == 1) {
+                        mainLineAvailCap[season][j] = mainLineLimI * JKsm - mainLineI[season][j];
+                    } else if (mainLineType == 2) {
+                        mainLineAvailCap[season][j] = mainLineLimI * LGJsm - mainLineI[season][j];
+                    }
+                } else {
+                    if (mainLineType == 1) {
+                        mainLineAvailCap[season][j] = mainLineLimI * JKwin - mainLineI[season][j];
+                    } else if (mainLineType == 2) {
+                        mainLineAvailCap[season][j] = mainLineLimI * LGJwin - mainLineI[season][j];
+                    }
+                }
+            }
+        }
+        System.out.println("夏季额定电流,夏季最大电流,夏季可开放容量,夏季差值,冬季额定电流,冬季最大电流,冬季可开放容量,冬季差值");
+        for (int i = 0; i < pointNum; i++) {
+            if (mainLineType == 1) {
+                System.out.println(mainLineLimI * JKsm + "," + mainLineI[1][i] + "," + mainLineAvailCap[1][i] + "," +
+                        (mainLineLimI * JKsm - mainLineI[1][i] - mainLineAvailCap[1][i]) + "," + mainLineLimI * JKwin + "," +
+                        mainLineI[3][i] + "," + mainLineAvailCap[3][i] + "," +
+                        (mainLineLimI * JKwin - mainLineI[3][i] - mainLineAvailCap[3][i]));
+            } else if (mainLineType == 2) {
+                System.out.println(mainLineLimI * LGJsm + "," + mainLineI[1][i] + "," + mainLineAvailCap[1][i] + "," +
+                        (mainLineLimI * LGJsm - mainLineI[1][i] - mainLineAvailCap[1][i]) + "," + mainLineLimI * LGJwin + "," +
+                        mainLineI[3][i] + "," + mainLineAvailCap[3][i] + "," +
+                        (mainLineLimI * LGJwin - mainLineI[3][i] - mainLineAvailCap[3][i]));
+            }
+        }
     }
 
     /**
