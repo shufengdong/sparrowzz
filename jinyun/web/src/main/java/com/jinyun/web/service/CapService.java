@@ -11,10 +11,6 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.*;
 
-/**
- * @author jinbin
- * @date 2018-07-08 20:52
- */
 @Service("CapService")
 public class CapService {
     static String allFeederNameTable = "所有馈线名称";
@@ -80,7 +76,7 @@ public class CapService {
         Map<String,Object> result = new HashMap<>();
         int count = 0;
         for(TfUb tfUb:tfUbs){
-            if(count == 3) break;
+            if(count == 5) break;
             if(result.containsKey(tfUb.getDevName()))
                 continue;
             result.put(tfUb.getDevName(),tfUb.getUb());
@@ -89,38 +85,73 @@ public class CapService {
         return result;
     }
 
-    public List transformerUnbalanceList() {
+    public Map<String,Object> transformerUnbalanceList(int page, int rows) {
         SqliteDb allPsDb = new SqliteDb(allPsDbFile);
         List<String> feeders = allPsDb.queryAllFeederName(allFeederNameTable);  // 查询馈线名称
         List<TfUb> tfUbs = new LinkedList<>();
+        int startRow = (page-1)*rows;
+        int endRow = startRow+rows;
         for (String feeder : feeders) {
             SqliteDb sqliteDb = new SqliteDb(feederDbFile + "\\" + feeder + ".db");
-            tfUbs.addAll(sqliteDb.queryTfMonthUb(feeder + tfMonthUbTableName));
+            List<TfUb> c = sqliteDb.queryTfMonthUb(feeder + tfMonthUbTableName);
+            tfUbs.addAll(c);;
         }
-        return tfUbs;
+        List<TfUb> result = new LinkedList<>();
+        for(int i=startRow;i<endRow;i++){
+            result.add(tfUbs.get(i));
+        }
+        Map<String,Object> result1 = new HashMap<>();
+        result1.put("total",tfUbs.size());
+        result1.put("rows",result);
+        return result1;
     }
 
-    public List hardLineList() {
+    public int hardLineListCount() {
         SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
-        List<WarnLine> hardLine = sqliteDb.queryWarnLine(allPsLineWarnTable, 1);
+        int total = sqliteDb.queryWarnLineCount(allPsLineWarnTable, 1);
+        return total;
+    }
+
+    public List hardLineList(int page, int rows) {
+        SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
+        List<WarnLine> hardLine = sqliteDb.queryWarnLine(allPsLineWarnTable, 1,page,rows);
         return hardLine;
     }
 
-    public List hardTransformerList() {
+
+    public int hardTransformerListCount() {
         SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
-        List<WarnLine> overLine = sqliteDb.queryWarnLine(allPsLineWarnTable, 2);
-        return overLine;
+        int total = sqliteDb.queryWarnTfCount(allPsTfWarnTable, 1);
+        return total;
     }
 
-    public List overLineList() {
+    public List hardTransformerList(int page, int rows) {
         SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
-        List<WarnTf> hardTf = sqliteDb.queryWarnTf(allPsTfWarnTable, 1);
+        List<WarnTf> hardTf = sqliteDb.queryWarnTf(allPsTfWarnTable, 1,page,rows);
         return hardTf;
     }
 
-    public List overTransformerList() {
+    public int overLineListCount() {
         SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
-        List<WarnTf> overTf = sqliteDb.queryWarnTf(allPsTfWarnTable, 2);
+        int count = sqliteDb.queryWarnLineCount(allPsLineWarnTable, 2);
+        return count;
+    }
+
+    public List overLineList(int page, int rows) {
+        SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
+        List<WarnLine> overLine = sqliteDb.queryWarnLine(allPsLineWarnTable, 2,page,rows);
+        return overLine;
+    }
+
+    public int overTransformerListCount() {
+        SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
+        int count = sqliteDb.queryWarnTfCount(allPsTfWarnTable, 2);
+        return count;
+    }
+
+    public List overTransformerList(int page, int rows) {
+        SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
+        List<WarnTf> overTf = sqliteDb.queryWarnTf(allPsTfWarnTable, 2,page,rows);
         return overTf;
     }
 

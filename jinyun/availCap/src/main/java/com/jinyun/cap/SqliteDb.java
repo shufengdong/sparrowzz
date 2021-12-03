@@ -1047,15 +1047,49 @@ public class SqliteDb {
         return warnLines;
     }
 
+
     /**
      * 查询按过载情况查询预警线路
      * @param tableName 表名
      * @return
      */
-    public List<WarnLine> queryWarnLine(String tableName, int loadState) {
+    public int queryWarnLineCount(String tableName, int loadState) {
+        List<WarnLine> warnLines = new LinkedList<>();
+        Connection conn = createConn();
+        String sql = "select count(*) from " + tableName + " where loadState=" + loadState;
+        Statement stmt = null;
+        ResultSet rs = null;
+        int count=0;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+            rs.next();
+            count = rs.getInt(1);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                rs.close();
+                stmt.close();
+            } catch (SQLException e) {
+            }
+        }
+        return count;
+    }
+
+    /**
+     * 查询按过载情况查询预警线路
+     * @param tableName 表名
+     * @return
+     */
+    public List<WarnLine> queryWarnLine(String tableName, int loadState,int page,int rows) {
         List<WarnLine> warnLines = new LinkedList<>();
         Connection conn = createConn();
         String sql = "select * from " + tableName + " where loadState=" + loadState;
+        if(page>0 && rows>0){
+            sql +=" limit " + (page-1)*rows + "," + rows;
+        }
         Statement stmt = null;
         ResultSet rs = null;
         try {
@@ -1127,15 +1161,50 @@ public class SqliteDb {
         return warnTfs;
     }
 
+
     /**
      * 查询预警公变
      * @param tableName 表名
      * @return
      */
-    public List<WarnTf> queryWarnTf(String tableName, int loadState) {
+    public int queryWarnTfCount(String tableName, int loadState) {
+        Connection conn = createConn();
+        String sql = "select count(*) from " + tableName + " where loadState=" + loadState;
+        Statement stmt = null;
+        ResultSet rs = null;
+        int count = 0;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+            rs.next();
+            count = rs.getInt(1);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                rs.close();
+                stmt.close();
+            } catch (SQLException e) {
+            }
+        }
+        return count;
+    }
+
+
+
+    /**
+     * 查询预警公变
+     * @param tableName 表名
+     * @return
+     */
+    public List<WarnTf> queryWarnTf(String tableName, int loadState,int page,int rows) {
         List<WarnTf> warnTfs = new LinkedList<>();
         Connection conn = createConn();
         String sql = "select * from " + tableName + " where loadState=" + loadState;
+        if(page>0 && rows>0){
+            sql +=" limit " + (page-1)*rows + "," + rows;
+        }
         Statement stmt = null;
         ResultSet rs = null;
         try {
