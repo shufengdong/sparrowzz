@@ -25,8 +25,8 @@ public class LoadPosController {
 
     @ApiOperation(value = "分析结果列表", notes = "")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",required = true),
-            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",required = true),
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
+            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
     })
     @RequestMapping(value = "/loadPosList",method = RequestMethod.GET)
     public Object loadPosSeason(@RequestParam("page") int page,@RequestParam("rows") int rows) {
@@ -51,8 +51,8 @@ public class LoadPosController {
     @ApiOperation(value = "负荷接入分析", notes = "")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "lineName", value = "线路名称", dataType = "string", paramType = "query",required = true),
-            @ApiImplicitParam(name = "cap", value = "负荷容量", dataType = "int", paramType = "query",required = true),
-            @ApiImplicitParam(name = "type", value = "负荷特征(1为峰用电，2为谷用电，3为峰谷用电)", dataType = "int", paramType = "query",required = true),
+            @ApiImplicitParam(name = "cap", value = "负荷容量", dataType = "int", paramType = "query",example = "0",required = true),
+            @ApiImplicitParam(name = "type", value = "负荷特征(1为峰用电，2为谷用电，3为峰谷用电)", dataType = "int", paramType = "query",example = "0",required = true),
     })
     @RequestMapping(value = "/loadPosAnalysis",method = RequestMethod.GET)
     public Object loadPosAnalysis(@RequestParam("lineName") String lineName,@RequestParam("cap") int cap,@RequestParam("type") int type) {

@@ -36,8 +36,8 @@ public class MainPageController {
 
     @ApiOperation(value = "重载线路列表", notes = "")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",required = true),
-            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",required = true),
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
+            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
     })
     @RequestMapping(value = "/hardLineList",method = RequestMethod.GET)
     public Object hardLineList(@RequestParam("page") int page,@RequestParam("rows") int rows) {
@@ -54,8 +54,8 @@ public class MainPageController {
 
     @ApiOperation(value = "重载配变列表", notes = "")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",required = true),
-            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",required = true),
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
+            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
     })
     @RequestMapping(value = "/hardTransformerList",method = RequestMethod.GET)
     public Object hardTransformerList(@RequestParam("page") int page,@RequestParam("rows") int rows) {
@@ -72,8 +72,8 @@ public class MainPageController {
 
     @ApiOperation(value = "超载线路列表", notes = "")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",required = true),
-            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",required = true),
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
+            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
     })
     @RequestMapping(value = "/overLineList",method = RequestMethod.GET)
     public Object overLineList(@RequestParam("page") int page,@RequestParam("rows") int rows) {
@@ -90,8 +90,8 @@ public class MainPageController {
 
     @ApiOperation(value = "超载配变列表", notes = "")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",required = true),
-            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",required = true),
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
+            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
     })
     @RequestMapping(value = "/overTransformerList",method = RequestMethod.GET)
     public Object overTransformerList(@RequestParam("page") int page,@RequestParam("rows") int rows) {
@@ -116,8 +116,8 @@ public class MainPageController {
 
     @ApiOperation(value = "配变三相不平衡度列表", notes = "")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",required = true),
-            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",required = true),
+            @ApiImplicitParam(name = "page", value = "页码", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
+            @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
     })
     @RequestMapping(value = "/transformerUnbalanceList",method = RequestMethod.GET)
     public Object transformerUnbalanceList(@RequestParam("page") int page,@RequestParam("rows") int rows) {

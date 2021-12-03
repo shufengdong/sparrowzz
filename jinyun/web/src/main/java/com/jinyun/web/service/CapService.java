@@ -38,8 +38,16 @@ public class CapService {
     static String loadPosTable = "负荷接入位置";
     static String allPsDbFile = "D:\\others\\yunqi\\项目\\缙云项目\\test\\allPsDb\\allPs.db";
     static String feederDbFile = "D:\\others\\yunqi\\项目\\缙云项目\\test\\feederDb";
+
+
+    public static void setFeederDbName(String feederDbName) {
+        CapService.feederDbName = feederDbName;
+    }
+
     static String feederDbName = "溪南G134线";
     static String cimFile = "D:\\others\\yunqi\\项目\\缙云项目\\test\\CIM";
+
+
 
     public Map<String, Object> gridStatistics() {
         Map<String,Object> result = new HashMap<>();
