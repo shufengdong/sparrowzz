@@ -627,6 +627,12 @@ public class AvailCapModel {
                 stack.push(neighbor);
                 noPush = false;
                 double[][] availCap = edgeAvailCap.get(e);
+//                if (e.getEquips().getFirst().equals("PD_11100000_10584371")) {
+//                    for (int i = 0; i < pointNum; i++) {
+//                        System.out.println(availCap[0][i] + "," + availCap[1][i] + "," + availCap[2][i] + "," + availCap[3][i]);
+//                    }
+//                    System.out.println();
+//                }
                 for (Edge edge : edgeStack) {
                     if (!ps.getResource(edge.getEquips().getFirst()).getType().toUpperCase().equals("BREAKER"))
                         continue;
@@ -645,6 +651,11 @@ public class AvailCapModel {
                         }
                     }
                 }
+//                if (e.getEquips().getFirst().equals("PD_11100000_10584371")) {
+//                    for (int i = 0; i < pointNum; i++) {
+//                        System.out.println(availCap[0][i] + "," + availCap[1][i] + "," + availCap[2][i] + "," + availCap[3][i]);
+//                    }
+//                }
                 edgeAvailCap.put(e, availCap);
                 edgeStack.push(e);
                 break;
@@ -1052,6 +1063,12 @@ public class AvailCapModel {
                     availCap[i][j] = mainLineAvailCap[i][j];
                 }
             }
+//            if (e.getEquips().getFirst().equals("PD_11100000_10584371")) {
+//                for (int i = 0; i < pointNum; i++) {
+//                    System.out.println(availCap[0][i] + "," + availCap[1][i] + "," + availCap[2][i] + "," + availCap[3][i]);
+//                }
+//                System.out.println();
+//            }
             for (int season = 1; season < 5; season++) {
                 for (String equip : e.getEquips()) {
                     String mRID = equip.substring(3);
@@ -1083,7 +1100,7 @@ public class AvailCapModel {
                     }
                 }
             }
-//            if (e.getEquips().getFirst().equals("PD_11100000_10612548")) {
+//            if (e.getEquips().getFirst().equals("PD_11100000_10584371")) {
 //                for (int i = 0; i < pointNum; i++) {
 //                    System.out.println(availCap[0][i] + "," + availCap[1][i] + "," + availCap[2][i] + "," + availCap[3][i]);
 //                }

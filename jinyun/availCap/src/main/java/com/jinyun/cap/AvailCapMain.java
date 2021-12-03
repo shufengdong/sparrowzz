@@ -535,9 +535,9 @@ public class AvailCapMain {
                 for (int i = 0; i < 96; i++) {
                     lineRatedICv[i] = lineRatedI;
                 }
-                double[] seasonCluster4 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonClusterTable, args[3], 4, 96);
-                double[] seasonMax4 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonTable, args[3], 4, 96);
-                double[] cap4 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 4, 96);
+                double[] seasonCluster4 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonClusterTable, args[3], 1, 96);
+                double[] seasonMax4 = sqliteDb.querySeasonSwitchI(args[2] + switchTableName + HistoryData.seasonTable, args[3], 1, 96);
+                double[] cap4 = sqliteDb.queryAvailCap(args[2] + availCapTableName, args[3], 1, 96);
                 System.out.println();
                 break;
             }
