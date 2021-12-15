@@ -5,6 +5,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class AvailCapMain {
 
@@ -386,6 +387,16 @@ public class AvailCapMain {
                 SqliteDb sqliteDb = new SqliteDb(args[1]);
                 List<String> feederNames = sqliteDb.queryAllFeederName(allFeederNameTable);
                 System.out.println(feederNames.size());
+                break;
+            }
+            case "allFeederNameId": {
+                // allFeederNameId为查询所有馈线名称和id对应关系。args[1]为存储所有馈线数据的数据库文件的路径
+                // feederIdToName为馈线id到名称的映射，feederNameToId为馈线名称到id的映射
+                SqliteDb sqliteDb = new SqliteDb(args[1]);
+                FeederNameId feederNameId = sqliteDb.queryAllFeederNameId(allFeederNameTable);
+                Map<Integer, String> feederIdToName = feederNameId.getFeederIdToName();
+                Map<String, Integer> feederNameToId = feederNameId.getFeederNameToId();
+                System.out.println(feederIdToName.size() + "," + feederNameToId.size());
                 break;
             }
             case "allPsWarnDev": {

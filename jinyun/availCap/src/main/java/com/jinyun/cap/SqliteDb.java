@@ -1599,7 +1599,7 @@ public class SqliteDb {
             stmt = conn.createStatement();
             rs = stmt.executeQuery(sql);
             while (rs.next()) {
-                feederNames.add(rs.getString("feeder"));
+                feederNames.add(rs.getString("feederName"));
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -1612,6 +1612,70 @@ public class SqliteDb {
             }
         }
         return feederNames;
+    }
+
+    /**
+     * 查询所有馈线id和名称对应关系
+     * @param tableName 表名
+     * @return
+     */
+    public FeederNameId queryAllFeederNameId(String tableName) {
+        FeederNameId feederNameId = new FeederNameId();
+        Connection conn = createConn();
+        String sql = "select * from " + tableName;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                int id = rs.getInt("feederId");
+                String name = rs.getString("feederName");
+                feederNameId.feederIdToName.put(id, name);
+                feederNameId.feederNameToId.put(name, id);
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                rs.close();
+                stmt.close();
+            } catch (SQLException e) {
+            }
+        }
+        return feederNameId;
+    }
+
+    /**
+     * 查询馈线最大Id
+     * @param tableName 表名
+     * @return
+     */
+    public int queryMaxFeederId(String tableName) {
+        int maxFeederId = 0;
+        Connection conn = createConn();
+        String sql;
+        sql = "select max(feederId) as maxFeederId from " + tableName;
+        Statement stmt = null;
+        ResultSet rs = null;
+        try {
+            stmt = conn.createStatement();
+            rs = stmt.executeQuery(sql);
+            while (rs.next()) {
+                maxFeederId = rs.getInt("maxFeederId");
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            e.printStackTrace();
+        } finally {
+            try {
+                rs.close();
+                stmt.close();
+            } catch (SQLException e) {
+            }
+        }
+        return maxFeederId;
     }
 
     /**
