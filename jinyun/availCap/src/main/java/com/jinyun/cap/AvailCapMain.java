@@ -1,5 +1,7 @@
 package com.jinyun.cap;//package availCap;
 
+import zju.devmodel.MapObject;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -39,7 +41,23 @@ public class AvailCapMain {
             case "parseData":
                 // parseData为解析数据文件和存库操作，args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为线路电流历史数据文件夹的路径
                 // args[4]为开关历史数据文件夹的路径，args[5]为线路参数.csv格式文件数据，args[6]为公变历史数据文件夹的路径，
-                // args[7]为公变参数文件的路径，args[8]为存储所有馈线数据的数据库文件的路径，args[9]为变电站名称
+                // args[7]为公变参数文件的路径，args[8]为存储所有馈线数据的数据库文件的路径，args[9]为变电站名称，args[10]为.xml文件的路径
+                // 馈线名称和id
+                JyPowerSystem ps = new JyPowerSystem();
+                try {
+                    ps.loadFromCimXML(new FileInputStream(new File(args[10])));
+                } catch (FileNotFoundException e) {
+                    e.printStackTrace();
+                }
+                List<MapObject> feederObjs = ps.getResourceByClassId("FEEDER");
+                String feederMRID = null;
+                String feederName = null;
+                for (MapObject feeder: feederObjs) {
+                    if (feeder.getProperty("ISCURRENTFEEDER").equals("true")) {
+                        feederMRID = feeder.getProperty("MRID");
+                        feederName = feeder.getProperty("NAME");
+                    }
+                }
                 HistoryData.createLineCurrentTable(args[1] + "\\" + args[2] + ".db", args[2] + lineITableName);
                 HistoryData.parseLineCurrent(args[2] + lineITableName, args[3], args[1] + "\\" + args[2] + ".db");
                 HistoryData.createSwitchTable(args[1] + "\\" + args[2] + ".db", args[2] + switchTableName);
@@ -69,7 +87,7 @@ public class AvailCapMain {
                 // 存储所有馈线名称
                 AvailCapModel availCapModel = new AvailCapModel();
                 availCapModel.createAllFeederNameTable(args[8], allFeederNameTable);
-                availCapModel.saveAllFeederNameTable(args[8], allFeederNameTable, args[2]);
+                availCapModel.saveAllFeederNameTable(args[8], allFeederNameTable, feederMRID, feederName);
                 // 存储变电站名称
                 availCapModel.createSubStationNameTable(args[1] + "\\" + args[2] + ".db", args[2] + substationTableName);
                 availCapModel.saveSubstationName(args[2] + substationTableName,
@@ -79,7 +97,7 @@ public class AvailCapMain {
                 // calAvailCap为计算可接入容量操作，args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为.xml文件的路径
                 SqliteDb sqliteDb = new SqliteDb(args[1] + "\\" + args[2] + ".db");
                 String[] sourceStationNames = new String[]{sqliteDb.querySubstationName(args[2] + substationTableName)};
-                JyPowerSystem ps = new JyPowerSystem(sourceStationNames);
+                ps = new JyPowerSystem(sourceStationNames);
                 try {
                     ps.loadFromCimXML(new FileInputStream(new File(args[3])));
                 } catch (FileNotFoundException e) {
@@ -104,7 +122,7 @@ public class AvailCapMain {
                 // warnDev为设备预警分析。args[1]为馈线数据库文件夹的路径，args[2]为馈线名称，args[3]为.xml文件的路径
                 SqliteDb sqliteDb = new SqliteDb(args[1] + "\\" + args[2] + ".db");
                 String[] sourceStationNames = new String[]{sqliteDb.querySubstationName(args[2] + substationTableName)};
-                JyPowerSystem ps = new JyPowerSystem(sourceStationNames);
+                ps = new JyPowerSystem(sourceStationNames);
                 try {
                     ps.loadFromCimXML(new FileInputStream(new File(args[3])));
                 } catch (FileNotFoundException e) {
@@ -139,7 +157,7 @@ public class AvailCapMain {
                 // args[4]为负荷容量，args[5]为负荷特征（1为峰用电，2为谷用电，3为峰谷用电），args[6]为存储所有馈线数据的数据库文件的路径
                 SqliteDb sqliteDb = new SqliteDb(args[1] + "\\" + args[2] + ".db");
                 String[] sourceStationNames = new String[]{sqliteDb.querySubstationName(args[2] + substationTableName)};
-                JyPowerSystem ps = new JyPowerSystem(sourceStationNames);
+                ps = new JyPowerSystem(sourceStationNames);
                 try {
                     ps.loadFromCimXML(new FileInputStream(new File(args[3] + "\\" + args[2] + "单线图.sln.xml")));
                 } catch (FileNotFoundException e) {
@@ -394,8 +412,8 @@ public class AvailCapMain {
                 // feederIdToName为馈线id到名称的映射，feederNameToId为馈线名称到id的映射
                 SqliteDb sqliteDb = new SqliteDb(args[1]);
                 FeederNameId feederNameId = sqliteDb.queryAllFeederNameId(allFeederNameTable);
-                Map<Integer, String> feederIdToName = feederNameId.getFeederIdToName();
-                Map<String, Integer> feederNameToId = feederNameId.getFeederNameToId();
+                Map<String, String> feederIdToName = feederNameId.getFeederIdToName();
+                Map<String, String> feederNameToId = feederNameId.getFeederNameToId();
                 System.out.println(feederIdToName.size() + "," + feederNameToId.size());
                 break;
             }

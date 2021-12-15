@@ -248,7 +248,7 @@ public class AvailCapModel {
         SqliteDb sqliteDb = new SqliteDb(allPsDbFile);
         if (!sqliteDb.existTable(tableName)) {
             String initSql = "CREATE TABLE " + tableName + " (" +
-                    " feederId     INTEGER NOT NULL," +
+                    " feederId     varchar(200) NOT NULL," +
                     " feederName     varchar(200) NOT NULL" +
                     ")";
             sqliteDb.initDb(initSql);
@@ -263,12 +263,11 @@ public class AvailCapModel {
      * @param allPsDbFile 数据库路径
      * @param tableName 表名
      */
-    public void saveAllFeederNameTable(String allPsDbFile, String tableName, String feederName) {
+    public void saveAllFeederNameTable(String allPsDbFile, String tableName, String feederMRID, String feederName) {
         SqliteDb allPsDb = new SqliteDb(allPsDbFile);
-        int feederId = allPsDb.queryMaxFeederId(tableName) + 1;
         List<String> sqls = new LinkedList<>();
         String insertSql = "insert into " + tableName + " values(" +
-                feederId + ",'" + feederName + "')";
+                "'" + feederMRID + "','" + feederName + "')";
         sqls.add(insertSql);
         allPsDb.executeSqls(sqls);
         sqls.clear();
