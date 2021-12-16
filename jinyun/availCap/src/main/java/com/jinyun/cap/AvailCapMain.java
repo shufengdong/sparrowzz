@@ -630,7 +630,7 @@ public class AvailCapMain {
                         redTfs.add(warnTf);
                 }
                 for (WarnLine warnLine : warnLines) {
-                    if (warnLine.loadRate == 1)
+                    if (warnLine.loadState == 1)
                         yellowLines.add(warnLine);
                     else
                         redLines.add(warnLine);
