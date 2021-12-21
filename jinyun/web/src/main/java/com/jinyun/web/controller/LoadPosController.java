@@ -1,5 +1,6 @@
 package com.jinyun.web.controller;
 
+import com.jinyun.web.annotation.UserLoginToken;
 import com.jinyun.web.service.CapService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -29,6 +30,7 @@ public class LoadPosController {
             @ApiImplicitParam(name = "rows", value = "行数", dataType = "int", paramType = "query",example = "0",defaultValue = "0",required = true),
     })
     @RequestMapping(value = "/loadPosList",method = RequestMethod.GET)
+    @UserLoginToken
     public Object loadPosSeason(@RequestParam("page") int page,@RequestParam("rows") int rows) {
         int total = capService.loadPosListCout();
         List loadPosList = new ArrayList();
@@ -43,6 +45,7 @@ public class LoadPosController {
 
     @ApiOperation(value = "线路名称列表", notes = "")
     @RequestMapping(value = "/lineNameList",method = RequestMethod.GET)
+    @UserLoginToken
     public Object lineNameList() {
         List result = capService.lineNameList();
         return result;
@@ -55,6 +58,7 @@ public class LoadPosController {
             @ApiImplicitParam(name = "type", value = "负荷特征(1为峰用电，2为谷用电，3为峰谷用电)", dataType = "int", paramType = "query",example = "0",required = true),
     })
     @RequestMapping(value = "/loadPosAnalysis",method = RequestMethod.GET)
+    @UserLoginToken
     public Object loadPosAnalysis(@RequestParam("lineName") String lineName,@RequestParam("cap") int cap,@RequestParam("type") int type) {
         Object result = capService.loadPosAnalysis(lineName, cap, type);
         if(result != null)
@@ -67,6 +71,7 @@ public class LoadPosController {
             @ApiImplicitParam(name = "loadId", value = "负荷ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/loadPosSw",method = RequestMethod.GET)
+    @UserLoginToken
     public Object loadPosSw(@RequestParam("loadId") String loadId) {
         Object result = capService.loadPosSw(loadId);
         return result;
@@ -77,6 +82,7 @@ public class LoadPosController {
             @ApiImplicitParam(name = "loadId", value = "负荷ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/loadPosTf",method = RequestMethod.GET)
+    @UserLoginToken
     public Object loadPosTf(@RequestParam("loadId") String loadId) {
         Object result = capService.loadPosTf(loadId);
         return result;

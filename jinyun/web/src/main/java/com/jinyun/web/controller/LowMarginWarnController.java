@@ -1,5 +1,6 @@
 package com.jinyun.web.controller;
 
+import com.jinyun.web.annotation.UserLoginToken;
 import com.jinyun.web.service.CapService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -25,6 +26,7 @@ public class LowMarginWarnController {
 
     @ApiOperation(value = "lowMarginAnalysis", notes = "")
     @RequestMapping(value = "/lowMarginAnalysis",method = RequestMethod.GET)
+    @UserLoginToken
     public Object lowMarginAnalysis() {
         Map<String, Object> result = capService.lowMarginAnalysis();
         return result;

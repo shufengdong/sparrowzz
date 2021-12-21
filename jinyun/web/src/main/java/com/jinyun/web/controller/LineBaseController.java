@@ -1,5 +1,6 @@
 package com.jinyun.web.controller;
 
+import com.jinyun.web.annotation.UserLoginToken;
 import com.jinyun.web.service.CapService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -23,6 +24,7 @@ public class LineBaseController {
             @ApiImplicitParam(name = "mRID", value = "开关ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/baseInfo",method = RequestMethod.GET)
+    @UserLoginToken
     public Object baseInfo(@RequestParam("mRID") String mRID) {
         Map<String,Object> result = capService.baseInfo(mRID);
         return result;
@@ -33,6 +35,7 @@ public class LineBaseController {
             @ApiImplicitParam(name = "mRID", value = "开关ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/lineSummer",method = RequestMethod.GET)
+    @UserLoginToken
     public Object lineSummer(@RequestParam("mRID") String mRID) {
         Map<String,Object> result = capService.lineSummer(mRID);
         return result;
@@ -43,6 +46,7 @@ public class LineBaseController {
             @ApiImplicitParam(name = "mRID", value = "开关ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/lineWinter",method = RequestMethod.GET)
+    @UserLoginToken
     public Object lineWinter(@RequestParam("mRID") String mRID) {
         Map<String,Object> result = capService.lineWinter(mRID);
         return result;
@@ -53,6 +57,7 @@ public class LineBaseController {
             @ApiImplicitParam(name = "mRID", value = "开关ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/linePs",method = RequestMethod.GET)
+    @UserLoginToken
     public Object linePs(@RequestParam("mRID") String mRID) {
         Map<String,Object> result = capService.linePs(mRID);
         return result;
@@ -63,6 +68,7 @@ public class LineBaseController {
             @ApiImplicitParam(name = "mRID", value = "线路ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/lineInfo",method = RequestMethod.GET)
+    @UserLoginToken
     public Object lineInfo(@RequestParam("mRID") String mRID) {
         Map<String,Object> result = capService.lineInfo(mRID);
         return result;
@@ -73,6 +79,7 @@ public class LineBaseController {
             @ApiImplicitParam(name = "mRID", value = "公变ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/transformerInfo",method = RequestMethod.GET)
+    @UserLoginToken
     public Object transformerInfo(@RequestParam("mRID") String mRID) {
         Map<String,Object> result = capService.transformerInfo(mRID);
         return result;
@@ -83,6 +90,7 @@ public class LineBaseController {
             @ApiImplicitParam(name = "mRID", value = "线路ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/lineInfoDetail",method = RequestMethod.GET)
+    @UserLoginToken
     public Object lineInfoDetail(@RequestParam("mRID") String mRID) {
         Map<String,Object> result = capService.lineInfoDetail(mRID);
         return result;
@@ -94,6 +102,7 @@ public class LineBaseController {
             @ApiImplicitParam(name = "mRID", value = "公变ID", dataType = "string", paramType = "query",required = true),
     })
     @RequestMapping(value = "/transformerInfoDetail",method = RequestMethod.GET)
+    @UserLoginToken
     public Object transformerInfoDetail(@RequestParam("mRID") String mRID) {
         Map<String,Object> result = capService.transformerInfoDetail(mRID);
         return result;
