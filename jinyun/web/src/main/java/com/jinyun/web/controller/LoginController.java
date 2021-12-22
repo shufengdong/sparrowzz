@@ -24,7 +24,7 @@ public class LoginController {
     TokenService tokenService;
     //登录
     @PostMapping("/login")
-    public Object login( User user){
+    public Object login(@RequestBody User user){
         JSONObject jsonObject=new JSONObject();
         User userForBase=userService.findByUsername(user);
         if(userForBase==null){
