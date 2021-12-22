@@ -24,7 +24,7 @@ public class SqliteDb {
             try {
                 f.createNewFile();
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException(e.getMessage());
             }
         }
         Connection conn;
@@ -144,7 +144,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -171,7 +171,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -196,7 +196,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -229,7 +229,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -259,7 +259,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -289,7 +289,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -333,7 +333,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -367,7 +367,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -416,7 +416,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -460,7 +460,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -494,7 +494,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 if (rs != null) {
@@ -528,7 +528,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 if (rs != null) {
@@ -582,7 +582,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -629,7 +629,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -660,7 +660,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 if (rs != null) {
@@ -695,7 +695,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 if (rs != null) {
@@ -734,7 +734,7 @@ public class SqliteDb {
                 phase = "c";
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 if (rs != null) {
@@ -766,7 +766,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -796,7 +796,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -830,7 +830,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 if (rs != null) {
@@ -866,7 +866,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 if (rs != null) {
@@ -904,7 +904,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -934,7 +934,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -968,7 +968,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1002,7 +1002,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 if (rs != null) {
@@ -1044,7 +1044,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1075,7 +1075,7 @@ public class SqliteDb {
             count = rs.getInt(1);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1118,7 +1118,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1158,7 +1158,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1188,7 +1188,7 @@ public class SqliteDb {
             count = rs.getInt(1);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1233,7 +1233,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1277,7 +1277,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1316,7 +1316,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1359,7 +1359,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1391,7 +1391,7 @@ public class SqliteDb {
             count = rs.getInt(1);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1435,7 +1435,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1466,7 +1466,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1519,7 +1519,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1573,7 +1573,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1603,7 +1603,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1636,7 +1636,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1666,7 +1666,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
@@ -1697,7 +1697,7 @@ public class SqliteDb {
             }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
-            e.printStackTrace();
+            throw new RuntimeException(e.getMessage());
         } finally {
             try {
                 rs.close();
