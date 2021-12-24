@@ -10,6 +10,8 @@ import com.jinyun.web.annotation.UserLoginToken;
 import com.jinyun.web.entity.User;
 import com.jinyun.web.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
@@ -28,6 +30,10 @@ public class AuthenticationInterceptor implements HandlerInterceptor {
     UserService userService;
     @Override
     public boolean preHandle(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Object object) throws Exception {
+        if(httpServletRequest.getMethod().equals(RequestMethod.OPTIONS.name())){
+            httpServletResponse.setStatus(HttpStatus.OK.value());
+            return true;
+        }
         String token = httpServletRequest.getHeader("token");// 从 http 请求头中取出 token
         // 如果不是映射到方法直接通过
         if(!(object instanceof HandlerMethod)){
