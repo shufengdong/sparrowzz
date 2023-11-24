@@ -1,0 +1,21 @@
+FLOW ID,是否启用,名称,触发条件,触发条件参数,,
+60121,TRUE,简单,Manual,,,
+,,,,,,
+FLOW ID,节点ID,名称,节点类型,参数,,
+60121,1,suffix1,SOURCE_URL,https://pan.zju.edu.cn/share/8ff81c393101990a2c713f4acd,,
+60121,2,input1,SOURCE_URL,https://pan.zju.edu.cn/share/6830465b5ffc871477871d365d,,
+60121,3,join,Transform,"join(edge1,edge2,[""绞线"",""尺寸""],[""绞线"",""尺寸""],inner)",,
+60121,4,sort,Transform,"sort(index, false, false)",,
+60121,5,cal_image,TensorEval,"distance = [[0,0.7622,2.1342,1.7247],[0.7622,0,1.372,1.3025],[2.1342,1.372,0,1.5244],[1.7247,1.3025,1.5244,0]];
+D = diag(GMR)+distance;
+image = 0.0628*(ln(1/D)+8.02517);",,
+60121,6,cal_real,SOURCE_URL,https://pan.zju.edu.cn/share/2ddfa2ed5c334b63885e0459f1,,
+60121,7,Zabc,Transform,concat(horizontal),,
+,,,,,,
+FLOW ID,首尾节点,动作名称,DESC,动作类型,动作参数,
+60121,1;3,edge1,,None,,
+60121,2;3,edge2,,None,,
+60121,3;4,rename,,Eval,select,"col(index);col(""绞线"");alias(col(""几何平均半径_m""),mat_4_1);"
+60121,4;5,GMR,,Eval,select,col(mat_4_1);
+60121,5;7,real,,Eval,select,"alias(col(mat_4_4),Zreal);"
+60121,6;7,image,,Eval,select,"alias(col(mat_4_4),Zimag);"

@@ -1,0 +1,8 @@
+Index,ID,Name,Alias,Is Discrete,Is Computing,Expression,Trans Expr,Inv Trans Expr,Change Expr,Zero Expr,Unit,Upper Limit,Lower Limit,Alarm 1,Alarm 2,Is Realtime,Is Realtime,Initial,Tags,Description
+1,1000001,源电压,,FALSE,FALSE,,,,,,,"0","0",,,FALSE,FALSE,0.0,,
+2,1000002,A相有功,,FALSE,FALSE,,,,,,,"0","0",,,FALSE,FALSE,0.0,,
+3,1000003,A相无功,,FALSE,FALSE,,,,,,,"0","0",,,FALSE,FALSE,0.0,,
+4,1000004,B相有功,,FALSE,FALSE,,,,,,,"0","0",,,FALSE,FALSE,0.0,,
+5,1000005,B相无功,,FALSE,FALSE,,,,,,,"0","0",,,FALSE,FALSE,0.0,,
+6,1000006,C相有功,,FALSE,FALSE,,,,,,,"0","0",,,FALSE,FALSE,0.0,,
+7,1000007,C相无功,,FALSE,FALSE,,,,,,,"0","0",,,FALSE,FALSE,0.0,,

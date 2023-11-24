@@ -1,0 +1,7 @@
+Index,ID,Device Define Id,Name,Description,Terminal,Container,Name,ID,Property ID,Property Value,Property ID,Property Value,Property ID,Property Value
+1,1,7,Infinite Bus,源,10,,ieee,1,,,,,,
+2,2,2,line1,线路1,21;22,,ieee,2,3,"336,400 26/7",4,,,
+3,3,5,transformer,变压器,31;32,,ieee,3,3,Wye-Delta Step Down,9,1.0,10,6.0
+4,4,2,line2,线路2,41;42,,ieee,4,3,"336,400 26/7",4,,,
+5,5,4,Load,负荷,50,,ieee,5,,,,,,
+6,6,1,BaseVoltage,电压等级,60,,ieee,6,1,10000,,,,

@@ -1,0 +1,11 @@
+序号,ID,属性标识,属性标题,数据类型,单位
+1,1,nominalVoltage,电压等级,U64,V
+2,2,normalOpen,normalOpen,Str,UnitOne
+3,3,model,config,Str,UnitOne
+4,4,length,长度,U64,ft
+5,5,crossSectionArea,横截面积,U64,mm2
+6,6,nominalVoltage,电压等级,U64,V
+7,7,mRID,mRID,Str,UnitOne
+8,8,EquipmentContainer,container,Str,UnitOne
+9,9,R,电阻,F64,UnitOne
+10,10,X,电抗,F64,UnitOne

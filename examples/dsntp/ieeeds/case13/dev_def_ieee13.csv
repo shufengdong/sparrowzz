@@ -1,0 +1,8 @@
+序号,ID,资源类型,名称,描述,端子数量,属性分组1_名称,属性分组1_描述,属性分组1_属性
+1,1,BaseVoltage,BaseVoltage,BaseVoltage,0,ieee,电压等级,1
+2,2,ACline,ACLineSegment,交流线路,2,ieee,线路类型-长度,3;4
+3,3,Switch,Breaker,Breaker,2,ieee,开关,2
+4,4,Load,Load,Load,1,ieee,负荷,
+5,5,Transformer,PowerTransformer,Transformer,2,ieee,变压器类型-R-X-原边电压等级,3;9;10;1
+6,6,ShuntCompensator,ShuntCompensator,ShuntCompensator,1,ieee,并联补偿,
+7,7,Busbar,BusbarSection,母线,1,ieee,母线-源,
