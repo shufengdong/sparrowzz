@@ -1,5 +1,5 @@
-FLOW ID,是否启用,名称,触发条件,触发条件参数,,
-60121,TRUE,简单,Manual,,,
+FLOW ID,是否启用,名称,触发条件,触发条件参数,存储模式,
+60121,TRUE,ds_case2_1,Manual,,Memory,
 ,,,,,,
 FLOW ID,节点ID,名称,节点类型,参数,,
 60121,1,suffix1,SOURCE_URL,https://shufengdong.github.io/sparrowzz/examples/dsntp/ieeeds/conductor_data.csv,,
