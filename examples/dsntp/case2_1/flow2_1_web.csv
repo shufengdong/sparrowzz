@@ -10,12 +10,14 @@ FLOW ID,节点ID,名称,节点类型,参数,,
 D = diag(GMR)+distance;
 image = 0.0628*(ln(1/D)+8.02517);",,
 60121,6,cal_real,SOURCE_URL,https://shufengdong.github.io/sparrowzz/examples/dsntp/case2_1/input2.csv,,
-60121,7,Zabc,Transform,concat(horizontal),,
+60121,7,Z,TensorEval,"Z=z_re+c(0,1)*z_im;",true,
+60121,8,Zabc,TensorEval,"Zij=slice(Z, [0,3],[0,3]);Zin=slice(Z,[0,3],[3]);Znj=slice(Z,[3],[0,3]);Znn=slice(Z, [3,4],[3,4]);Zabc=Zij-Zin*Znj/Znn;",true,
 ,,,,,,
 FLOW ID,首尾节点,动作名称,DESC,动作类型,动作参数,
 60121,1;3,edge1,,None,,
 60121,2;3,edge2,,None,,
 60121,3;4,rename,,Eval,select,"col(index);col(""绞线"");alias(col(""几何平均半径_m""),mat_4_1);"
 60121,4;5,GMR,,Eval,select,col(mat_4_1);
-60121,5;7,real,,Eval,select,"alias(col(mat_4_4),Zreal);"
-60121,6;7,image,,Eval,select,"alias(col(mat_4_4),Zimag);"
+60121,5;7,z_im,,None,,
+60121,6;7,z_re,,None,,
+60121,7;8,Z,,None,,
