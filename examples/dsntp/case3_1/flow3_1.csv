@@ -3,7 +3,7 @@ FLOW ID,是否启用,名称,触发条件,触发条件参数,,
 ,,,,,,
 FLOW ID,节点ID,名称,节点类型,参数,,
 60131,1,input,SOURCE_URL,https://shufengdong.github.io/sparrowzz/examples/dsntp/case3_1/input.csv,,
-60131,2,zt,None,,,,
+60131,2,zt,None,,,
 ,,,,,,
 FLOW ID,首尾节点,动作名称,DESC,动作类型,动作参数,
-60131,1;2,edge1,,Eval,,alias(col(z1_re)/(col(ratedV2)/col(ratedV1)*(col(ratedV2)/col(ratedV1))), zt_re);
+60131,1;2,edge1,,Eval,select,"alias(col(z1_re)/(col(ratedV2)/col(ratedV1)*(col(ratedV2)/col(ratedV1))), zt_re);"
