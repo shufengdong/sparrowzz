@@ -5,4 +5,4 @@
 4,4,Load,Load,Load,1,ieee,负荷,
 5,5,Transformer,PowerTransformer,Transformer,2,ieee,变压器类型-R-X-原边电压等级,3;9;10;1
 6,6,ShuntCompensator,ShuntCompensator,ShuntCompensator,1,ieee,并联补偿,
-7,7,Busbar,BusbarSection,母线,1,ieee,母线-源,
+7,7,Feeder,Source,源,1,ieee,源,
