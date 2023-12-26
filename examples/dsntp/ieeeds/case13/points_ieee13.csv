@@ -1,4 +1,4 @@
-Index,ID,Name,Alias,Is Discrete,Is Computing,Expression,Trans Expr,Inv Trans Expr,Change Expr,Zero Expr,Unit,Upper Limit,Lower Limit,Alarm 1,Alarm 2,Is Realtime,Is Realtime,Initial,Tags,Description
+Index,ID,Name,Alias,Is Discrete,Is Computing,Expression,Trans Expr,Inv Trans Expr,Change Expr,Zero Expr,Unit,Upper Limit,Lower Limit,Alarm 1,Alarm 2,Is Realtime,Is SOE,Initial,Tags,Description
 1,1000001,源电压,,FALSE,FALSE,,,,,,kV,999999,-999999,,,TRUE,FALSE,0.0,,TotV
 2,1000002,A相有功634,,FALSE,FALSE,,,,,,kW,999999,-999999,,,TRUE,FALSE,0.0,,PhW_phsA
 3,1000003,A相无功634,,FALSE,FALSE,,,,,,kVAr,999999,-999999,,,TRUE,FALSE,0.0,,PhVAr_phsA
