@@ -1,0 +1,19 @@
+[package]
+name = "eig-db"
+version = "0.1.0"
+authors = ["dongshufeng <dongshufeng@zju.edu.cn>"]
+edition.workspace = true
+rust-version.workspace = true
+
+[features]
+model = []
+
+[dependencies]
+log = "0.4"
+bytes = "1.6"
+byteorder = "1.5"
+serde = { version = "1.0", features = ["derive"] }
+async-channel = "2.3"
+
+eig-domain = { path = "../eig-domain", default-features = false, features = ["model"]}
+eig-aoe = { path = "../eig-aoe", default-features = false, features = ["strict-model"] }

@@ -1,0 +1,14 @@
+[workspace]
+resolver = "2"
+members = [
+    "eig-expr",
+    "eig-domain",
+    "eig-aoe",
+    "eig-db",
+    "mems",
+    "mems/examples/wasm-dn-static-topo",
+]
+
+[workspace.package]
+edition = "2021"
+rust-version = "1.75.0"  # MSRV

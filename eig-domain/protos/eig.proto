@@ -1,0 +1,207 @@
+message PbAnalogValue {
+  // 测点Id
+  required uint64 pointId = 1;
+  // 测量值
+  required double measValue = 2;
+  // 时标
+  optional uint64 timestamp = 3;
+  // 原始值
+  optional double origValue = 4;
+  // change init
+  optional bool change_init = 5;
+  // source
+  optional uint32 source = 6;
+}
+
+message PbDiscreteValue {
+  // 测点Id
+  required uint64 pointId = 1;
+  // 新的测量值
+  required int64 measValue = 2;
+  // 时标
+  optional uint64 timestamp = 3;
+  // 原始值
+  optional int64 origValue = 4;
+  // change init
+  optional bool change_init = 5;
+  // source
+  optional uint32 source = 6;
+}
+
+message PbPointValues {
+  repeated PbDiscreteValue dValues = 1;
+  repeated PbAnalogValue aValues = 2;
+}
+
+message PbSetIntPoint {
+  // 发起者id
+  required uint64  senderId = 1;
+  // 测点Id
+  required uint64  pointId = 2;
+  required int64  value = 3;
+  optional uint64 timestamp = 4;
+}
+
+message PbSetFloatPoint {
+  // 发起者id
+  required uint64  senderId = 1;
+  // 测点Id
+  required uint64  pointId = 2;
+  required double  value = 3;
+  optional uint64 timestamp = 4;
+}
+
+// 设点命令
+message PbSetPoints {
+  repeated PbSetIntPoint dValues = 1;
+  repeated PbSetFloatPoint aValues = 2;
+}
+// 通过mqtt传输的文件
+message PbFile {
+  enum FileOperation {
+    UPDATE = 1;
+    DELETE = 2;
+    RENAME = 3;
+  }
+  optional string fileName = 1;
+  required bytes fileContent = 2;
+  optional FileOperation op = 3;
+  optional bool is_zip = 4[default = false];
+}
+
+message PbFiles {
+  repeated PbFile files = 1;
+}
+
+// ping响应消息
+message PbEigPingRes {
+  required string id = 1;
+  required string name = 2;
+  required string ip = 3;
+  optional string desc = 4;
+  optional bool is_ems = 5;
+  optional bool is_standby = 6;
+}
+
+message PbProperty {
+  required string key = 1;
+  required string value = 2;
+}
+
+message PbFileInfo {
+  required string file_name = 1;
+  required uint64 file_size = 2;
+}
+
+// eig配置文件、通道配置文件、测点配置文件、svg文件概况
+message PbEigProfile {
+  repeated PbProperty properties = 1;
+  repeated PbFileInfo transport_files = 2;
+  repeated PbFileInfo point_files = 3;
+  repeated PbFileInfo svg_files = 4;
+  repeated PbFileInfo aoe_files = 5;
+}
+
+message PbAlarmDefine {
+  enum AlarmLevel {
+    Common = 1;
+    Important = 2;
+    Emergency = 3;
+  }
+  required uint32 id = 1;
+  //告警触发规则
+  required string rule = 2;
+  //级别
+  required AlarmLevel level = 3;
+  optional string name = 4;
+  //此告警内容的详情
+  optional string desc = 5;
+  // 此告警规则所对应的设备或用户，只有配置了用户才能收到短信
+  optional string owners = 6;
+}
+
+message PbEigAlarm {
+  enum AlarmStatus {
+    occur = 1;
+    disappear = 2;
+  }
+  enum AlarmType {
+    invalidPoints = 1;
+    invalidTransport = 2;
+    invalidAOE = 3;
+    alarmLevel1 = 4;
+    alarmLevel2 = 5;
+    badData = 6;
+    userDefine = 7;
+  }
+  required uint64 timestamp = 1;
+  optional uint64 id = 2;
+  optional AlarmType alarm_type = 3;
+  optional AlarmStatus status = 4;
+  optional uint32 define_id = 5;
+  optional string content = 6;
+}
+
+message PbAlarmDefines {
+  repeated PbAlarmDefine defines = 1;
+}
+
+message PbEigAlarms {
+  repeated PbEigAlarm alarms = 1;
+}
+
+message PbSetPointResult {
+  enum SetPointStatus {
+    YkCreated = 1;
+    YtCreated = 2;
+    YkSuccess = 3;
+    YtSuccess = 4;
+    YkFailTimeout = 5;
+    YtFailTimeout = 6;
+    YkFailTooBusy = 7;
+    YtFailTooBusy = 8;
+    YkFailProtocol = 9;
+    YtFailProtocol = 10;
+  }
+  required uint64 sender_id = 1;
+  required uint64 point_id = 2;
+  required uint64 create_time = 3;
+  required uint64 finish_time = 4;
+  required uint64 command = 5;
+  required SetPointStatus status = 6;
+}
+
+message PbSetPointResults {
+  repeated PbSetPointResult results = 1;
+}
+
+message PbMessage {
+  required string topic = 1;
+  required bytes content = 2;
+}
+
+message PbRequest {
+  enum RequestType {
+    Get = 1;
+    Post = 2;
+    Put = 3;
+    Delete = 4;
+    Test = 5;
+  }
+  optional uint64 id = 1;
+  required string url = 2;
+  required RequestType function = 3;
+  // base64 string
+  optional string content = 4;
+  repeated string header_keys = 5;
+  repeated string header_values = 6;
+}
+
+message PbResponse {
+  required uint64 request_id = 1;
+  required bool is_ok = 2;
+  // base64 encoded string
+  optional string content = 3;
+  // is 7z
+  optional bool is_zip = 4;
+}

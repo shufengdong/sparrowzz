@@ -1,0 +1,55 @@
+
+message PbEventResult {
+    enum EventEvalResult {
+        Happen = 1;
+        NotHappen = 2;
+        Canceled = 3;
+        Error = 4;
+    }
+    required uint64 id = 1;
+    required uint64 start_time = 2;
+    required uint64 end_time = 3;
+    required EventEvalResult final_result = 4;
+}
+
+message PbActionResult {
+    enum ActionExeResult {
+        NotRun = 1;
+        Success = 2;
+        Failed = 3;
+    }
+    required uint64 source_id = 1;
+    required uint64 target_id = 2;
+    required uint64 start_time = 3;
+    required uint64 end_time = 4;
+    required ActionExeResult final_result = 5;
+    optional uint32 fail_code = 6;
+    repeated uint64 yk_points = 7;
+    repeated int64 yk_values = 8;
+    repeated uint64 yt_points = 9;
+    repeated double yt_values = 10;
+    repeated string variables = 11;
+    repeated double var_values = 12;
+}
+
+message PbAoeResult {
+    // aoe id
+    required uint64 aoe_id = 1;
+    required uint64 start_time = 2;
+    required uint64 end_time = 3;
+    repeated PbEventResult event_results = 4;
+    repeated PbActionResult action_results = 5;
+}
+
+message PbAoeResults {
+    repeated PbAoeResult results = 1;
+}
+
+message PbAoeOperation {
+    enum Op {
+        START = 1;
+        STOP = 2;
+    }
+    required uint64 aoe_id = 1; // AOE ID
+    required Op operation = 2; // AOE ID
+}

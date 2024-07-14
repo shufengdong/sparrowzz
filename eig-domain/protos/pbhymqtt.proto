@@ -1,0 +1,58 @@
+// 确认回复报文（用于注册模型、注册设备、数据上报）
+message PbHYAckResponse {
+  // token
+  required string token = 1;
+  // 时标
+  optional string timestamp = 2;
+  // 成功/失败
+  required string status = 3;
+}
+
+
+// guid结构
+message PbHYGuid {
+  optional string model = 1;
+  optional string port = 2;
+  optional string addr = 3;
+  optional string desc = 4;
+  // GUID
+  required string guid = 5;
+  required string dev = 6;
+}
+// 获取guid回复报文
+message PbHYGuidResponse {
+  required string token = 1;
+  optional string timestamp = 2;
+  // 成功/失败
+  repeated PbHYGuid body = 3;
+}
+
+
+// 数据读写过程：
+// 信息体结构
+message PbHYPointValue {
+  required string name = 1;
+  required string val = 2;
+  optional string quality = 3;
+  optional string secret = 4;
+  optional string timestamp = 5;
+}
+// 数据读取结构
+message PbHYReadPoints {
+  required string dev = 1;
+  repeated PbHYPointValue body = 2;
+}
+// 数据查询回复报文
+message PbHYReadResponse {
+  required string token = 1;
+  optional string timestamp = 2;
+  repeated PbHYReadPoints body = 3;
+}
+// 数据写入请求报文
+message PbHYWriteRequest {
+  required string token = 1;
+  optional string timestamp = 2;
+  required string data_row = 3;
+  repeated PbHYPointValue body = 4;
+}
+
