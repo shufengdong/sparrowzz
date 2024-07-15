@@ -7,7 +7,7 @@ use ndarray::Array2;
 
 use mems::model::{get_wasm_result, PluginInput, PluginOutput};
 
-use crate::read::{read_dev_matrix, read_dev_topo, read_dyn_topo, read_tn_input};
+use crate::read::{read_dev_ohm, read_dev_topo, read_dyn_topo, read_tn_input};
 
 mod read;
 mod nlp;
@@ -66,7 +66,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 }
             }
         } else if input.dfs[i] == DEV_CONDUCTOR_DF_NAME {
-            match read_dev_matrix(&mut records) {
+            match read_dev_ohm(&mut records) {
                 Ok(v) => dev_conductor = v,
                 Err(s) => {
                     error = Some(s);

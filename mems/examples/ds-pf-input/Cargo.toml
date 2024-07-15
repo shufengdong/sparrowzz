@@ -8,6 +8,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 log = "0.4"
+csv = "1.3.0"
 serde_cbor = "0.11"
 arrow-schema = { version = "52.1", features = ["serde"] }
+ds-common = { path = "../ds-common" }
 mems = { path = "../../../mems" }

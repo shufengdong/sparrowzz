@@ -80,8 +80,8 @@ pub(crate) fn read_dev_topo(records: &mut StringRecordsIter<&[u8]>)
     Ok(dev_topo)
 }
 
-pub(crate) fn read_dev_matrix(records: &mut StringRecordsIter<&[u8]>)
-                              -> Result<HashMap<u64, Vec<Array2<f64>>>, String> {
+pub(crate) fn read_dev_ohm(records: &mut StringRecordsIter<&[u8]>)
+                           -> Result<HashMap<u64, Vec<Array2<f64>>>, String> {
     let mut map = HashMap::new();
     let mut dev_id = 0u64;
     let mut matrix: Vec<f64> = Vec::with_capacity(MAT_SIZE);

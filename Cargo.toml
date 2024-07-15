@@ -6,6 +6,7 @@ members = [
     "eig-aoe",
     "eig-db",
     "mems",
+    "mems/examples/ds-common",
     "mems/examples/ds-static-topo",
     "mems/examples/ds-dev-ohm-cal",
     "mems/examples/ds-dyn-topo",
