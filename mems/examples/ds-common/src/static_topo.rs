@@ -2,7 +2,7 @@ use std::collections::HashMap;
 use csv::StringRecordsIter;
 use mems::model::dev::PsRsrType;
 
-pub(crate) fn read_points(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<u64>>, String> {
+pub fn read_points(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<u64>>, String> {
     let mut points = Vec::new();
     // 按行读取csv
     let mut row = 0;
@@ -38,7 +38,7 @@ pub(crate) fn read_points(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<
     Ok(points)
 }
 
-pub(crate) fn read_terminals(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<u64>>, String> {
+pub fn read_terminals(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<u64>>, String> {
     let mut terminals: Vec<Vec<u64>> = Vec::new();
     // 按行读取csv
     let mut row = 0;
@@ -74,8 +74,8 @@ pub(crate) fn read_terminals(records: &mut StringRecordsIter<&[u8]>) -> Result<V
     Ok(terminals)
 }
 
-pub(crate) fn read_edges(records: &mut StringRecordsIter<&[u8]>)
-              -> Result<(Vec<Vec<u64>>, HashMap<u64, bool>), String> {
+pub fn read_edges(records: &mut StringRecordsIter<&[u8]>)
+                         -> Result<(Vec<Vec<u64>>, HashMap<u64, bool>), String> {
     let mut edges = Vec::new();
     let mut normal_open = HashMap::new();
     let mut row = 0;

@@ -16,5 +16,6 @@ num-complex = "0.4"
 ndarray = "0.15"
 nalgebra = "0.33"
 
+ds-common = { path = "../ds-common" }
 eig-domain = { path = "../../../eig-domain" }
 mems = { path = "../../../mems" }

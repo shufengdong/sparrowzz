@@ -4,14 +4,8 @@ use arrow_schema::{DataType, Field, Schema};
 
 use eig_domain::DataUnit;
 use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, get_wasm_result, ModelType, PluginInput, PluginOutput};
-use crate::read::{read_edges, read_points, read_terminals};
-mod read;
+use ds_common::static_topo::{read_edges, read_points, read_terminals};
 
-const STATIC_TOPO_DF_NAME: &str = "static_topo";
-const TERMINAL_DF_NAME: &str = "terminal_cn_dev";
-const POINT_DF_NAME: &str = "point_terminal_phase";
-const DYN_TOPO_DF_NAME: &str = "dyn_topo";
-const DEV_TOPO_DF_NAME: &str = "dev_topo";
 
 #[no_mangle]
 pub unsafe fn run(ptr: i32, len: u32) -> u64 {

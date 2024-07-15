@@ -1,5 +1,6 @@
 use arrow_schema::{DataType, Field, Schema};
-use ds_common::{DEV_TOPO_DF_NAME, DYN_TOPO_DF_NAME, read_dev_topo, read_dyn_topo};
+
+use ds_common::{DEV_TOPO_DF_NAME, DYN_TOPO_DF_NAME};
 use mems::model::{get_meas_from_plugin_input, get_wasm_result, PluginInput, PluginOutput};
 
 #[no_mangle]
