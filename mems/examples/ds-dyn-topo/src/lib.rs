@@ -79,7 +79,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             terminal_dev.insert(ids[0], ids[2]);
         }
         // 开始构建
-        let mut switch_to_cn: HashMap<u64, u64> = HashMap::with_capacity(terminal_cn.len() / 2);
+        let mut closed_switch_to_cn: HashMap<u64, u64> = HashMap::with_capacity(terminal_cn.len() / 2);
         // 开始处理开关量
         for m in meas {
             if let Some(unit) = units.get(&m.point_id) {
@@ -88,7 +88,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                         if let Some(cn_id) = terminal_cn.get(terminal_id) {
                             if let Some(dev_id) = terminal_dev.get(terminal_id) {
                                 if m.get_value2() > 0 {
-                                    switch_to_cn.insert(*dev_id, *cn_id);
+                                    closed_switch_to_cn.insert(*dev_id, *cn_id);
                                 }
                             }
                         }
@@ -103,7 +103,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             let cn2 = v[1];
             let dev_id = v[2];
             // switch with measure
-            if let Some(cn) = switch_to_cn.get(&dev_id) {
+            if let Some(cn) = closed_switch_to_cn.get(&dev_id) {
                 if *cn == cn1 {
                     if let Some(tn) = cn_tn.get(cn) {
                         cn_tn.insert(cn2, *tn);
@@ -173,7 +173,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             // build dev connection
             let mut dev_csv = String::from("terminal,cn,tn,dev\n");
             for (terminal, dev) in terminal_dev {
-                if switch_to_cn.contains_key(&dev) {
+                if closed_switch_to_cn.contains_key(&dev) {
                     continue;
                 }
                 if let Some(cn) = terminal_cn.get(&terminal) {

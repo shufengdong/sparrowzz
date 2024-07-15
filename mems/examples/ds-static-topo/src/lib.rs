@@ -162,11 +162,11 @@ fn create_static_topo(island: &Island, prop_defs: &[PropDefine], defines: &HashM
             break;
         }
         let id1 = cn1.unwrap().id;
-        let id2 = cn1.unwrap().id;
+        let id2 = cn2.unwrap().id;
         let dev_id = edge.weight;
         let mut dev_name = "".to_string();
         let mut dev_type = 0u16;
-        let mut normal_open = false;
+        let mut normal_open = "".to_string();
         if let Some(rsr) = island.resources.get(&dev_id) {
             dev_name = get_csv_str(&rsr.name);
             if let Some(def) = defines.get(&rsr.define_id) {
@@ -174,7 +174,7 @@ fn create_static_topo(island: &Island, prop_defs: &[PropDefine], defines: &HashM
                 if def.rsr_type == PsRsrType::Switch {
                     let v = rsr.get_prop_value2(NORMAL_OPEN, &island.prop_groups, &prop_defines);
                     if let Some(b) = v.get_bool() {
-                        normal_open = b;
+                        normal_open = b.to_string();
                     }
                 }
             }
@@ -188,7 +188,7 @@ fn create_static_topo(island: &Island, prop_defs: &[PropDefine], defines: &HashM
         Field::new("id", DataType::UInt64, false),
         // if using uint16, will get: unsupported data type when reading CSV: u16
         Field::new("type", DataType::UInt32, false),
-        Field::new("open", DataType::Boolean, false),
+        Field::new("open", DataType::Boolean, true),
         Field::new("name", DataType::Utf8, true),
     ]));
 }
