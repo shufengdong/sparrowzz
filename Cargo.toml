@@ -6,7 +6,10 @@ members = [
     "eig-aoe",
     "eig-db",
     "mems",
-    "mems/examples/wasm-dn-static-topo",
+    "mems/examples/ds-static-topo",
+    "mems/examples/ds-dev-ohm-cal",
+    "mems/examples/ds-dyn-topo",
+    "mems/examples/ds-3phase-pf",
 ]
 
 [workspace.package]
