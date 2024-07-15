@@ -961,7 +961,7 @@ mod tests {
             r.unwrap()
         );
 
-        let expr: Expr = "6-x1+ x2/2!".parse().unwrap();
+        let expr: Expr = "6-x1+ x2/!2".parse().unwrap();
         let r = split_linear_expr(expr.rpn, &x_pos);
         assert_eq!(
             vec![
@@ -972,7 +972,7 @@ mod tests {
             r.unwrap()
         );
 
-        let expr: Expr = "6-x1+ x2/var1!".parse().unwrap();
+        let expr: Expr = "6-x1+ x2/!var1".parse().unwrap();
         let r = split_linear_expr(expr.rpn, &x_pos);
         assert_eq!(
             vec![
@@ -991,7 +991,7 @@ mod tests {
             r.unwrap()
         );
 
-        let expr: Expr = "-6-x1-(5>=4)*3*x2/var1!".parse().unwrap();
+        let expr: Expr = "-6-x1-(5>=4)*3*x2/!var1".parse().unwrap();
         let r = split_linear_expr(expr.rpn, &x_pos);
         assert_eq!(
             vec![
@@ -1012,7 +1012,7 @@ mod tests {
             r.unwrap()
         );
 
-        let expr: Expr = "-6-x1-((5>=4)*3*x2/2! + (4<=1))*4".parse().unwrap();
+        let expr: Expr = "-6-x1-((5>=4)*3*x2/!2 + (4<=1))*4".parse().unwrap();
         let r = split_linear_expr(expr.rpn, &x_pos);
         assert_eq!(
             vec![

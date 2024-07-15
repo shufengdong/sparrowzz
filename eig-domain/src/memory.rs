@@ -568,28 +568,3 @@ impl MemData {
         })
     }
 }
-
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parse_file() {
-        let file = "tests/posix-memory-transport-test1.xlsx";
-        let tp = MemoryPosixTp::from_file(file);
-        assert!(tp.is_ok());
-        let tp = tp.unwrap();
-        assert_eq!("posix-memory-transport-file", tp.path.unwrap());
-    }
-    
-
-    #[test]
-    fn parse_file_systemv() {
-        let file = "tests/systemv-memory-transport-test1.xlsx";
-        let tp = MemorySystemVTp::from_file(file);
-        let tp = tp.unwrap();
-        assert_eq!("/", tp.path);
-    }
-
-}

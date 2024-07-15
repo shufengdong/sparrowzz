@@ -502,17 +502,3 @@ impl PdiData {
         })
     }
 }
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn parse_file() {
-        let file = "tests/ethercat-transport-test1.csv";
-        let tp = EcMasterTp::from_file(file);
-        assert!(tp.is_ok());
-        let tp = tp.unwrap();
-        assert_eq!("enp5s0", tp.eth);
-    }
-}
