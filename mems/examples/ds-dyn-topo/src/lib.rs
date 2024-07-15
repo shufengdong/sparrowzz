@@ -98,6 +98,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         }
         // build tns
         let mut cn_tn: HashMap<u64, usize> = HashMap::with_capacity(terminal_cn.len() / 2);
+        let mut not_dealed = Vec::new();
         for v in edges {
             let cn1 = v[0];
             let cn2 = v[1];
@@ -136,10 +137,18 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             }
             // this is open switch or not switch
             else {
+                if !cn_tn.contains_key(&cn1) {
+                    not_dealed.push(cn1);
+                }
+                if !cn_tn.contains_key(&cn2) {
+                    not_dealed.push(cn2);
+                }
+            }
+        }
+        for cn in not_dealed {
+            if !cn_tn.contains_key(&cn) {
                 let tn = cn_tn.len() + 1;
-                cn_tn.insert(cn1, tn);
-                let tn = tn + 1;
-                cn_tn.insert(cn2, tn);
+                cn_tn.insert(cn, tn);
             }
         }
         // get outgoing edges

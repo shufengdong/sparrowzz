@@ -7,9 +7,9 @@ pub(crate) fn read_points(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<
     // 按行读取csv
     let mut row = 0;
     loop {
-        points.push(vec![0u64; 2]);
         match records.next() {
             Some(Ok(record)) => {
+                points.push(vec![0u64; 2]);
                 let mut col = 0;
                 for str in record.iter() {
                     if let Ok(id) = str.parse() {
@@ -43,9 +43,9 @@ pub(crate) fn read_terminals(records: &mut StringRecordsIter<&[u8]>) -> Result<V
     // 按行读取csv
     let mut row = 0;
     loop {
-        terminals.push(vec![0u64; 3]);
         match records.next() {
             Some(Ok(record)) => {
+                terminals.push(vec![0u64; 3]);
                 let mut col = 0;
                 for str in record.iter() {
                     if let Ok(id) = str.parse() {
@@ -82,9 +82,9 @@ pub(crate) fn read_edges(records: &mut StringRecordsIter<&[u8]>)
     let swich_type = PsRsrType::Switch as u16;
     // 按行读取csv
     loop {
-        edges.push(vec![0u64; 3]);
         match records.next() {
             Some(Ok(record)) => {
+                edges.push(vec![0u64; 3]);
                 let mut col = 0;
                 let mut is_switch = false;
                 for str in record.iter() {
