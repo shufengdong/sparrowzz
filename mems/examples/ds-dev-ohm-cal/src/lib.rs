@@ -26,7 +26,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         error = Some(s.clone());
     }
     let mut config= HashMap::with_capacity(0);
-    let mut csv_str = String::from("dev_id,conductor\n");
+    let mut csv_str = String::from("dev_id,ohm\n");
     if error.is_none() {
         let (island, prop_defs, defines) = r.unwrap();
         let from = r2.unwrap();
@@ -79,7 +79,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         // build schema
         let schema = Schema::new(vec![
             Field::new("dev_id", DataType::UInt64, false),
-            Field::new("conductor", DataType::Utf8, false),
+            Field::new("ohm", DataType::Utf8, false),
         ]);
         let csv_bytes = vec![("".to_string(), csv_str.into_bytes())];
         let output = PluginOutput {
