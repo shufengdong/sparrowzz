@@ -1,12 +1,12 @@
 use std::collections::{HashMap, HashSet};
 use arrow_schema::{DataType, Field, Schema};
 
-use ds_common::{DEV_TOPO_DF_NAME, DYN_TOPO_DF_NAME, POINT_DF_NAME};
+use ds_common::{DEV_TOPO_DF_NAME, DYN_TOPO_DF_NAME, POINT_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME};
 use ds_common::dyn_topo::{read_dev_topo, read_dyn_topo};
-use ds_common::static_topo::read_points;
+use ds_common::static_topo::{read_point_terminal, read_static_topo, read_terminal_cn_dev};
 use eig_domain::DataUnit;
 use mems::model::{get_meas_from_plugin_input, get_wasm_result, PluginInput, PluginOutput};
-use mems::model::dev::PsRsrType;
+use mems::model::dev::{MeasPhase, PsRsrType};
 
 #[no_mangle]
 pub unsafe fn run(ptr: i32, len: u32) -> u64 {
@@ -22,11 +22,18 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     if let Err(s) = &r1 {
         error = Some(s.clone());
     }
-    let mut dyn_topo: Vec<Vec<u64>>;
-    // terminal, cn, tn, dev
-    let mut dev_topo: Vec<Vec<u64>> = vec![];
+    // static topo
     // point, terminal
     let mut points: Vec<Vec<u64>> = vec![];
+    let mut meas_phase: Vec<MeasPhase> = vec![];
+    // terminal, cn, dev
+    let mut terminals: Vec<Vec<u64>> = vec![];
+    // dev id to device type
+    let mut dev_type: HashMap<u64, u16> = HashMap::new();
+    // dynamic topo
+    let mut dyn_topo: Vec<Vec<u64>>;
+    // terminal, cn, tn, dev
+    let mut dyn_dev_topo: Vec<Vec<u64>> = vec![];
     for i in 0..input.dfs_len.len() {
         let size = input.dfs_len[i] as usize;
         let end = from + size;
@@ -43,14 +50,24 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             }
         } else if input.dfs[i] == DEV_TOPO_DF_NAME {
             match read_dev_topo(&mut records) {
-                Ok(v) => dev_topo = v,
+                Ok(v) => dyn_dev_topo = v,
                 Err(s) => {
                     error = Some(s);
                     break;
                 }
             }
+        } else if input.dfs[i] == STATIC_TOPO_DF_NAME {
+            match read_static_topo(&mut records, None, Some(&mut dev_type)) {
+                Ok(_) => {},
+                Err(s) => error = Some(s),
+            }
+        } else if input.dfs[i] == TERMINAL_DF_NAME {
+            match read_terminal_cn_dev(&mut records) {
+                Ok(v) => terminals = v,
+                Err(s) => error = Some(s),
+            }
         } else if input.dfs[i] == POINT_DF_NAME {
-            match read_points(&mut records) {
+            match read_point_terminal(&mut records, Some(&mut meas_phase)) {
                 Ok(v) => points = v,
                 Err(s) => error = Some(s),
             }
@@ -64,33 +81,45 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         };
         get_wasm_result(output)
     } else {
+        let mut csv_str = String::from("cn,tn\n");
         let type1 = PsRsrType::SyncGenerator as u16;
         let type2 = PsRsrType::Load as u16;
         let type3 = PsRsrType::ShuntCompensator as u16;
         let shunt_types = [type1, type2, type3];
-        let (meas, units) = r1.unwrap();
-        let mut point_terminal = HashMap::with_capacity(points.len());
         let mut terminal_with_shunt_dev = HashSet::new();
-        for v in points {
-            point_terminal.insert(v[0], v[1]);
+        for v in terminals {
+            let terminal = v[0];
+            let dev_id = v[2];
+            if let Some(dev_type) = dev_type.get(&dev_id) {
+                if shunt_types.contains(&dev_type) {
+                    terminal_with_shunt_dev.insert(terminal);
+                }
+            }
+        }
+        let mut point_terminal = HashMap::with_capacity(points.len());
+        for i in 0..points.len() {
+            let point_id = points[i][0];
+            let terminal = points[i][1];
+            if terminal_with_shunt_dev.contains(&terminal) {
+                let phase = meas_phase[i].to_string();
+                csv_str.push_str(&format!("{point_id},{terminal},{phase}\n"));
+                point_terminal.insert(point_id, (terminal, meas_phase[i].clone()));
+            }
         }
 
-        for v in dev_topo {
+        let (meas, units) = r1.unwrap();
+        for v in dyn_dev_topo {
             let terminal = v[0];
             let tn = v[2];
             let dev = v[3];
             let dev_type = v[4] as u16;
-            if shunt_types.contains(&dev_type) {
-                terminal_with_shunt_dev.insert(terminal);
-            }
         }
         // 开始处理开关量
         for m in meas {
-            if let Some(terminal) = point_terminal.get(&m.point_id) {
+            if let Some((terminal, phase)) = point_terminal.get(&m.point_id) {
                 if terminal_with_shunt_dev.contains(terminal) {
                     if let Some(unit) = units.get(&m.point_id) {
                         match unit {
-                            DataUnit::OnOrOff => {}
                             DataUnit::A => {}
                             DataUnit::V => {}
                             DataUnit::kV => {}

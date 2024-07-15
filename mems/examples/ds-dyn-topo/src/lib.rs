@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use arrow_schema::{DataType, Field, Schema};
 
 use ds_common::{DEV_TOPO_DF_NAME, DYN_TOPO_DF_NAME, POINT_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME};
-use ds_common::static_topo::{read_edges, read_points, read_terminals};
+use ds_common::static_topo::{read_static_topo, read_point_terminal, read_terminal_cn_dev};
 use eig_domain::DataUnit;
 use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, get_wasm_result, ModelType, PluginInput, PluginOutput};
 
@@ -24,7 +24,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     // source, target, dev
     let mut edges: Vec<Vec<u64>> = vec![];
     // switch id to normal open
-    let mut normal_open: HashMap<u64, bool> = HashMap::with_capacity(0);
+    let mut normal_open: HashMap<u64, bool> = HashMap::new();
     // terminal, cn, dev
     let mut terminals: Vec<Vec<u64>> = vec![];
     // point, terminal
@@ -41,17 +41,17 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 let mut records = rdr.records();
                 // 开始读取输入的static topology DataFrame
                 if input.dfs[i] == STATIC_TOPO_DF_NAME {
-                    match read_edges(&mut records) {
-                        Ok(v) => (edges, normal_open) = v,
+                    match read_static_topo(&mut records, Some(&mut normal_open), None) {
+                        Ok(v) => edges = v,
                         Err(s) => error = Some(s),
                     }
                 } else if input.dfs[i] == TERMINAL_DF_NAME {
-                    match read_terminals(&mut records) {
+                    match read_terminal_cn_dev(&mut records) {
                         Ok(v) => terminals = v,
                         Err(s) => error = Some(s),
                     }
                 } else if input.dfs[i] == POINT_DF_NAME {
-                    match read_points(&mut records) {
+                    match read_point_terminal(&mut records, None) {
                         Ok(v) => points = v,
                         Err(s) => error = Some(s),
                     }

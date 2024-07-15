@@ -7,4 +7,5 @@ pub const POINT_DF_NAME: &str = "point_terminal_phase";
 pub const DYN_TOPO_DF_NAME: &str = "dyn_topo";
 pub const DEV_TOPO_DF_NAME: &str = "dev_topo";
 pub const DEV_CONDUCTOR_DF_NAME: &str = "dev_ohm";
+pub const SHUNT_MEAS_DF_NAME: &str = "shunt_meas";
 pub const TN_INPUT_DF_NAME: &str = "tn_input";

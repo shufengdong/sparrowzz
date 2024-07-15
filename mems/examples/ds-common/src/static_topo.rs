@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 use csv::StringRecordsIter;
-use mems::model::dev::PsRsrType;
+use mems::model::dev::{MeasPhase, PsRsrType};
 
-pub fn read_points(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<u64>>, String> {
+pub fn read_point_terminal(records: &mut StringRecordsIter<&[u8]>,
+                           mut meas_phase: Option<&mut Vec<MeasPhase>>) -> Result<Vec<Vec<u64>>, String> {
     let mut points = Vec::new();
     // 按行读取csv
     let mut row = 0;
@@ -12,18 +13,23 @@ pub fn read_points(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<u64
                 points.push(vec![0u64; 2]);
                 let mut col = 0;
                 for str in record.iter() {
-                    if let Ok(id) = str.parse() {
-                        points[row][col] = id;
-                    } else {
-                        return Err(format!("Wrong point input, row {row} col {col}"));
+                    if col < 2 {
+                        if let Ok(id) = str.parse() {
+                            points[row][col] = id;
+                        } else {
+                            return Err(format!("Wrong point input, row {row} col {col}"));
+                        }
+
+                    } else if meas_phase.is_some() {
+                        meas_phase.as_mut().unwrap().push(MeasPhase::from(str))
                     }
                     col += 1;
-                    if col == 2 {
+                    if col == 3 {
                         break;
                     }
                 }
-                if col != 2 {
-                    return Err(format!("Wrong point input, expected col at least 2, actual {col}"));
+                if col != 3 {
+                    return Err(format!("Wrong point input, expected col at least 3, actual {col}"));
                 }
             }
             Some(Err(e)) => {
@@ -38,7 +44,7 @@ pub fn read_points(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<u64
     Ok(points)
 }
 
-pub fn read_terminals(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<u64>>, String> {
+pub fn read_terminal_cn_dev(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<u64>>, String> {
     let mut terminals: Vec<Vec<u64>> = Vec::new();
     // 按行读取csv
     let mut row = 0;
@@ -74,10 +80,11 @@ pub fn read_terminals(records: &mut StringRecordsIter<&[u8]>) -> Result<Vec<Vec<
     Ok(terminals)
 }
 
-pub fn read_edges(records: &mut StringRecordsIter<&[u8]>)
-                         -> Result<(Vec<Vec<u64>>, HashMap<u64, bool>), String> {
+pub fn read_static_topo(records: &mut StringRecordsIter<&[u8]>,
+                        mut normal_open: Option<&mut HashMap<u64, bool>>,
+                        mut dev_type: Option<&mut HashMap<u64, u16>>)
+                        -> Result<Vec<Vec<u64>>, String> {
     let mut edges = Vec::new();
-    let mut normal_open = HashMap::new();
     let mut row = 0;
     let swich_type = PsRsrType::Switch as u16;
     // 按行读取csv
@@ -100,20 +107,26 @@ pub fn read_edges(records: &mut StringRecordsIter<&[u8]>)
                         } else {
                             return Err(format!("Wrong static topology input, row {row} col {col}"));
                         }
-                    } else if col == 4 && is_switch {
+                    } else if col == 4 && is_switch && normal_open.is_some() {
                         if let Ok(b) = str.parse::<bool>() {
-                            normal_open.insert(edges[row][2], b);
+                            normal_open.as_mut().unwrap().insert(edges[row][2], b);
+                        } else {
+                            return Err(format!("Wrong static topology input, row {row} col {col}"));
+                        }
+                    } else if col == 5 && is_switch && dev_type.is_some() {
+                        if let Ok(v) = str.parse::<u16>() {
+                            dev_type.as_mut().unwrap().insert(edges[row][2], v);
                         } else {
                             return Err(format!("Wrong static topology input, row {row} col {col}"));
                         }
                     }
                     col += 1;
-                    if col == 5 {
+                    if col == 6 {
                         break;
                     }
                 }
                 if col != 5 {
-                    return Err(format!("Wrong static topology input, expected col at least 5, actual {col}"));
+                    return Err(format!("Wrong static topology input, expected col at least 6, actual {col}"));
                 }
             }
             Some(Err(e)) => {
@@ -125,5 +138,5 @@ pub fn read_edges(records: &mut StringRecordsIter<&[u8]>)
         }
         row += 1;
     }
-    Ok((edges, normal_open))
+    Ok(edges)
 }
