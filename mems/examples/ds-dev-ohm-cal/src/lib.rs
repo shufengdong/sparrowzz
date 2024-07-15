@@ -106,7 +106,7 @@ fn read_config(records: &mut StringRecordsIter<&[u8]>)
         match records.next() {
             Some(Ok(record)) => {
                 let mut col = 0;
-                let mut name = "dev_ohm".to_string();
+                let mut name = "".to_string();
                 let mut ohm_per_km = "".to_string();
                 for str in record.iter() {
                     if col == 0 {
@@ -120,7 +120,7 @@ fn read_config(records: &mut StringRecordsIter<&[u8]>)
                     }
                 }
                 if col != 2 {
-                    return Err(format!("Wrong config input, expected col 2, actual {col}"));
+                    return Err(format!("Wrong config input, expected col more than 2, actual {col}"));
                 }
                 match serde_json::from_str::<[f64; 18]>(&ohm_per_km) {
                     Ok(ohm) => {
