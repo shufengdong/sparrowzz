@@ -2,10 +2,10 @@ use std::collections::HashMap;
 
 use arrow_schema::{DataType, Field, Schema};
 
+use ds_common::{DEV_TOPO_DF_NAME, DYN_TOPO_DF_NAME, POINT_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME};
+use ds_common::static_topo::{read_edges, read_points, read_terminals};
 use eig_domain::DataUnit;
 use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, get_wasm_result, ModelType, PluginInput, PluginOutput};
-use ds_common::static_topo::{read_edges, read_points, read_terminals};
-
 
 #[no_mangle]
 pub unsafe fn run(ptr: i32, len: u32) -> u64 {
