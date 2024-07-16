@@ -6,7 +6,7 @@ use ds_common::{DEV_TOPO_DF_NAME, POINT_DF_NAME, SHUNT_MEAS_DF_NAME, STATIC_TOPO
 use ds_common::dyn_topo::read_dev_topo;
 use ds_common::static_topo::{read_point_terminal, read_static_topo, read_terminal_cn_dev};
 use ds_common::tn_input::read_shunt_measures;
-use eig_domain::{DataUnit, MeasureValue};
+use eig_domain::DataUnit;
 use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, get_wasm_result, PluginInput, PluginOutput};
 use mems::model::dev::{MeasPhase, PsRsrType};
 
@@ -28,6 +28,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     let mut terminals: Vec<Vec<u64>> = vec![];
     // key is point id, value is (terminal id, measure phase)
     let mut point_of_shunt_dev: HashMap<u64, (u64, MeasPhase)> = HashMap::with_capacity(0);
+    let mut terminal_of_shunt_dev: HashSet<u64> = HashSet::with_capacity(0);
 
     // dev id to device type
     let mut dev_type: HashMap<u64, u16> = HashMap::new();
@@ -70,7 +71,13 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 }
             } else if input.dfs[i] == SHUNT_MEAS_DF_NAME {
                 match read_shunt_measures(&mut records) {
-                    Ok(v) => point_of_shunt_dev = v,
+                    Ok(v) => {
+                        terminal_of_shunt_dev = HashSet::with_capacity(v.len());
+                        for (terminal, _) in v.values() {
+                            terminal_of_shunt_dev.insert(*terminal);
+                        }
+                        point_of_shunt_dev = v;
+                    },
                     Err(s) => error = Some(s),
                 }
             }
@@ -137,13 +144,15 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 get_wasm_result(output)
             } else {
                 let (meas, units) = r1.unwrap();
-                let mut terminal_tn = HashMap::with_capacity(dyn_dev_topo.len());
+                let mut terminal_tn = HashMap::with_capacity(terminal_of_shunt_dev.len());
                 let mut tn_measure: BTreeMap<u64, Vec<(f64, DataUnit, MeasPhase)>> = BTreeMap::new();
                 for v in dyn_dev_topo {
                     let terminal = v[0];
                     let tn = v[2];
-                    terminal_tn.insert(terminal, tn);
-                    tn_measure.insert(tn, vec![]);
+                    if terminal_of_shunt_dev.contains(&terminal) {
+                        terminal_tn.insert(terminal, tn);
+                        tn_measure.insert(tn, vec![]);
+                    }
                 }
                 // 开始处理开关量
                 for m in meas {
