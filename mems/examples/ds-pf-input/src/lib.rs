@@ -1,11 +1,12 @@
-use std::collections::{HashMap, HashSet};
+use std::collections::{BTreeMap, HashMap, HashSet};
+
 use arrow_schema::{DataType, Field, Schema};
 
-use ds_common::{DEV_TOPO_DF_NAME, DYN_TOPO_DF_NAME, POINT_DF_NAME, SHUNT_MEAS_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME};
-use ds_common::dyn_topo::{read_dev_topo, read_dyn_topo};
+use ds_common::{DEV_TOPO_DF_NAME, POINT_DF_NAME, SHUNT_MEAS_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME};
+use ds_common::dyn_topo::read_dev_topo;
 use ds_common::static_topo::{read_point_terminal, read_static_topo, read_terminal_cn_dev};
 use ds_common::tn_input::read_shunt_measures;
-use eig_domain::DataUnit;
+use eig_domain::{DataUnit, MeasureValue};
 use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, get_wasm_result, PluginInput, PluginOutput};
 use mems::model::dev::{MeasPhase, PsRsrType};
 
@@ -25,14 +26,13 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     let mut meas_phase: Vec<MeasPhase> = vec![];
     // terminal, cn, dev
     let mut terminals: Vec<Vec<u64>> = vec![];
+    // key is point id, value is (terminal id, measure phase)
+    let mut point_of_shunt_dev: HashMap<u64, (u64, MeasPhase)> = HashMap::with_capacity(0);
+
     // dev id to device type
     let mut dev_type: HashMap<u64, u16> = HashMap::new();
-    // dynamic topo
-    let mut dyn_topo: Vec<Vec<u64>>;
-    // terminal, cn, tn, dev
+    // dynamic topo: terminal, cn, tn, dev
     let mut dyn_dev_topo: Vec<Vec<u64>> = vec![];
-    // key is point id, value is (terminal id, measure phase)
-    let mut point_terminal: HashMap<u64, (u64, MeasPhase)> = HashMap::with_capacity(0);
     let mut with_static = false;
     if let Err(s) = &r2 {
         error = Some(s.clone());
@@ -44,15 +44,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             let mut rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(&input.bytes[from..end]);
             let mut records = rdr.records();
             // 对第i个边输入该节点的 dataframe 进行处理
-            if input.dfs[i] == DYN_TOPO_DF_NAME {
-                match read_dyn_topo(&mut records) {
-                    Ok(v) => dyn_topo = v,
-                    Err(s) => {
-                        error = Some(s);
-                        break;
-                    }
-                }
-            } else if input.dfs[i] == DEV_TOPO_DF_NAME {
+            if input.dfs[i] == DEV_TOPO_DF_NAME {
                 match read_dev_topo(&mut records) {
                     Ok(v) => dyn_dev_topo = v,
                     Err(s) => {
@@ -78,7 +70,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 }
             } else if input.dfs[i] == SHUNT_MEAS_DF_NAME {
                 match read_shunt_measures(&mut records) {
-                    Ok(v) => point_terminal = v,
+                    Ok(v) => point_of_shunt_dev = v,
                     Err(s) => error = Some(s),
                 }
             }
@@ -145,27 +137,34 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 get_wasm_result(output)
             } else {
                 let (meas, units) = r1.unwrap();
+                let mut terminal_tn = HashMap::with_capacity(dyn_dev_topo.len());
+                let mut tn_measure: BTreeMap<u64, Vec<(f64, DataUnit, MeasPhase)>> = BTreeMap::new();
                 for v in dyn_dev_topo {
                     let terminal = v[0];
                     let tn = v[2];
-                    let dev = v[3];
-                    let dev_type = v[4] as u16;
+                    terminal_tn.insert(terminal, tn);
+                    tn_measure.insert(tn, vec![]);
                 }
                 // 开始处理开关量
                 for m in meas {
-                    if let Some((terminal, phase)) = point_terminal.get(&m.point_id) {
-                        if let Some(unit) = units.get(&m.point_id) {
-                            match unit {
-                                DataUnit::A => {}
-                                DataUnit::V => {}
-                                DataUnit::kV => {}
-                                DataUnit::W => {}
-                                DataUnit::kW => {}
-                                DataUnit::MW => {}
-                                DataUnit::Var => {}
-                                DataUnit::kVar => {}
-                                DataUnit::MVar => {}
-                                _ => {}
+                    if let Some((terminal, phase)) = point_of_shunt_dev.get(&m.point_id) {
+                        if let Some(tn) = terminal_tn.get(terminal) {
+                            let v = tn_measure.get_mut(tn).unwrap();
+                            if let Some(unit) = units.get(&m.point_id) {
+                                match unit {
+                                    DataUnit::A => {
+
+                                    }
+                                    DataUnit::V => {}
+                                    DataUnit::kV => {}
+                                    DataUnit::W => {}
+                                    DataUnit::kW => {}
+                                    DataUnit::MW => {}
+                                    DataUnit::Var => {}
+                                    DataUnit::kVar => {}
+                                    DataUnit::MVar => {}
+                                    _ => {}
+                                }
                             }
                         }
                     }
