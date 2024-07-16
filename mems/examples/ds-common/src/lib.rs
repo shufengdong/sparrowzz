@@ -1,5 +1,6 @@
 pub mod dyn_topo;
 pub mod static_topo;
+pub mod tn_input;
 
 pub const STATIC_TOPO_DF_NAME: &str = "static_topo";
 pub const TERMINAL_DF_NAME: &str = "terminal_cn_dev";
