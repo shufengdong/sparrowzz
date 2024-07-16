@@ -2,11 +2,11 @@ use std::collections::{BTreeMap, HashMap, HashSet};
 
 use arrow_schema::{DataType, Field, Schema};
 
-use ds_common::{DEV_TOPO_DF_NAME, POINT_DF_NAME, SHUNT_MEAS_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME};
+use ds_common::{DEV_TOPO_DF_NAME, POINT_DF_NAME, SHUNT_MEAS_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME, TN_INPUT_DF_NAME};
 use ds_common::dyn_topo::read_dev_topo;
 use ds_common::static_topo::{read_point_terminal, read_static_topo, read_terminal_cn_dev};
 use ds_common::tn_input::read_shunt_measures;
-use eig_domain::DataUnit;
+use eig_domain::{DataUnit, MeasureValue};
 use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, get_wasm_result, PluginInput, PluginOutput};
 use mems::model::dev::{MeasPhase, PsRsrType};
 
@@ -38,7 +38,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     if let Err(s) = &r2 {
         error = Some(s.clone());
     } else {
-        let mut from = r2.unwrap();
+        let from = r2.unwrap();
         for i in 0..input.dfs_len.len() {
             let size = input.dfs_len[i] as usize;
             let end = from + size;
@@ -56,7 +56,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             } else if input.dfs[i] == STATIC_TOPO_DF_NAME {
                 with_static = true;
                 match read_static_topo(&mut records, None, Some(&mut dev_type)) {
-                    Ok(_) => {},
+                    Ok(_) => {}
                     Err(s) => error = Some(s),
                 }
             } else if input.dfs[i] == TERMINAL_DF_NAME {
@@ -77,7 +77,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                             terminal_of_shunt_dev.insert(*terminal);
                         }
                         point_of_shunt_dev = v;
-                    },
+                    }
                     Err(s) => error = Some(s),
                 }
             }
@@ -144,8 +144,10 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 get_wasm_result(output)
             } else {
                 let (meas, units) = r1.unwrap();
-                let mut terminal_tn = HashMap::with_capacity(terminal_of_shunt_dev.len());
-                let mut tn_measure: BTreeMap<u64, Vec<(f64, DataUnit, MeasPhase)>> = BTreeMap::new();
+                let len = terminal_of_shunt_dev.len();
+                let mut terminal_tn = HashMap::with_capacity(len);
+                let mut tn_measure: BTreeMap<u64, Vec<(DataUnit, MeasPhase, f64)>> = BTreeMap::new();
+                let mut tn_voltage_count: HashMap<String, usize> = HashMap::with_capacity(len);
                 for v in dyn_dev_topo {
                     let terminal = v[0];
                     let tn = v[2];
@@ -161,31 +163,90 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                             let v = tn_measure.get_mut(tn).unwrap();
                             if let Some(unit) = units.get(&m.point_id) {
                                 match unit {
-                                    DataUnit::A => {
-
+                                    DataUnit::A => create_measure(&m, phase, 1., v, DataUnit::A),
+                                    DataUnit::V => {
+                                        create_measure(&m, phase, 1., v, DataUnit::V);
+                                        let key = format!("{tn}_{phase}");
+                                        if let Some(count) = tn_voltage_count.get_mut(&key) {
+                                            *count += 1;
+                                        } else {
+                                            tn_voltage_count.insert(key, 1);
+                                        }
                                     }
-                                    DataUnit::V => {}
-                                    DataUnit::kV => {}
-                                    DataUnit::W => {}
-                                    DataUnit::kW => {}
-                                    DataUnit::MW => {}
-                                    DataUnit::Var => {}
-                                    DataUnit::kVar => {}
-                                    DataUnit::MVar => {}
+                                    DataUnit::kV => {
+                                        create_measure(&m, phase, 1000., v, DataUnit::V);
+                                        let key = format!("{tn}_{phase}");
+                                        if let Some(count) = tn_voltage_count.get_mut(&key) {
+                                            *count += 1;
+                                        } else {
+                                            tn_voltage_count.insert(key, 1);
+                                        }
+                                    }
+                                    DataUnit::W => create_measure(&m, phase, 1., v, DataUnit::W),
+                                    DataUnit::kW => create_measure(&m, phase, 1000., v, DataUnit::W),
+                                    DataUnit::MW => create_measure(&m, phase, 1000000., v, DataUnit::W),
+                                    DataUnit::Var => create_measure(&m, phase, 1., v, DataUnit::Var),
+                                    DataUnit::kVar => create_measure(&m, phase, 1000., v, DataUnit::Var),
+                                    DataUnit::MVar => create_measure(&m, phase, 1000000., v, DataUnit::Var),
                                     _ => {}
                                 }
                             }
                         }
                     }
                 }
-                let mut csv_str = String::from("cn,tn\n");
+                for (tn_phase, count) in tn_voltage_count {
+                    if count == 1 {
+                        continue;
+                    }
+                    let s: Vec<&str> = tn_phase.split("_").collect();
+                    let tn: u64 = s[0].parse().unwrap();
+                    let p = MeasPhase::from(s[1]);
+                    if let Some(v) = tn_measure.get_mut(&tn) {
+                        for (unit, phase, f) in v {
+                            if DataUnit::V.eq(unit) {
+                                if p.eq(phase) {
+                                    *f = *f / (count as f64);
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                let mut csv_str = String::from("tn,unit,phase,value\n");
+                for (tn, measure) in tn_measure {
+                    for (unit, phase, f) in measure {
+                        csv_str.push_str(&format!("{tn},{unit},{phase},{f}\n"))
+                    }
+                }
+                let schema = Schema::new(vec![
+                    Field::new("tn", DataType::UInt64, false),
+                    Field::new("unit", DataType::Utf8, false),
+                    Field::new("phase", DataType::Utf8, false),
+                    Field::new("value", DataType::Float64, false),
+                ]);
+                let csv_bytes = vec![(TN_INPUT_DF_NAME.to_string(), csv_str.into_bytes())];
                 let output = PluginOutput {
-                    error_msg: error,
-                    schema: None,
-                    csv_bytes: vec![],
+                    error_msg: None,
+                    schema: Some(vec![schema]),
+                    csv_bytes,
                 };
                 get_wasm_result(output)
             }
         }
+    }
+}
+
+unsafe fn create_measure(m: &MeasureValue, phase: &MeasPhase, ratio: f64,
+                         v: &mut Vec<(DataUnit, MeasPhase, f64)>, new_unit: DataUnit) {
+    let mut is_find = false;
+    for (v_unit, v_phase, f) in &mut *v {
+        if new_unit.eq(v_unit) && phase.eq(v_phase) {
+            *f += m.get_value() * ratio;
+            is_find = true;
+            break;
+        }
+    }
+    if !is_find {
+        v.push((new_unit, phase.clone(), m.get_value() * ratio));
     }
 }
