@@ -1,6 +1,8 @@
 use std::collections::HashMap;
+
 use ndarray::{Array, Array2, Ix2};
 use num_complex::Complex64;
+
 use eig_domain::DataUnit;
 use mems::model::dev::MeasPhase;
 
@@ -11,36 +13,34 @@ pub fn get_pf_nlp_constraints(
     dev_topo: Vec<Vec<u64>>,
     dev_matrix: HashMap<u64, Vec<Array2<f64>>>,
     input_tns: Vec<u64>,
-    input_phases: Vec<Vec<MeasPhase>>,
-    input_types: Vec<Vec<DataUnit>>,
-    input_values: Vec<Vec<f64>>) -> Option<Vec<String>> {
+    input_phases: Vec<MeasPhase>,
+    input_types: Vec<DataUnit>,
+    input_values: Vec<f64>) -> Option<Vec<String>> {
     let mut constraint = Vec::with_capacity(dyn_topo.len());
     for i in 0..input_tns.len() {
-        for j in 0..input_types[i].len() {
-            match input_types[i][j] {
-                DataUnit::kW => {
-                    let mut active_exp = String::new();
-                    constraint.push(active_exp);
-                    match input_phases[i][j] {
-                        MeasPhase::Total => {}
-                        MeasPhase::A => {}
-                        MeasPhase::B => {}
-                        MeasPhase::C => {}
-                        MeasPhase::A0 => {}
-                        MeasPhase::B0 => {}
-                        MeasPhase::C0 => {}
-                        MeasPhase::CT => {}
-                        MeasPhase::PT => {}
-                        MeasPhase::Unknown => return None,
-                    }
+        match input_types[i] {
+            DataUnit::kW => {
+                let mut active_exp = String::new();
+                constraint.push(active_exp);
+                match input_phases[i] {
+                    MeasPhase::Total => {}
+                    MeasPhase::A => {}
+                    MeasPhase::B => {}
+                    MeasPhase::C => {}
+                    MeasPhase::A0 => {}
+                    MeasPhase::B0 => {}
+                    MeasPhase::C0 => {}
+                    MeasPhase::CT => {}
+                    MeasPhase::PT => {}
+                    MeasPhase::Unknown => return None,
                 }
-                DataUnit::kVar => {
-                    let mut reactive_exp = String::new();
-                    constraint.push(reactive_exp);
-                }
-                DataUnit::kV => {}
-                _ => {}
             }
+            DataUnit::kVar => {
+                let mut reactive_exp = String::new();
+                constraint.push(reactive_exp);
+            }
+            DataUnit::kV => {}
+            _ => {}
         }
     }
     Some(constraint)

@@ -4,9 +4,8 @@ use csv::StringRecordsIter;
 use ndarray::Array2;
 
 use eig_domain::DataUnit;
-use mems::model::dev::MeasPhase;
 
-const MAT_SIZE: usize = 2 * 54;
+const MAT_SIZE: usize = 18;
 
 pub(crate) fn read_dev_ohm(records: &mut StringRecordsIter<&[u8]>)
                            -> Result<HashMap<u64, Vec<Array2<f64>>>, String> {
@@ -64,65 +63,6 @@ pub(crate) fn read_dev_ohm(records: &mut StringRecordsIter<&[u8]>)
         }
     }
     Ok(map)
-}
-
-pub(crate) fn read_tn_input(records: &mut StringRecordsIter<&[u8]>)
-                            -> Result<(Vec<u64>, Vec<Vec<MeasPhase>>, Vec<Vec<DataUnit>>, Vec<Vec<f64>>), String> {
-    let mut tn = Vec::new();
-    let mut input_type = Vec::new();
-    let mut input_phase = Vec::new();
-    let mut value = Vec::new();
-    // 按行读取csv
-    let mut row = 0;
-    loop {
-        match records.next() {
-            Some(Ok(record)) => {
-                let mut col = 0;
-                for str in record.iter() {
-                    if col == 0 {
-                        if let Ok(v) = str.parse() {
-                            tn.push(v);
-                        } else {
-                            return Err(format!("Wrong bus input, row {row} col {col}"));
-                        }
-                    } else if col == 1 {
-                        if let Ok(v) = serde_json::from_str(str) {
-                            input_phase.push(v);
-                        } else {
-                            return Err(format!("Wrong bus input, row {row} col {col}"));
-                        }
-                    } else if col == 2 {
-                        if let Ok(v) = serde_json::from_str(str) {
-                            input_type.push(v);
-                        } else {
-                            return Err(format!("Wrong bus input, row {row} col {col}"));
-                        }
-                    } else if col == 3 {
-                        if let Ok(v) = serde_json::from_str(str) {
-                            value.push(v);
-                        } else {
-                            return Err(format!("Wrong bus input, row {row} col {col}"));
-                        }
-                    }
-                    col += 1;
-                    if col == 4 {
-                        break;
-                    }
-                }
-                if col != 4 {
-                    return Err(format!("Wrong bus input, expected col 4, actual {col}"));
-                }
-            }
-            Some(Err(e)) => {
-                return Err(format!("Wrong bus input, err: {:?}", e));
-            }
-            None => {
-                break;
-            }
-        }
-        row += 1;
-    }
-    Ok((tn, input_phase, input_type, value))
 }
 
 

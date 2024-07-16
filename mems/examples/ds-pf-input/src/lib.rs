@@ -212,16 +212,16 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                         }
                     }
                 }
-                let mut csv_str = String::from("tn,unit,phase,value\n");
+                let mut csv_str = String::from("tn,phase,unit,value\n");
                 for (tn, measure) in tn_measure {
                     for (unit, phase, f) in measure {
-                        csv_str.push_str(&format!("{tn},{unit},{phase},{f}\n"))
+                        csv_str.push_str(&format!("{tn},{phase},{unit},{f}\n"))
                     }
                 }
                 let schema = Schema::new(vec![
                     Field::new("tn", DataType::UInt64, false),
-                    Field::new("unit", DataType::Utf8, false),
                     Field::new("phase", DataType::Utf8, false),
+                    Field::new("unit", DataType::Utf8, false),
                     Field::new("value", DataType::Float64, false),
                 ]);
                 let csv_bytes = vec![(TN_INPUT_DF_NAME.to_string(), csv_str.into_bytes())];

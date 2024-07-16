@@ -6,9 +6,10 @@ use arrow_schema::{DataType, Field, Schema};
 use ndarray::Array2;
 
 use ds_common::dyn_topo::{read_dev_topo, read_dyn_topo};
+use ds_common::tn_input::read_tn_input;
 use mems::model::{get_wasm_result, PluginInput, PluginOutput};
 
-use crate::read::{read_dev_ohm, read_tn_input};
+use crate::read::read_dev_ohm;
 
 mod read;
 mod nlp;
