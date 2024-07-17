@@ -41,12 +41,12 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 let mut records = rdr.records();
                 // 开始读取输入的static topology DataFrame
                 if input.dfs[i] == STATIC_TOPO_DF_NAME {
-                    match read_static_topo(&mut records, Some(&mut normal_open), None) {
+                    match read_static_topo(&mut records, Some(&mut normal_open)) {
                         Ok(v) => edges = v,
                         Err(s) => error = Some(s),
                     }
                 } else if input.dfs[i] == TERMINAL_DF_NAME {
-                    match read_terminal_cn_dev(&mut records) {
+                    match read_terminal_cn_dev(&mut records, None) {
                         Ok(v) => terminals = v,
                         Err(s) => error = Some(s),
                     }

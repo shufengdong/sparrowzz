@@ -58,7 +58,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         }
         if outgoing.contains(&TERMINAL_DF_NAME.to_string()) {
             is_matched = true;
-            let mut terminal_csv_str = String::from("terminal,cn,dev\n");
+            let mut terminal_csv_str = String::from("terminal,cn,dev,type\n");
             let mut terminal_to_cn = HashMap::with_capacity(2 * island.cns.len());
             // 先建立CN对应的节点
             for cn in &island.cns {
@@ -70,7 +70,12 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 for terminal in &dev.terminals {
                     let terminal_id = terminal.id;
                     if let Some(cn_id) = terminal_to_cn.get(&terminal_id) {
-                        terminal_csv_str.push_str(format!("{terminal_id},{cn_id},{id}\n").as_str());
+                        let dev_type = if let Some(def) = defines.get(&dev.define_id) {
+                            def.rsr_type as u16
+                        } else {
+                            0u16
+                        };
+                        terminal_csv_str.push_str(format!("{terminal_id},{cn_id},{id},{dev_type}\n").as_str());
                     }
                 }
             }
@@ -79,6 +84,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 Field::new("terminal", DataType::UInt64, false),
                 Field::new("cn", DataType::UInt64, false),
                 Field::new("dev", DataType::UInt64, false),
+                Field::new("type", DataType::UInt32, false),
             ]));
         }
         // if let Err(e) = file.write_all(csv_str.as_bytes()) {

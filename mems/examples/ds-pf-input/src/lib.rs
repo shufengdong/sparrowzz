@@ -1,4 +1,7 @@
 use std::collections::{BTreeMap, HashMap, HashSet};
+use std::fs;
+use std::io::Write;
+use std::path::PathBuf;
 
 use arrow_schema::{DataType, Field, Schema};
 
@@ -53,14 +56,9 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                         break;
                     }
                 }
-            } else if input.dfs[i] == STATIC_TOPO_DF_NAME {
-                with_static = true;
-                match read_static_topo(&mut records, None, Some(&mut dev_type)) {
-                    Ok(_) => {}
-                    Err(s) => error = Some(s),
-                }
             } else if input.dfs[i] == TERMINAL_DF_NAME {
-                match read_terminal_cn_dev(&mut records) {
+                with_static = true;
+                match read_terminal_cn_dev(&mut records, Some(&mut dev_type)) {
                     Ok(v) => terminals = v,
                     Err(s) => error = Some(s),
                 }
@@ -124,6 +122,21 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 Field::new("terminal", DataType::UInt64, false),
                 Field::new("phase", DataType::Utf8, false),
             ]);
+            // create file
+            let mut base = PathBuf::from("/");
+            base.push("shunt_meas.csv");
+            let mut file = fs::OpenOptions::new()
+                .create(true)
+                .write(true)
+                .truncate(true)
+                .open(&base)
+                .expect("Could not create file");
+            if let Err(e) = file.write_all(csv_str.as_bytes()) {
+                log::warn!("!!Failed to write file, err: {:?}", e);
+            } else {
+                let _ = file.sync_all();
+            }
+            // write graph
             let csv_bytes = vec![(SHUNT_MEAS_DF_NAME.to_string(), csv_str.into_bytes())];
             let output = PluginOutput {
                 error_msg: None,
