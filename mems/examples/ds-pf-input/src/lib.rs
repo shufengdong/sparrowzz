@@ -5,9 +5,9 @@ use std::path::PathBuf;
 
 use arrow_schema::{DataType, Field, Schema};
 
-use ds_common::{DEV_TOPO_DF_NAME, POINT_DF_NAME, SHUNT_MEAS_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME, TN_INPUT_DF_NAME};
+use ds_common::{DEV_TOPO_DF_NAME, POINT_DF_NAME, SHUNT_MEAS_DF_NAME, TERMINAL_DF_NAME, TN_INPUT_DF_NAME};
 use ds_common::dyn_topo::read_dev_topo;
-use ds_common::static_topo::{read_point_terminal, read_static_topo, read_terminal_cn_dev};
+use ds_common::static_topo::{read_point_terminal, read_terminal_cn_dev};
 use ds_common::tn_input::read_shunt_measures;
 use eig_domain::{DataUnit, MeasureValue};
 use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, get_wasm_result, PluginInput, PluginOutput};
@@ -48,15 +48,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             let mut rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(&input.bytes[from..end]);
             let mut records = rdr.records();
             // 对第i个边输入该节点的 dataframe 进行处理
-            if input.dfs[i] == DEV_TOPO_DF_NAME {
-                match read_dev_topo(&mut records) {
-                    Ok(v) => dyn_dev_topo = v,
-                    Err(s) => {
-                        error = Some(s);
-                        break;
-                    }
-                }
-            } else if input.dfs[i] == TERMINAL_DF_NAME {
+            if input.dfs[i] == TERMINAL_DF_NAME {
                 with_static = true;
                 match read_terminal_cn_dev(&mut records, Some(&mut dev_type)) {
                     Ok(v) => terminals = v,
@@ -66,6 +58,14 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 match read_point_terminal(&mut records, Some(&mut meas_phase)) {
                     Ok(v) => points = v,
                     Err(s) => error = Some(s),
+                }
+            } else if input.dfs[i] == DEV_TOPO_DF_NAME {
+                match read_dev_topo(&mut records) {
+                    Ok(v) => dyn_dev_topo = v,
+                    Err(s) => {
+                        error = Some(s);
+                        break;
+                    }
                 }
             } else if input.dfs[i] == SHUNT_MEAS_DF_NAME {
                 match read_shunt_measures(&mut records) {
