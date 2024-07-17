@@ -15,7 +15,8 @@ pub fn get_pf_nlp_constraints(
     input_tns: Vec<u64>,
     input_phases: Vec<MeasPhase>,
     input_types: Vec<DataUnit>,
-    input_values: Vec<f64>) -> Option<Vec<String>> {
+    input_values: Vec<f64>
+) -> Option<Vec<String>> {
     let mut constraint = Vec::with_capacity(dyn_topo.len());
     for i in 0..input_tns.len() {
         match input_types[i] {
