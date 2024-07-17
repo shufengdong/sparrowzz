@@ -20,13 +20,13 @@ pub fn read_shunt_measures(records: &mut StringRecordsIter<&[u8]>)
                         if let Ok(id) = str.parse() {
                             point = id;
                         } else {
-                            return Err(format!("Wrong terminal input, row {row} col {col}"));
+                            return Err(format!("Wrong shunt measure input, row {row} col {col}"));
                         }
                     } else if col == 1 {
                         if let Ok(id) = str.parse() {
                             terminal = id;
                         } else {
-                            return Err(format!("Wrong terminal input, row {row} col {col}"));
+                            return Err(format!("Wrong shunt measure input, row {row} col {col}"));
                         }
                     } else if col == 2 {
                         meas.insert(point, (terminal, MeasPhase::from(str)));
@@ -37,11 +37,11 @@ pub fn read_shunt_measures(records: &mut StringRecordsIter<&[u8]>)
                     }
                 }
                 if col != 3 {
-                    return Err(format!("Wrong terminal input, expected col at least 3, actual {col}"));
+                    return Err(format!("Wrong shunt measure input, expected col at least 3, actual {col}"));
                 }
             }
             Some(Err(e)) => {
-                return Err(format!("Wrong terminal input, err: {:?}", e));
+                return Err(format!("Wrong shunt measure input, err: {:?}", e));
             }
             None => {
                 break;

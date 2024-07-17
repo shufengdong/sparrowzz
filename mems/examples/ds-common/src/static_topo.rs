@@ -57,7 +57,7 @@ pub fn read_terminal_cn_dev(records: &mut StringRecordsIter<&[u8]>) -> Result<Ve
                     if let Ok(id) = str.parse() {
                         terminals[row][col] = id;
                     } else {
-                        return Err(format!("Wrong terminal input, row {row} col {col}"));
+                        return Err(format!("Wrong terminal input, row {row} col {col}: {str}"));
                     }
                     col += 1;
                     if col == 3 {
@@ -99,34 +99,31 @@ pub fn read_static_topo(records: &mut StringRecordsIter<&[u8]>,
                         if let Ok(id) = str.parse() {
                             edges[row][col] = id;
                         } else {
-                            return Err(format!("Wrong static topology input, row {row} col {col}"));
+                            return Err(format!("Wrong static topology input, row {row} col {col}: {str}"));
                         }
                     } else if col == 3 {
                         if let Ok(type_u16) = str.parse::<u16>() {
                             is_switch = type_u16 == swich_type;
+                            if dev_type.is_some() {
+                                dev_type.as_mut().unwrap().insert(edges[row][2], type_u16);
+                            }
                         } else {
-                            return Err(format!("Wrong static topology input, row {row} col {col}"));
+                            return Err(format!("Wrong static topology input, row {row} col {col}: {str}"));
                         }
                     } else if col == 4 && is_switch && normal_open.is_some() {
                         if let Ok(b) = str.parse::<bool>() {
                             normal_open.as_mut().unwrap().insert(edges[row][2], b);
                         } else {
-                            return Err(format!("Wrong static topology input, row {row} col {col}"));
-                        }
-                    } else if col == 5 && is_switch && dev_type.is_some() {
-                        if let Ok(v) = str.parse::<u16>() {
-                            dev_type.as_mut().unwrap().insert(edges[row][2], v);
-                        } else {
-                            return Err(format!("Wrong static topology input, row {row} col {col}"));
+                            return Err(format!("Wrong static topology input, row {row} col {col}: {str}"));
                         }
                     }
                     col += 1;
-                    if col == 6 {
+                    if col == 5 {
                         break;
                     }
                 }
                 if col != 5 {
-                    return Err(format!("Wrong static topology input, expected col at least 6, actual {col}"));
+                    return Err(format!("Wrong static topology input, expected col at least 5, actual {col}"));
                 }
             }
             Some(Err(e)) => {

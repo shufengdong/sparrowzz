@@ -38,7 +38,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     if let Err(s) = &r2 {
         error = Some(s.clone());
     } else {
-        let from = r2.unwrap();
+        let mut from = r2.unwrap();
         for i in 0..input.dfs_len.len() {
             let size = input.dfs_len[i] as usize;
             let end = from + size;
@@ -81,6 +81,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                     Err(s) => error = Some(s),
                 }
             }
+            from += size;
         }
     }
     if error.is_some() {
