@@ -113,9 +113,37 @@ fn get_pq_of_acline(r_x: Array<Complex64, Ix2>) -> Option<(String, String)> {
                 r_x[[1, 0]], r_x[[1, 1]], r_x[[1, 2]],
                 r_x[[2, 0]], r_x[[2, 1]], r_x[[2, 2]]);
             let gb = rx.try_inverse().unwrap();
-            format!("{}*x1-{}*x2-{}*x3", gb.m11, gb.m12, gb.m13)
+            format!("{:.4}*x1-{:.4}*x2-{:.4}*x3", gb.m11.re, gb.m12.re, gb.m13.re)
         }
         _ => { return None; }
     };
     Some((result.clone(), result.clone()))
+}
+
+// test
+#[cfg(test)]
+mod test {
+    use ndarray::array;
+    use super::*;
+
+    #[test]
+    fn test_get_pq_of_acline() {
+        // 原矩阵：
+        // 0.3465+1.0179j  0.1560+0.5017j  0.1580+0.4236j
+        // 0.1560+0.5017j  0.3375+1.0478j  0.1535+0.3849j
+        // 0.1580+0.4236j  0.1535+0.3849j  0.3414+1.0348j
+        // 求逆的结果：
+        //   0.4338 - 1.2502i  -0.1840 + 0.4622i  -0.1008 + 0.3455i
+        //   -0.1840 + 0.4622i   0.3798 - 1.1847i  -0.0478 + 0.2639i
+        //   -0.1008 + 0.3455i  -0.0478 + 0.2639i   0.3359 - 1.1176i
+        let arr = array![  [Complex64::new(0.3465,1.0179), Complex64::new(0.1560,0.5017), Complex64::new(0.1580,0.4236)],
+                                            [Complex64::new(0.1560,0.5017), Complex64::new(0.3375,1.0478), Complex64::new(0.1535,0.3849)],
+                                            [Complex64::new(0.1580,0.4236), Complex64::new(0.1535,0.3849), Complex64::new(0.3414,1.0348)]];
+        let (p, q) = get_pq_of_acline(arr).unwrap();
+        assert_eq!(p, "0.4338*x1--0.1840*x2--0.1008*x3");
+        let arr = array![  [Complex64::new(0.0,0.0), Complex64::new(0.0,0.0), Complex64::new(0.0,0.0)],
+                                            [Complex64::new(0.0,0.0), Complex64::new(0.0,0.0), Complex64::new(0.0,0.0)],
+                                            [Complex64::new(0.0,0.0), Complex64::new(0.0,0.0), Complex64::new(0.3414,1.0348)]];
+        let (p, q) = get_pq_of_acline(arr).unwrap();
+    }
 }
