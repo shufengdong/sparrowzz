@@ -6,6 +6,7 @@ use arrow_schema::{DataType, Field, Schema};
 use ndarray::Array2;
 
 use ds_common::dyn_topo::{read_dev_topo, read_dyn_topo};
+use ds_common::{DEV_CONDUCTOR_DF_NAME, DEV_TOPO_DF_NAME, DS_PF_NLP_CONS, DS_PF_NLP_OBJ, DYN_TOPO_DF_NAME, TN_INPUT_DF_NAME};
 use ds_common::tn_input::read_tn_input;
 use mems::model::{get_wasm_result, PluginInput, PluginOutput};
 
@@ -13,11 +14,6 @@ use crate::read::read_dev_ohm;
 
 mod read;
 mod nlp;
-
-const DYN_TOPO_DF_NAME: &str = "dyn_topo";
-const DEV_TOPO_DF_NAME: &str = "dev_topo";
-const DEV_CONDUCTOR_DF_NAME: &str = "dev_ohm";
-const TN_INPUT_DF_NAME: &str = "tn_input";
 
 #[no_mangle]
 pub unsafe fn run(ptr: i32, len: u32) -> u64 {
@@ -93,16 +89,25 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         };
         get_wasm_result(output)
     } else {
-        let mut csv_str = String::from("cn,tn\n");
+        let mut obj_csv_str = String::from("cn,tn\n");
         // build schema
-        let schema = Schema::new(vec![
+        let obj_schema = Schema::new(vec![
             Field::new("cn", DataType::UInt64, false),
             Field::new("tn", DataType::UInt64, false),
         ]);
-        let csv_bytes = vec![("".to_string(), csv_str.into_bytes())];
+        let mut cons_csv_str = String::from("cn,tn\n");
+        // build schema
+        let cons_schema = Schema::new(vec![
+            Field::new("cn", DataType::UInt64, false),
+            Field::new("tn", DataType::UInt64, false),
+        ]);
+        let csv_bytes = vec![
+            (DS_PF_NLP_OBJ.to_string(), obj_csv_str.into_bytes()),
+            (DS_PF_NLP_CONS.to_string(), cons_csv_str.into_bytes()),
+        ];
         let output = PluginOutput {
             error_msg: None,
-            schema: Some(vec![schema]),
+            schema: Some(vec![obj_schema, cons_schema]),
             csv_bytes,
         };
         get_wasm_result(output)
