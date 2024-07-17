@@ -238,6 +238,20 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                     Field::new("unit", DataType::Utf8, false),
                     Field::new("value", DataType::Float64, false),
                 ]);
+                // create file
+                let mut base = PathBuf::from("/");
+                base.push("pf_input.csv");
+                let mut file = fs::OpenOptions::new()
+                    .create(true)
+                    .write(true)
+                    .truncate(true)
+                    .open(&base)
+                    .expect("Could not create file");
+                if let Err(e) = file.write_all(csv_str.as_bytes()) {
+                    log::warn!("!!Failed to write file, err: {:?}", e);
+                } else {
+                    let _ = file.sync_all();
+                }
                 let csv_bytes = vec![(TN_INPUT_DF_NAME.to_string(), csv_str.into_bytes())];
                 let output = PluginOutput {
                     error_msg: None,
