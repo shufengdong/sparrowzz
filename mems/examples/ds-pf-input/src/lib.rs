@@ -4,21 +4,24 @@ use std::io::Write;
 use std::path::PathBuf;
 
 use arrow_schema::{DataType, Field, Schema};
+use bytes::{Buf, BufMut, BytesMut};
 
 use ds_common::{DEV_TOPO_DF_NAME, POINT_DF_NAME, SHUNT_MEAS_DF_NAME, TERMINAL_DF_NAME, TN_INPUT_DF_NAME};
 use ds_common::dyn_topo::read_dev_topo;
 use ds_common::static_topo::{read_point_terminal, read_terminal_cn_dev};
 use ds_common::tn_input::read_shunt_measures;
 use eig_domain::{DataUnit, MeasureValue};
-use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, get_wasm_result, PluginInput, PluginOutput};
+use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, PluginInput, PluginOutput};
 use mems::model::dev::{MeasPhase, PsRsrType};
+
+static mut OUTPUT: Vec<u8> = vec![];
 
 #[no_mangle]
 pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     // 从内存中获取字符串
     let input = unsafe {
         let slice = std::slice::from_raw_parts(ptr as _, len as _);
-        let input: PluginInput = serde_cbor::from_slice(slice).unwrap();
+        let input: PluginInput = ciborium::from_reader(slice).unwrap();
         input
     };
     let r2 = get_df_from_in_plugin(&input);
@@ -82,13 +85,12 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             from += size;
         }
     }
-    if error.is_some() {
-        let output = PluginOutput {
+    let output = if error.is_some() {
+        PluginOutput {
             error_msg: error,
             schema: None,
             csv_bytes: vec![],
-        };
-        get_wasm_result(output)
+        }
     } else {
         if with_static {
             let mut csv_str = String::from("point,terminal,phase\n");
@@ -138,24 +140,22 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             }
             // write graph
             let csv_bytes = vec![(SHUNT_MEAS_DF_NAME.to_string(), csv_str.into_bytes())];
-            let output = PluginOutput {
+            PluginOutput {
                 error_msg: None,
                 schema: Some(vec![schema]),
                 csv_bytes,
-            };
-            get_wasm_result(output)
+            }
         } else {
             let r1 = get_meas_from_plugin_input(&input);
             if let Err(s) = &r1 {
                 error = Some(s.clone());
             }
             if error.is_some() {
-                let output = PluginOutput {
+                PluginOutput {
                     error_msg: error,
                     schema: None,
                     csv_bytes: vec![],
-                };
-                get_wasm_result(output)
+                }
             } else {
                 let (meas, units) = r1.unwrap();
                 let len = terminal_of_shunt_dev.len();
@@ -253,15 +253,21 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                     let _ = file.sync_all();
                 }
                 let csv_bytes = vec![(TN_INPUT_DF_NAME.to_string(), csv_str.into_bytes())];
-                let output = PluginOutput {
+                PluginOutput {
                     error_msg: None,
                     schema: Some(vec![schema]),
                     csv_bytes,
-                };
-                get_wasm_result(output)
+                }
             }
         }
-    }
+    };
+    ciborium::into_writer(&output, &mut OUTPUT).unwrap();
+    let offset = OUTPUT.as_ptr() as i32;
+    let len = OUTPUT.len() as u32;
+    let mut bytes = BytesMut::with_capacity(8);
+    bytes.put_i32(offset);
+    bytes.put_u32(len);
+    return bytes.get_u64();
 }
 
 unsafe fn create_measure(m: &MeasureValue, phase: &MeasPhase, ratio: f64,

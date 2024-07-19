@@ -1,18 +1,20 @@
 use std::collections::HashMap;
 
 use arrow_schema::{DataType, Field, Schema};
+use bytes::{Buf, BufMut, BytesMut};
 
 use ds_common::{DEV_TOPO_DF_NAME, DYN_TOPO_DF_NAME, POINT_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME};
-use ds_common::static_topo::{read_static_topo, read_point_terminal, read_terminal_cn_dev};
+use ds_common::static_topo::{read_point_terminal, read_static_topo, read_terminal_cn_dev};
 use eig_domain::DataUnit;
-use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, get_wasm_result, ModelType, PluginInput, PluginOutput};
+use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, ModelType, PluginInput, PluginOutput};
 
+static mut OUTPUT: Vec<u8> = vec![];
 #[no_mangle]
 pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     // 从内存中获取字符串
     let input = unsafe {
         let slice = std::slice::from_raw_parts(ptr as _, len as _);
-        let input: PluginInput = serde_cbor::from_slice(slice).unwrap();
+        let input: PluginInput = ciborium::from_reader(slice).unwrap();
         input
     };
     let mut error = None;
@@ -60,7 +62,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             }
         }
     }
-    if error.is_none() {
+    let output = if error.is_none() {
         let (meas, units) = r1.unwrap();
         let mut point_map: HashMap<u64, u64> = HashMap::with_capacity(points.len());
         let mut terminal_cn: HashMap<u64, u64> = HashMap::with_capacity(points.len());
@@ -195,18 +197,23 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             csv_bytes.push((DEV_TOPO_DF_NAME.to_string(), dev_csv.into_bytes()));
             schema.push(dev_schema);
         }
-        let output = PluginOutput {
+        PluginOutput {
             error_msg: None,
             schema: Some(schema),
             csv_bytes,
-        };
-        get_wasm_result(output)
+        }
     } else {
-        let output = PluginOutput {
+        PluginOutput {
             error_msg: error,
             schema: None,
             csv_bytes: vec![],
-        };
-        get_wasm_result(output)
-    }
+        }
+    };
+    ciborium::into_writer(&output, &mut OUTPUT).unwrap();
+    let offset = OUTPUT.as_ptr() as i32;
+    let len = OUTPUT.len() as u32;
+    let mut bytes = BytesMut::with_capacity(8);
+    bytes.put_i32(offset);
+    bytes.put_u32(len);
+    return bytes.get_u64();
 }

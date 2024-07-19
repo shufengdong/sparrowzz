@@ -8,7 +8,8 @@ crate-type = ["cdylib"]
 
 [dependencies]
 log = "0.4"
-serde_cbor = "0.11"
+ciborium = "0.2"
 arrow-schema = { version = "52.1", features = ["serde"] }
 petgraph = "0.6"
 mems = { path = "../../../mems" }
+bytes = "1.6.1"

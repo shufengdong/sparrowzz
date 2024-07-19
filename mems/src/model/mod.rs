@@ -1,5 +1,5 @@
 use std::collections::HashMap;
-use bytes::{Buf, BufMut, BytesMut};
+
 use serde::{Deserialize, Serialize};
 
 use eig_aoe::aoe::AoeModel;
@@ -301,7 +301,7 @@ pub fn get_island_from_plugin_input(input: &PluginInput) -> Result<(Island, Vec<
                 }
                 let size = input.model_len[index] as usize;
                 let end = from + size;
-                let r = serde_cbor::from_slice(&input.bytes[from..end]);
+                let r = ciborium::from_reader(&input.bytes[from..end]);
                 if r.is_err() {
                     return Err(format!("{:?}", r));
                 }
@@ -313,7 +313,7 @@ pub fn get_island_from_plugin_input(input: &PluginInput) -> Result<(Island, Vec<
                 }
                 let size = input.model_len[index] as usize;
                 let end = from + size;
-                let r = serde_cbor::from_slice(&input.bytes[from..end]);
+                let r = ciborium::from_reader(&input.bytes[from..end]);
                 if r.is_err() {
                     return Err(format!("{:?}", r));
                 }
@@ -325,7 +325,7 @@ pub fn get_island_from_plugin_input(input: &PluginInput) -> Result<(Island, Vec<
                 }
                 let size = input.model_len[index] as usize;
                 let end = from + size;
-                let r = serde_cbor::from_slice(&input.bytes[from..end]);
+                let r = ciborium::from_reader(&input.bytes[from..end]);
                 if r.is_err() {
                     return Err(format!("{:?}", r));
                 }
@@ -359,7 +359,7 @@ pub fn get_meas_from_plugin_input(input: &PluginInput) -> Result<(Vec<MeasureVal
                 }
                 let size = input.model_len[index] as usize;
                 let end = from + size;
-                let r = serde_cbor::from_slice(&input.bytes[from..end]);
+                let r = ciborium::from_reader(&input.bytes[from..end]);
                 if r.is_err() {
                     return Err(format!("{:?}", r));
                 }
@@ -371,7 +371,7 @@ pub fn get_meas_from_plugin_input(input: &PluginInput) -> Result<(Vec<MeasureVal
                 }
                 let size = input.model_len[index] as usize;
                 let end = from + size;
-                let r = serde_cbor::from_slice(&input.bytes[from..end]);
+                let r = ciborium::from_reader(&input.bytes[from..end]);
                 if r.is_err() {
                     return Err(format!("{:?}", r));
                 }
@@ -431,17 +431,19 @@ pub fn get_df_from_in_plugin(input: &PluginInput) -> Result<usize, String> {
     Ok(from)
 }
 
-#[inline]
-pub fn get_wasm_result(output: PluginOutput) -> u64 {
-    // 下面的unwrap是必要的，否则输出的字节无法解析
-    let v = serde_cbor::to_vec(&output).unwrap();
-    let offset = v.as_ptr() as i32;
-    let len = v.len() as u32;
-    let mut bytes = BytesMut::with_capacity(8);
-    bytes.put_i32(offset);
-    bytes.put_u32(len);
-    return bytes.get_u64();
-}
+// #[inline]
+// pub fn get_wasm_result(output: PluginOutput) -> u64 {
+//     // 下面的unwrap是必要的，否则输出的字节无法解析
+//     let mut v = Vec::new();
+//     ciborium::into_writer(&output, &mut v).unwrap();
+//     v.shrink_to_fit();
+//     let offset = v.as_ptr() as i32;
+//     let len = v.len() as u32;
+//     let mut bytes = BytesMut::with_capacity(8);
+//     bytes.put_i32(offset);
+//     bytes.put_u32(len);
+//     return bytes.get_u64();
+// }
 
 #[inline]
 pub fn get_csv_str(s: &str) -> String {

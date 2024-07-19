@@ -1,19 +1,23 @@
 use std::collections::HashMap;
+
 use arrow_schema::{DataType, Field, Schema};
+use bytes::{Buf, BufMut, BytesMut};
 use csv::StringRecordsIter;
 use log::{info, warn};
 use ndarray::{Array2, ArrayBase, Ix2, OwnedRepr};
+
 use eig_domain::PropValue;
-use mems::model::{get_csv_str, get_df_from_in_plugin, get_island_from_plugin_input, get_wasm_result, PluginInput, PluginOutput};
+use mems::model::{get_csv_str, get_df_from_in_plugin, get_island_from_plugin_input, PluginInput, PluginOutput};
 use mems::model::dev::PsRsrType;
 
+static mut OUTPUT: Vec<u8> = vec![];
 #[no_mangle]
 pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     info!("Read plugin input firstly");
     // 从内存中获取字符串
     let input = unsafe {
         let slice = std::slice::from_raw_parts(ptr as _, len as _);
-        let input: PluginInput = serde_cbor::from_slice(slice).unwrap();
+        let input: PluginInput = ciborium::from_reader(slice).unwrap();
         input
     };
     let mut error = None;
@@ -76,27 +80,32 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             }
         }
     }
-    if error.is_none() {
+    let output = if error.is_none() {
         // build schema
         let schema = Schema::new(vec![
             Field::new("dev_id", DataType::UInt64, false),
             Field::new("ohm", DataType::Utf8, false),
         ]);
         let csv_bytes = vec![("".to_string(), csv_str.into_bytes())];
-        let output = PluginOutput {
+        PluginOutput {
             error_msg: None,
             schema: Some(vec![schema]),
             csv_bytes,
-        };
-        get_wasm_result(output)
+        }
     } else {
-        let output = PluginOutput {
+        PluginOutput {
             error_msg: error,
             schema: None,
             csv_bytes: vec![],
-        };
-        get_wasm_result(output)
-    }
+        }
+    };
+    ciborium::into_writer(&output, &mut OUTPUT).unwrap();
+    let offset = OUTPUT.as_ptr() as i32;
+    let len = OUTPUT.len() as u32;
+    let mut bytes = BytesMut::with_capacity(8);
+    bytes.put_i32(offset);
+    bytes.put_u32(len);
+    return bytes.get_u64();
 }
 
 fn read_config(records: &mut StringRecordsIter<&[u8]>)
