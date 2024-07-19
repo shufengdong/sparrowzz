@@ -3,24 +3,26 @@
 use std::collections::HashMap;
 
 use arrow_schema::{DataType, Field, Schema};
+use bytes::{Buf, BufMut, BytesMut};
 use ndarray::Array2;
 
-use ds_common::dyn_topo::{read_dev_topo, read_dyn_topo};
 use ds_common::{DEV_CONDUCTOR_DF_NAME, DEV_TOPO_DF_NAME, DS_PF_NLP_CONS, DS_PF_NLP_OBJ, DYN_TOPO_DF_NAME, TN_INPUT_DF_NAME};
+use ds_common::dyn_topo::{read_dev_topo, read_dyn_topo};
 use ds_common::tn_input::read_tn_input;
-use mems::model::{get_wasm_result, PluginInput, PluginOutput};
+use mems::model::{PluginInput, PluginOutput};
 
 use crate::read::read_dev_ohm;
 
 mod read;
 mod nlp;
 
+static mut OUTPUT: Vec<u8> = vec![];
 #[no_mangle]
 pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     // 从内存中获取字符串
     let input = unsafe {
         let slice = std::slice::from_raw_parts(ptr as _, len as _);
-        let input: PluginInput = serde_cbor::from_slice(slice).unwrap();
+        let input: PluginInput = ciborium::from_reader(slice).unwrap();
         input
     };
     let from = 0;
@@ -81,13 +83,12 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             }
         }
     }
-    if error.is_some() {
-        let output = PluginOutput {
+    let output = if error.is_some() {
+        PluginOutput {
             error_msg: error,
             schema: None,
             csv_bytes: vec![],
-        };
-        get_wasm_result(output)
+        }
     } else {
         let mut obj_csv_str = String::from("cn,tn\n");
         // build schema
@@ -105,11 +106,17 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             (DS_PF_NLP_OBJ.to_string(), obj_csv_str.into_bytes()),
             (DS_PF_NLP_CONS.to_string(), cons_csv_str.into_bytes()),
         ];
-        let output = PluginOutput {
+        PluginOutput {
             error_msg: None,
             schema: Some(vec![obj_schema, cons_schema]),
             csv_bytes,
-        };
-        get_wasm_result(output)
-    }
+        }
+    };
+    ciborium::into_writer(&output, &mut OUTPUT).unwrap();
+    let offset = OUTPUT.as_ptr() as i32;
+    let len = OUTPUT.len() as u32;
+    let mut bytes = BytesMut::with_capacity(8);
+    bytes.put_i32(offset);
+    bytes.put_u32(len);
+    return bytes.get_u64();
 }

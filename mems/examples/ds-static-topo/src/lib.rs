@@ -1,9 +1,10 @@
 use std::collections::HashMap;
 
 use arrow_schema::{DataType, Field, Schema};
+use bytes::{Buf, BufMut, BytesMut};
 use petgraph::graph::UnGraph;
 
-use mems::model::{get_csv_str, get_island_from_plugin_input, get_wasm_result, ModelType, PluginInput, PluginOutput};
+use mems::model::{get_csv_str, get_island_from_plugin_input, ModelType, PluginInput, PluginOutput};
 use mems::model::dev::{CN, Island, PropDefine, PsRsrType, RsrDefine};
 
 // use std::fs;
@@ -14,13 +15,14 @@ const NORMAL_OPEN: &str = "normalOpen";
 const STATIC_TOPO_DF_NAME: &str = "static_topo";
 const TERMINAL_DF_NAME: &str = "terminal_cn_dev";
 const POINT_DF_NAME: &str = "point_terminal_phase";
+static mut OUTPUT: Vec<u8> = vec![];
 
 #[no_mangle]
 pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     // 从内存中获取字符串
     let input = unsafe {
         let slice = std::slice::from_raw_parts(ptr as _, len as _);
-        let input: PluginInput = serde_cbor::from_slice(slice).unwrap();
+        let input: PluginInput =ciborium::from_reader(slice).unwrap();
         input
     };
     let mut error = None;
@@ -28,7 +30,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     if let Err(s) = &r {
         error = Some(s.clone());
     }
-    if error.is_none() {
+    let output = if error.is_none() {
         let (island, prop_defs, defines) = r.unwrap();
         let mut outgoing = vec![];
         for model_input in &input.model {
@@ -114,20 +116,25 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         if !is_matched {
             create_static_topo(&island, &prop_defs, &defines, &mut csv_bytes, &mut schema);
         }
-        let output = PluginOutput {
+        PluginOutput {
             error_msg: None,
             schema: Some(schema),
             csv_bytes,
-        };
-        get_wasm_result(output)
+        }
     } else {
-        let output = PluginOutput {
+        PluginOutput {
             error_msg: error,
             schema: None,
             csv_bytes: vec![],
-        };
-        get_wasm_result(output)
-    }
+        }
+    };
+    ciborium::into_writer(&output, &mut OUTPUT).unwrap();
+    let offset = OUTPUT.as_ptr() as i32;
+    let len = OUTPUT.len() as u32;
+    let mut bytes = BytesMut::with_capacity(8);
+    bytes.put_i32(offset);
+    bytes.put_u32(len);
+    return bytes.get_u64();
 }
 
 fn create_static_topo(island: &Island, prop_defs: &[PropDefine], defines: &HashMap<u64, RsrDefine>, csv_bytes: &mut Vec<(String, Vec<u8>)>, schema: &mut Vec<Schema>) {
