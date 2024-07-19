@@ -71,6 +71,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                             }
                         }
                     }
+                    // todo: add other types: transformer\regulator
                 }
             }
         }
