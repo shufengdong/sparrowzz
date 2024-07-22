@@ -113,10 +113,10 @@ pub fn get_pf_nlp_variables(tns: &[u64]) -> String {
     let mut variable = String::new();
     // 生成变量名
     for tn in tns {
-        variable.push_str(&format!("V_{tn}_A:[0/20000],D_{tn}_A:[-3.2/3.2],\
-        V_{tn}_B:[0/20000],D_{tn}_B:[-3.2/3.2],V_{tn}_C:[0/20000],D_{tn}_C:[-3.2/3.2],\
-        P_{tn}_A:[-200000/200000],P_{tn}_B:[-200000/200000],P_{tn}_C:[-200000/200000],\
-        Q_{tn}_A:[-200000/200000],Q_{tn}_B:[-200000/200000],Q_{tn}_C:[-200000/200000],"));
+        variable.push_str(&format!("V_{tn}_A:[0/99999999],D_{tn}_A:[-3.2/3.2],\
+        V_{tn}_B:[0/99999999],D_{tn}_B:[-3.2/3.2],V_{tn}_C:[0/99999999],D_{tn}_C:[-3.2/3.2],\
+        P_{tn}_A:[-99999999/99999999],P_{tn}_B:[-99999999/99999999],P_{tn}_C:[-99999999/99999999],\
+        Q_{tn}_A:[-99999999/99999999],Q_{tn}_B:[-99999999/99999999],Q_{tn}_C:[-99999999/99999999],"));
     }
     variable
 }
@@ -477,8 +477,8 @@ mod test {
         let dyn_topo = vec![vec![1, 1], vec![2, 2]];
         let dev_topo = vec![vec![1, 1, 1, 1], vec![2, 1, 1, 2], vec![3, 2, 2, 2], vec![4, 2, 2, 4]];
         let mut dev_matrix = HashMap::new();
-        dev_matrix.insert(2, vec![array![[0.3465, 0.1560, 0.1580], [0.1560, 0.3375, 0.1535], [0.1580, 0.1535, 0.3414]],
-                                  array![[1.0179, 0.5017, 0.4236], [0.5017, 1.0478, 0.3849], [0.4236, 0.3849, 1.0348]]]);
+        dev_matrix.insert(2, vec![array![[0.3465, 0.1560, 0.1580], [0.1560, 0.3375, 0.1535], [0.1580, 0.1535, 0.3414]]*2000.0/5280.0,
+                                  array![[1.0179, 0.5017, 0.4236], [0.5017, 1.0478, 0.3849], [0.4236, 0.3849, 1.0348]]*2000.0/5280.0 ]);
         // dev_matrix.insert(2, vec![array![[1.3425, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.3414]],
         //                           array![[0.5124, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 1.0348]]]);
         // dev_matrix.insert(2, vec![array![[0.0, 0.0, 0.0], [0.0, 0.0, 0.0], [0.0, 0.0, 0.3414]],
@@ -486,7 +486,7 @@ mod test {
         let input_tns = vec![1, 2, 2, 2, 2, 2, 2];
         let input_phases = vec![MeasPhase::Total, MeasPhase::A, MeasPhase::A, MeasPhase::B, MeasPhase::B, MeasPhase::C, MeasPhase::C];
         let input_types = vec![DataUnit::V, DataUnit::W, DataUnit::Var, DataUnit::W, DataUnit::Var, DataUnit::W, DataUnit::Var];
-        let input_values = vec![200.0, 1000.0, 100.0, 1100.0, 200.0, 900.0, 400.0];
+        let input_values = vec![12470.0, 1275000.0, 790174.0, 1800000.0, 871779.8, 2375000.0, 780624.7];
         let constraints = get_pf_nlp_constraints(
             &tns, dyn_topo, dev_topo, dev_matrix, input_tns, input_phases, input_types, input_values
         );
