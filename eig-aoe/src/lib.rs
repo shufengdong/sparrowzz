@@ -1,3 +1,7 @@
+// flowing should as same as in sparrowzz
+pub mod aoe;
+pub mod solvers;
+
 use std::collections::{HashMap, HashSet};
 use std::collections::hash_map::Iter;
 use log::error;
@@ -7,9 +11,6 @@ use petgraph::graphmap::DiGraphMap;
 
 use eig_domain::{Measurement, MeasureValue};
 use eig_expr::{Expr, Token};
-
-pub mod aoe;
-pub mod solvers;
 
 pub const AOE_RESULT_BUF: usize = 100;
 
@@ -213,6 +214,10 @@ impl MeasureBuf {
     }
 
     pub fn copy_sub(&self, ids: &HashSet<u64>, is_copy_alias: bool) -> MeasureBuf {
+        // means all
+        if ids.contains(&0) {
+            return self.clone();
+        }
         let v: Vec<(Option<MeasureValue>, Option<MeasureValue>, Option<MeasureValue>)> = ids.iter().map(|id| {
             let mv = self.current_mvs.get(id).cloned();
             let last_mv = self.last_mvs.get(id).cloned();
@@ -355,3 +360,4 @@ impl MeasureBuf {
         status.is_some() && status.unwrap().discrete_value > 0
     }
 }
+// above should as same as in sparrowzz
