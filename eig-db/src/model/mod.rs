@@ -1,12 +1,7 @@
-use std::collections::{BTreeMap, HashMap, HashSet};
-
-use async_channel::{Receiver, Sender};
 use serde::{Deserialize, Serialize};
 
 use eig_aoe::aoe::AoeModel;
 use eig_domain::*;
-use eig_domain::web::EigConfig;
-use eig_domain::proto::aoe::{PbAoeResult, PbAoeResults};
 
 // request and response topic
 pub const TOPIC_REGISTER: &str = "register";
@@ -125,17 +120,6 @@ pub struct PointsQuery {
     pub name: Option<String>,
 }
 
-/**
- * @apiDefine TransportQuery
- * @apiQuery {String} [id] 通道id,","间隔
- * @apiQuery {TransportType} [transport_type] 通道类型，可选字符串为：ModbusTcpClient、ModbusTcpServer、ModbusRtuClient、ModbusRtuServer、DLT645Client、Mqtt、Iec104Client、Iec104Server、HYMqtt、Unknown
- */
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct TransportQuery {
-    pub id: Option<String>,
-    pub transport_type: Option<TransportType>,
-}
-
 // todo: api doc needed
 #[derive(Serialize, Deserialize, Clone, Debug)]
 pub struct LogQuery {
@@ -152,29 +136,6 @@ impl LogQuery {
             "".to_string()
         }
     }
-}
-
-/**
- * @api {枚举_实时消息} /EigRtMessage EigRtMessage
- * @apiPrivate
- * @apiGroup A_Enum
- * @apiSuccess {Object} P2pMeasure {"P2pMeasure": tuple(String, String, PbPointValues)}
- * @apiSuccess {Object} PlccMeasure {"PlccMeasure": tuple(String, PbPointValues)}
- * @apiSuccess {Object} PlccAlarm {"PlccAlarm": tuple(String, PbEigAlarms)}
- * @apiSuccess {Object} PlccAoe {"PlccAoe": tuple(String, PbAoeResult)}
- * @apiSuccess {Object} PlccCommand {"PlccCommand": tuple(String, PbSetPointResults)}
- * @apiSuccess {Object} PlccLog {"PlccLog": tuple(String, u8[])}
- * @apiSuccess {String} Test Test
- */
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub enum EigRtMessage {
-    P2pMeasure(String, String, PbPointValues),
-    PlccMeasure(String, PbPointValues),
-    PlccAlarm(String, PbEigAlarms),
-    PlccAoe(String, PbAoeResult),
-    PlccCommand(String, PbSetPointResults),
-    PlccLog(String, Vec<u8>),
-    Test,
 }
 
 /**
@@ -207,24 +168,6 @@ pub struct EigRtRegister {
     pub log: Vec<bool>,
 }
 
-#[derive(Clone, Debug)]
-pub struct RtMsgRegisterData {
-    // key is bee id (lcc id) in following four maps
-    pub measure_registers: HashMap<String, Vec<(u32, HashSet<u64>)>>,
-    pub alarm_registers: HashSet<String>,
-    pub aoe_registers: HashSet<String>,
-    pub cmd_registers: HashSet<String>,
-    pub log_registers: HashSet<String>,
-}
-
-pub enum RtMsgRegisterMsg {
-    // set init
-    SetInits(u32, HashMap<u64, MeasureValue>),
-    SetRender(String, Sender<EigRtMessage>),
-    SetRegister(EigRtRegister),
-    // 取消
-    RemoveRegister(String),
-}
 
 /**
  * @api {UserPub} /UserPub UserPub
@@ -432,28 +375,6 @@ pub struct PointControl {
 }
 
 /**
- * @api {PointControl2} /PointControl2 PointControl2
- * @apiGroup A_Object
- * @apiSuccess {SetIntValue2[]} discretes discretes
- * @apiSuccess {SetFloatValue2[]} analogs analogs
- */
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct PointControl2 {
-    pub discretes: Vec<SetIntValue2>,
-    pub analogs: Vec<SetFloatValue2>,
-}
-
-/**
- * @api {PointControl3} /PointControl3 PointControl3
- * @apiGroup A_Object
- * @apiSuccess {SetPointValue[]} commands commands
- */
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct PointControl3 {
-    pub commands: Vec<SetPointValue>,
-}
-
-/**
  * @api {AoeAction} /AoeAction AoeAction
  * @apiGroup A_Enum
  * @apiSuccess {Object} StartAoe 开始AOE，{"StartAoe": u64}
@@ -478,26 +399,6 @@ pub enum AoeAction {
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct AoeControl {
     pub AoeActions: Vec<AoeAction>,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub enum ModelRequest {
-    QueryConfig,
-    // 查询模型操作
-    QueryPoints(PointsQuery),
-    QueryTransports(TransportQuery),
-    QueryAoes(AoeQuery),
-    // 保存模型操作
-    SavePoints(Vec<Measurement>),
-    SavePoint(Measurement),
-    SaveTransports(Vec<Transport>),
-    SaveAoes(Vec<AoeModel>),
-    SaveAoe(AoeModel),
-    SaveConfig(EigConfig),
-    // 删除操作
-    DeletePoints(Vec<u64>),
-    DeleteTransports(Vec<u64>),
-    DeleteAoes(Vec<u64>),
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -527,31 +428,6 @@ pub enum CommonRequest {
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
-pub enum AlarmRequest {
-    // 查询所有的告警条数
-    QueryAlarmCount,
-    // 查询所有的告警规则
-    QueryAlarmDefines,
-    // 查询指定id的告警规则
-    QueryAlarmDefine(u32),
-    // 新建并保存告警规则
-    SaveAlarmDefine(PbAlarmDefine),
-    SaveAlarmDefines(PbAlarmDefines),
-    // 删除指定id的告警规则
-    DeleteAlarmDefines(Vec<u32>),
-    // 查询告警通知设置
-    QueryAlarmConfig,
-    // 配置告警通知
-    SetAlarmConfig(AlarmConfig),
-    // 确认告警（用户id, 被确认告警的id）
-    ConfirmAlarms(u16, Vec<u64>),
-    // 查询已确认的告警
-    QueryConfirmStatus,
-    // 查询未确认的告警数
-    QueryUnconfirmedNumber,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
 pub enum ControlRequest {
     Point(PointControl),
     Aoe(AoeControl),
@@ -564,59 +440,6 @@ pub enum ControlRequest {
 pub enum StatusRequest {
     RunningAoes,
     UnrunAoes,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub enum PlccRequest {
-    Model(ModelRequest),
-    History(HisRequest),
-    Auth(AuthRequest),
-    Alarm(AlarmRequest),
-    Control(ControlRequest),
-    Status(StatusRequest),
-    Common(CommonRequest),
-    // other
-    Log(LogQuery),
-    ImportAllModels(PbFiles),
-    ExportAllModels(String),
-    Test,
-}
-
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub enum PlccResponse {
-    // model
-    EigConfig(EigConfig),
-    Points(Vec<Measurement>),
-    Transports(Vec<Transport>),
-    AoeModels(Vec<AoeModel>),
-    // history data
-    Measures(PbPointValues),
-    Alarms(PbEigAlarms),
-    UnConfirmedAlarms(PbEigAlarms),
-    AoeResults(PbAoeResults),
-    SetPointResults(PbSetPointResults),
-    // auth
-    User(Option<UserPub>),
-    Users(Vec<UserPub>),
-    // alarm
-    AlarmCount(u64),
-    AlarmDefine(Option<PbAlarmDefine>),
-    AlarmDefines(PbAlarmDefines),
-    AlarmConfig(Option<AlarmConfig>),
-    AlarmConfirmStatus(BTreeMap<u64, (u64, Option<u16>)>),
-    AlarmUnConfirmedCount(u64),
-    // status
-    RunningAoes(Vec<u64>),
-    UnrunAoes(Vec<u64>),
-    // other
-    KvResponse(Vec<u8>),
-    Tags(Vec<Vec<u64>>),
-    TagDefs(Vec<(String, u16)>),
-    TagDefIds(Vec<u16>),
-    LogFiles(PbFile),
-    ALlModels(PbFiles),
-    Error(String),
-    Done,
 }
 
 #[derive(Serialize, Deserialize, Clone, Debug)]
@@ -665,101 +488,6 @@ pub struct LccDevice {
     pub is_ems: bool,
 }
 
-#[derive(Debug, Clone)]
-pub enum LccOperation {
-    // common
-    QueryKv(String, Vec<u8>, Sender<Vec<u8>>),
-    UpdateKv(String, Vec<u8>, Vec<u8>),
-    UpdateKv2(String, Vec<u8>, Vec<u8>, Vec<u8>),
-    DeleteKv(String, Vec<u8>),
-    QueryIdsWithTag(String, u8, Vec<u16>, Sender<Vec<Vec<u64>>>),
-    QueryTagDefs(String, u8, Sender<Vec<(String, u16)>>),
-    UpdateTags(String, u8, Vec<(String, Vec<u64>)>, Sender<Vec<u16>>),
-    DeleteTags(String, u8, Vec<(u16, u64)>),
-    // 设备的增、删和查
-    QueryLccList(Sender<Vec<LccDevice>>),
-    QueryLcc(String, Sender<Option<LccDevice>>),
-    // models
-    ExportAllModels(String, String, Sender<PbFiles>),
-    ImportAllModels(String, PbFiles),
-    QueryConfig(String, Sender<Option<EigConfig>>),
-    PutConfig(String, EigConfig),
-    QueryAoes(String, AoeQuery, Sender<Vec<AoeModel>>),
-    PostAoes(String, Vec<AoeModel>),
-    DeleteAoes(String, Vec<u64>),
-    QueryPoints(String, PointsQuery,Sender<Vec<Measurement>>),
-    PostPoints(String, Vec<Measurement>),
-    DeletePoints(String, Vec<u64>),
-    QueryTransports(String, TransportQuery, Sender<Vec<Transport>>),
-    PostTransports(String, Vec<Transport>),
-    DeleteTransports(String, Vec<u64>),
-    // status
-    QueryRunningAoes(String, Sender<Vec<u64>>),
-    QueryUnRunAoes(String, Sender<Vec<u64>>),
-    // control
-    ControlQuitForce(String),
-    ControlPoint(String, PointControl),
-    ControlAoe(String, AoeControl),
-    ControlReset(String),
-    ControlRecover(String),
-    // history date query
-    QueryMeasures(String, HisQuery, Sender<PbPointValues>),
-    QueryAoeResults(String, HisQuery, Sender<PbAoeResults>),
-    QueryAlarms(String, HisQuery, Sender<PbEigAlarms>),
-    QuerySoes(String, HisQuery, Sender<PbPointValues>),
-    QuerySetPointResults(String, HisSetPointQuery, Sender<PbSetPointResults>),
-    QueryLogFiles(String, LogQuery, Sender<PbFile>),
-    // alarm related
-    QueryAlarmCount(String, Sender<u64>),
-    // 查询所有的告警规则
-    QueryAlarmDefines(String, Sender<PbAlarmDefines>),
-    // 查询指定id的告警规则
-    QueryAlarmDefine(String, u32, Sender<Option<PbAlarmDefine>>),
-    // 新建并保存告警规则
-    SaveAlarmDefine(String, PbAlarmDefine),
-    SaveAlarmDefines(String, PbAlarmDefines),
-    // 删除指定id的告警规则
-    DeleteAlarmDefines(String, String),
-    // 查询告警通知设置
-    QueryAlarmConfig(String, Sender<Option<AlarmConfig>>),
-    // 配置告警通知
-    SetAlarmConfig(String, AlarmConfig),
-    // 确认告警（lcc id, 用户id, 被确认告警的id）
-    ConfirmAlarms(String, u16, Vec<u64>),
-    // 查询已确认的告警（alarm id, 用户id（若用户id为空则表示未确认））
-    QueryConfirmStatus(String, Sender<BTreeMap<u64, (u64, Option<u16>)>>),
-    // 查询未确认的告警数
-    QueryUnconfirmedCount(String, Sender<u64>),
-    QueryUnconfirmedAlarms(String, Sender<PbEigAlarms>),
-    // 查询用户
-    QueryUsers(String, Sender<Vec<UserPub>>),
-    // 加载LCC的测点到base服务
-    ApplyPoints(String, Vec<Measurement>),
-    // message from socket
-    Register(PbEigPingRes, Sender<PlccRequest>, Receiver<PlccResponse>),
-    Closed(String),
-    RegisterRt(PbEigPingRes, Sender<EigRtRegister>),
-    SetRtMsgRegister(EigRtRegister),
-    RemoveRtMsgRegister(String),
-    SetRtMsgSender(String, Sender<EigRtMessage>),
-    NewRtMsg(EigRtMessage),
-    ClosedRt(String),
-    // 北向接口的api
-    // 通过北向接口设备的增、删和查
-    QueryNorthList(Sender<Vec<LccDevice>>),
-    QueryNorthDev(String, Sender<Option<LccDevice>>),
-    // 请求
-    NorthRequest(String, PbRequest, Sender<PbResponse>),
-    NorthResponse(PbResponse),
-    // 注册请求响应
-    NorthRegister(PbEigPingRes, Sender<PbRequest>, Receiver<PbResponse>),
-    // from udp ping
-    Ping(PbEigPingRes),
-    // 退出
-    Quit,
-}
-
-
 
 /**
  * @api {CommitNote} /CommitNote CommitNote
@@ -785,24 +513,4 @@ pub struct VersionData<T> {
     pub note: CommitNote,
     // 对应的数据
     pub data: T,
-}
-
-/// 测点用于记录历史版本的数据集合
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct PointVersionData {
-    pub point_models: Vec<Measurement>,
-    pub beeid_to_points: Vec<(String, Vec<u64>)>,
-}
-
-/// 报表用于记录历史版本的数据集合
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct GraphVersionData {
-    pub graph_models: Vec<PbFile>,
-}
-
-// 版本查询参数
-#[derive(Serialize, Deserialize, Clone, Debug)]
-pub struct VersionQuery {
-    //版本号，可选，若为空则默认0号版本
-    pub version: Option<u32>,
 }

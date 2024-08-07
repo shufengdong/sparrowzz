@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 use serde::{Serialize, Deserialize};
-use crate::PbEigPingRes;
+use crate::proto::eig::PbEigPingRes;
 
 /**
  * @api {Eig配置对象} /EigConfig EigConfig

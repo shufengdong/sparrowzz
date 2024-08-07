@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use ndarray::{Array, array, Array2, Ix2};
 use num_complex::{Complex64, ComplexFloat};
 
-use eig_domain::DataUnit;
+use eig_domain::prop::DataUnit;
 use mems::model::dev::MeasPhase;
 
 pub fn get_pf_nlp_constraints(

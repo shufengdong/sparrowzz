@@ -2,7 +2,11 @@ use std::{fmt, str::FromStr};
 use std::fmt::{Display, Formatter};
 
 use serde::{Deserialize, Serialize};
-use crate::DataUnitError;
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum DataUnitError {
+    UnknownDataUnit(String),
+}
 
 /**
  * @api {枚举_采集数据类型} /DataType DataType
@@ -133,6 +137,8 @@ impl FromStr for DataType {
             "EightByteIntSigned" => DataType::EightByteIntSigned,
             "EightByteIntUnsignedSwapped" => DataType::EightByteIntUnsignedSwapped,
             "EightByteIntSignedSwapped" => DataType::EightByteIntSignedSwapped,
+            "EightByteIntUnsignedSwappedSwapped" => DataType::EightByteIntUnsignedSwappedSwapped,
+            "EightByteIntSignedSwappedSwapped" => DataType::EightByteIntSignedSwappedSwapped,
             "EightByteFloat" => DataType::EightByteFloat,
             "EightByteFloatSwapped" => DataType::EightByteFloatSwapped,
             "EightByteMod10kSwapped" => DataType::EightByteMod10kSwapped,
@@ -692,7 +698,7 @@ impl Display for DataUnit {
 
 #[cfg(test)]
 mod tests {
-    use crate::DataUnit;
+    use crate::prop::DataUnit;
 
     #[test]
     fn test() {

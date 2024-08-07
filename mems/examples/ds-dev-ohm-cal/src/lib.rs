@@ -6,7 +6,7 @@ use csv::StringRecordsIter;
 use log::{info, warn};
 use ndarray::{Array2, ArrayBase, Ix2, OwnedRepr};
 
-use eig_domain::PropValue;
+use eig_domain::prop::PropValue;
 use mems::model::{get_csv_str, get_df_from_in_plugin, get_island_from_plugin_input, PluginInput, PluginOutput};
 use mems::model::dev::PsRsrType;
 

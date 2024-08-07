@@ -10,7 +10,7 @@ use ds_common::{DEV_TOPO_DF_NAME, POINT_DF_NAME, SHUNT_MEAS_DF_NAME, TERMINAL_DF
 use ds_common::dyn_topo::read_dev_topo;
 use ds_common::static_topo::{read_point_terminal, read_terminal_cn_dev};
 use ds_common::tn_input::read_shunt_measures;
-use eig_domain::{DataUnit, MeasureValue};
+use eig_domain::{prop::DataUnit, MeasureValue};
 use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, PluginInput, PluginOutput};
 use mems::model::dev::{MeasPhase, PsRsrType};
 

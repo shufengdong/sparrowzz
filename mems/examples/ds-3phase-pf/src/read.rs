@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use csv::StringRecordsIter;
 use ndarray::Array2;
 
-use eig_domain::DataUnit;
+use eig_domain::prop::DataUnit;
 
 const MAT_SIZE: usize = 18;
 

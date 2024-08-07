@@ -1,7 +1,7 @@
 use std::collections::HashMap;
 
 use csv::StringRecordsIter;
-use eig_domain::DataUnit;
+use eig_domain::prop::DataUnit;
 use mems::model::dev::MeasPhase;
 
 pub fn read_shunt_measures(records: &mut StringRecordsIter<&[u8]>)

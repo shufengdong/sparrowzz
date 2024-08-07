@@ -5,7 +5,7 @@ use bytes::{Buf, BufMut, BytesMut};
 
 use ds_common::{DEV_TOPO_DF_NAME, DYN_TOPO_DF_NAME, POINT_DF_NAME, STATIC_TOPO_DF_NAME, TERMINAL_DF_NAME};
 use ds_common::static_topo::{read_point_terminal, read_static_topo, read_terminal_cn_dev};
-use eig_domain::DataUnit;
+use eig_domain::prop::DataUnit;
 use mems::model::{get_df_from_in_plugin, get_meas_from_plugin_input, ModelType, PluginInput, PluginOutput};
 
 static mut OUTPUT: Vec<u8> = vec![];

@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use eig_aoe::aoe::AoeModel;
-use eig_domain::{DataUnit, Measurement, MeasureValue};
+use eig_domain::{prop::DataUnit, Measurement, MeasureValue};
 
 use crate::model::dev::{Island, PropDefine, RsrDefine};
 
