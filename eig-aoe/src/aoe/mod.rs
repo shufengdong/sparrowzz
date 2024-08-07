@@ -1,78 +1,14 @@
 // flowing should as same as in sparrowzz
-use std::collections::HashMap;
+
 use std::fmt;
 use std::fmt::Display;
-use std::str::FromStr;
 use std::time::Duration;
 
-use async_channel::Receiver;
-use async_channel::RecvError;
-use async_channel::Sender;
-use async_trait::async_trait;
-use ndarray::{Array, IxDyn};
-use petgraph::prelude::*;
 use serde::{Deserialize, Serialize};
 
-use eig_domain::{SetFloatValue, SetIntValue};
 use eig_expr::{Expr, MyF};
 
-use crate::{ExprGraph, MeasureBuf};
-
-const AOE_MEAS_BUF_NUM: usize = 100;
-#[async_trait]
-pub trait Action: Sync {
-    /// 执行
-    async fn do_action(&self, aoe: &Aoe) -> ActionResult;
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum ActionExeResult {
-    NotRun,
-    Success,
-    Failed(u32),
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub enum EventEvalResult {
-    Happen,
-    NotHappen,
-    Canceled,
-    Error,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct ActionResult {
-    pub start_time: u64,
-    pub end_time: u64,
-    pub yk_ids: Option<Vec<(u64, i64)>>,
-    pub yt_ids: Option<Vec<(u64, f64)>>,
-    pub num_result: HashMap<String, f64>,
-    #[serde(skip)]
-    pub tensor_result: HashMap<String, Array<f64, IxDyn>>,
-    pub final_result: ActionExeResult,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct EventResult {
-    pub start_time: u64,
-    pub end_time: u64,
-    pub final_result: EventEvalResult,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone)]
-pub struct AoeResult {
-    pub aoe_id: u64,
-    pub start_time: u64,
-    pub end_time: u64,
-    pub action_result: Vec<(u64, u64, ActionResult)>,
-    pub event_result: Vec<(u64, EventResult)>,
-}
-
-pub enum OuterMsg {
-    Cancel,
-    VarOrMeasure(VarOrMeasures),
-    QueueError(RecvError),
-}
+use crate::MeasureBuf;
 
 /**
  * @api {时间对象} /Duration Duration
@@ -360,36 +296,3 @@ impl PartialEq for AoeModel {
         b
     }
 }
-
-#[derive(Debug, Clone)]
-pub struct Aoe {
-    /// 接收更新的测点值
-    pub(crate) measure_rx: Receiver<VarOrMeasures>,
-    /// 提供给外部的发送端
-    measure_tx: Sender<VarOrMeasures>,
-    /// 接收取消指令
-    pub(crate) cancel_rx: Receiver<()>,
-    /// 提供给外部的控制端
-    cancel_tx: Sender<()>,
-    /// 发送控点指令的队列
-    control_rx: Receiver<(Vec<SetIntValue>, Vec<SetFloatValue>)>,
-    pub control_tx: Sender<(Vec<SetIntValue>, Vec<SetFloatValue>)>,
-    pub model: AoeModel,
-    /// 存储Aoe网络, 节点表示事件，边表示action实体的id
-    pub(crate) graph: DiGraph<usize, (usize, usize)>,
-    /// 拓扑排序的结果
-    pub(crate) toposort_nodes: Vec<u64>,
-    /// 存储node的map
-    pub(crate) nodes: HashMap<u64, NodeIndex>,
-    /// 存储aoe对应的测点的值
-    pub measure_buf: MeasureBuf,
-    /// 上下文，用于存储变量计算结果
-    pub context: HashMap<String, MyF>,
-    // 用户自定义变量的编号，其中包括上面对应公式的，也包括计算产生的
-    // 对应公式的index从1开始，方便找到它在variables中的位置
-    // 要求用户0-1000不能用于测点号，否则会有问题
-    pub(crate) var_index: HashMap<String, u64>,
-    // 上面定义变量相互之间的关系
-    pub(crate) expr_graph: Option<ExprGraph>,
-}
-// above should as same as in sparrowzz
