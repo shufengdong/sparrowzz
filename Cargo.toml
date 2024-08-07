@@ -4,7 +4,6 @@ members = [
     "eig-expr",
     "eig-domain",
     "eig-aoe",
-    "eig-db",
     "mems",
     "mems/examples/ds-common",
     "mems/examples/ds-static-topo",

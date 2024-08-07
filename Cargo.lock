@@ -423,19 +423,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "eig-db"
-version = "0.1.0"
-dependencies = [
- "async-channel",
- "byteorder",
- "bytes",
- "eig-aoe",
- "eig-domain",
- "log",
- "serde",
-]
-
-[[package]]
 name = "eig-domain"
 version = "0.1.0"
 dependencies = [
@@ -688,7 +675,6 @@ dependencies = [
  "cron",
  "csv",
  "eig-aoe",
- "eig-db",
  "eig-domain",
  "eig-expr",
  "log",

@@ -26,4 +26,3 @@ arrow-schema = { version = "52.1", features = ["serde"] }
 eig-domain = { path = "../eig-domain" }
 eig-expr = { path = "../eig-expr" }
 eig-aoe = { path = "../eig-aoe" }
-eig-db = { path = "../eig-db" }
