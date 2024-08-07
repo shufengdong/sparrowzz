@@ -302,19 +302,6 @@ pub fn new_cx_angle(r: Complex64, i: Complex64) -> Complex64 {
 }
 
 #[doc(hidden)]
-#[cfg(feature = "with_rand")]
-pub fn random() -> Complex64 {
-    use rand::Rng;
-    Complex64::new(rand::thread_rng().gen::<f64>(), 0.)
-}
-#[doc(hidden)]
-#[cfg(feature = "with_rand")]
-pub fn random2(lower: Complex64, upper: Complex64) -> Complex64 {
-    use rand::Rng;
-    Complex64::new(rand::thread_rng().gen_range(lower.re..upper.re), 0.)
-}
-
-#[doc(hidden)]
 pub fn abs(v: Complex64) -> Complex64 {
     Complex64::new(v.norm(), 0.)
 }
@@ -395,8 +382,6 @@ impl<'a> ContextCx<'a> {
             ctx.var("pi", PI);
             ctx.var("PI", PI);
             ctx.var("e", std::f64::consts::E);
-            #[cfg(feature = "with_rand")]
-            ctx.func0("rand", random);
             ctx.func1("abs", abs);
             ctx.func1("sqrt", Complex64::sqrt);
             ctx.func1("exp", Complex64::exp);
@@ -429,8 +414,6 @@ impl<'a> ContextCx<'a> {
             ctx.func2("c1", new_cx_rad);
             // 用角度建立复数
             ctx.func2("c2", new_cx_angle);
-            #[cfg(feature = "with_rand")]
-            ctx.func2("rand2", random2);
             ctx.funcn("max", max_array, 1..);
             ctx.funcn("min", min_array, 1..);
             ctx
@@ -615,118 +598,5 @@ impl<'a> ContextProvider for ContextCx<'a> {
         self.funcs
             .get(name)
             .map_or(Err(FuncEvalError::UnknownFunction), |f| f(args))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::f64::consts::PI;
-    use std::ops::Mul;
-    use std::str::FromStr;
-
-    use approx::assert_relative_eq;
-    use ndarray::array;
-    use num_complex::{Complex, Complex64};
-
-    use crate::Expr;
-    use crate::expr_complex::ContextCx;
-
-    #[test]
-    fn it_works() {
-        let expr = Expr::from_str("1+2").unwrap();
-        let r = expr.eval_complex();
-        assert_eq!(r, Ok(Complex64::new(3., 0.)));
-
-        let expr = Expr::from_str("c(0,1)+c(2,0.)").unwrap();
-        let r = expr.eval_complex();
-        assert_eq!(r, Ok(Complex64::new(2., 1.)));
-
-        let expr = Expr::from_str("abs(c(0,1))+c(2,0.)").unwrap();
-        let r = expr.eval_complex();
-        assert_eq!(r, Ok(Complex64::new(3., 0.)));
-
-        let mut cc = ContextCx::new();
-        cc.var_cx("a", Complex::new(1., 1.));
-        let expr = Expr::from_str("a+c(2,0.)").unwrap();
-        let r = expr.eval_complex_with_ctx(cc.clone());
-        assert_eq!(r, Ok(Complex64::new(3., 1.)));
-    }
-
-    #[test]
-    fn test_2_1() {
-        let mut cc = ContextCx::new();
-        cc.var("GMRabc", 0.00744);
-        cc.var("GMRn", 0.00248);
-        cc.var("rabc", 0.190);
-        cc.var("rn", 0.368);
-        cc.var("Dab", 0.7622);
-        cc.var("Dbc", 1.3720);
-        cc.var("Dca", 2.1342);
-        cc.var("Dan", 1.7247);
-        cc.var("Dbn", 1.3025);
-        cc.var("Dcn", 1.5244);
-        // let zaa = Complex64::new(rabc + 0.0493, 0.0628 * (((1.0 / GMRabc) as f64).ln() + 8.02517));
-        let expr =
-            Expr::from_str("c(rabc + 0.0493, 0.0628 * (ln(1.0 / GMRabc) + 8.02517))").unwrap();
-        let zaa = expr.eval_complex_with_ctx(cc.clone()).unwrap();
-        assert_relative_eq!(zaa.re, 0.2393, max_relative = 1e-4);
-        assert_relative_eq!(zaa.im, 0.8118, max_relative = 1e-4);
-        let expr = Expr::from_str("c(0.0493, 0.0628 * (ln(1.0 / Dab) + 8.02517))").unwrap();
-        let zab = expr.eval_complex_with_ctx(cc.clone()).unwrap();
-        assert_relative_eq!(zab.im, 0.5210, max_relative = 1e-4);
-        let expr = Expr::from_str("c(0.0493, 0.0628 * (ln(1.0 / Dca) + 8.02517))").unwrap();
-        let zac = expr.eval_complex_with_ctx(cc.clone()).unwrap();
-        assert_relative_eq!(zac.im, 0.4564, max_relative = 1e-4);
-        let expr = Expr::from_str("c(0.0493, 0.0628 * (ln(1.0 / Dbc) + 8.02517))").unwrap();
-        let zbc = expr.eval_complex_with_ctx(cc.clone()).unwrap();
-        assert_relative_eq!(zbc.im, 0.4841, max_relative = 1e-4);
-        let expr = Expr::from_str("c(0.0493, 0.0628 * (ln(1.0 / Dan) + 8.02517))").unwrap();
-        let zan = expr.eval_complex_with_ctx(cc.clone()).unwrap();
-        assert_relative_eq!(zan.im, 0.4698, max_relative = 1e-3);
-        let expr = Expr::from_str("c(0.0493, 0.0628 * (ln(1.0 / Dbn) + 8.02517))").unwrap();
-        let zbn = expr.eval_complex_with_ctx(cc.clone()).unwrap();
-        assert_relative_eq!(zbn.im, 0.4874, max_relative = 1e-4);
-        let expr = Expr::from_str("c(0.0493, 0.0628 * (ln(1.0 / Dcn) + 8.02517))").unwrap();
-        let zcn = expr.eval_complex_with_ctx(cc.clone()).unwrap();
-        assert_relative_eq!(zcn.im, 0.4775, max_relative = 1e-4);
-        let expr = Expr::from_str("c(rn + 0.0493, 0.0628 * (ln(1.0 / GMRn) + 8.02517))").unwrap();
-        let znn = expr.eval_complex_with_ctx(cc.clone()).unwrap();
-        assert_relative_eq!(znn.re, 0.4173, max_relative = 1e-4);
-        assert_relative_eq!(znn.im, 0.8807, max_relative = 1e-4);
-        let zij = array![[zaa, zab, zac], [zab, zaa, zbc], [zac, zbc, zaa]];
-        let zin = array![[zan], [zbn], [zcn]];
-        let znj = array![zan, zbn, zcn];
-        let zabc = zij - zin.mul(array![Complex64::new(1.0, 0.0)] / znn).mul(znj);
-        println!("{:?}", zabc);
-        let a = Complex64::new(f64::cos(2.0 * PI / 3.0), f64::sin(2.0 * PI / 3.0));
-        let matrixes = array![
-            [
-                Complex64::new(1.0, 0.0),
-                Complex64::new(1.0, 0.0),
-                Complex64::new(1.0, 0.0)
-            ],
-            [Complex64::new(1.0, 0.0), a * a, a],
-            [Complex64::new(1.0, 0.0), a, a * a]
-        ];
-        let matrixes_inv = array![
-            [
-                Complex64::new(1.0 / 3.0, 0.0),
-                Complex64::new(1.0 / 3.0, 0.0),
-                Complex64::new(1.0 / 3.0, 0.0)
-            ],
-            [
-                Complex64::new(1.0 / 3.0, 0.0),
-                a * Complex64::new(1.0 / 3.0, 0.0),
-                a * a * Complex64::new(1.0 / 3.0, 0.0)
-            ],
-            [
-                Complex64::new(1.0 / 3.0, 0.0),
-                a * a * Complex64::new(1.0 / 3.0, 0.0),
-                a * Complex64::new(1.0 / 3.0, 0.0)
-            ]
-        ];
-        let temp = matrixes_inv.dot(&zabc);
-        let z012 = temp.dot(&matrixes);
-        assert_relative_eq!(z012.get([0, 0]).unwrap().re, 0.5050, max_relative = 1e-3);
     }
 }

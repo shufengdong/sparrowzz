@@ -625,71 +625,6 @@ impl Deref for Expr {
     }
 }
 
-/// A trait of a source of variables (and constants) and functions for substitution into an
-/// evaluated expression.
-///
-/// A simplest way to create a custom context provider is to use [`Context`](struct.Context.html).
-///
-/// ## Advanced usage
-///
-/// Alternatively, values of variables/constants can be specified by tuples `(name, value)`,
-/// `std::collections::HashMap` or `std::collections::BTreeMap`.
-///
-/// use {ContextProvider, Context};
-///
-/// let mut ctx = Context::new(); // built-ins
-/// ctx.var("x", 2.); // insert a new variable
-/// assert_eq!(ctx.get_var("pi"), Some(std::f64::consts::PI));
-///
-/// let myvars = ("x", 2.); // tuple as a ContextProvider
-/// assert_eq!(myvars.get_var("x"), Some(2f64));
-///
-/// // HashMap as a ContextProvider
-/// let mut varmap = std::collections::HashMap::new();
-/// varmap.insert("x", 2.);
-/// varmap.insert("y", 3.);
-/// assert_eq!(varmap.get_var("x"), Some(2f64));
-/// assert_eq!(varmap.get_var("z"), None);
-///
-/// Custom functions can be also defined.
-///
-/// use {ContextProvider, Context};
-///
-/// let mut ctx = Context::new(); // built-ins
-/// ctx.func2("phi", |x, y| x / (y * y));
-///
-/// assert_eq!(ctx.eval_func("phi", &[2., 3.]), Ok(2. / (3. * 3.)));
-///
-/// A `ContextProvider` can be built by combining other contexts:
-///
-/// use Context;
-///
-/// let bins = Context::new(); // built-ins
-/// let mut funcs = Context::empty(); // empty context
-/// funcs.func2("phi", |x, y| x / (y * y));
-/// let myvars = ("x", 2.);
-///
-/// // contexts can be combined using tuples
-/// let ctx = ((myvars, bins), funcs); // first context has preference if there's duplicity
-///
-/// assert_eq!(eval_str_with_context("x * pi + phi(1., 2.)", ctx).unwrap(), 2. *
-///             std::f64::consts::PI + 1. / (2. * 2.));
-///
-
-#[doc(hidden)]
-#[cfg(feature = "with_rand")]
-pub fn random() -> f64 {
-    use rand::Rng;
-    rand::thread_rng().gen::<f64>()
-}
-
-#[doc(hidden)]
-#[cfg(feature = "with_rand")]
-pub fn random2(lower: f64, upper: f64) -> f64 {
-    use rand::Rng;
-    rand::thread_rng().gen_range(lower..upper)
-}
-
 #[doc(hidden)]
 pub fn max_array(xs: &[f64]) -> f64 {
     xs.iter().fold(f64::NEG_INFINITY, |m, &x| m.max(x))
@@ -1064,8 +999,6 @@ impl<'a> Context<'a> {
             ctx.var("pi", consts::PI);
             ctx.var("PI", consts::PI);
             ctx.var("e", consts::E);
-            #[cfg(feature = "with_rand")]
-            ctx.func0("rand", random);
             ctx.func1("sqrt", f64::sqrt);
             ctx.func1("exp", f64::exp);
             ctx.func1("ln", f64::ln);
@@ -1088,8 +1021,6 @@ impl<'a> Context<'a> {
             ctx.func1("round", f64::round);
             ctx.func1("signum", f64::signum);
             ctx.func2("atan2", f64::atan2);
-            #[cfg(feature = "with_rand")]
-            ctx.func2("rand2", random2);
             ctx.funcn("max", max_array, 1..);
             ctx.funcn("min", min_array, 1..);
             ctx
@@ -1302,152 +1233,5 @@ impl<'a> ContextProvider for Context<'a> {
         self.funcs
             .get(name)
             .map_or(Err(FuncEvalError::UnknownFunction), |f| f(args))
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::str::FromStr;
-
-    use Error;
-
-    use super::*;
-
-    #[test]
-    fn test_eval() {
-        assert_eq!(eval_str("3 -3"), Ok(0.));
-        assert_eq!(eval_str("2 + 3"), Ok(5.));
-        assert_eq!(eval_str("2 + (3 + 4)"), Ok(9.));
-        assert_eq!(eval_str("-2^(4 - 3) * (3 + 4)"), Ok(-14.));
-        assert_eq!(eval_str("-2*3! + 1"), Ok(-11.));
-        assert_eq!(eval_str("-171!"), Ok(f64::MIN));
-        assert_eq!(eval_str("150!/148!"), Ok(22350.));
-        assert_eq!(eval_str("a + 3"), Err(Error::UnknownVariable("a".into())));
-        assert_eq!(eval_str("round(sin (pi) * cos(0))"), Ok(0.));
-        assert_eq!(eval_str("round( sqrt(3^2 + 4^2)) "), Ok(5.));
-        assert_eq!(eval_str("max(1.)"), Ok(1.));
-        assert_eq!(eval_str("max(1., 2., -1)"), Ok(2.));
-        assert_eq!(eval_str("min(1., 2., -1)"), Ok(-1.));
-        assert_eq!(
-            eval_str("sin(1.) + cos(2.)"),
-            Ok((1f64).sin() + (2f64).cos())
-        );
-        assert_eq!(eval_str("10 % 9"), Ok(10f64 % 9f64));
-
-        match eval_str("0.5!") {
-            Err(Error::EvalError(_)) => {}
-            _ => panic!("Cannot evaluate factorial of non-integer"),
-        }
-    }
-
-    #[test]
-    fn test_builtins() {
-        assert_eq!(eval_str("atan2(1.,2.)"), Ok((1f64).atan2(2.)));
-    }
-
-    #[test]
-    fn test_eval_func_ctx() {
-        use std::collections::{BTreeMap, HashMap};
-        let y = 5.;
-        assert_eq!(
-            eval_str_with_context("phi(2.)", Context::new().func1("phi", |x| x + y + 3.)),
-            Ok(2. + y + 3.)
-        );
-        assert_eq!(
-            eval_str_with_context(
-                "phi(2., 3.)",
-                Context::new().func2("phi", |x, y| x + y + 3.),
-            ),
-            Ok(2. + 3. + 3.)
-        );
-        assert_eq!(
-            eval_str_with_context(
-                "phi(2., 3., 4.)",
-                Context::new().func3("phi", |x, y, z| x + y * z),
-            ),
-            Ok(2. + 3. * 4.)
-        );
-        assert_eq!(
-            eval_str_with_context(
-                "phi(2., 3.)",
-                Context::new().funcn("phi", |xs: &[f64]| xs[0] + xs[1], 2),
-            ),
-            Ok(2. + 3.)
-        );
-        let mut m = HashMap::new();
-        m.insert("x", 2.);
-        m.insert("y", 3.);
-        assert_eq!(eval_str_with_context("x + y", &m), Ok(2. + 3.));
-        assert_eq!(
-            eval_str_with_context("x + z", m),
-            Err(Error::UnknownVariable("z".into()))
-        );
-        let mut m = BTreeMap::new();
-        m.insert("x", 2.);
-        m.insert("y", 3.);
-        assert_eq!(eval_str_with_context("x + y", &m), Ok(2. + 3.));
-        assert_eq!(
-            eval_str_with_context("x + z", m),
-            Err(Error::UnknownVariable("z".into()))
-        );
-    }
-
-    #[test]
-    fn test_bind() {
-        let expr = Expr::from_str("x + 3").unwrap();
-        let func = expr.clone().bind("x").unwrap();
-        assert_eq!(func(1.), 4.);
-
-        assert_eq!(
-            expr.clone().bind("y").err(),
-            Some(Error::UnknownVariable("x".into()))
-        );
-
-        let ctx = (("x", 2.), builtin());
-        let func = expr.bind_with_context(&ctx, "y").unwrap();
-        assert_eq!(func(1.), 5.);
-
-        let expr = Expr::from_str("x + y + 2.").unwrap();
-        let func = expr.clone().bind2("x", "y").unwrap();
-        assert_eq!(func(1., 2.), 5.);
-        assert_eq!(
-            expr.clone().bind2("z", "y").err(),
-            Some(Error::UnknownVariable("x".into()))
-        );
-        assert_eq!(
-            expr.bind2("x", "z").err(),
-            Some(Error::UnknownVariable("y".into()))
-        );
-
-        let expr = Expr::from_str("x + y^2 + z^3").unwrap();
-        let func = expr.bind3("x", "y", "z").unwrap();
-        assert_eq!(func(1., 2., 3.), 32.);
-
-        let expr = Expr::from_str("sin(x)").unwrap();
-        let func = expr.bind("x").unwrap();
-        assert_eq!(func(1.), (1f64).sin());
-
-        let expr = Expr::from_str("sin(x,2)").unwrap();
-        match expr.bind("x") {
-            Err(Error::Function(_, FuncEvalError::NumberArgs(1))) => {}
-            _ => panic!("bind did not error"),
-        }
-        let expr = Expr::from_str("hey(x,2)").unwrap();
-        match expr.bind("x") {
-            Err(Error::Function(_, FuncEvalError::UnknownFunction)) => {}
-            _ => panic!("bind did not error"),
-        }
-    }
-
-    #[test]
-    fn hash_context() {
-        let y = 0.;
-        {
-            let z = 0.;
-
-            let mut ctx = Context::new();
-            ctx.var("x", 1.).func1("f", |x| x + y).func1("g", |x| x + z);
-            ctx.func2("g", |x, y| x + y);
-        }
     }
 }

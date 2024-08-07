@@ -1,11 +1,7 @@
+// flowing should as same as in sparrowzz
 use ndarray::{arr1, Array1, Array2, Axis, IxDyn, SliceInfo, SliceInfoElem};
 use num_traits::ToPrimitive;
 use crate::{FuncEvalError, MyCx, MyF};
-#[cfg(feature = "enable_ndarray_blas")]
-use ndarray::{array};
-#[cfg(feature = "enable_ndarray_blas")]
-use ndarray_linalg::*;
-// #[cfg(feature = "enable_ndarray_blas")]
 use num_complex::Complex64;
 
 pub trait TsLinalgFn {
@@ -369,12 +365,12 @@ impl TsfnBasic {
             MyF::Tensor(t) => {
                 if t.ndim() > 1 {
                     if t.shape().len() == 2 && (t.shape()[0] == 1 || t.shape()[1] == 1) {
-                        Ok(MyF::Tensor(Array2::from_diag(&arr1(t.clone().into_raw_vec().as_slice())).into_dyn()))
+                        Ok(MyF::Tensor(Array2::from_diag(&arr1(t.clone().into_raw_vec_and_offset().0.as_slice())).into_dyn()))
                     } else {
                         Ok(MyF::Tensor(t.diag().into_dyn().to_owned()))
                     }
                 } else {
-                    Ok(MyF::Tensor(Array2::from_diag(&arr1(t.clone().into_raw_vec().as_slice())).into_dyn()))
+                    Ok(MyF::Tensor(Array2::from_diag(&arr1(t.clone().into_raw_vec_and_offset().0.as_slice())).into_dyn()))
                 }
             }
         }
@@ -386,12 +382,12 @@ impl TsfnBasic {
             MyCx::Tensor(t) => {
                 if t.ndim() > 1 {
                     if t.shape().len() == 2 && t.shape()[1] == 1 {
-                        Ok(MyCx::Tensor(Array2::from_diag(&arr1(t.clone().into_raw_vec().as_slice())).into_dyn()))
+                        Ok(MyCx::Tensor(Array2::from_diag(&arr1(t.clone().into_raw_vec_and_offset().0.as_slice())).into_dyn()))
                     } else {
                         Ok(MyCx::Tensor(t.diag().into_dyn().to_owned()))
                     }
                 } else {
-                    Ok(MyCx::Tensor(Array2::from_diag(&arr1(t.clone().into_raw_vec().as_slice())).into_dyn()))
+                    Ok(MyCx::Tensor(Array2::from_diag(&arr1(t.clone().into_raw_vec_and_offset().0.as_slice())).into_dyn()))
                 }
             }
         }
@@ -560,9 +556,9 @@ impl TsfnBasic {
                                                     }
                                                     if eq_size {
                                                         let mut matrix = Array2::zeros([m.to_usize().unwrap(), n.to_usize().unwrap()]);
-                                                        let i_vec = i.to_owned().into_raw_vec();
-                                                        let j_vec = j.to_owned().into_raw_vec();
-                                                        let v_vec = v.to_owned().into_raw_vec();
+                                                        let i_vec = i.to_owned().into_raw_vec_and_offset().0;
+                                                        let j_vec = j.to_owned().into_raw_vec_and_offset().0;
+                                                        let v_vec = v.to_owned().into_raw_vec_and_offset().0;
                                                         for k in 0..i.len() {
                                                             if i_vec[k] >= *m {
                                                                 return Err(FuncEvalError::NumberArgs(0))
@@ -609,59 +605,4 @@ impl TsfnBasic {
         }
     }
 }
-
-impl TsLinalgFn for TsfnBasic {
-    #[cfg(feature = "enable_ndarray_blas")]
-    fn ts_eig(args: &[MyCx]) -> Result<MyCx, FuncEvalError> {
-        match &args[0] {
-            MyCx::F64(f) => Ok(MyCx::Tensor(array![*f, Complex64::new(1., 0.)].into_dyn())),
-            MyCx::Tensor(t) => {
-                if t.ndim() == 2 && t.shape()[0] == t.shape()[1] {
-                    match t.clone().into_dimensionality() {
-                        Ok(t2) => {
-                            let (eigs, _) = t2.eig().map_err(|_| FuncEvalError::UnknownFunction)?;
-                            Ok(MyCx::Tensor(eigs.into_dyn()))
-                        },
-                        Err(_) => Err(FuncEvalError::NumberArgs(0)),
-                    }
-                } else {
-                    Err(FuncEvalError::NumberArgs(0))
-                }
-            }
-        }
-    }
-
-    #[cfg(feature = "enable_ndarray_blas")]
-    fn ts_trace(args: &[MyF]) -> Result<MyF, FuncEvalError> {
-        match &args[0] {
-            MyF::F64(f) => Ok(MyF::F64(*f)),
-            MyF::Tensor(t) => {
-                if t.ndim() == 2 && t.shape()[0] == t.shape()[1] {
-                    match t.clone().into_dimensionality() {
-                        Ok(t2) => Ok(MyF::F64(t2.trace().map_err(|_| FuncEvalError::UnknownFunction)?)),
-                        Err(_) => Err(FuncEvalError::NumberArgs(0)),
-                    }
-                } else {
-                    Err(FuncEvalError::NumberArgs(0))
-                }
-            }
-        }
-    }
-
-    #[cfg(feature = "enable_ndarray_blas")]
-    fn ts_trace_cx(args: &[MyCx]) -> Result<MyCx, FuncEvalError> {
-        match &args[0] {
-            MyCx::F64(f) => Ok(MyCx::F64(*f)),
-            MyCx::Tensor(t) => {
-                if t.ndim() == 2 && t.shape()[0] == t.shape()[1] {
-                    match t.clone().into_dimensionality() {
-                        Ok(t2) => Ok(MyCx::F64(t2.trace().map_err(|_| FuncEvalError::UnknownFunction)?)),
-                        Err(_) => Err(FuncEvalError::NumberArgs(0)),
-                    }
-                } else {
-                    Err(FuncEvalError::NumberArgs(0))
-                }
-            }
-        }
-    }
-}
+// above should as same as in sparrowzz

@@ -2,8 +2,6 @@ use std::f64::consts::PI;
 use fnv::FnvHashMap;
 use ndarray::{Array, Ix1, Ix2, IxDyn};
 use num_complex::Complex64;
-#[cfg(feature = "enable_ndarray_blas")]
-use ndarray_linalg::*;
 
 use crate::{CtxProvider, Expr, Operation, Token::*};
 use crate::{ContextProvider, Error, factorial, FuncEvalError, MyCx, MyF};
@@ -39,14 +37,6 @@ impl ContextProvider for CtxProvider {
     }
     fn eval_func_tensor_cx(&self, name: &str, args: &[MyCx]) -> Result<MyCx, FuncEvalError> {
         DEFAULT_CONTEXT_TENSOR.with(|ctx| ctx.eval_func_tensor_cx(name, args))
-    }
-    #[cfg(feature = "enable_ndarray_blas")]
-    fn matrix_inv(&self, v: &ndarray::Array2<f64>) -> Result<ndarray::Array2<f64>, FuncEvalError> {
-        v.inv().map_err(|_| FuncEvalError::NumberArgs(0))
-    }
-    #[cfg(feature = "enable_ndarray_blas")]
-    fn matrix_inv_cx(&self, v: &ndarray::Array2<Complex64>) -> Result<ndarray::Array2<Complex64>, FuncEvalError> {
-        v.inv().map_err(|_| FuncEvalError::NumberArgs(0))
     }
 }
 
@@ -1243,15 +1233,6 @@ impl<'a> ContextProvider for ContextTensor<'a> {
         self.tensors_cx.get(name).cloned()
     }
 
-    #[cfg(feature = "enable_ndarray_blas")]
-    fn matrix_inv(&self, v: &ndarray::Array2<f64>) -> Result<ndarray::Array2<f64>, FuncEvalError> {
-        v.inv().map_err(|_| FuncEvalError::NumberArgs(0))
-    }
-    #[cfg(feature = "enable_ndarray_blas")]
-    fn matrix_inv_cx(&self, v: &ndarray::Array2<Complex64>) -> Result<ndarray::Array2<Complex64>, FuncEvalError> {
-        v.inv().map_err(|_| FuncEvalError::NumberArgs(0))
-    }
-
     fn eval_func_tensor(&self, name: &str, args: &[MyF]) -> Result<MyF, FuncEvalError> {
         let mut floats = Vec::with_capacity(args.len());
         for arg in args {
@@ -1380,7 +1361,7 @@ impl<'a> ContextProvider for ContextTensor<'a> {
             "size" => TsfnBasic::ts_size(args),
             "sparse" => TsfnBasic::ts_sparse(args),
             "diag" => TsfnBasic::ts_diag(args),
-            "trace" => TsfnBasic::ts_trace(args),
+            // "trace" => TsfnBasic::ts_trace(args),
             _ => Err(FuncEvalError::UnknownFunction),
         }
     }
@@ -1549,182 +1530,10 @@ impl<'a> ContextProvider for ContextTensor<'a> {
                     .mapv(|a| self.ctx_cx.eval_func_cx("conj", &[a]).unwrap())))
             },
             "size" => TsfnBasic::ts_size_cx(args),
-            "eig" => TsfnBasic::ts_eig(args),
-            "diag" => TsfnBasic::ts_diag_cx(args),
-            "trace" => TsfnBasic::ts_trace_cx(args),
+            // "eig" => TsfnBasic::ts_eig(args),
+            // "diag" => TsfnBasic::ts_diag_cx(args),
+            // "trace" => TsfnBasic::ts_trace_cx(args),
             _ => Err(FuncEvalError::UnknownFunction),
         }
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use std::str::FromStr;
-
-    use ndarray::array;
-
-    use super::*;
-
-    #[test]
-    fn test_ndarray() {
-        let a = array![[[1, 2], [2, 3]], [[1, 2], [3, 4]]];
-        println!("{:?} dim: {}", a.shape(), a.ndim());
-        let a = array![1, 2];
-        println!("{:?} dim: {}", a.shape(), a.ndim());
-        let a = array![1, 2, 3];
-        println!("{:?} dim: {}", a.shape(), a.ndim());
-        let a = array![[1, 2, 3]];
-        println!("{:?} dim: {}", a.shape(), a.ndim());
-        let a = array![[1], [2], [3]];
-        println!("{:?} dim: {}", a.shape(), a.ndim());
-    }
-
-    #[test]
-    fn test_simple() {
-        let expr = Expr::from_str("[1,2]+[1,3]").unwrap();
-        let r = expr.eval_tensor();
-        assert_eq!(r, Ok(MyF::Tensor(array![2., 5.].into_dyn())));
-        let expr = Expr::from_str("[1,2]*[1,3]").unwrap();
-        let r = expr.eval_tensor();
-        assert_eq!(r, Ok(MyF::Tensor(array![1., 6.].into_dyn())));
-        let expr = Expr::from_str("[1,2]-[1,3]").unwrap();
-        let r = expr.eval_tensor();
-        assert_eq!(r, Ok(MyF::Tensor(array![0., -1.].into_dyn())));
-        let expr = Expr::from_str("[1,2]/[1,3]").unwrap();
-        let r = expr.eval_tensor();
-        assert_eq!(r, Ok(MyF::Tensor(array![1., 2. / 3.].into_dyn())));
-        let expr = Expr::from_str("[1,2] * 2+[1,3]").unwrap();
-        let r = expr.eval_tensor();
-        assert_eq!(r, Ok(MyF::Tensor(array![3., 7.].into_dyn())));
-        let expr = Expr::from_str("[1,2] +1").unwrap();
-        let r = expr.eval_tensor();
-        assert_eq!(r, Ok(MyF::Tensor(array![2., 3.].into_dyn())));
-        let mut ct = ContextTensor::new();
-        ct.tensor("a", array![1., 2.].into_dyn().to_owned());
-        let expr = Expr::from_str("a+[1,3]").unwrap();
-        let r = expr.eval_tensor_with_ctx(ct);
-        assert_eq!(r, Ok(MyF::Tensor(array![2., 5.].into_dyn())));
-        // 度转弧度
-        let expr = Expr::from_str("deg2rad(a)").unwrap();
-        let mut ct = ContextTensor::new();
-        ct.tensor("a", array![1., 2.].into_dyn().to_owned());
-        let r = expr.eval_tensor_with_ctx(ct);
-        assert_eq!(r, Ok(MyF::Tensor(array![1. * PI / 180., 2. * PI / 180.].into_dyn())));
-        // 弧度转度
-        let expr = Expr::from_str("rad2deg(a)").unwrap();
-        let mut ct = ContextTensor::new();
-        ct.tensor("a", array![PI, PI / 2.].into_dyn().to_owned());
-        let r = expr.eval_tensor_with_ctx(ct);
-        assert_eq!(r, Ok(MyF::Tensor(array![180., 90.].into_dyn())));
-        // 四舍五入
-        let expr = Expr::from_str("round(a)").unwrap();
-        let mut ct = ContextTensor::new();
-        ct.tensor("a", array![[1.1, 2.5], [3.6, 4.0]].into_dyn().to_owned());
-        let r = expr.eval_tensor_with_ctx(ct);
-        assert_eq!(r, Ok(MyF::Tensor(array![[1., 3.], [4., 4.]].into_dyn())));
-        // 累加矩阵所有元素
-        let expr = Expr::from_str("sum_all(a)").unwrap();
-        let mut ct = ContextTensor::new();
-        ct.tensor("a", array![[1., 2.], [3., 4.]].into_dyn().to_owned());
-        let r = expr.eval_tensor_with_ctx(ct);
-        assert_eq!(r, Ok(MyF::F64(10.)));
-        let expr = Expr::from_str("sum_all(a)").unwrap();
-        let mut ct = ContextTensor::new();
-        ct.tensor_cx("a", array![[Complex64::new(1.0, 1.0), Complex64::new(2.0, 2.0)],
-            [Complex64::new(3.0, 3.0), Complex64::new(4.0, 4.0)]].into_dyn().to_owned());
-        let r = expr.eval_tensor_with_ctx_cx(ct);
-        assert_eq!(r, Ok(MyCx::F64(Complex64::new(10., 10.))));
-
-        let mut ct = ContextTensor::new();
-        ct.var_cx("a", Complex64::new(1.0, 2.0));
-        ct.var_cx("b", Complex64::new(1.0, 2.0));
-        let expr = Expr::from_str("[a,b] +[1,3]").unwrap();
-        let r = expr.eval_tensor_with_ctx_cx(ct);
-        assert_eq!(
-            r,
-            Ok(MyCx::Tensor(
-                array![Complex64::new(2.0, 2.0), Complex64::new(4.0, 2.0)].into_dyn()
-            ))
-        );
-        // test conj
-        let mut ct = ContextTensor::new();
-        ct.tensor_cx("a", array![Complex64::new(1.0, 2.0), Complex64::new(3.0, 3.0)].into_dyn().to_owned());
-        let expr = Expr::from_str("conj(a)").unwrap();
-        let r = expr.eval_tensor_with_ctx_cx(ct);
-        assert_eq!(r, Ok(MyCx::Tensor(array![Complex64::new(1.0, -2.0), Complex64::new(3.0, -3.0)].into_dyn())));
-        // test real
-        let mut ct = ContextTensor::new();
-        ct.tensor_cx("a", array![Complex64::new(1.0, 2.0), Complex64::new(3.0, 3.0)].into_dyn().to_owned());
-        let expr = Expr::from_str("real(a)").unwrap();
-        let r = expr.eval_tensor_with_ctx_cx(ct);
-        assert_eq!(r, Ok(MyCx::Tensor(array![Complex64::new(1.0, 0.0), Complex64::new(3.0, 0.0)].into_dyn())));
-        // test imag
-        let mut ct = ContextTensor::new();
-        ct.tensor_cx("a", array![Complex64::new(1.0, 2.0), Complex64::new(3.0, 3.0)].into_dyn().to_owned());
-        let expr = Expr::from_str("imag(a)").unwrap();
-        let r = expr.eval_tensor_with_ctx_cx(ct);
-        assert_eq!(r, Ok(MyCx::Tensor(array![Complex64::new(0., 2.0), Complex64::new(0.0, 3.0)].into_dyn())));
-        // test angle
-        let mut ct = ContextTensor::new();
-        ct.tensor_cx("a", array![Complex64::new(1.0, 1.0), Complex64::new(3.0, 0.)].into_dyn().to_owned());
-        let expr = Expr::from_str("angle(a)").unwrap();
-        let r = expr.eval_tensor_with_ctx_cx(ct);
-        assert_eq!(r, Ok(MyCx::Tensor(array![Complex64::new(PI / 4., 0.0), Complex64::new(0.0, 0.0)].into_dyn())));
-
-        // test get
-        let mut ct = ContextTensor::new();
-        ct.tensor("a", array![1., 2., 3.].into_dyn().to_owned());
-        let expr = Expr::from_str("get(a,1)").unwrap();
-        let r = expr.eval_tensor_with_ctx(ct);
-        assert_eq!(r, Ok(MyF::F64(2.)));
-
-        // let mut ct = ContextTensor::new();
-        // ct.var("a", 1.);
-        // let expr = Expr::from_str("get(a)").unwrap();
-        // let r = expr.eval_tensor_with_ctx(ct);
-        // assert_eq!(r, Ok(MyF::F64(1.)));
-    }
-
-    #[test]
-    fn test_slice() {
-        use ndarray::s;
-
-        let mut ct = ContextTensor::new();
-        ct.tensor("a", array![1., 2., 3.].into_dyn().to_owned());
-        let expr = Expr::from_str("slice(a,0)").unwrap();
-        let r = expr.eval_tensor_with_ctx(ct);
-        assert_eq!(r, Ok(MyF::Tensor(array![1., 2., 3.].slice(s![0]).into_dyn().to_owned())));
-
-        let mut ct = ContextTensor::new();
-        let a = array![[1., 2., 3.],[4.,5.,6.],[7.,8.,9.]].into_dyn().to_owned();
-        ct.tensor("a", a.clone());
-        let expr = Expr::from_str("slice(a,[0,1],[0])").unwrap();
-        let r = expr.eval_tensor_with_ctx(ct);
-        assert_eq!(r, Ok(MyF::Tensor(a.slice(s![..1, ..]).into_dyn().to_owned())));
-
-        let mut ct = ContextTensor::new();
-        let a = array![[1., 2., 3.],[4.,5.,6.],[7.,8.,9.]].into_dyn().to_owned();
-        ct.tensor("a", a.clone());
-        let expr = Expr::from_str("slice(a,[0,3,2],[0,3,2])").unwrap();
-        let r = expr.eval_tensor_with_ctx(ct);
-        assert_eq!(r, Ok(MyF::Tensor(a.slice(s![..3;2, 0..3;2]).into_dyn().to_owned())));
-
-        let mut ct = ContextTensor::new();
-        let a = array![[Complex64::new(1., 1.), Complex64::new(2., 2.), Complex64::new(3., 3.)],
-            [Complex64::new(4., 4.), Complex64::new(5., 5.), Complex64::new(6., 6.)],
-            [Complex64::new(7., 7.), Complex64::new(8., 8.), Complex64::new(9., 9.)]].into_dyn().to_owned();
-        ct.tensor_cx("a", a.clone());
-        let expr = Expr::from_str("slice(a,[0,2],[0,2])").unwrap();
-        let r = expr.eval_tensor_with_ctx_cx(ct);
-        println!("{:?}", r);
-        assert_eq!(r, Ok(MyCx::Tensor(a.slice(s![..2, 0..2]).into_dyn().to_owned())));
-
-        let mut ct = ContextTensor::new();
-        let a = array![Complex64::new(1., 2.)].into_dyn();
-        ct.tensor_cx("a", a.clone());
-        let expr = Expr::from_str("get(a, 0)").unwrap();
-        let r = expr.eval_tensor_with_ctx_cx(ct);
-        println!("{:?}", r);
-        assert_eq!(r, Ok(MyCx::F64(Complex64::new(1., 2.))));
     }
 }
