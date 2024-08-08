@@ -15,7 +15,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         input
     };
     let schema = Schema::new(vec![
-        Field::new("datetime", DataType::Timestamp(TimeUnit::Millisecond, Some("+08:00".into())), false),
+        Field::new("datetime", DataType::Timestamp(TimeUnit::Millisecond, Some("Asia/Shanghai".into())), false),
         Field::new("value", DataType::Float64, false),
     ]);
 
