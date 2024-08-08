@@ -44,7 +44,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
 
             let date = starttime + Duration::minutes((15 * i) as i64);
             let date_str = date.format("%Y-%m-%d %H:%M:%S");
-            csv_str.push_str(&format!("{date}, {value}\n"));
+            csv_str.push_str(&format!("{date_str}, {value}\n"));
         }
     }
     log::info!("{csv_str}");
@@ -64,3 +64,4 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     bytes.put_u32(len);
     return bytes.get_u64();
 }
+
