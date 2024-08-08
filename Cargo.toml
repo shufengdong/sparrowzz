@@ -11,6 +11,7 @@ members = [
     "mems/examples/ds-dyn-topo",
     "mems/examples/ds-pf-input",
     "mems/examples/ds-3phase-pf",
+    "mems/examples/ds-guizhou",
 ]
 
 [workspace.package]
