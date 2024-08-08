@@ -26,16 +26,23 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
 
     let now = Local::now();
     let today = now.date_naive();
-    let startday = if now.hour() < 1 {
-        today
-    } else {
-        today.checked_add_days(Days::new(1)).unwrap()
-    };
-
-    let starttime = startday.and_hms_opt(0, 0, 0)
+    let starttime = if input.dfs_len[0] >= 24 {
+        let startday = if now.hour() < 1 {
+            today
+        } else {
+            today.checked_add_days(Days::new(1)).unwrap()
+        };
+        startday.and_hms_opt(0, 0, 0)
         .unwrap()
         .and_local_timezone(Local)
-        .unwrap();
+        .unwrap()
+    } else {
+        let time0 = today.and_hms_opt(0, 0, 0)
+            .unwrap()
+            .and_local_timezone(Local)
+            .unwrap();
+        time0 + Duration::hours((now.hour() + 1) as i64)
+    };
 
     for (i, record) in records.enumerate() {
         if let Ok(f) = record {
