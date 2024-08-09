@@ -24,10 +24,18 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
 
     let mut rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(&*input.bytes);
     let records = rdr.records();
+    let mut values = vec![];
+    for (i, record) in records.enumerate() {
+        if let Ok(f) = record {
+            let s = f.get(0).unwrap().trim();
+            let value = s.parse::<f64>().unwrap();
+            values.push(value);
+        }
+    }
 
     let now = Utc::now().with_timezone(&Shanghai);
     let today = now.date_naive();
-    let starttime = if input.dfs_len[0] >= 24 {
+    let starttime = if values.len() >= 24 {
         let startday = if now.hour() < 1 {
             today
         } else {
@@ -46,17 +54,11 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         time0 + Duration::minutes(15)
     };
 
-    for (i, record) in records.enumerate() {
-        if let Ok(f) = record {
-            let s = f.get(0).unwrap().trim();
-            let value = s.parse::<f64>().unwrap();
-
-            let date = starttime + Duration::minutes((15 * i) as i64);
-            let date_str = date.format("%Y-%m-%d %H:%M:%S");
-            csv_str.push_str(&format!("{date_str}, {value}\n"));
-        }
+    for (i, value) in values.into_iter().enumerate() {
+        let date = starttime + Duration::minutes((15 * i) as i64);
+        let date_str = date.format("%Y-%m-%d %H:%M:%S");
+        csv_str.push_str(&format!("{date_str}, {value}\n"));
     }
-    log::info!("{csv_str}");
 
     let csv_bytes = vec![("".to_string(), csv_str.into_bytes())];
     let output = PluginOutput {
