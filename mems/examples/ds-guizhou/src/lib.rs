@@ -2,7 +2,8 @@ use arrow_schema::{DataType, TimeUnit, Field, Schema};
 use bytes::{Buf, BufMut, BytesMut};
 use log::info;
 use mems::model::{PluginInput, PluginOutput};
-use chrono::{Days, Duration, Local, Timelike};
+use chrono::{Days, Duration, Timelike, Utc};
+use chrono_tz::Asia::Shanghai;
 
 static mut OUTPUT: Vec<u8> = vec![];
 #[no_mangle]
@@ -24,7 +25,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     let mut rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(&*input.bytes);
     let records = rdr.records();
 
-    let now = Local::now();
+    let now = Utc::now().with_timezone(&Shanghai);
     let today = now.date_naive();
     let starttime = if input.dfs_len[0] >= 24 {
         let startday = if now.hour() < 1 {
@@ -34,14 +35,15 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         };
         startday.and_hms_opt(0, 0, 0)
         .unwrap()
-        .and_local_timezone(Local)
+        .and_local_timezone(Shanghai)
         .unwrap()
     } else {
-        let time0 = today.and_hms_opt(0, 0, 0)
+        let minutes = now.minute() / 15 * 15;
+        let time0 = today.and_hms_opt(now.hour(), minutes, 0)
             .unwrap()
-            .and_local_timezone(Local)
+            .and_local_timezone(Shanghai)
             .unwrap();
-        time0 + Duration::hours((now.hour() + 1) as i64)
+        time0 + Duration::minutes(15)
     };
 
     for (i, record) in records.enumerate() {
@@ -72,3 +74,22 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     return bytes.get_u64();
 }
 
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn test() {
+        let now = Utc::now().with_timezone(&Shanghai);
+        let today = now.date_naive();
+        let startday = if now.hour() < 1 {
+            today
+        } else {
+            today.checked_add_days(chrono::Days::new(1)).unwrap()
+        };
+        let a = startday.and_hms_opt(0, 0, 0)
+        .unwrap()
+        .and_local_timezone(Shanghai)
+        .unwrap();
+        println!("{:?}", a);
+    }
+}
