@@ -1,0 +1,45 @@
+[
+  {
+    "header": {
+      "align": [
+        "left",
+        "center"
+      ],
+      "line": {
+        "width": 1,
+        "color": "#506784"
+      },
+      "fill": {
+        "color": "#119DFF"
+      },
+      "font": {
+        "family": "Arial",
+        "size": 12,
+        "color": "white"
+      }
+    },
+    "cells": {
+      "align": [
+        "left",
+        "center"
+      ],
+      "line": {
+        "color": "#506784",
+        "width": 1
+      },
+      "fill": {
+        "color": [
+          "#25FEFD",
+          "white"
+        ]
+      },
+      "font": {
+        "family": "Arial",
+        "size": 11,
+        "color": [
+          "#506784"
+        ]
+      }
+    }
+  }
+]
