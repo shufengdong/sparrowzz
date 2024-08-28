@@ -1,0 +1,15 @@
+[
+  {
+    "name": "trace1",
+    "fill": "tozeroy"
+  },
+  {
+    "name": "trace2",
+    "fill": "tonexty"
+  },
+  {
+    "name": "trace3",
+    "fill": "tozeroy",
+    "mode": "none"
+  }
+]
