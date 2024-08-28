@@ -1,0 +1,25 @@
+[
+  {
+    "domain": {
+      "x": [
+        0,
+        1
+      ],
+      "y": [
+        0,
+        1
+      ]
+    },
+    "orientation": "h",
+    "valueformat": ".0f",
+    "valuesuffix": "TWh",
+    "node": {
+      "pad": 15,
+      "thickness": 15,
+      "line": {
+        "color": "black",
+        "width": 0.5
+      }
+    }
+  }
+]
