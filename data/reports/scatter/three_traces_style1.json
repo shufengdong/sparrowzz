@@ -1,0 +1,26 @@
+[
+  {
+    "name": "trace1",
+    "mode": "markers",
+    "marker": {
+      "color": "rgb(219, 64, 82)",
+      "size": 12
+    }
+  },
+  {
+    "name": "trace2",
+    "mode": "lines",
+    "line": {
+      "color": "rgb(55, 128, 191)",
+      "width": 3
+    }
+  },
+  {
+    "name": "trace3",
+    "mode": "lines+markers",
+    "marker": {
+      "color": "rgb(128, 0, 128)",
+      "size": 8
+    }
+  }
+]
