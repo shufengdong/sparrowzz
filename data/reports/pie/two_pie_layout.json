@@ -1,0 +1,30 @@
+{
+  "title": "Global Emissions 1990-2011",
+  "annotations": [
+    {
+      "font": {
+        "size": 20
+      },
+      "showarrow": false,
+      "text": "GHG",
+      "x": 0.17,
+      "y": 0.5
+    },
+    {
+      "font": {
+        "size": 20
+      },
+      "showarrow": false,
+      "text": "CO2",
+      "x": 0.82,
+      "y": 0.5
+    }
+  ],
+  "height": 400,
+  "width": 600,
+  "showlegend": false,
+  "grid": {
+    "rows": 1,
+    "columns": 2
+  }
+}

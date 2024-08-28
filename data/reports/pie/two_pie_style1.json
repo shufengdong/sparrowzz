@@ -1,0 +1,39 @@
+[
+  {
+    "name": "trace1",
+    "labels": [
+      "US",
+      "China",
+      "European Union",
+      "Russian Federation",
+      "Brazil",
+      "India",
+      "Rest of World"
+    ],
+    "domain": {
+      "column": 0
+    },
+    "hoverinfo": "label+percent+name",
+    "hole": 0.4,
+    "type": "pie"
+  },
+  {
+    "labels": [
+      "US",
+      "China",
+      "European Union",
+      "Russian Federation",
+      "Brazil",
+      "India",
+      "Rest of World"
+    ],
+    "text": "CO2",
+    "textposition": "inside",
+    "domain": {
+      "column": 1
+    },
+    "name": "trace2",
+    "hoverinfo": "label+percent+name",
+    "hole": 0.4
+  }
+]
