@@ -1,0 +1,9 @@
+{
+  "title": "Title of the Graph",
+  "xaxis": {
+    "title": "x-axis title"
+  },
+  "yaxis": {
+    "title": "y-axis title"
+  }
+}
