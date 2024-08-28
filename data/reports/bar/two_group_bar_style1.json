@@ -1,0 +1,18 @@
+[
+  {
+    "name": "trace1",
+    "x_series": "trace0",
+    "marker": {
+      "color": "rgb(49,130,189)",
+      "opacity": 0.7
+    }
+  },
+  {
+    "name": "trace2",
+    "x_series": "trace0",
+    "marker": {
+      "color": "rgb(204,204,204)",
+      "opacity": 0.5
+    }
+  }
+]

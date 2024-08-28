@@ -1,0 +1,7 @@
+{
+  "title": "2013 Sales Report",
+  "xaxis": {
+    "tickangle": -45
+  },
+  "barmode": "group"
+}
