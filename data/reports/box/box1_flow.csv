@@ -5,15 +5,3 @@ FLOW ID,节点ID,名称,节点类型,参数,,
 70128,1,box_data,SOURCE_URL,https://shufengdong.github.io/sparrowzz/data/reports/box/box1.csv,,
 ,,,,,,
 FLOW ID,首尾节点,动作名称,DESC,动作类型,动作参数,
-FLOW ID
-
-
-
-
-
-
-
-
-
-
-
