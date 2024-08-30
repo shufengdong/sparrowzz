@@ -1,0 +1,7 @@
+FLOW ID,是否启用,名称,触发条件,触发条件参数,存储模式,
+70127,TRUE,sunburst,Manual,,Memory,
+,,,,,,
+FLOW ID,节点ID,名称,节点类型,参数,,
+70127,1,sunburst_data,SOURCE_URL,https://shufengdong.github.io/sparrowzz/data/reports/sunburst/sunburst.csv,,
+,,,,,,
+FLOW ID,首尾节点,动作名称,DESC,动作类型,动作参数,

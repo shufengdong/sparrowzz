@@ -1,0 +1,16 @@
+[
+  {
+    "outsidetextfont": {
+      "size": 20,
+      "color": "#377eb8"
+    },
+    "leaf": {
+      "opacity": 0.4
+    },
+    "marker": {
+      "line": {
+        "width": 2
+      }
+    }
+  }
+]

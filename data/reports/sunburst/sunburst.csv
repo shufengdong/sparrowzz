@@ -1,0 +1,10 @@
+label,parent,value
+Eve,,10
+Cain,Eve,14
+Seth,Eve,12
+Enos,Seth,10
+Noam,Seth,2
+Abel,Eve,6
+Awan,Eve,6
+Enoch,Awan,4
+Azura,Eve,4
