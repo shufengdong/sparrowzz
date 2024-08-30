@@ -1,1 +1,21 @@
-[]
+[
+  {
+    "name": "trace1",
+    "marker": {
+      "color": "#3D9970"
+    },
+    "boxpoints": "all"
+  },
+  {
+    "name": "trace2",
+    "marker": {
+      "color": "rgb(8,81,156)",
+      "outliercolor": "rgba(219, 64, 82, 0.6)",
+      "line": {
+        "outliercolor": "rgba(219, 64, 82, 1.0)",
+        "outlierwidth": 2
+      }
+    },
+    "boxpoints": "suspectedoutliers"
+  }
+]
