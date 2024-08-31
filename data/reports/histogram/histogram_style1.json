@@ -1,0 +1,16 @@
+[
+  {
+    "x_series": "x",
+    "y_series": "y",
+    "histfunc": "count",
+    "type": "histogram",
+    "name": "count"
+  },
+  {
+    "x_series": "x",
+    "y_series": "y",
+    "histfunc": "sum",
+    "type": "histogram",
+    "name": "sum"
+  }
+]
