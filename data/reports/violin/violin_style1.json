@@ -1,0 +1,18 @@
+[
+  {
+    "points": "none",
+    "box": {
+      "visible": true
+    },
+    "boxpoints": false,
+    "line": {
+      "color": "black"
+    },
+    "fillcolor": "#8dd3c7",
+    "opacity": 0.6,
+    "meanline": {
+      "visible": true
+    },
+    "x0": "Total Bill"
+  }
+]
