@@ -1,5 +1,6 @@
 [
   {
+    "name": "total_bill",
     "points": "none",
     "box": {
       "visible": true
