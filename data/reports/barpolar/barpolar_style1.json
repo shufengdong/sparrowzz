@@ -1,0 +1,30 @@
+[
+  {
+    "x_series": "x",
+    "name": "r1",
+    "marker": {
+      "color": "rgb(106,81,163)"
+    }
+  },
+  {
+    "x_series": "x",
+    "name": "r2",
+    "marker": {
+      "color": "rgb(158,154,200)"
+    }
+  },
+  {
+    "x_series": "x",
+    "name": "r3",
+    "marker": {
+      "color": "rgb(203,201,226)"
+    }
+  },
+  {
+    "x_series": "x",
+    "name": "r4",
+    "marker": {
+      "color": "rgb(242,240,247)"
+    }
+  }
+]
