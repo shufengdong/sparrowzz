@@ -1,0 +1,50 @@
+[
+  {
+    "x_series": "x1",
+    "y_series": "y",
+    "mode": "lines",
+    "name": "Figure8",
+    "line": {
+      "color": "peru"
+    }
+  },
+  {
+    "x_series": "x2",
+    "y_series": "y",
+    "mode": "lines",
+    "name": "Cardioid",
+    "line": {
+      "color": "darkviolet"
+    }
+  },
+  {
+    "x_series": "x3",
+    "y_series": "y",
+    "mode": "lines",
+    "name": "Hypercardioid",
+    "line": {
+      "color": "deepskyblue"
+    }
+  },
+  {
+    "x_series": "x4",
+    "y_series": "y",
+    "mode": "lines",
+    "name": "Subcardioid",
+    "line": {
+      "color": "orangered"
+    }
+  },
+  {
+    "x_series": "x5",
+    "y_series": "y",
+    "mode": "lines",
+    "name": "Supercardioid",
+    "marker": {
+      "color": "none",
+      "line": {
+        "color": "green"
+      }
+    }
+  }
+]
