@@ -1,0 +1,19 @@
+[
+  {
+    "x_series": "a",
+    "y_series": "b",
+    "z_series": "y",
+    "aaxis": {
+      "tickprefix": "a = ",
+      "ticksuffix": "m",
+      "smoothing": 1,
+      "minorgridcount": 9
+    },
+    "baxis": {
+      "tickprefix": "b = ",
+      "ticksuffix": "Pa",
+      "smoothing": 1,
+      "minorgridcount": 9
+    }
+  }
+]
