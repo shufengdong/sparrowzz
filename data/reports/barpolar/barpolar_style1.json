@@ -1,28 +1,32 @@
 [
   {
     "x_series": "x",
-    "name": "r1",
+    "y_series": "r1",
+    "name": "11-14 m/s",
     "marker": {
       "color": "rgb(106,81,163)"
     }
   },
   {
     "x_series": "x",
-    "name": "r2",
+    "y_series": "r2",
+    "name": "8-11 m/s",
     "marker": {
       "color": "rgb(158,154,200)"
     }
   },
   {
     "x_series": "x",
-    "name": "r3",
+    "y_series": "r3",
+    "name": "5-8 m/s",
     "marker": {
       "color": "rgb(203,201,226)"
     }
   },
   {
     "x_series": "x",
-    "name": "r4",
+    "y_series": "r4",
+    "name": "< 5 m/s",
     "marker": {
       "color": "rgb(242,240,247)"
     }
