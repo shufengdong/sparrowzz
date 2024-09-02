@@ -1,6 +1,8 @@
 [
   {
     "name": "total_bill",
+    "x_series": "day",
+    "y_series": "total_bill",
     "points": "none",
     "box": {
       "visible": true
