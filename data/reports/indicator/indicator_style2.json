@@ -1,0 +1,82 @@
+[
+  {
+    "mode": "number+delta",
+    "number": {
+      "prefix": "$"
+    },
+    "delta": {
+      "position": "top",
+      "reference": 320
+    },
+    "domain": {
+      "x": [
+        0,
+        1
+      ],
+      "y": [
+        0,
+        1
+      ]
+    }
+  },
+  {
+    "mode": "number+delta",
+    "number": {
+      "prefix": "$"
+    },
+    "delta": {
+      "position": "top",
+      "reference": 320
+    },
+    "domain": {
+      "x": [
+        0,
+        1
+      ],
+      "y": [
+        0,
+        1
+      ]
+    }
+  },
+  {
+    "mode": "number+delta",
+    "number": {
+      "prefix": "$"
+    },
+    "delta": {
+      "position": "top",
+      "reference": 320
+    },
+    "domain": {
+      "x": [
+        0,
+        1
+      ],
+      "y": [
+        0,
+        1
+      ]
+    }
+  },
+  {
+    "mode": "number+delta",
+    "number": {
+      "prefix": "$"
+    },
+    "delta": {
+      "position": "top",
+      "reference": 320
+    },
+    "domain": {
+      "x": [
+        0,
+        1
+      ],
+      "y": [
+        0,
+        1
+      ]
+    }
+  }
+]
