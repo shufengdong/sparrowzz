@@ -1,0 +1,34 @@
+[
+  {
+    "name": "trace1",
+    "x_series": "x1",
+    "y_series": "y1",
+    "z_series": "z1",
+    "mode": "markers",
+    "marker": {
+      "size": 12,
+      "line": {
+        "color": "rgba(217, 217, 217, 0.14)",
+        "width": 0.5
+      },
+      "opacity": 0.8
+    }
+  },
+  {
+    "name": "trace2",
+    "x_series": "x2",
+    "y_series": "y2",
+    "z_series": "z2",
+    "mode": "markers",
+    "marker": {
+      "color": "rgb(127, 127, 127)",
+      "size": 12,
+      "symbol": "circle",
+      "line": {
+        "color": "rgb(204, 204, 204)",
+        "width": 1
+      },
+      "opacity": 0.8
+    }
+  }
+]
