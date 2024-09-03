@@ -1,0 +1,16 @@
+{
+  "paper_bgcolor": "lightgray",
+  "width": 600,
+  "height": 400,
+  "margin": {
+    "t": 0,
+    "b": 0,
+    "l": 0,
+    "r": 0
+  },
+  "grid": {
+    "rows": 2,
+    "columns": 2,
+    "pattern": "independent"
+  }
+}
