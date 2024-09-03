@@ -1,0 +1,56 @@
+[
+  {
+    "delta": {
+      "reference": 160
+    },
+    "gauge": {
+      "axis": {
+        "visible": false,
+        "range": [
+          0,
+          250
+        ]
+      }
+    },
+    "domain": {
+      "row": 0,
+      "column": 0
+    }
+  },
+  {
+    "gauge": {
+      "shape": "bullet",
+      "axis": {
+        "visible": false,
+        "range": [
+          -200,
+          200
+        ]
+      }
+    },
+    "domain": {
+      "x": [
+        0.1,
+        0.5
+      ],
+      "y": [
+        0.15,
+        0.35
+      ]
+    }
+  },
+  {
+    "mode": "number+delta",
+    "domain": {
+      "row": 0,
+      "column": 1
+    }
+  },
+  {
+    "mode": "delta",
+    "domain": {
+      "row": 1,
+      "column": 1
+    }
+  }
+]
