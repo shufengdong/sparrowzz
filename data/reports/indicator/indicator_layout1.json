@@ -1,0 +1,30 @@
+{
+  "width": 600,
+  "height": 400,
+  "margin": {
+    "t": 25,
+    "b": 25,
+    "l": 25,
+    "r": 25
+  },
+  "grid": {
+    "rows": 2,
+    "columns": 2,
+    "pattern": "independent"
+  },
+  "template": {
+    "data": {
+      "indicator": [
+        {
+          "title": {
+            "text": "Speed"
+          },
+          "mode": "number+delta+gauge",
+          "delta": {
+            "reference": 90
+          }
+        }
+      ]
+    }
+  }
+}
