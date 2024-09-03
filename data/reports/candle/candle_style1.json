@@ -1,0 +1,21 @@
+[
+  {
+    "x_series": "Date",
+    "close_series": "AAPL.Close",
+    "high_series": "AAPL.High",
+    "low_series": "AAPL.Low",
+    "open_series": "AAPL.Open",
+    "increasing": {
+      "line": {
+        "color": "black"
+      }
+    },
+    "decreasing": {
+      "line": {
+        "color": "red"
+      }
+    },
+    "xaxis": "x",
+    "yaxis": "y"
+  }
+]
