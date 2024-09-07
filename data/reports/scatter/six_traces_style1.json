@@ -1,0 +1,35 @@
+[
+  {
+    "x_series": "x1",
+    "y_series": "y1",
+    "fill": "tozerox",
+    "fillcolor": "rgba(0,100,80,0.2)",
+    "line": {
+      "color": "transparent"
+    },
+    "name": "Fair",
+    "showlegend": false
+  },
+  {
+    "x_series": "x1",
+    "y_series": "y2",
+    "fill": "tozerox",
+    "fillcolor": "rgba(0,176,246,0.2)",
+    "line": {
+      "color": "transparent"
+    },
+    "name": "Premium",
+    "showlegend": false
+  },
+  {
+    "x_series": "x1",
+    "y_series": "y3",
+    "fill": "tozerox",
+    "fillcolor": "rgba(231,107,243,0.2)",
+    "line": {
+      "color": "transparent"
+    },
+    "name": "Ideal",
+    "showlegend": false
+  }
+]
