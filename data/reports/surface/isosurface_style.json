@@ -1,0 +1,35 @@
+[
+  {
+    "x_series": "x",
+    "y_series": "y",
+    "z_series": "z",
+    "v_series": "value",
+    "isomin": -100,
+    "isomax": 100,
+    "surface": {
+      "show": true,
+      "count": 1,
+      "fill": 0.8
+    },
+    "slices": {
+      "z": {
+        "show": true,
+        "locations": [
+          -0.3,
+          0.5
+        ]
+      }
+    },
+    "caps": {
+      "x": {
+        "show": false
+      },
+      "y": {
+        "show": false
+      },
+      "z": {
+        "show": false
+      }
+    }
+  }
+]
