@@ -40,5 +40,23 @@
     },
     "mode": "lines",
     "name": "Fair"
+  },
+  {
+    "x_series": "x2",
+    "y_series": "y5",
+    "line": {
+      "color": "rgb(0,176,246)"
+    },
+    "mode": "lines",
+    "name": "Premium"
+  },
+  {
+    "x_series": "x2",
+    "y_series": "y6",
+    "line": {
+      "color": "rgb(231,107,243)"
+    },
+    "mode": "lines",
+    "name": "Ideal"
   }
 ]
