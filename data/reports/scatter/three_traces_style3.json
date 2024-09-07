@@ -2,6 +2,7 @@
   {
     "name": "trace2",
     "x_series": "trace1",
+    "y_series": "trace2",
     "mode": "lines",
     "line": {
       "color": "rgb(55, 128, 191)",
@@ -11,6 +12,7 @@
   {
     "name": "trace3",
     "x_series": "trace1",
+    "y_series": "trace3",
     "mode": "lines+markers",
     "marker": {
       "color": "rgb(128, 0, 128)",
