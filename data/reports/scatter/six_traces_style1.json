@@ -7,7 +7,7 @@
     "line": {
       "color": "transparent"
     },
-    "name": "Fair",
+    "name": "FairOutline",
     "showlegend": false
   },
   {
@@ -18,7 +18,7 @@
     "line": {
       "color": "transparent"
     },
-    "name": "Premium",
+    "name": "PremiumOutline",
     "showlegend": false
   },
   {
@@ -29,7 +29,16 @@
     "line": {
       "color": "transparent"
     },
-    "name": "Ideal",
+    "name": "IdealOutline",
     "showlegend": false
+  },
+  {
+    "x_series": "x2",
+    "y_series": "y4",
+    "line": {
+      "color": "rgb(0,100,80)"
+    },
+    "mode": "lines",
+    "name": "Fair"
   }
 ]
