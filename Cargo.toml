@@ -5,13 +5,13 @@ members = [
     "eig-domain",
     "eig-aoe",
     "mems",
-    "mems/examples/ds-common",
-    "mems/examples/ds-static-topo",
-    "mems/examples/ds-dev-ohm-cal",
-    "mems/examples/ds-dyn-topo",
-    "mems/examples/ds-pf-input",
-    "mems/examples/ds-3phase-pf",
-    "mems/examples/ds-guizhou",
+    "mems/examples/ds-powerflow/ds-common",
+    "mems/examples/ds-powerflow/ds-static-topo",
+    "mems/examples/ds-powerflow/ds-dev-ohm-cal",
+    "mems/examples/ds-powerflow/ds-dyn-topo",
+    "mems/examples/ds-powerflow/ds-pf-input",
+    "mems/examples/ds-powerflow/ds-3phase-pf",
+    "mems/examples/ds-powerflow/ds-guizhou",
 ]
 
 [workspace.package]

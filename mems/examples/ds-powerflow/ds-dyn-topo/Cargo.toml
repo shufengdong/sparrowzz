@@ -1,5 +1,5 @@
 [package]
-name = "ds-static-topo"
+name = "ds-dyn-topo"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,8 +8,10 @@ crate-type = ["cdylib"]
 
 [dependencies]
 log = "0.4"
+csv = "1.3.0"
 ciborium = "0.2"
 arrow-schema = { version = "52.1", features = ["serde"] }
-petgraph = "0.6"
-mems = { path = "../../../mems" }
+eig-domain = { path = "../../../../eig-domain" }
+mems = { path = "../../.." }
+ds-common = { path = "../ds-common" }
 bytes = "1.6.1"
