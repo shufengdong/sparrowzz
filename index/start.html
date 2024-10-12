@@ -1,0 +1,501 @@
+<html lang="en" class="js fontawesome-i2svg-active fontawesome-i2svg-complete">
+  <head>
+    <meta charset="utf-8">
+
+    <!-- begin _includes/seo.html -->
+    <title>Sparrowzz - Sparrowzz</title>
+    <meta name="description" content="低代码控制器">
+    <meta property="og:type" content="website">
+    <meta property="og:locale" content="en_US">
+    <meta property="og:site_name" content="Sparrowzz">
+    <meta property="og:title" content="低代码控制器">
+    <meta property="og:description" content="低代码控制器">
+    <!-- end _includes/seo.html -->
+    <meta name="HandheldFriendly" content="True">
+    <meta name="MobileOptimized" content="320">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- For all browsers -->
+    <link rel="stylesheet" href="./assets/css/main.css">
+		<script type="text/javascript" src="./assets/js/index.js"></script>
+    
+  </head>
+
+  <body class="layout--splash">
+
+    <object data="./header.html" class="header-page"></object>
+
+    <div class="initial-content">
+      <div id="main" role="main">
+    
+    
+        <article class="page" itemscope="" itemtype="http://schema.org/CreativeWork">
+          <meta itemprop="headline" content="Getting Started">
+          <div class="page__inner-wrap">
+            <header>
+              <h1 id="page-title" class="page__title" itemprop="headline">开始使用
+              </h1>
+            </header>
+            <section class="page__content" itemprop="text">
+    
+              <aside class="sidebar__right sticky">
+                <nav class="toc">
+                  <header>
+                    <h4 class="nav__title">
+                      <img src="./assets/img/file-alt.svg" class="start-prefix" /><!-- <i class="fas fa-file-alt"></i> -->
+                      <a href="#site-nav">开始使用</a>
+                    </h4>
+                  </header>
+                  <ul class="toc__menu">
+                    <li>
+                      <a href="#installing-rust">安装Rust</a>
+                    </li>
+                    <li>
+                      <a href="#install">安装Sparrowzz</a>
+                      <ul>
+                        <li>
+                          <a href="#pip">xxx</a>
+                        </li>
+                        <li>
+                          <a href="#nopip">xxx</a>
+                        </li>
+                        <li>
+                          <a href="#develop">xxx</a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <a href="#test-your-installation-">测试安装结果 </a>
+                    </li>
+                    <li>
+                      <a href="#a-short-introduction-">简单介绍 </a>
+                      <ul>
+                        <li>
+                          <a href="#creating-a-network">创建一个实例</a>
+                        </li>
+                        <li>
+                          <a href="#running-a-power-flow">运行实例</a>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <a href="#interactive-tutorials-">运行结果查看 </a>
+                    </li>
+                    <li>
+                      <a href="#youtube-tutorials-">教学视频 </a>
+                    </li>
+                  </ul>
+                </nav>
+              </aside>
+    
+              <h2 id="installing-rust">安装Rust</h2>
+    
+              <p>sparrowzz is tested with up-to-date Python version, as listed at <a href="https://pypi.org/project/sparrowzz/">pypi</a>. We recommend the <a href="https://www.anaconda.com/">Anaconda Distribution</a>, which provides a Python distribution that already includes a lot of modules for scientific computing that are needed. Simply <a href="https://www.anaconda.com/download">download</a> and install the newest version of Anaconda and you are all set to run sparrowzz.</p>
+    
+              <p>Of course it is also possible to use sparrowzz with other distributions besides Anaconda. It is however important that the following packages are included:</p>
+    
+              <ul>
+                <li>numpy</li>
+                <li>scipy</li>
+                <li>pandas</li>
+                <li>networkx</li>
+                <li>packaging</li>
+                <li>tqdm</li>
+                <li>deepdiff</li>
+              </ul>
+    
+              <p>Since some of these packages depend on C-libraries, they cannot be easily installed through pip on Windows systems.
+                If you use a distribution that does not include one of these packages, you either have to build these libraries yourself or switch to a different distribution.</p>
+    
+              <h2 id="install">Installing sparrowzz</h2>
+    
+              <h3 id="pip">Through pip</h3>
+    
+              <p>The easiest way to install sparrowzz is through pip:</p>
+    
+              <ol>
+                <li>
+                  <p>Open a command prompt (e.g. start–&gt;cmd on windows systems)</p>
+                </li>
+                <li>
+                  <p>Install sparrowzz by running:</p>
+    
+                  <div class="language-plaintext highlighter-rouge">
+                    <div class="highlight">
+                      <pre class="highlight"><code> pip install sparrowzz[all]
+          </code></pre>
+                    </div>
+                  </div>
+                </li>
+              </ol>
+    
+              <h3 id="nopip">Without internet connection</h3>
+    
+              <p>If you don’t have internet access on your system, sparrowzz can also be installed from local files:</p>
+    
+              <ol>
+                <li>Download and unzip the current sparrowzz distribution from <a href="https://pypi.org/project/sparrowzz/">PyPi</a> under “Download files”.</li>
+                <li>
+                  <p>Open a command prompt (e.g. Start--&gt;cmd on Windows) and navigate to the folder that contains the sparrowzz code with the command cd
+                    &lt;folder&gt; :</p>
+    
+                  <div class="language-plaintext highlighter-rouge">
+                    <div class="highlight">
+                      <pre class="highlight"><code>cd %path_to_sparrowzz%\sparrowzz-x.x.x\
+          </code></pre>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <p>Install sparrowzz by running :</p>
+    
+                  <div class="language-plaintext highlighter-rouge">
+                    <div class="highlight">
+                      <pre class="highlight"><code>pip install -e .[all]
+          </code></pre>
+                    </div>
+                  </div>
+                </li>
+              </ol>
+    
+              <p>The option “-e” means that pip will provide an editable environment. In other words, the changes in the files in the directory with sparrowzz code will be considered. In case this is not necessary, an installation without the option -e will install the files in the environment as a copy, and the downloaded folder can be safely removed.</p>
+    
+              <p>The option “all” means that not only the strictly required dependencies are installed, but also all the optional packages. Other options are: “docs”, “plotting”, “test”, “performance” (includes ortools for faster state estimation, numba and lightsim2grid that substantially improve the performance of power flow calculations), “fileio”, “converter”, “pgm” (includes the interface to power-grid-model as a power flow calculation engine). Most users can use the version “all” unless there are resons to avoid certain depemdencies.</p>
+    
+              <h3 id="develop">Development Version</h3>
+    
+              <p>To install the latest development version of sparrowzz from <a href="https://github.com/e2nIEE/sparrowzz">github</a>, simply follow these steps:</p>
+    
+              <ol>
+                <li>
+                  <p>Download and install <a href="https://git-scm.com">git</a>.</p>
+                </li>
+                <li>
+                  <p>Open a git shell and navigate to the directory where you want to keep your sparrowzz files.</p>
+                </li>
+                <li>
+                  <p>Run the following git command:</p>
+    
+                  <div class="language-plaintext highlighter-rouge">
+                    <div class="highlight">
+                      <pre class="highlight"><code> git clone https://github.com/e2nIEE/sparrowzz.git
+          </code></pre>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <p>Navigate inside the repository and check out the develop branch:</p>
+    
+                  <div class="language-plaintext highlighter-rouge">
+                    <div class="highlight">
+                      <pre class="highlight"><code> cd sparrowzz
+           git checkout develop
+          </code></pre>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <p>Open a command prompt (cmd or anaconda command prompt) and navigate to the folder where the sparrowzz files are located. Run:</p>
+    
+                  <div class="language-plaintext highlighter-rouge">
+                    <div class="highlight">
+                      <pre class="highlight"><code> pip install -e .[all]
+          </code></pre>
+                    </div>
+                  </div>
+    
+                  <p>This registers your local sparrowzz installation with pip, the option -e ensures the edits in the files have a direct impact on the sparrowzz installation, and “all” installs all the optional dependencies.</p>
+                </li>
+              </ol>
+    
+              <h2 id="test-your-installation-">Test your installation <a name="test"></a>
+              </h2>
+    
+              <p>A first basic way to test your installation is to import all sparrowzz submodules to see if all dependencies are available:</p>
+    
+              <div class="language-plaintext highlighter-rouge">
+                <div class="highlight">
+                  <pre class="highlight"><code>import sparrowzz
+          import sparrowzz.networks
+          import sparrowzz.topology
+          import sparrowzz.plotting
+          import sparrowzz.converter
+          import sparrowzz.estimation
+          </code></pre>
+                </div>
+              </div>
+    
+              <p>If you want to be really sure that everything works fine, run the sparrowzz test suite:</p>
+    
+              <ol>
+                <li>
+                  <p>Install pytest if it is not yet installed on your system:</p>
+    
+                  <div class="language-plaintext highlighter-rouge">
+                    <div class="highlight">
+                      <pre class="highlight"><code>pip install pytest
+          </code></pre>
+                    </div>
+                  </div>
+                </li>
+                <li>
+                  <p>Run the sparrowzz test suite:</p>
+    
+                  <div class="language-plaintext highlighter-rouge">
+                    <div class="highlight">
+                      <pre class="highlight"><code> import sparrowzz.test
+           sparrowzz.test.run_all_tests()
+          </code></pre>
+                    </div>
+                  </div>
+                </li>
+              </ol>
+    
+              <p>If everything is installed correctly, all tests should pass or xfail (expected to fail).</p>
+    
+              <h2 id="a-short-introduction-">A short introduction <a name="intro"></a>
+              </h2>
+    
+              <p>A network in sparrowzz is represented in a sparrowzzNet object, which
+                is a collection of pandas Dataframes. Each dataframe in a sparrowzzNet
+                contains the information about one sparrowzz element, such as line,
+                load transformer etc.</p>
+    
+              <p>We consider the following simple 3-bus example network as a minimal
+                example:</p>
+    
+              <p>
+                <img src="/images/getting_started/3bus-system.png" alt="">
+              </p>
+    
+              <h3 id="creating-a-network">Creating a network</h3>
+    
+              <p>The above network can be created in sparrowzz as follows:</p>
+    
+              <div class="language-plaintext highlighter-rouge">
+                <div class="highlight">
+                  <pre class="highlight"><code>import sparrowzz as pp
+          # create empty net
+          net = pp.create_empty_network()
+          
+          # create buses
+          b1 = pp.create_bus(net, vn_kv=20., name="Bus 1")
+          b2 = pp.create_bus(net, vn_kv=0.4, name="Bus 2")
+          b3 = pp.create_bus(net, vn_kv=0.4, name="Bus 3")
+          
+          # create bus elements
+          pp.create_ext_grid(net, bus=b1, vm_pu=1.02, name="Grid Connection")
+          pp.create_load(net, bus=b3, p_mw=0.1, q_mvar=0.05, name="Load")
+          
+          # create branch elements
+          pp.create_transformer(net, hv_bus=b1, lv_bus=b2, std_type="0.4 MVA 20/0.4 kV", name="Trafo")
+          pp.create_line(net, from_bus=b2, to_bus=b3, length_km=0.1, name="Line",std_type="NAYY 4x50 SE")
+          </code></pre>
+                </div>
+              </div>
+    
+              <p>Note that you do not have to calculate any impedances or tap ratio for
+                the equivalent circuit, this is handled internally by sparrowzz
+                according to the sparrowzz <a href="http://sparrowzz.readthedocs.io/en/latest/elements/trafo.html#electric-model">transformer model</a>. The <a href="http://sparrowzz.readthedocs.io/en/latest/std_types.html">standard type
+                  library</a> allows comfortable creation of line and transformer elements.</p>
+    
+              <p>The sparrowzz representation now looks like this:</p>
+    
+              <p>
+                <img src="/images/getting_started/sparrowzz_datastructure.png" alt="image">
+              </p>
+    
+              <h3 id="running-a-power-flow">Running a Power Flow</h3>
+    
+              <p>A powerflow can be carried out with the <a href="http://sparrowzz.readthedocs.io/en/latest/powerflow/ac.html">runpp function</a>:</p>
+    
+              <div class="language-plaintext highlighter-rouge">
+                <div class="highlight">
+                  <pre class="highlight"><code>pp.runpp(net)
+          </code></pre>
+                </div>
+              </div>
+    
+              <p>When a power flow is run, sparrowzz combines the information of all
+                element tables into one pypower case file and uses pypower to run the
+                power flow. The results are then processed and written back into
+                sparrowzz:</p>
+    
+              <p>
+                <img src="http://sparrowzz.readthedocs.io/en/latest/_images/sparrowzz_powerflow.png" alt="image">
+              </p>
+    
+              <p>For the 3-bus example network, the result tables look like this:</p>
+    
+              <p>
+                <img src="/images/getting_started/sparrowzz_results.png" alt="image">
+              </p>
+    
+              <p>All other sparrowzz elements and network analysis functionality (e.g.
+                optimal power flow, state estimation or short-circuit calculation) is
+                also fully integrated into the tabular sparrowzz datastructure.</p>
+    
+              <p>This minimal example is also available as a <a href="https://github.com/e2nIEE/sparrowzz/blob/develop/tutorials/minimal_example.ipynb">jupyter notebook</a>.</p>
+    
+              <h2 id="interactive-tutorials-">Interactive Tutorials <a name="tutorials"></a>
+              </h2>
+    
+              <p>There are jupyter notebook tutorials on different functionalities of sparrowzz:</p>
+    
+              <p>Basic introduction:</p>
+    
+              <ul>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/minimal_example.ipynb">Minimal example</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/create_simple.ipynb">Creating a simple network</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/powerflow.ipynb">Running a power flow</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/create_advanced.ipynb">Creating an advanced network</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/std_types.ipynb">Working with the sparrowzz standard type library</a>
+                </li>
+                <li>
+                  <a href="https://github.com/e2nIEE/sparrowzz/blob/develop/tutorials/hosting_capacity.ipynb">Application example: calculate hosting capacity with sparrowzz</a>
+                </li>
+              </ul>
+    
+              <p>Data analysis and modelling error diagnostic:</p>
+    
+              <ul>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/data_analysis.ipynb">Analysing data in sparrowzz tables</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/diagnostic.ipynb">Diagnosing inconsistent or incorrect data</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/internal_datastructure.ipynb">About the internal data structure of sparrowzz</a>
+                </li>
+              </ul>
+    
+              <p>Optimal power flow:</p>
+    
+              <ul>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/opf_basic.ipynb">Configuring and running an optimal power flow</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/opf_curtail.ipynb">Calculate power curtailment with an OPF</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/opf_dcline.ipynb">Calculate DC line dispatch with an OPF</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/opf_powermodels.ipynb">Using PowerModels.jl to carry out an OPF</a>
+                </li>
+                <li>
+                  <a href="https://github.com/e2nIEE/sparrowzz/blob/develop/tutorials/tnep_powermodels.ipynb">Using PowerModels.jl TNEP (transmission network expansion planning) interface</a>
+                </li>
+                <li>
+                  <a href="https://github.com/e2nIEE/sparrowzz/blob/develop/tutorials/ost_powermodels.ipynb">Using PowerModels.jl OTS (optimal transmission switching) interface</a>
+                </li>
+                <li>
+                  <a href="https://github.com/e2nIEE/sparrowzz/blob/develop/tutorials/storage_powermodels.ipynb">Using PowerModels.jl storage interface</a>
+                </li>
+              </ul>
+    
+              <p>State estimation:</p>
+    
+              <ul>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/state_estimation.ipynb">Configure and run a state estimation</a>
+                </li>
+              </ul>
+    
+              <p>Short-circuits:</p>
+    
+              <ul>
+                <li>
+                  <a href="https://github.com/e2nIEE/sparrowzz/blob/develop/tutorials/shortcircuit.ipynb">Run a short-circuit calculation according to IEC 60909</a>
+                </li>
+                <li>
+                  <a href="https://github.com/e2nIEE/sparrowzz/blob/develop/tutorials/shortcircuit_renewables.ipynb">Short-circuit calculations considering renewable energy (2016 revision)</a>
+                </li>
+              </ul>
+    
+              <p>Topology package:</p>
+    
+              <ul>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/topology.ipynb">Running topological graph searches</a>
+                </li>
+              </ul>
+    
+              <p>Plotting sparrowzz networks (static with matplotlib):</p>
+    
+              <ul>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/plotting_basic.ipynb">Plotting geographic network plans</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/plotting_colormaps.ipynb">Plotting network plans with colormaps</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/plotting_structural.ipynb">Plotting structural plans without geographical data</a>
+                </li>
+                <li>
+                  <a href="https://github.com/panda-power/sparrowzz/blob/master/tutorials/plotting_pyqt.ipynb">Embedding matplotlib colormaps in PyQt</a>
+                </li>
+              </ul>
+    
+              <p>Plotting sparrowzz networks (interactive with plotly)</p>
+    
+              <ul>
+                <li>
+                  <a href="http://nbviewer.jupyter.org/github/e2nIEE/sparrowzz/blob/develop/tutorials/plotly_built-in.ipynb">Creating interactive plots with plotly</a>
+                </li>
+                <li>
+                  <a href="http://nbviewer.jupyter.org/github/e2nIEE/sparrowzz/blob/develop/tutorials/plotly_traces.ipynb">Customize plotly plots</a>
+                </li>
+                <li>
+                  <a href="http://nbviewer.jupyter.org/github/e2nIEE/sparrowzz/blob/develop/tutorials/plotly_maps.ipynb">Include interactive maps as background</a>
+                </li>
+              </ul>
+    
+              <p>Time series calculation with the sparrowzz control module</p>
+    
+              <ul>
+                <li>
+                  <a href="https://github.com/e2nIEE/sparrowzz/blob/develop/tutorials/time_series.ipynb">Basic time series calculation</a>
+                </li>
+                <li>
+                  <a href="https://github.com/e2nIEE/sparrowzz/blob/develop/tutorials/time_series_advanced_output.ipynb">Advanced time series calculation</a>
+                </li>
+              </ul>
+    
+              <h2 id="youtube-tutorials-">YouTube Tutorials <a name="youtube_tutorials"></a>
+              </h2>
+    
+              <p>You can also find some tutorials about the basics of sparrowzz on YouTube:</p>
+    
+              <p>
+                <a href="https://www.youtube.com/channel/UC0iZbJpDu5--fa8A2GWCa0Q?view_as=subscriber">sparrowzz on YouTube</a>
+              </p>
+            </section>
+            <footer class="page__meta">
+            </footer>
+          </div>
+        </article>
+      </div>
+    </div>
+
+    <aside class="sidebar__top">
+      <a href="#" id="sidebar">
+        <img src="./assets/img/angle-double-up.svg" /><!-- <i class="fas fa-angle-double-up fa-2x"></i> -->
+      </a>
+    </aside>
+    <object data="./footer.html" class="footer-page"></object>
+
+  </body>
+</html>
