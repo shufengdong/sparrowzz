@@ -11,7 +11,7 @@ pub enum Msg {
     DateRangePicked(u64, u64),
 }
 
-pub struct Dashboard {
+pub struct StartPage {
     templates: HashMap<String, String>,
     chart1: NodeRef,
     chart2: NodeRef,
@@ -19,7 +19,7 @@ pub struct Dashboard {
     chart4: NodeRef,
 }
 
-impl Component for Dashboard {
+impl Component for StartPage {
     type Message = Msg;
     type Properties = ();
 

@@ -28,7 +28,8 @@ getrandom = { version = "0.2", features = ["js"] }
 chrono = { version = "0.4", features = ["wasmbind"] }
 protobuf = { version = "3.7", features = ["with-bytes"] }
 cron = "0.12"
-yew-bulma = { git = "https://github.com/shufengdong/yew-bulma.git"}
+yew-bulma = { git = "https://github.com/shufengdong/yew-bulma.git" }
+eig-domain = { path = "../../../eig-domain" }
 # web-sys and js-sys
 js-sys = "0.3"
 [dependencies.web-sys]

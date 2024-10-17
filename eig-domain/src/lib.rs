@@ -11,6 +11,7 @@ use crate::prop::DataUnit;
 pub mod prop;
 pub mod proto;
 pub mod web;
+pub mod excel;
 
 /**
  * @api {Measurement} /Measurement Measurement
