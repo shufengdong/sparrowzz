@@ -12,7 +12,8 @@ pub fn create_view(e: Element) {
 }
 
 
-pub fn new(xlsx_bytes: Vec<u8>) -> Option<Tiles> {
+
+pub fn build_tiles(xlsx_bytes: Vec<u8>) -> Option<Tiles> {
     let (m, n, merge_map) = get_first_sheet_merged_cells(xlsx_bytes)?;
     let mut class_vec = Vec::new();
     let mut is_dealt = vec![false; (m * n) as usize];

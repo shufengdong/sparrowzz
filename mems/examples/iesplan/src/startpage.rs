@@ -3,16 +3,16 @@ use std::collections::HashMap;
 use yew::prelude::*;
 
 use yew_bulma::calendar::*;
-use yew_bulma::chart::line::{render_ints, render_ints_auto};
-use yew_bulma::chart::*;
 use yew_bulma::*;
+use yew_bulma::layout::tiles::Tiles;
 
+use crate::build_tiles;
 pub enum Msg {
     DateRangePicked(u64, u64),
 }
 
 pub struct StartPage {
-    templates: HashMap<String, String>,
+    tiles: Tiles,
     chart1: NodeRef,
     chart2: NodeRef,
     chart3: NodeRef,
@@ -24,50 +24,13 @@ impl Component for StartPage {
     type Properties = ();
 
     fn create(_: &Context<Self>) -> Self {
+        let tiles  = build_tiles(include_bytes!("../layout.xlsx").to_vec()).unwrap();
         Self {
-            templates: Default::default(),
+            tiles,
             chart1: Default::default(),
             chart2: Default::default(),
             chart3: Default::default(),
             chart4: Default::default(),
-        }
-    }
-
-    fn rendered(&mut self, _: &Context<Self>, _: bool) {
-        if let Some(ele) = self.chart1.cast::<web_sys::Element>() {
-            if let Some(template) = self.templates.get("line1") {
-                render_template(ele, template);
-            }
-        }
-        if let Some(ele) = self.chart2.cast::<web_sys::Element>() {
-            if let Some(template) = self.templates.get("template2") {
-                render_template(ele, template);
-            }
-        }
-        if let Some(element) = self.chart3.cast::<web_sys::Element>() {
-            if let Some(template) = self.templates.get("line1") {
-                render_ints_auto(
-                    element,
-                    template,
-                    "my chart",
-                    &["chart1"],
-                    &[&[5, 4, 3, 2, 1]],
-                    &["p1", "p2", "p3", "p4", "p5"],
-                );
-            }
-        }
-        if let Some(element) = self.chart4.cast::<web_sys::Element>() {
-            if let Some(template) = self.templates.get("template2") {
-                render_ints(
-                    element,
-                    template,
-                    "my chart",
-                    &["chart1", "chart2"],
-                    &[&[50, 40, 30, 20, 10], &[10, 20, 30, 40, 50]],
-                    &["p1", "p2", "p3", "p4", "p5"],
-                    (Some("y axis"), Some(5.), Some(60.)),
-                );
-            }
         }
     }
 
