@@ -12,8 +12,9 @@ members = [
     "mems/examples/ds-powerflow/ds-pf-input",
     "mems/examples/ds-powerflow/ds-3phase-pf",
     "mems/examples/ds-powerflow/ds-guizhou",
+    "mems/examples/iesplan",
 ]
 
 [workspace.package]
 edition = "2021"
-rust-version = "1.75.0"  # MSRV
+rust-version = "1.80.0"  # MSRV

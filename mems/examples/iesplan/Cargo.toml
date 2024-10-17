@@ -1,0 +1,36 @@
+[package]
+name = "iesplan"
+version = "0.1.0"
+edition.workspace = true
+rust-version.workspace = true
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+log = "0.4"
+bytes = "1.7"
+byteorder = "1.5"
+serde = "1"
+serde_json = "1"
+serde_cbor = "0.11"
+wasm-bindgen = "0.2"
+wasm-bindgen-futures = "0.4"
+serde-wasm-bindgen = "0.6"
+yew = { version = "0.21", features = ["csr"] }
+yew-agent = "0.2"
+gloo-utils = "0.2"
+gloo-file = "0.3"
+gloo-timers = "0.3"
+sha2 = { version = "0.10", default-features = false }
+getrandom = { version = "0.2", features = ["js"] }
+chrono = { version = "0.4", features = ["wasmbind"] }
+protobuf = { version = "3.7", features = ["with-bytes"] }
+cron = "0.12"
+yew-bulma = { git = "https://github.com/shufengdong/yew-bulma.git"}
+# web-sys and js-sys
+js-sys = "0.3"
+[dependencies.web-sys]
+version = "0.3"
+features = ["FormData", "File"]
