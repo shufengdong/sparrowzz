@@ -2,6 +2,7 @@ use wasm_bindgen::prelude::*;
 use web_sys::Element;
 use crate::startpage::StartPage;
 use yew_bulma::layout::tiles::Tiles;
+use eig_domain::{csv_string, csv_u64, csv_usize};
 use eig_domain::excel::get_first_sheet_merged_cells;
 pub mod startpage;
 mod paracard;
@@ -26,13 +27,31 @@ pub enum ParaType {
 pub struct Parameters {
     id: usize,
     name: String,
+    height: usize,
     labels: Vec<String>,
     points: Vec<u64>,
     para_types: Vec<ParaType>,
 }
 
-pub fn create_parameters(csv_bytes: &[u8]) -> Option<Parameters> {
-    None
+pub fn create_parameters(content: &[u8]) -> Parameters {
+    let mut rdr = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .from_reader(content);
+    let mut records = rdr.records();
+    let record = records.next().unwrap().unwrap();
+    let id = csv_usize(&record, 0).unwrap();
+    let name = csv_string(&record, 1).unwrap();
+    let height = csv_usize(&record, 2).unwrap();
+    let mut labels = Vec::new();
+    let mut points = Vec::new();
+    let mut para_types = Vec::new();
+    for record in records {
+        let row = record.unwrap();
+        points.push(csv_u64(&row, 0).unwrap());
+        labels.push(csv_string(&row, 1).unwrap());
+        para_types.push(ParaType::Checkbox);
+    }
+    Parameters { id, name, height, labels, points, para_types }
 }
 
 pub fn build_tiles(xlsx_bytes: Vec<u8>) -> Option<Tiles> {

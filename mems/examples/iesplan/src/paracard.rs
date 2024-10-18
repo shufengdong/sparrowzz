@@ -30,8 +30,9 @@ impl Component for ParaCard {
         let input_html = (0..paras.points.len()).map(|i| {
             self.create_input(ctx, i)
         }).collect::<Html>();
+        let height = format!("height:{}px", paras.height);
         html! {
-            <Card>
+            <Card height={height}>
                 <CardHeader>
                     <p class="card-header-title">
                         {paras.name.clone()}

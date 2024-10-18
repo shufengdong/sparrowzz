@@ -1,6 +1,6 @@
 use std::fmt;
 use std::marker::PhantomData;
-
+use csv::StringRecord;
 use protobuf::{EnumFull, EnumOrUnknown};
 use serde::{Deserialize, Serialize};
 
@@ -331,4 +331,110 @@ fn deserialize_enum_or_unknown<'de, E: EnumFull, D: serde::Deserializer<'de>>(
     }
 
     d.deserialize_any(DeserializeEnumVisitor(PhantomData))
+}
+
+pub fn csv_str(record: &StringRecord, col: usize) -> Option<&str> {
+    Some(record.get(col)?.trim())
+}
+
+pub fn csv_string(record: &StringRecord, col: usize) -> Option<String> {
+    Some(record.get(col)?.trim().to_string())
+}
+
+pub fn csv_usize(record: &StringRecord, col: usize) -> Option<usize> {
+    let s = record.get(col)?.to_string();
+    let r = s.parse().ok()?;
+    Some(r)
+}
+
+pub fn csv_u8(record: &StringRecord, col: usize) -> Option<u8> {
+    let s = record.get(col)?.trim();
+    let r = if s.starts_with("0x") {
+        u8::from_str_radix(s.trim_start_matches("0x"), 16).ok()?
+    } else {
+        s.parse().ok()?
+    };
+    Some(r)
+}
+
+pub fn csv_u16(record: &StringRecord, col: usize) -> Option<u16> {
+    let s = record.get(col)?.trim();
+    let r = if s.starts_with("0x") {
+        u16::from_str_radix(s.trim_start_matches("0x"), 16).ok()?
+    } else {
+        s.parse().ok()?
+    };
+    Some(r)
+}
+
+pub fn csv_u32(record: &StringRecord, col: usize) -> Option<u32> {
+    let s = record.get(col)?.trim();
+    let r = if s.starts_with("0x") {
+        u32::from_str_radix(s.trim_start_matches("0x"), 16).ok()?
+    } else {
+        s.parse().ok()?
+    };
+    Some(r)
+}
+
+pub fn csv_u64(record: &StringRecord, col: usize) -> Option<u64> {
+    let s = record.get(col)?.trim();
+    let r = if s.starts_with("0x") {
+        u64::from_str_radix(s.trim_start_matches("0x"), 16).ok()?
+    } else {
+        s.parse().ok()?
+    };
+    Some(r)
+}
+
+pub fn csv_i8(record: &StringRecord, col: usize) -> Option<i8> {
+    let s = record.get(col)?.trim();
+    let r = if s.starts_with("0x") {
+        i8::from_str_radix(s.trim_start_matches("0x"), 16).ok()?
+    } else {
+        s.parse().ok()?
+    };
+    Some(r)
+}
+
+pub fn csv_i16(record: &StringRecord, col: usize) -> Option<i16> {
+    let s = record.get(col)?.trim();
+    let r = if s.starts_with("0x") {
+        i16::from_str_radix(s.trim_start_matches("0x"), 16).ok()?
+    } else {
+        s.parse().ok()?
+    };
+    Some(r)
+}
+
+pub fn csv_i32(record: &StringRecord, col: usize) -> Option<i32> {
+    let s = record.get(col)?.trim();
+    let r = if s.starts_with("0x") {
+        i32::from_str_radix(s.trim_start_matches("0x"), 16).ok()?
+    } else {
+        s.parse().ok()?
+    };
+    Some(r)
+}
+
+pub fn csv_i64(record: &StringRecord, col: usize) -> Option<i64> {
+    let s = record.get(col)?.trim();
+    let r = if s.starts_with("0x") {
+        i64::from_str_radix(s.trim_start_matches("0x"), 16).ok()?
+    } else {
+        s.parse().ok()?
+    };
+    Some(r)
+}
+
+pub fn csv_f64(record: &StringRecord, col: usize) -> Option<f64> {
+    let s = record.get(col)?.trim();
+    let r = s.parse().ok()?;
+    Some(r)
+}
+
+pub fn csv_f32(record: &StringRecord, col: usize) -> Option<f32> {
+    let s = record.get(col)?.trim();
+    let r = s.parse().ok()?;
+    Some(r)
 }
