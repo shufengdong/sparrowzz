@@ -2421,7 +2421,7 @@ dependencies = [
 [[package]]
 name = "yew-bulma"
 version = "0.1.0"
-source = "git+https://github.com/shufengdong/yew-bulma.git#2bd9d5ddc5c77c9797e427f488b3baa329abde66"
+source = "git+https://github.com/shufengdong/yew-bulma.git#5afd8092ec2ea27ba7f552a2cdbd325a68733dbf"
 dependencies = [
  "bytes",
  "chrono",

@@ -1,7 +1,6 @@
 use std::collections::HashMap;
 use std::io::{Cursor, Write};
 use std::path::Path;
-use calamine::ReaderRef;
 use calamine::{open_workbook_auto_from_rs, Data, Reader, Sheets, Xlsx, open_workbook_from_rs};
 
 pub fn excel_to_csv_bytes<P: AsRef<Path>>(path: P) -> Option<Vec<Vec<u8>>> {
@@ -9,7 +8,9 @@ pub fn excel_to_csv_bytes<P: AsRef<Path>>(path: P) -> Option<Vec<Vec<u8>>> {
     excel_bytes_to_csv_bytes(bytes.as_slice())
 }
 
-pub fn get_first_sheet_merged_cells(bytes: Vec<u8>) -> Option<(u32, u32, HashMap<(u32,u32), (u32, u32)>)> {
+// return: row count, col count, merged dimensions(key is start, value is end), values(key is i*n_j)
+pub fn get_first_sheet_merged_cells(bytes: Vec<u8>)
+                                    -> Option<(u32, u32, HashMap<(u32,u32), (u32, u32)>, HashMap<usize, String>)> {
     let c = Cursor::new(bytes);
     let mut excel: Xlsx<_> = open_workbook_from_rs(c).ok()?;
     excel.load_merged_regions().ok()?;
@@ -24,10 +25,28 @@ pub fn get_first_sheet_merged_cells(bytes: Vec<u8>) -> Option<(u32, u32, HashMap
                 max_col = c.end.1;
             }
         }
-        let range = excel.worksheet_range_ref(&sheet_names[0]).ok()?;
+        let range = excel.worksheet_range(&sheet_names[0]).ok()?;
+        let max_col = max_col as usize;
         let (m, w) = range.get_size();
-        let n = if w as u32 > max_col + 1 { w as u32 } else { max_col + 1 };
-        return Some((m as u32, n, merged_cells));
+        let n = if w > max_col + 1 { w } else { max_col + 1 };
+        let mut values = HashMap::with_capacity(m * n);
+        for (i, r) in range.rows().enumerate() {
+            for (j, c) in r.iter().enumerate() {
+                let key = i * n + j;
+                let value = match *c {
+                    Data::Empty => String::new(),
+                    Data::String(ref s) => format!("{s}"),
+                    Data::Float(ref f) => format!("{f}"),
+                    Data::DateTime(ref data) => format!("{data}"),
+                    Data::DurationIso(ref s) | Data::DateTimeIso(ref s) => format!("{s}"),
+                    Data::Int(ref i) => format!("{i}"),
+                    Data::Error(ref e) => format!("{:?}", e),
+                    Data::Bool(ref b) => format!("{b}"),
+                };
+                values.insert(key, value);
+            }
+        }
+        return Some((m as u32, n as u32, merged_cells, values));
     }
     None
 }

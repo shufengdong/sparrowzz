@@ -27,7 +27,6 @@ pub enum ParaType {
 pub struct Parameters {
     id: usize,
     name: String,
-    height: usize,
     labels: Vec<String>,
     points: Vec<u64>,
     para_types: Vec<ParaType>,
@@ -41,7 +40,6 @@ pub fn create_parameters(content: &[u8]) -> Parameters {
     let record = records.next().unwrap().unwrap();
     let id = csv_usize(&record, 0).unwrap();
     let name = csv_string(&record, 1).unwrap();
-    let height = csv_usize(&record, 2).unwrap();
     let mut labels = Vec::new();
     let mut points = Vec::new();
     let mut para_types = Vec::new();
@@ -51,12 +49,13 @@ pub fn create_parameters(content: &[u8]) -> Parameters {
         labels.push(csv_string(&row, 1).unwrap());
         para_types.push(ParaType::Checkbox);
     }
-    Parameters { id, name, height, labels, points, para_types }
+    Parameters { id, name, labels, points, para_types }
 }
 
 pub fn build_tiles(xlsx_bytes: Vec<u8>) -> Option<Tiles> {
-    let (m, n, merge_map) = get_first_sheet_merged_cells(xlsx_bytes)?;
-    let mut class_vec = Vec::new();
+    let (m, n, merge_map, values) = get_first_sheet_merged_cells(xlsx_bytes)?;
+    let mut class_str = Vec::new();
+    let mut style_str = Vec::new();
     let mut is_dealt = vec![false; (m * n) as usize];
     for i in 0..m {
         for j in 0..n {
@@ -64,18 +63,18 @@ pub fn build_tiles(xlsx_bytes: Vec<u8>) -> Option<Tiles> {
             if is_dealt[index] {
                 continue;
             }
-            let mut class_str = "cell".to_string();
+            let mut class_s = "cell".to_string();
             let coordinate = (i, j);
             if let Some((end_row, end_col)) = merge_map.get(&coordinate) {
                 let row_span = *end_row - i + 1;
                 let col_span = *end_col - j + 1;
                 if row_span > 1 {
-                    class_str.push_str(&format!(" is-row-span-{row_span}"))
+                    class_s.push_str(&format!(" is-row-span-{row_span}"))
                 }
                 if col_span > 1 {
-                    class_str.push_str(&format!(" is-col-span-{col_span}"))
+                    class_s.push_str(&format!(" is-col-span-{col_span}"))
                 }
-                class_vec.push(class_str);
+                class_str.push(class_s);
                 for row in i..=*end_row {
                     for col in j..=*end_col {
                         let pos = (row * n + col) as usize;
@@ -83,10 +82,13 @@ pub fn build_tiles(xlsx_bytes: Vec<u8>) -> Option<Tiles> {
                     }
                 }
             } else {
-                class_vec.push(class_str);
+                class_str.push(class_s);
             }
+            let h = values.get(&index).cloned().unwrap_or("100".to_string());
+            let s = format!("height:{h}px");
+            style_str.push(s);
         }
     }
-    let tiles = Tiles { id: "".to_string(), class_str: class_vec, with_box: true };
+    let tiles = Tiles { id: "".to_string(), class_str, style_str, with_box: true };
     Some(tiles)
 }
