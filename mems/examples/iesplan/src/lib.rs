@@ -1,6 +1,5 @@
 use wasm_bindgen::prelude::*;
 use web_sys::Element;
-
 use crate::startpage::StartPage;
 use yew_bulma::layout::tiles::Tiles;
 use eig_domain::excel::get_first_sheet_merged_cells;
@@ -12,6 +11,7 @@ pub fn create_view(e: Element) {
     yew::Renderer::<StartPage>::with_root(e).render();
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub enum ParaType {
     // show expresion, true expression, false expression
     Checkbox,
@@ -22,6 +22,7 @@ pub enum ParaType {
     TextField,
 }
 
+#[derive(Clone, Debug, PartialEq)]
 pub struct Parameters {
     id: usize,
     name: String,

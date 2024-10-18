@@ -10,27 +10,31 @@ pub enum Msg {
     SetOption(usize, String),
 }
 
-pub struct ParaCard {
-    paras: Parameters
+#[derive(Clone, Debug, PartialEq, Properties)]
+pub struct Props {
+    pub paras: Parameters
 }
+
+pub struct ParaCard {}
 
 impl Component for ParaCard {
     type Message = Msg;
-    type Properties = ();
+    type Properties = Props;
 
-    fn create(ctx: &Context<Self>) -> Self {
-        todo!()
+    fn create(_: &Context<Self>) -> Self {
+        Self {}
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let input_html = (0..self.paras.points.len()).map(|i| {
+        let paras = &ctx.props().paras;
+        let input_html = (0..paras.points.len()).map(|i| {
             self.create_input(ctx, i)
         }).collect::<Html>();
         html! {
             <Card>
                 <CardHeader>
                     <p class="card-header-title">
-                        {self.paras.name.clone()}
+                        {paras.name.clone()}
                     </p>
                 </CardHeader>
                 <CardContent>
@@ -43,10 +47,11 @@ impl Component for ParaCard {
 
 impl ParaCard {
     fn create_input(&self, ctx: &Context<Self>, i: usize) -> Html {
-        let point_id = &self.paras.points[i];
-        let input_type = &self.paras.para_types[i];
+        let paras = &ctx.props().paras;
+        let point_id = &paras.points[i];
+        let input_type = &paras.para_types[i];
         let link = ctx.link();
-        let label = if let Some(label) = self.paras.labels.get(i) {
+        let label = if let Some(label) = paras.labels.get(i) {
             label.clone()
         } else {
             "".to_string()
