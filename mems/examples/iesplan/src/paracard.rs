@@ -2,16 +2,7 @@ use wasm_bindgen::JsCast;
 use web_sys::InputEvent;
 use yew::prelude::*;
 use yew_bulma::*;
-
-pub enum ParaType {
-    // show expresion, true expression, false expression
-    Checkbox,
-    Radio,
-    Switch,
-    Select(Vec<f64>),
-    Slider(f64, f64, f64, bool),
-    TextField,
-}
+use crate::{ParaType, Parameters};
 
 pub enum Msg {
     SetBool(usize, bool),
@@ -20,9 +11,7 @@ pub enum Msg {
 }
 
 pub struct ParaCard {
-    labels: Vec<String>,
-    points: Vec<u64>,
-    para_types: Vec<ParaType>,
+    paras: Parameters
 }
 
 impl Component for ParaCard {
@@ -34,11 +23,16 @@ impl Component for ParaCard {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let input_html = (0..self.points.len()).map(|i| {
+        let input_html = (0..self.paras.points.len()).map(|i| {
             self.create_input(ctx, i)
         }).collect::<Html>();
         html! {
             <Card>
+                <CardHeader>
+                    <p class="card-header-title">
+                        {self.paras.name.clone()}
+                    </p>
+                </CardHeader>
                 <CardContent>
                     {input_html}
                 </CardContent>
@@ -49,10 +43,10 @@ impl Component for ParaCard {
 
 impl ParaCard {
     fn create_input(&self, ctx: &Context<Self>, i: usize) -> Html {
-        let point_id = &self.points[i];
-        let input_type = &self.para_types[i];
+        let point_id = &self.paras.points[i];
+        let input_type = &self.paras.para_types[i];
         let link = ctx.link();
-        let label = if let Some(label) = self.labels.get(i) {
+        let label = if let Some(label) = self.paras.labels.get(i) {
             label.clone()
         } else {
             "".to_string()

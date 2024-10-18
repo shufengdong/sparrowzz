@@ -12,7 +12,27 @@ pub fn create_view(e: Element) {
     yew::Renderer::<StartPage>::with_root(e).render();
 }
 
+pub enum ParaType {
+    // show expresion, true expression, false expression
+    Checkbox,
+    Radio,
+    Switch,
+    Select(Vec<f64>),
+    Slider(f64, f64, f64, bool),
+    TextField,
+}
 
+pub struct Parameters {
+    id: usize,
+    name: String,
+    labels: Vec<String>,
+    points: Vec<u64>,
+    para_types: Vec<ParaType>,
+}
+
+pub fn create_parameters(csv_bytes: &[u8]) -> Option<Parameters> {
+    None
+}
 
 pub fn build_tiles(xlsx_bytes: Vec<u8>) -> Option<Tiles> {
     let (m, n, merge_map) = get_first_sheet_merged_cells(xlsx_bytes)?;
