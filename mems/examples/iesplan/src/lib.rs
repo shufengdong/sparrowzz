@@ -1,9 +1,9 @@
+use crate::startpage::StartPage;
+use eig_domain::excel::get_first_sheet_merged_cells;
+use eig_domain::{csv_string, csv_u64, csv_usize};
 use wasm_bindgen::prelude::*;
 use web_sys::Element;
-use crate::startpage::StartPage;
 use yew_bulma::layout::tiles::Tiles;
-use eig_domain::{csv_string, csv_u64, csv_usize};
-use eig_domain::excel::get_first_sheet_merged_cells;
 pub mod startpage;
 mod paracard;
 
@@ -63,7 +63,7 @@ pub fn build_tiles(xlsx_bytes: Vec<u8>) -> Option<Tiles> {
             if is_dealt[index] {
                 continue;
             }
-            let mut class_s = "cell".to_string();
+            let mut class_s = "kanban-div cell".to_string();
             let coordinate = (i, j);
             if let Some((end_row, end_col)) = merge_map.get(&coordinate) {
                 let row_span = *end_row - i + 1;
