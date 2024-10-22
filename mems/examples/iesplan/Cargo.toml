@@ -46,5 +46,5 @@ opt-level = 0
 # 对整个程序进行链接时优化(link time optimization)
 lto = true
 
-[package.metadata.wasm-pack.profile.release]
-wasm-opt = false
+#[package.metadata.wasm-pack.profile.release]
+#wasm-opt = false
