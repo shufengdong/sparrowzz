@@ -8,7 +8,7 @@ build = "build.rs"
 
 [dependencies]
 serde = { version = "1.0", features = ["derive"] }
-protobuf = { version = "3.5", features = ["with-bytes"] }
+protobuf = { version = "3.7", features = ["with-bytes"] }
 
 # this project
 eig-expr = { path = "../eig-expr" }
@@ -20,4 +20,4 @@ encoding_rs = "0.8.34"
 [build-dependencies]
 # protobuf-codegen-pure = "2.28"
 protobuf-codegen = "3.5"
-protobuf = { version = "3.5", features = ["with-bytes"] }
+protobuf = { version = "3.7", features = ["with-bytes"] }
