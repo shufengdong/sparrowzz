@@ -1,8 +1,9 @@
 use crate::startpage::StartPage;
 use eig_domain::excel::get_first_sheet_merged_cells;
-use eig_domain::{csv_string, csv_u64, csv_usize};
+use eig_domain::{csv_str, csv_string, csv_u64, csv_usize, SetPointValue};
+use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
-use web_sys::Element;
+use web_sys::{Element, Headers};
 use yew_bulma::layout::tiles::Tiles;
 pub mod startpage;
 mod paracard;
@@ -10,6 +11,17 @@ mod paracard;
 #[wasm_bindgen]
 pub fn create_view(e: Element) {
     yew::Renderer::<StartPage>::with_root(e).render();
+}
+
+#[wasm_bindgen(raw_module = "/mems-view-bin-457c52177f3ff994.js")]
+extern "C" {
+    pub fn get_headers() -> Headers;
+    pub fn get_user_id() -> u16;
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct PointControl3 {
+    pub commands: Vec<SetPointValue>,
 }
 
 #[derive(Clone, Debug, PartialEq)]
@@ -47,7 +59,17 @@ pub fn create_parameters(content: &[u8]) -> Parameters {
         let row = record.unwrap();
         points.push(csv_u64(&row, 0).unwrap());
         labels.push(csv_string(&row, 1).unwrap());
-        para_types.push(ParaType::Checkbox);
+        let para_type_s = csv_str(&row, 2).unwrap().to_uppercase();
+        let para_type = match para_type_s.as_str() {
+            "CHECKBOX" => ParaType::Checkbox,
+            "RADIO" => ParaType::Radio,
+            "SWITCH" => ParaType::Switch,
+            "TEXTFIELD" => ParaType::TextField,
+            // "SLIDE" => ParaType::Slider(),
+            // "SLIDE" => ParaType::Checkbox,
+            _ => ParaType::TextField
+        };
+        para_types.push(para_type);
     }
     Parameters { id, name, labels, points, para_types }
 }

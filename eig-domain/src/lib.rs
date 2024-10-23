@@ -289,6 +289,21 @@ pub struct SetFloatValue {
     pub timestamp: u64,
 }
 
+/**
+ * @api {公式型指令数据} /SetPointValue SetPointValue
+ * @apiGroup A_Object
+ * @apiSuccess {u64} sender_id sender_id
+ * @apiSuccess {u64} point_id point_id
+ * @apiSuccess {expr} command command
+ * @apiSuccess {u64} timestamp timestamp
+ */
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct SetPointValue {
+    pub sender_id: u64,
+    pub point_id: u64,
+    pub command: Expr,
+    pub timestamp: u64,
+}
 
 fn deserialize_enum_or_unknown<'de, E: EnumFull, D: serde::Deserializer<'de>>(
     d: D,

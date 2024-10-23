@@ -1,3 +1,5 @@
-1,car1,500
-100001,name1,Checkbox
-100002,name2,Checkbox
+5,car1,500
+1000001,源电压,Checkbox
+1000002,A相有功634,Radio
+1000003,A相无功634,TextField
+1000004,B相有功634,Switch
