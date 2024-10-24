@@ -193,8 +193,8 @@ impl ParaCard {
             }
             ParaType::Radio(options) => {
                 let current_f = self.floats.get(&i).cloned().unwrap_or(0.0);
-                let content = (0..options.len()).map(|i| {
-                    let (name, f) = &options[i];
+                let content = (0..options.len()).map(|j| {
+                    let (name, f) = &options[j];
                     let to_show = if name.is_empty() {
                         f.to_string()
                     } else {
