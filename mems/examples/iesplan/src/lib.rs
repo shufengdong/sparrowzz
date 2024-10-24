@@ -49,7 +49,8 @@ pub enum ParaType {
     Radio,
     Switch,
     Select(Vec<f64>),
-    Slider(f64, f64, f64, bool),
+    // min, max, step
+    Slider(f64, f64, f64),
     TextField,
 }
 
@@ -83,8 +84,20 @@ pub fn create_parameters(content: &[u8]) -> Parameters {
             "RADIO" => ParaType::Radio,
             "SWITCH" => ParaType::Switch,
             "TEXTFIELD" => ParaType::TextField,
-            // "SLIDE" => ParaType::Slider(),
-            // "SLIDE" => ParaType::Checkbox,
+            "SLIDER" => {
+                let v = csv_str(&row, 3).unwrap();
+                let s_vec: Vec<&str> = v.split(";").collect();
+                let min = s_vec[0].parse().unwrap();
+                let max = s_vec[1].parse().unwrap();
+                let step = s_vec[2].parse().unwrap();
+                ParaType::Slider(min, max, step)
+            },
+            "SELECT" => {
+                let v = csv_str(&row, 3).unwrap();
+                let floats = v.split(";")
+                    .map(|s| s.parse::<f64>().unwrap()).collect();
+                ParaType::Select(floats)
+            }
             _ => ParaType::TextField
         };
         para_types.push(para_type);

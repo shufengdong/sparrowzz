@@ -1,11 +1,11 @@
+use eig_domain::{MeasureValue, SetPointValue};
 use std::collections::HashMap;
 use wasm_bindgen::JsCast;
 use web_sys::InputEvent;
 use yew::prelude::*;
-use yew_bulma::*;
 use yew_bulma::calendar::get_timestamp;
-use eig_domain::{MeasureValue, SetPointValue};
-use eig_expr::{Expr, Token};
+use yew_bulma::*;
+
 use crate::{get_headers, get_user_id, ParaType, Parameters, PointControl3, QueryWithId};
 
 pub enum Msg {
@@ -14,6 +14,7 @@ pub enum Msg {
     SetBool(usize, bool),
     SetString(usize),
     SetOption(usize, String),
+    SetParaSuccess(Vec<u64>),
     None,
 }
 
@@ -47,14 +48,14 @@ impl Component for ParaCard {
             }
             pos.insert(ctx.props().paras.points[index], index);
         }
-        Self::query_para(ctx);
+        Self::query_para(ctx, &ctx.props().paras.points);
         Self { bools, floats, pos }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
             Msg::Refresh => {
-                Self::query_para(ctx);
+                Self::query_para(ctx, &ctx.props().paras.points);
             }
             Msg::ParaLoaded(values) => {
                 for v in values {
@@ -70,67 +71,28 @@ impl Component for ParaCard {
             }
             Msg::SetBool(i, b) => {
                 let point_id = &ctx.props().paras.points[i];
-                let input_type = &ctx.props().paras.para_types[i];
-                let v = if ParaType::Checkbox.eq(input_type)
-                    || ParaType::Radio.eq(input_type)
-                    || ParaType::Switch.eq(input_type) {
-                    if b {
-                        Some(Expr::from_vec(vec![Token::Number(1.0)]))
-                    } else {
-                        Some(Expr::from_vec(vec![Token::Number(0.0)]))
-                    }
+                let value = if b {
+                    "1.0"
                 } else {
-                    None
+                    "0.0"
                 };
-                if let Some(expr) = v {
-                    let user_id = get_user_id();
-                    let v = SetPointValue {
-                        point_id: *point_id,
-                        sender_id: user_id as u64,
-                        command: expr,
-                        timestamp: get_timestamp(),
-                    };
-                    self.set_point(ctx, PointControl3 { commands: vec![v] });
-                }
-                if let Some(v) = self.bools.get_mut(&i) {
-                    *v = b;
-                    return true;
-                }
+                self.do_set_point(ctx, value, point_id);
             }
             Msg::SetString(i) => {
                 let point_id = &ctx.props().paras.points[i];
                 let name = format!("tf_{}", point_id);
                 let value = get_input_value_by_name(&name);
-                if let Ok(expr) = value.parse() {
-                    let user_id = get_user_id();
-                    let v = SetPointValue {
-                        point_id: *point_id,
-                        sender_id: user_id as u64,
-                        command: expr,
-                        timestamp: get_timestamp(),
-                    };
-                    self.set_point(ctx, PointControl3 { commands: vec![v] });
-                } else {
-                    alert("Wrong input");
-                }
+                self.do_set_point(ctx, &value, point_id);
             }
             Msg::SetOption(i, value) => {
                 if value == "None" {
                     return false;
                 }
                 let point_id = &ctx.props().paras.points[i];
-                if let Ok(expr) = value.parse() {
-                    let user_id = get_user_id();
-                    let v = SetPointValue {
-                        point_id: *point_id,
-                        sender_id: user_id as u64,
-                        command: expr,
-                        timestamp: get_timestamp(),
-                    };
-                    self.set_point(ctx, PointControl3 { commands: vec![v] });
-                } else {
-                    alert("Wrong input");
-                }
+                self.do_set_point(ctx, &value, point_id);
+            }
+            Msg::SetParaSuccess(points) => {
+                Self::query_para(ctx, &points);
             }
             Msg::None => {}
         }
@@ -172,10 +134,9 @@ impl ParaCard {
             ParaType::Checkbox => {
                 let checked = self.bools.get(&i).cloned().unwrap_or(false);
                 html! {
-                    <Field horizontal={true} >
+                    <Field horizontal={true} label={label}>
                         <Checkbox checked={checked}
                             update={link.callback(move |b| Msg::SetBool(i, b))}>
-                            {label}
                         </Checkbox>
                     </Field>
                 }
@@ -183,11 +144,10 @@ impl ParaCard {
             ParaType::Radio => {
                 let checked = self.bools.get(&i).cloned().unwrap_or(false);
                 html! {
-                    <Field horizontal={true} >
+                    <Field horizontal={true} label={label}>
                         <Radio update={link.callback(move |_| Msg::SetBool(i, !checked))}
                             checked_value={"selected"}
                             value={if checked {"selected"} else {"none"}}>
-                            <span>{label}</span>
                         </Radio>
                     </Field>
                 }
@@ -202,7 +162,7 @@ impl ParaCard {
                     </Field>
                 }
             }
-            ParaType::Slider(lower, upper, step, is_vertical) => {
+            ParaType::Slider(lower, upper, step) => {
                 let oninput = link.callback(move |e: InputEvent| {
                     let target = e.target().unwrap();
                     let input = target.dyn_into::<web_sys::HtmlInputElement>().unwrap();
@@ -210,8 +170,7 @@ impl ParaCard {
                 });
                 html! {
                     <Field horizontal={true} label={label}>
-                        <input class={"slider is-fullwidth"}  type={"range"}
-                            orient={if *is_vertical {"vertical"} else {"horizontal"}}
+                        <input class={"slider is-fullwidth"}  type={"range"} orient={"horizontal"}
                             oninput={oninput} step={step.to_string()} min={lower.to_string()}
                             max={upper.to_string()} value={lower.to_string()}
                         />
@@ -250,11 +209,24 @@ impl ParaCard {
             }
         }
     }
-}
 
-impl ParaCard {
-    fn query_para(ctx: &Context<Self>) {
-        let ids: Vec<String> = ctx.props().paras.points.iter().map(|s| s.to_string()).collect();
+    fn do_set_point(&mut self, ctx: &Context<Self>, value: &str, point_id: &u64) {
+        if let Ok(expr) = value.parse() {
+            let user_id = get_user_id();
+            let v = SetPointValue {
+                point_id: *point_id,
+                sender_id: user_id as u64,
+                command: expr,
+                timestamp: get_timestamp(),
+            };
+            Self::set_point(ctx, PointControl3 { commands: vec![v] });
+        } else {
+            alert("Wrong input");
+        }
+    }
+
+    fn query_para(ctx: &Context<Self>, points: &[u64]) {
+        let ids: Vec<String> = points.iter().map(|s| s.to_string()).collect();
         let ids = ids.join(",").to_string();
         let query = QueryWithId {
             id: None,
@@ -283,17 +255,18 @@ impl ParaCard {
             Msg::None
         });
     }
-    fn set_point(&self, ctx: &Context<Self>, cmd: PointControl3) {
+    fn set_point(ctx: &Context<Self>, cmd: PointControl3) {
         let url = "/api/v1/controls_cbor/points_by_expr";
+        let points: Vec<u64> = cmd.commands.iter().map(|c| c.point_id).collect();
         ctx.link().send_future(async move {
             let content = serde_cbor::to_vec(&cmd).unwrap();
             let body = js_sys::Uint8Array::from(content.as_ref()).dyn_into().unwrap();
             match async_ws_post_no_resp(url, &get_headers(), Some(body)).await {
                 Ok(b) => {
-                    if b {
-                        alert("Success");
+                    if !b {
+                        alert("Fail to set parameter");
                     } else {
-                        alert("Fail");
+                        return Msg::SetParaSuccess(points);
                     }
                 }
                 Err(err) => {
