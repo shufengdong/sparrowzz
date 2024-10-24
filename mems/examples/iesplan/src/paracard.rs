@@ -163,6 +163,7 @@ impl ParaCard {
                 }
             }
             ParaType::Slider(lower, upper, step) => {
+                let current_v = self.floats.get(&i).cloned().unwrap_or(*lower).to_string();
                 let oninput = link.callback(move |e: InputEvent| {
                     let target = e.target().unwrap();
                     let input = target.dyn_into::<web_sys::HtmlInputElement>().unwrap();
@@ -172,17 +173,22 @@ impl ParaCard {
                     <Field horizontal={true} label={label}>
                         <input class={"slider is-fullwidth"}  type={"range"} orient={"horizontal"}
                             oninput={oninput} step={step.to_string()} min={lower.to_string()}
-                            max={upper.to_string()} value={lower.to_string()}
+                            max={upper.to_string()} value={current_v}
                         />
                     </Field>
                 }
             }
             ParaType::Select(options) => {
+                let current_v = self.floats.get(&i).cloned().unwrap_or(0.0).to_string();
                 html! {
                     <Field horizontal={true} label={label}>
                         <Select update={link.callback(move |s| Msg::SetOption(i, s))} >
                             {for options.iter().map(|f| {
-                                html! {<option value={f.to_string()}>{f.to_string()}</option>}
+                                html! {
+                                    <option value={f.to_string()} selected={current_v == f.to_string()}>
+                                        {f.to_string()}
+                                    </option>
+                                }
                             })}
                             <option value={"None"}>{"no_selection"}</option>
                         </Select>

@@ -145,3 +145,9 @@ pub fn build_tiles(xlsx_bytes: Vec<u8>) -> Option<Tiles> {
     let tiles = Tiles { id: "".to_string(), class_str, style_str, with_box: true };
     Some(tiles)
 }
+
+#[test]
+fn test_parse() {
+    let general_para = create_parameters(include_bytes!("../general.csv"));
+    assert_eq!(general_para.points.len(), 6);
+}
