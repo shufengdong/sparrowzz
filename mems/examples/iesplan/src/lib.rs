@@ -13,7 +13,7 @@ pub fn create_view(e: Element) {
     yew::Renderer::<StartPage>::with_root(e).render();
 }
 
-#[wasm_bindgen(raw_module = "/mems-view-bin-457c52177f3ff994.js")]
+#[wasm_bindgen(raw_module = "/mems-view-bin.js")]
 extern "C" {
     pub fn get_headers() -> Headers;
     pub fn get_user_id() -> u16;
