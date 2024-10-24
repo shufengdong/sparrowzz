@@ -4,11 +4,12 @@ use web_sys::InputEvent;
 use yew::prelude::*;
 use yew_bulma::*;
 use yew_bulma::calendar::get_timestamp;
-use eig_domain::SetPointValue;
+use eig_domain::{MeasureValue, SetPointValue};
 use eig_expr::{Expr, Token};
-use crate::{get_headers, get_user_id, ParaType, Parameters, PointControl3};
+use crate::{get_headers, get_user_id, ParaType, Parameters, PointControl3, QueryWithId};
 
 pub enum Msg {
+    ParaLoaded(Vec<MeasureValue>),
     SetBool(usize, bool),
     SetString(usize),
     SetOption(usize, String),
@@ -22,6 +23,7 @@ pub struct Props {
 
 pub struct ParaCard {
     bools: HashMap<usize, bool>,
+    floats: HashMap<usize, f64>,
 }
 
 impl Component for ParaCard {
@@ -30,21 +32,26 @@ impl Component for ParaCard {
 
     fn create(ctx: &Context<Self>) -> Self {
         let mut bools = HashMap::new();
+        let mut floats = HashMap::new();
         for index in 0..ctx.props().paras.points.len() {
             let input_type = &ctx.props().paras.para_types[index];
-            if let ParaType::Checkbox = input_type {
+            if ParaType::Checkbox.eq(input_type)
+                || ParaType::Switch.eq(input_type)
+                || ParaType::Radio.eq(input_type) {
                 bools.insert(index, false);
-            } else if let ParaType::Switch = input_type {
-                bools.insert(index, false);
-            } else if let ParaType::Radio = input_type {
-                bools.insert(index, false);
+            } else {
+                floats.insert(index, 0.0);
             }
         }
-        Self { bools }
+        Self::query_para(ctx);
+        Self { bools, floats }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
+            Msg::ParaLoaded(values) => {
+
+            }
             Msg::SetBool(i, b) => {
                 let point_id = &ctx.props().paras.points[i];
                 let input_type = &ctx.props().paras.para_types[i];
@@ -229,6 +236,36 @@ impl ParaCard {
 }
 
 impl ParaCard {
+    fn query_para(ctx: &Context<Self>) {
+        let ids: Vec<String> = ctx.props().paras.points.iter().map(|s| s.to_string()).collect();
+        let ids = ids.join(",").to_string();
+        let query = QueryWithId {
+            id: None,
+            ids: Some(ids),
+        };
+        let url = format!("/api/v1/pscpu/points/values_cbor/0{}", query.query_str());
+        ctx.link().send_future(async move {
+            match async_ws_get(&url, &get_headers()).await {
+                Ok(bytes) => {
+                    if let Ok(values) = serde_cbor::from_slice::<Vec<MeasureValue>>(&bytes) {
+                        return Msg::ParaLoaded(values);
+                    } else {
+                        alert("Fail");
+                    }
+                }
+                Err(err) => {
+                    if err.to_string().eq(HEADER_TOKEN_INVALID) {
+                        alert(&format!("Invalid header token for url: {url}"));
+                    } else if err.to_string().eq(HEADER_PERMISSION_DENIED) {
+                        alert(&format!("Permission denied for url: {}", url));
+                    } else {
+                        alert(&format!("Failed to load parameter values, err: {:?}", err));
+                    }
+                }
+            }
+            Msg::None
+        });
+    }
     fn set_point(&self, ctx: &Context<Self>, cmd: PointControl3) {
         let url = "/api/v1/controls_cbor/points_by_expr";
         ctx.link().send_future(async move {
@@ -247,7 +284,9 @@ impl ParaCard {
                         alert(&format!("Invalid header token for url: {url}"));
                     } else if err.to_string().eq(HEADER_PERMISSION_DENIED) {
                         alert(&format!("Permission denied for url: {}", url));
-                    } else {}
+                    } else {
+                        alert(&format!("Failed to set parameter value, err: {:?}", err));
+                    }
                 }
             }
             Msg::None

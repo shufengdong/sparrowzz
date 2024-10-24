@@ -24,9 +24,27 @@ pub struct PointControl3 {
     pub commands: Vec<SetPointValue>,
 }
 
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct QueryWithId {
+    pub id: Option<u64>,
+    pub ids: Option<String>,
+}
+
+impl QueryWithId {
+    pub fn query_str(&self) -> String {
+        let mut query = String::new();
+        if let Some(id) = self.id {
+            query.push_str(&format!("?id={}", id));
+        } else if let Some(ids) = &self.ids {
+            query.push_str(&format!("?ids={ids}"));
+        }
+        query
+    }
+}
+
 #[derive(Clone, Debug, PartialEq)]
 pub enum ParaType {
-    // show expresion, true expression, false expression
+    // show expression, true expression, false expression
     Checkbox,
     Radio,
     Switch,
