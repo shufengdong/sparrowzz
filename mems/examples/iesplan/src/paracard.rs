@@ -205,8 +205,9 @@ impl ParaCard {
                     } else {
                         current_f.to_string()
                     };
+                    let value = f.to_string();
                     html! {
-                        <Radio update={link.callback(move |s| Msg::SetOption(i, s))}
+                        <Radio update={link.callback(move |_| Msg::SetOption(i, value.clone()))}
                             checked_value={checked_value} value={f.to_string()}>
                             <span>{to_show}</span>
                         </Radio>
