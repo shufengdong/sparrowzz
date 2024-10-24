@@ -9,6 +9,7 @@ use eig_expr::{Expr, Token};
 use crate::{get_headers, get_user_id, ParaType, Parameters, PointControl3, QueryWithId};
 
 pub enum Msg {
+    Refresh,
     ParaLoaded(Vec<MeasureValue>),
     SetBool(usize, bool),
     SetString(usize),
@@ -24,6 +25,7 @@ pub struct Props {
 pub struct ParaCard {
     bools: HashMap<usize, bool>,
     floats: HashMap<usize, f64>,
+    pos: HashMap<u64, usize>,
 }
 
 impl Component for ParaCard {
@@ -33,6 +35,7 @@ impl Component for ParaCard {
     fn create(ctx: &Context<Self>) -> Self {
         let mut bools = HashMap::new();
         let mut floats = HashMap::new();
+        let mut pos = HashMap::new();
         for index in 0..ctx.props().paras.points.len() {
             let input_type = &ctx.props().paras.para_types[index];
             if ParaType::Checkbox.eq(input_type)
@@ -42,15 +45,28 @@ impl Component for ParaCard {
             } else {
                 floats.insert(index, 0.0);
             }
+            pos.insert(ctx.props().paras.points[index], index);
         }
         Self::query_para(ctx);
-        Self { bools, floats }
+        Self { bools, floats, pos }
     }
 
     fn update(&mut self, ctx: &Context<Self>, msg: Self::Message) -> bool {
         match msg {
+            Msg::Refresh => {
+                Self::query_para(ctx);
+            }
             Msg::ParaLoaded(values) => {
-
+                for v in values {
+                    if let Some(index) = self.pos.get(&v.point_id) {
+                        if let Some(b) = self.bools.get_mut(index) {
+                            *b = v.get_value() > 0.0;
+                        } else if let Some(f) = self.floats.get_mut(index) {
+                            *f = v.get_value();
+                        }
+                    }
+                }
+                return true;
             }
             Msg::SetBool(i, b) => {
                 let point_id = &ctx.props().paras.points[i];
@@ -216,10 +232,11 @@ impl ParaCard {
             }
             ParaType::TextField => {
                 let name = format!("tf_{}", point_id);
+                let f = self.floats.get(&i).cloned().unwrap_or(0.0).to_string();
                 html! {
-                    <Field horizontal={true} label={label}>
+                    <Field classes={classes!("has-addons")} horizontal={true} label={label}>
                         <Control classes={classes!("is-expanded")}>
-                            <Input placeholder={"eg: 10"} width={"12"} name={name}
+                            <Input placeholder={"eg: 10"} width={"12"} name={name} value={f}
                                 onenterdown={link.callback(move |_| Msg::SetString(i))} />
                         </Control>
                         <Control>
