@@ -40,8 +40,7 @@ impl Component for ParaCard {
         for index in 0..ctx.props().paras.points.len() {
             let input_type = &ctx.props().paras.para_types[index];
             if ParaType::Checkbox.eq(input_type)
-                || ParaType::Switch.eq(input_type)
-                || ParaType::Radio.eq(input_type) {
+                || ParaType::Switch.eq(input_type) {
                 bools.insert(index, false);
             } else {
                 floats.insert(index, 0.0);
@@ -85,6 +84,7 @@ impl Component for ParaCard {
                 self.do_set_point(ctx, &value, point_id);
             }
             Msg::SetOption(i, value) => {
+                log::warn!("========================= {i} {value}");
                 if value == "None" {
                     return false;
                 }
@@ -141,17 +141,6 @@ impl ParaCard {
                     </Field>
                 }
             }
-            ParaType::Radio => {
-                let checked = self.bools.get(&i).cloned().unwrap_or(false);
-                html! {
-                    <Field horizontal={true} label={label}>
-                        <Radio update={link.callback(move |_| Msg::SetBool(i, !checked))}
-                            checked_value={"selected"}
-                            value={if checked {"selected"} else {"none"}}>
-                        </Radio>
-                    </Field>
-                }
-            }
             ParaType::Switch => {
                 let checked = self.bools.get(&i).cloned().unwrap_or(false);
                 html! {
@@ -179,19 +168,53 @@ impl ParaCard {
                 }
             }
             ParaType::Select(options) => {
-                let current_v = self.floats.get(&i).cloned().unwrap_or(0.0).to_string();
+                let current_f = self.floats.get(&i).cloned().unwrap_or(0.0);
+                let content = (0..options.len()).map(|i| {
+                    let (name, f) = &options[i];
+                    let to_show = if name.is_empty() {
+                        f.to_string()
+                    } else {
+                        name.clone()
+                    };
+                    html! {
+                        <option value={f.to_string()} selected={current_f == *f}>
+                            {to_show}
+                        </option>
+                    }
+                }).collect::<Html>();
                 html! {
                     <Field horizontal={true} label={label}>
                         <Select update={link.callback(move |s| Msg::SetOption(i, s))} >
-                            {for options.iter().map(|f| {
-                                html! {
-                                    <option value={f.to_string()} selected={current_v == f.to_string()}>
-                                        {f.to_string()}
-                                    </option>
-                                }
-                            })}
+                            {content}
                             <option value={"None"}>{"no_selection"}</option>
                         </Select>
+                    </Field>
+                }
+            }
+            ParaType::Radio(options) => {
+                let current_f = self.floats.get(&i).cloned().unwrap_or(0.0);
+                let content = (0..options.len()).map(|i| {
+                    let (name, f) = &options[i];
+                    let to_show = if name.is_empty() {
+                        f.to_string()
+                    } else {
+                        name.clone()
+                    };
+                    let checked_value = if current_f == *f {
+                        f.to_string()
+                    } else {
+                        current_f.to_string()
+                    };
+                    html! {
+                        <Radio update={link.callback(move |s| Msg::SetOption(i, s))}
+                            checked_value={checked_value} value={f.to_string()}>
+                            <span>{to_show}</span>
+                        </Radio>
+                    }
+                }).collect::<Html>();
+                html! {
+                    <Field horizontal={true} label={label}>
+                        <div class="radios">{content}</div>
                     </Field>
                 }
             }

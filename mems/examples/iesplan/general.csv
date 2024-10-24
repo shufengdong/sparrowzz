@@ -1,6 +1,6 @@
 5,car1,,
 1000001,源电压,Checkbox,
-1000002,A相有功634,Radio,
+1000002,A相有功634,Radio,name1:1.0;name2:3;name3:4
 1000003,A相无功634,TextField,
 1000004,B相有功634,Switch,
 1000005,B相无功634,Slider,-100;100;10

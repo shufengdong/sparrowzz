@@ -46,9 +46,9 @@ impl QueryWithId {
 pub enum ParaType {
     // show expression, true expression, false expression
     Checkbox,
-    Radio,
     Switch,
-    Select(Vec<f64>),
+    Radio(Vec<(String, f64)>),
+    Select(Vec<(String, f64)>),
     // min, max, step
     Slider(f64, f64, f64),
     TextField,
@@ -81,7 +81,6 @@ pub fn create_parameters(content: &[u8]) -> Parameters {
         let para_type_s = csv_str(&row, 2).unwrap().to_uppercase();
         let para_type = match para_type_s.as_str() {
             "CHECKBOX" => ParaType::Checkbox,
-            "RADIO" => ParaType::Radio,
             "SWITCH" => ParaType::Switch,
             "TEXTFIELD" => ParaType::TextField,
             "SLIDER" => {
@@ -94,15 +93,32 @@ pub fn create_parameters(content: &[u8]) -> Parameters {
             },
             "SELECT" => {
                 let v = csv_str(&row, 3).unwrap();
-                let floats = v.split(";")
-                    .map(|s| s.parse::<f64>().unwrap()).collect();
-                ParaType::Select(floats)
+                let options = parse_options(v);
+                ParaType::Select(options)
+            }
+            "RADIO" => {
+                let v = csv_str(&row, 3).unwrap();
+                let options = parse_options(v);
+                ParaType::Radio(options)
             }
             _ => ParaType::TextField
         };
         para_types.push(para_type);
     }
     Parameters { id, name, labels, points, para_types }
+}
+
+fn parse_options(v: &str) -> Vec<(String, f64)> {
+    let options = v.split(";")
+        .map(|s| {
+            let options: Vec<&str> = s.split(":").collect();
+            if options.len() == 2 {
+                (options[0].to_string(), options[1].parse::<f64>().unwrap())
+            } else {
+                ("".to_string(), s.parse::<f64>().unwrap())
+            }
+        }).collect();
+    options
 }
 
 pub fn build_tiles(xlsx_bytes: Vec<u8>) -> Option<Tiles> {
