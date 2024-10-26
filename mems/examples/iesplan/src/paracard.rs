@@ -84,7 +84,6 @@ impl Component for ParaCard {
                 self.do_set_point(ctx, &value, point_id);
             }
             Msg::SetOption(i, value) => {
-                log::warn!("========================= {i} {value}");
                 if value == "None" {
                     return false;
                 }

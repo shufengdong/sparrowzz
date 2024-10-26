@@ -20,7 +20,7 @@ num-traits = "0.2"
 cron = "0.12"
 async-channel = "2.3"
 base64 = "0.22"
-arrow-schema = { version = "53.1", features = ["serde"] }
+arrow-schema = { version = "53.2", features = ["serde"] }
 
 # this project
 eig-domain = { path = "../eig-domain" }
