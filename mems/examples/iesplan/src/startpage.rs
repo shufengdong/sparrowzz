@@ -13,6 +13,7 @@ pub enum Msg {
 
 pub struct StartPage {
     tiles: Tiles,
+    plan_card: Parameters,
     general_para: Parameters,
 }
 
@@ -22,8 +23,10 @@ impl Component for StartPage {
 
     fn create(_: &Context<Self>) -> Self {
         let tiles = build_tiles(include_bytes!("../layout.xlsx").to_vec()).unwrap();
+        let mut plan_card = create_parameters(include_bytes!("../general.csv"));
+        plan_card.id = 15;
         let general_para = create_parameters(include_bytes!("../general.csv"));
-        Self { tiles, general_para }
+        Self { tiles, general_para, plan_card }
     }
 
     fn update(&mut self, _: &Context<Self>, msg: Self::Message) -> bool {
@@ -36,8 +39,8 @@ impl Component for StartPage {
     }
 
     fn view(&self, ctx: &Context<Self>) -> Html {
-        let mut nodes = HashMap::with_capacity(22);
-        for i in 0..22 {
+        let mut nodes = HashMap::with_capacity(23);
+        for i in 0..23 {
             let v = html! {
                 <p>{format!("{i}")}</p>
             };
@@ -45,6 +48,9 @@ impl Component for StartPage {
         }
         nodes.insert(self.general_para.id, html! {
            <ParaCard paras={self.general_para.clone()} />
+        });
+        nodes.insert(self.plan_card.id, html! {
+           <ParaCard paras={self.plan_card.clone()} />
         });
         self.tiles.create_html(nodes)
     }
