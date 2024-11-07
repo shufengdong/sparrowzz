@@ -5,6 +5,7 @@ members = [
     "eig-domain",
     "eig-aoe",
     "mems",
+    "mems/examples/common/switchnode",
     "mems/examples/ds-powerflow/ds-common",
     "mems/examples/ds-powerflow/ds-static-topo",
     "mems/examples/ds-powerflow/ds-dev-ohm-cal",
