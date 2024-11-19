@@ -9,8 +9,6 @@ rust-version.workspace = true
 fnv = "1.0"
 nom = "7.1"
 serde = { version = "1.0", features = ["derive"] }
-rayon = "1.10"
-rustc-hash = "2.0"
 num-traits = "0.2"
 num-complex = "0.4"
 ndarray = "0.16"
