@@ -1,5 +1,7 @@
 {
   "title": "Multi Page Layout",
   "isMultiPage": true,
-  "rowNumPerPage": 15
+  "rowNumPerPage": 15,
+  "isSortable": true,
+  "hasFilter": true
 }
