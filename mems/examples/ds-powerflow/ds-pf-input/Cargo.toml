@@ -10,7 +10,7 @@ crate-type = ["cdylib"]
 log = "0.4"
 csv = "1.3.0"
 ciborium = "0.2"
-arrow-schema = { version = "53.3", features = ["serde"] }
+arrow-schema = { version = "54.0", features = ["serde"] }
 ds-common = { path = "../ds-common" }
 eig-domain = { path = "../../../../eig-domain" }
 mems = { path = "../../.." }
