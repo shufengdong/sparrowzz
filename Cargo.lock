@@ -142,9 +142,9 @@ checksum = "1fd0f2584146f6f2ef48085050886acf353beff7305ebd1ae69500e27c67f64b"
 
 [[package]]
 name = "bytes"
-version = "1.8.0"
+version = "1.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ac0150caa2ae65ca5bd83f25c7de183dea78d4d366469f148435e2acfbad0da"
+checksum = "325918d6fe32f23b19878fe4b34794ae41fc19ddbe53b10571a4874d44ffd39b"
 
 [[package]]
 name = "calamine"
@@ -358,7 +358,6 @@ dependencies = [
  "csv",
  "ds-common",
  "eig-domain",
- "log",
  "mems",
  "nalgebra",
  "ndarray",
@@ -372,7 +371,6 @@ version = "0.1.0"
 dependencies = [
  "csv",
  "eig-domain",
- "log",
  "mems",
  "serde_json",
 ]
@@ -389,7 +387,6 @@ dependencies = [
  "log",
  "mems",
  "ndarray",
- "petgraph",
  "serde_json",
 ]
 
@@ -430,7 +427,7 @@ dependencies = [
  "ciborium",
  "log",
  "mems",
- "petgraph",
+ "petgraph 0.7.0",
 ]
 
 [[package]]
@@ -454,7 +451,7 @@ dependencies = [
  "eig-domain",
  "eig-expr",
  "log",
- "petgraph",
+ "petgraph 0.7.0",
  "serde",
 ]
 
@@ -525,6 +522,12 @@ name = "fixedbitset"
 version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0ce7134b9999ecaf8bcd65542e436736ef32ddca1b3e06094cb6ec5755203b80"
+
+[[package]]
+name = "fixedbitset"
+version = "0.5.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
 
 [[package]]
 name = "flate2"
@@ -1035,9 +1038,9 @@ checksum = "8a9ee70c43aaf417c914396645a0fa852624801b24ebb7ae78fe8272889ac888"
 
 [[package]]
 name = "hashbrown"
-version = "0.15.1"
+version = "0.14.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3a9bfc1af68b1726ea47d3d5109de126281def866b33970e10fbab11b5dafab3"
+checksum = "e5274423e17b7c9fc20b6e7e208532f9b19825d82dfd615708b70edd83df41f1"
 
 [[package]]
 name = "hermit-abi"
@@ -1130,7 +1133,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8a9aa791c7b5a71b636b7a68207fdebf171ddfc593d9c8506ec4cbc527b6a84"
 dependencies = [
  "implicit-clone-derive",
- "indexmap 2.6.0",
+ "indexmap 2.5.0",
 ]
 
 [[package]]
@@ -1155,12 +1158,12 @@ dependencies = [
 
 [[package]]
 name = "indexmap"
-version = "2.6.0"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "707907fe3c25f5424cce2cb7e1cbcafee6bdbe735ca90ef77c29e84591e5b9da"
+checksum = "68b900aa2f7301e21c36462b170ee99994de34dff39a4a6a528e80e7376d07e5"
 dependencies = [
  "equivalent",
- "hashbrown 0.15.1",
+ "hashbrown 0.14.5",
 ]
 
 [[package]]
@@ -1395,10 +1398,20 @@ version = "0.6.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b4c5cc86750666a3ed20bdaf5ca2a0344f9c67674cae0515bec2da16fbaa47db"
 dependencies = [
- "fixedbitset",
- "indexmap 2.6.0",
+ "fixedbitset 0.4.2",
+ "indexmap 2.5.0",
  "serde",
  "serde_derive",
+]
+
+[[package]]
+name = "petgraph"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e2b1374ec32450264534c67d1ccb5ca09818c4db8fd87cf97478d0df2fa44c65"
+dependencies = [
+ "fixedbitset 0.5.7",
+ "indexmap 2.5.0",
 ]
 
 [[package]]
@@ -1611,7 +1624,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "322330e133eab455718444b4e033ebfac7c6528972c784fcde28d2cc783c6257"
 dependencies = [
  "anyhow",
- "indexmap 2.6.0",
+ "indexmap 2.5.0",
  "log",
  "protobuf",
  "protobuf-support",
@@ -1942,7 +1955,7 @@ version = "0.19.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1b5bb770da30e5cbfde35a2d7b9b8a2c4b8ef89548a7a6aeab5c9a576e3e7421"
 dependencies = [
- "indexmap 2.6.0",
+ "indexmap 2.5.0",
  "toml_datetime",
  "winnow",
 ]
@@ -2242,7 +2255,7 @@ dependencies = [
  "futures",
  "gloo 0.10.0",
  "implicit-clone 0.4.9",
- "indexmap 2.6.0",
+ "indexmap 2.5.0",
  "js-sys",
  "prokio",
  "rustversion",
@@ -2278,7 +2291,7 @@ dependencies = [
  "gloo-utils 0.2.0",
  "js-sys",
  "log",
- "petgraph",
+ "petgraph 0.6.5",
  "serde",
  "serde_cbor",
  "serde_json",
@@ -2330,7 +2343,7 @@ dependencies = [
  "crossbeam-utils",
  "displaydoc",
  "flate2",
- "indexmap 2.6.0",
+ "indexmap 2.5.0",
  "memchr",
  "thiserror",
  "zopfli",

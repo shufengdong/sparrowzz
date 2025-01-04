@@ -105,7 +105,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     let mut bytes = BytesMut::with_capacity(8);
     bytes.put_i32(offset);
     bytes.put_u32(len);
-    return bytes.get_u64();
+    bytes.get_u64()
 }
 
 fn read_config(records: &mut StringRecordsIter<&[u8]>)

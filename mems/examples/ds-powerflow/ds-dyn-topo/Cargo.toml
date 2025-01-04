@@ -14,4 +14,4 @@ arrow-schema = { version = "54.0", features = ["serde"] }
 eig-domain = { path = "../../../../eig-domain" }
 mems = { path = "../../.." }
 ds-common = { path = "../ds-common" }
-bytes = "1.8"
+bytes = "1.9"
