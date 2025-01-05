@@ -25,7 +25,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     let mut rdr = csv::ReaderBuilder::new().has_headers(true).from_reader(&*input.bytes);
     let records = rdr.records();
     let mut values = vec![];
-    for (i, record) in records.enumerate() {
+    for record in records {
         if let Ok(f) = record {
             let s = f.get(0).unwrap().trim();
             let value = s.parse::<f64>().unwrap();

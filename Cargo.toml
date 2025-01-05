@@ -11,7 +11,7 @@ members = [
     "mems/examples/ds-powerflow/ds-dyn-topo",
     "mems/examples/ds-powerflow/ds-pf-input",
     "mems/examples/ds-powerflow/ds-3phase-pf",
-    "mems/examples/ds-powerflow/ds-guizhou",
+    "mems/examples/ds-guizhou",
     "mems/examples/iesplan",
 ]
 

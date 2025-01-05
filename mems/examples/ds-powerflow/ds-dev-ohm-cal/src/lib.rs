@@ -61,8 +61,8 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                             if let Some((mat_re, mat_im)) = config.get(&s) {
                                 if let Some(f) = length.get_f64() {
                                     let ratio = f / 1000.0;
-                                    let mut v1 = (mat_re * ratio).into_raw_vec();
-                                    let v2 = (mat_im * ratio).into_raw_vec();
+                                    let (mut v1, _) = (mat_re * ratio).into_raw_vec_and_offset();
+                                    let (v2, _) = (mat_im * ratio).into_raw_vec_and_offset();
                                     v1.extend(v2);
                                     let s = get_csv_str(&serde_json::to_string(&v1).unwrap());
                                     csv_str.push_str(&format!("{dev_id},{s}\n"));
