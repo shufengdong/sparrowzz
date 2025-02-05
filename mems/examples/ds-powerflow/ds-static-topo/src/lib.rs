@@ -26,13 +26,17 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         input
     };
     let mut error = None;
+    // 获取island
     let r = get_island_from_plugin_input(&input);
     if let Err(s) = &r {
         error = Some(s.clone());
     }
+
     let output = if error.is_none() {
+        // 获取电气岛、属性定义、资源定义
         let (island, prop_defs, defines) = r.unwrap();
         let mut outgoing = vec![];
+        // 获取输出的
         for model_input in &input.model {
             match model_input {
                 ModelType::Outgoing(edge_name) => {
@@ -58,6 +62,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             is_matched = true;
             create_static_topo(&island, &prop_defs, &defines, &mut csv_bytes, &mut schema);
         }
+        //  根据输出名称来确定形成不同的data frame
         if outgoing.contains(&TERMINAL_DF_NAME.to_string()) {
             is_matched = true;
             let mut terminal_csv_str = String::from("terminal,cn,dev,type\n");
@@ -94,6 +99,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         // } else {
         //     let _ = file.sync_all();
         // }
+
         if outgoing.contains(&POINT_DF_NAME.to_string()) {
             is_matched = true;
             let mut point_csv_str = String::from("point,terminal,phase\n");
