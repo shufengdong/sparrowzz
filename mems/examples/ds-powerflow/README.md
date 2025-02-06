@@ -81,24 +81,27 @@
     <th>ohm</th>
 </table>
 
-### 3.2 潮流已知量输入
-#### 输入
-- static_topo
+### 3.2 潮流方程准备脚本
+#### shunt_meas
+
+需要输入以下两个表格
 - terminal_cn_dev
 - point_terminal_phase
-- dev_topo
-- shunt_meas: 如果想要输出tn_input，需要此项
 
-#### 输出
-
-- shunt_meas: 如果输入的边有static_topo，则输出下面几列
+输出下面几列
 <table>
     <th>point</th>
     <th>terminal</th>
     <th>phase</th>
 </table>
 
-- tn_input: 如果输出的边是该名称，则输出下面几列
+#### tn_input
+
+需要输入以下两个表格
+- dev_topo
+- shunt_meas
+
+输出下面几列
 <table>
     <th>tn</th>
     <th>phase</th>

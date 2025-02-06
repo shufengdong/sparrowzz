@@ -92,6 +92,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             csv_bytes: vec![],
         }
     } else {
+        // 输出shunt_meas，需要的输入是terminal_cn_dev，point_terminal_phase
         if with_static {
             let mut csv_str = String::from("point,terminal,phase\n");
             let type1 = PsRsrType::SyncGenerator as u16;
@@ -146,6 +147,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 csv_bytes,
             }
         } else {
+            // 输出tn_input，需要的输入是：量测，dev_topo
             let r1 = get_meas_from_plugin_input(&input);
             if let Err(s) = &r1 {
                 error = Some(s.clone());
