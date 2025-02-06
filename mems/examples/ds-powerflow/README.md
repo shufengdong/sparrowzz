@@ -14,7 +14,7 @@
 
 #### 输出
 
-- 默认输出下面六列
+- static_topo，如果输出的边是该名称，或者输出的边不是下面两种情况，输出静态拓扑，即下面六列
 <table>
     <th>source</th>
     <th>target</th>
@@ -49,7 +49,7 @@
 
 #### 输出
 
-- 默认输出下面几列
+- dyn_topo: 如果输出的边是该名称，或者不是下面的情况，默认输出下面几列
 <table>
     <th>cn</th>
     <th>tn</th>
@@ -67,7 +67,7 @@
 ### 3.1 设备电气参数计算
 #### 输入
 - 电气岛
-- 配置
+- 配置表格，第1列是config的key，第二列是json格式的矩阵
 
 <table>
     <th>config</th>
@@ -83,7 +83,28 @@
 
 ### 3.2 潮流已知量输入
 #### 输入
+- static_topo
+- terminal_cn_dev
+- point_terminal_phase
+- dev_topo
+- shunt_meas: 如果想要输出tn_input，需要此项
 
 #### 输出
+
+- shunt_meas: 如果输入的边有static_topo，则输出下面几列
+<table>
+    <th>point</th>
+    <th>terminal</th>
+    <th>phase</th>
+</table>
+
+- tn_input: 如果输出的边是该名称，则输出下面几列
+<table>
+    <th>tn</th>
+    <th>phase</th>
+    <th>unit</th>
+    <th>value</th>
+</table>
+
 ## 4. 潮流计算
 ###  4.1 潮流计算模型
