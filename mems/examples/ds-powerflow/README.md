@@ -22,6 +22,14 @@
     <th>type</th>
     <th>open</th>
     <th>name</th>
+    <tr>
+        <td>UInt64</td>
+        <td>UInt64</td>
+        <td>UInt64</td>
+        <td>UInt32</td>
+        <td>Boolean</td>
+        <td>Utf8</td>
+    </tr>
 </table>
 
 - terminal_cn_dev，如果输出的边是该名称，则输出下面几列
@@ -30,6 +38,12 @@
     <th>cn</th>
     <th>dev</th>
     <th>type</th>
+    <tr>
+        <td>UInt64</td>
+        <td>UInt64</td>
+        <td>UInt64</td>
+        <td>UInt32</td>
+    </tr>
 </table>
 
 - point_terminal_phase： 如果输出的边是该名称，则输出下面几列
@@ -37,6 +51,11 @@
     <th>point</th>
     <th>terminal</th>
     <th>phase</th>
+    <tr>
+        <td>UInt64</td>
+        <td>UInt64</td>
+        <td>Utf8</td>
+    </tr>
 </table>
 
 ###  2.2 动态拓扑分析
@@ -53,6 +72,10 @@
 <table>
     <th>cn</th>
     <th>tn</th>
+    <tr>
+        <td>UInt64</td>
+        <td>UInt64</td>
+    </tr>
 </table>
 
 - dev_topo: 如果输出的边是该名称，则输出下面几列
@@ -61,6 +84,12 @@
     <th>cn</th>
     <th>tn</th>
     <th>dev</th>
+    <tr>
+        <td>UInt64</td>
+        <td>UInt64</td>
+        <td>UInt64</td>
+        <td>UInt64</td>
+    </tr>
 </table>
 
 ## 3. 输入参数准备
@@ -72,6 +101,10 @@
 <table>
     <th>config</th>
     <th>ohm_per_km</th>
+    <tr>
+        <td>Utf8</td>
+        <td>Utf8</td>
+    </tr>
 </table>
 
 #### 输出
@@ -79,6 +112,10 @@
 <table>
     <th>dev_id</th>
     <th>ohm</th>
+    <tr>
+        <td>UInt64</td>
+        <td>Utf8</td>
+    </tr>
 </table>
 
 ### 3.2 潮流方程准备脚本
@@ -93,6 +130,11 @@
     <th>point</th>
     <th>terminal</th>
     <th>phase</th>
+    <tr>
+        <td>UInt64</td>
+        <td>UInt64</td>
+        <td>Utf8</td>
+    </tr>
 </table>
 
 #### tn_input
@@ -107,6 +149,12 @@
     <th>phase</th>
     <th>unit</th>
     <th>value</th>
+    <tr>
+        <td>UInt64</td>
+        <td>Utf8</td>
+        <td>Utf8</td>
+        <td>Float64</td>
+    </tr>
 </table>
 
 ## 4. 潮流计算
