@@ -159,6 +159,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         }
         let mut csv_bytes = Vec::with_capacity(2);
         let mut schema = Vec::with_capacity(2);
+        // 默认或者指定名称
         if outgoing.is_empty() || outgoing.contains(&DYN_TOPO_DF_NAME.to_string()) ||
             (!outgoing.contains(&DYN_TOPO_DF_NAME.to_string()) && !outgoing.contains(&DEV_TOPO_DF_NAME.to_string())) {
             // build topology
@@ -173,8 +174,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
             ]);
             csv_bytes.push((DYN_TOPO_DF_NAME.to_string(), topo_csv.into_bytes()));
             schema.push(topo_schema);
-        }
-        if outgoing.contains(&DEV_TOPO_DF_NAME.to_string()) {
+        } else if outgoing.contains(&DEV_TOPO_DF_NAME.to_string()) {
             // build dev connection
             let mut dev_csv = String::from("terminal,cn,tn,dev\n");
             for (terminal, dev) in terminal_dev {

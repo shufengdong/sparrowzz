@@ -26,13 +26,17 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         input
     };
     let mut error = None;
+    // 获取island
     let r = get_island_from_plugin_input(&input);
     if let Err(s) = &r {
         error = Some(s.clone());
     }
+
     let output = if error.is_none() {
+        // 获取电气岛、属性定义、资源定义
         let (island, prop_defs, defines) = r.unwrap();
         let mut outgoing = vec![];
+        // 获取输出的
         for model_input in &input.model {
             match model_input {
                 ModelType::Outgoing(edge_name) => {
@@ -53,13 +57,11 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         //     .open(&base)
         //     .expect("Could not create file");
         // write graph
-        let mut is_matched = false;
+        //  根据输出名称来确定形成不同的data frame
         if outgoing.is_empty() || outgoing.contains(&STATIC_TOPO_DF_NAME.to_string()) {
-            is_matched = true;
             create_static_topo(&island, &prop_defs, &defines, &mut csv_bytes, &mut schema);
         }
-        if outgoing.contains(&TERMINAL_DF_NAME.to_string()) {
-            is_matched = true;
+        else if outgoing.contains(&TERMINAL_DF_NAME.to_string()) {
             let mut terminal_csv_str = String::from("terminal,cn,dev,type\n");
             let mut terminal_to_cn = HashMap::with_capacity(2 * island.cns.len());
             // 先建立CN对应的节点
@@ -94,8 +96,8 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         // } else {
         //     let _ = file.sync_all();
         // }
-        if outgoing.contains(&POINT_DF_NAME.to_string()) {
-            is_matched = true;
+
+        else if outgoing.contains(&POINT_DF_NAME.to_string()) {
             let mut point_csv_str = String::from("point,terminal,phase\n");
             for (_, defines) in &island.measures {
                 for def in defines {
@@ -111,10 +113,6 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                 Field::new("terminal", DataType::UInt64, false),
                 Field::new("phase", DataType::Utf8, false),
             ]));
-        }
-        // if not matched, default is used
-        if !is_matched {
-            create_static_topo(&island, &prop_defs, &defines, &mut csv_bytes, &mut schema);
         }
         PluginOutput {
             error_msg: None,
