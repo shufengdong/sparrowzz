@@ -132,7 +132,7 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
     let mut bytes = BytesMut::with_capacity(8);
     bytes.put_i32(offset);
     bytes.put_u32(len);
-    return bytes.get_u64();
+    bytes.get_u64()
 }
 
 fn create_static_topo(island: &Island, prop_defs: &[PropDefine], defines: &HashMap<u64, RsrDefine>, csv_bytes: &mut Vec<(String, Vec<u8>)>, schema: &mut Vec<Schema>) {

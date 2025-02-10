@@ -61,11 +61,15 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
                             if let Some((mat_re, mat_im)) = config.get(&s) {
                                 if let Some(f) = length.get_f64() {
                                     let ratio = f / 1000.0;
-                                    let (mut v1, _) = (mat_re * ratio).into_raw_vec_and_offset();
-                                    let (v2, _) = (mat_im * ratio).into_raw_vec_and_offset();
-                                    v1.extend(v2);
-                                    let s = get_csv_str(&serde_json::to_string(&v1).unwrap());
-                                    csv_str.push_str(&format!("{dev_id},{s}\n"));
+                                    let u_re = vec![1., 0., 0., 0., 1., 0., 0., 0., 1.];
+                                    let u_im = vec![0., 0., 0., 0., 0., 0., 0., 0., 0.];
+                                    let (z_re, _) = (mat_re * ratio).into_raw_vec_and_offset();
+                                    let (z_im, _) = (mat_im * ratio).into_raw_vec_and_offset();
+                                    let u_re_json = get_csv_str(&serde_json::to_string(&u_re).unwrap());
+                                    let u_im_json = get_csv_str(&serde_json::to_string(&u_im).unwrap());
+                                    let z_re_json = get_csv_str(&serde_json::to_string(&z_re).unwrap());
+                                    let z_im_json = get_csv_str(&serde_json::to_string(&z_im).unwrap());
+                                    csv_str.push_str(&format!("{dev_id},{u_re_json},{u_im_json},{z_re_json},{z_im_json},{u_im_json},{u_im_json},{z_re_json},{z_im_json}\n"));
                                 } else {
                                     warn!("Length is not set for acline {}", rsr.name);
                                     continue;
@@ -84,7 +88,14 @@ pub unsafe fn run(ptr: i32, len: u32) -> u64 {
         // build schema
         let schema = Schema::new(vec![
             Field::new("dev_id", DataType::UInt64, false),
-            Field::new("ohm", DataType::Utf8, false),
+            Field::new("a_re", DataType::Utf8, false),
+            Field::new("a_im", DataType::Utf8, false),
+            Field::new("b_re", DataType::Utf8, false),
+            Field::new("b_im", DataType::Utf8, false),
+            Field::new("c_re", DataType::Utf8, false),
+            Field::new("c_im", DataType::Utf8, false),
+            Field::new("d_re", DataType::Utf8, false),
+            Field::new("d_im", DataType::Utf8, false),
         ]);
         let csv_bytes = vec![("".to_string(), csv_str.into_bytes())];
         PluginOutput {
