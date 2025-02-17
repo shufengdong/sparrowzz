@@ -111,9 +111,23 @@
 
 <table>
     <th>dev_id</th>
-    <th>ohm</th>
+    <th>a_re</th>
+    <th>a_im</th>
+    <th>b_re</th>
+    <th>b_im</th>
+    <th>c_re</th>
+    <th>c_im</th>
+    <th>d_re</th>
+    <th>d_im</th>
     <tr>
         <td>UInt64</td>
+        <td>Utf8</td>
+        <td>Utf8</td>
+        <td>Utf8</td>
+        <td>Utf8</td>
+        <td>Utf8</td>
+        <td>Utf8</td>
+        <td>Utf8</td>
         <td>Utf8</td>
     </tr>
 </table>
