@@ -1,0 +1,14 @@
+f = min(x1 * x4 * (x1 + x2 + x3) + x3);
+g1 = x1 * x2 * x3 * x4;
+g2 = x1^2 + x2^2 + x3^2 + x4^2;
+x_lower = [1, 1, 1, 1];
+x_upper = [5, 5, 5, 5];
+r1 = fmincon(f, [g1, g2], [25, 40], [2e19, 40], x_lower,x_upper,[x1,x2,x3,x4]);
+
+
+r2 = fmincon(min(x1 * x4 * (x1 + x2 + x3) + x3),
+        [x1 * x2 * x3 * x4, x1^2 + x2^2 + x3^2 + x4^2],
+        [25, 40], [2e19, 40],
+        [1,1,1,1],[5,5,5,5],[x1,x2,x3,x4]);
+println(r1);
+println(r2);
