@@ -33,7 +33,7 @@ pub enum MyCx {
 pub enum ParseError {
     /// A token that is not allowed at the given location (contains the location of the offending
     /// character in the source string).
-    UnexpectedToken(usize),
+    UnexpectedToken(usize, usize),
     /// Missing right parentheses at the end of the source string (contains the number of missing
     /// parens).
     MissingRParen(i32),
@@ -44,13 +44,9 @@ pub enum ParseError {
 impl Display for ParseError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
-            ParseError::UnexpectedToken(i) => write!(f, "Unexpected token at byte {}.", i),
-            ParseError::MissingRParen(i) => write!(
-                f,
-                "Missing {} right parenthes{}.",
-                i,
-                if i == 1 { "is" } else { "es" }
-            ),
+            ParseError::UnexpectedToken(row, col) => write!(f, "Unexpected char at line: {row} column: {col}"),
+            ParseError::MissingRParen(i) => write!(f, "Missing {i} right parenthes{}.",
+                                                   if i == 1 { "is" } else { "es" }),
             ParseError::MissingArgument => write!(f, "Missing argument at the end of expression."),
         }
     }
@@ -59,7 +55,7 @@ impl Display for ParseError {
 impl std::error::Error for ParseError {
     fn description(&self) -> &str {
         match *self {
-            ParseError::UnexpectedToken(_) => "unexpected token",
+            ParseError::UnexpectedToken(_, _) => "unexpected token",
             ParseError::MissingRParen(_) => "missing right parenthesis",
             ParseError::MissingArgument => "missing argument",
         }
@@ -79,7 +75,7 @@ impl Display for FuncEvalError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
             FuncEvalError::UnknownFunction => write!(f, "Unknown function"),
-            FuncEvalError::NumberArgs(i) => write!(f, "Expected {} arguments", i),
+            FuncEvalError::NumberArgs(i) => write!(f, "Expected {i} arguments"),
             FuncEvalError::TooFewArguments => write!(f, "Too few arguments"),
             FuncEvalError::TooManyArguments => write!(f, "Too many arguments"),
         }
@@ -134,19 +130,19 @@ impl Display for RPNError {
     fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         match *self {
             RPNError::MismatchedLParen(i) => {
-                write!(f, "Mismatched left parenthesis at token {}.", i)
+                write!(f, "Mismatched left parenthesis at token {i}.")
             }
             RPNError::MismatchedRParen(i) => {
-                write!(f, "Mismatched right parenthesis at token {}.", i)
+                write!(f, "Mismatched right parenthesis at token {i}.")
             }
             RPNError::MismatchedLBracket(i) => {
-                write!(f, "Mismatched left blackets at token {}.", i)
+                write!(f, "Mismatched left blackets at token {i}.")
             }
             RPNError::MismatchedRBracket(i) => {
-                write!(f, "Mismatched right blackets at token {}.", i)
+                write!(f, "Mismatched right blackets at token {i}.")
             }
-            RPNError::UnexpectedComma(i) => write!(f, "Unexpected comma at token {}", i),
-            RPNError::NotEnoughOperands(i) => write!(f, "Missing operands at token {}", i),
+            RPNError::UnexpectedComma(i) => write!(f, "Unexpected comma at token {i}"),
+            RPNError::NotEnoughOperands(i) => write!(f, "Missing operands at token {i}"),
             RPNError::TooManyOperands => {
                 write!(f, "Too many operands left at the end of expression.")
             }
@@ -306,7 +302,7 @@ pub struct Expr {
 }
 
 impl Display for Expr {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+    fn fmt(&self, f: &mut Formatter) -> fmt::Result {
         write!(f, "{:?}", self)
     }
 }
@@ -344,22 +340,22 @@ pub trait ContextProvider {
     }
 }
 
-pub struct CtxProvider {
+pub struct CtxMaps {
     var_values: HashMap<String, f64>,
     var_values_cx: HashMap<String, Complex64>,
     var_values_tensor: HashMap<String, Array<f64, IxDyn>>,
     var_values_tensor_cx: HashMap<String, Array<Complex64, IxDyn>>,
 }
 
-impl Default for CtxProvider {
+impl Default for CtxMaps {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl CtxProvider {
+impl CtxMaps {
     pub fn new() -> Self {
-        CtxProvider {
+        CtxMaps {
             var_values: Default::default(),
             var_values_cx: Default::default(),
             var_values_tensor: Default::default(),
@@ -427,3 +423,4 @@ pub fn parse_exprs(s: &str) -> Option<Vec<(String, Expr)>> {
     }
     Some(exprs)
 }
+// above should as same as in sparrowzz

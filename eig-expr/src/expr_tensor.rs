@@ -3,7 +3,7 @@ use fnv::FnvHashMap;
 use ndarray::{Array, Ix1, Ix2, IxDyn};
 use num_complex::Complex64;
 
-use crate::{CtxProvider, Expr, Operation, Token::*};
+use crate::{CtxMaps, Expr, Operation, Token::*};
 use crate::{ContextProvider, Error, factorial, FuncEvalError, MyCx, MyF};
 use crate::expr::Context;
 use crate::expr_complex::ContextCx;
@@ -13,7 +13,7 @@ use crate::tsfn_basic::*;
 thread_local!(static DEFAULT_CONTEXT: Context<'static> = Context::new());
 thread_local!(pub static DEFAULT_CONTEXT_TENSOR: ContextTensor<'static> = ContextTensor::new());
 
-impl ContextProvider for CtxProvider {
+impl ContextProvider for CtxMaps {
     fn get_var(&self, name: &str) -> Option<f64> {
         self.var_values.get(name).cloned()
     }
