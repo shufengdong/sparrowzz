@@ -14,7 +14,7 @@ serde_cbor = "0.11"
 wasm-bindgen = "0.2"
 yew = { version = "0.21", features = ["csr"] }
 gloo-timers = "0.3"
-getrandom = { version = "0.2", features = ["js"] }
+#getrandom = { version = "0.3", features = ["wasm_js"] }
 csv = "1.3"
 yew-bulma = { git = "https://github.com/shufengdong/yew-bulma.git" }
 eig-domain = { path = "../../../eig-domain" }
