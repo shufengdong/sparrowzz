@@ -1,4 +1,4 @@
-input = read_tensor("./input2.csv");
+input = read_url("https://shufengdong.github.io/sparrowzz/tetests/input2.csv");
 a = [[0.0, 0.], [0, 0.0]];
 b = 1;
 while 1 {
@@ -8,5 +8,5 @@ while 1 {
    a = a + [[1.0, 0.], [0, 1.0]];
    b = b + 1;
 }
-println(input);
+info(input);
 return a;
