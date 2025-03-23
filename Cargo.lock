@@ -73,9 +73,9 @@ dependencies = [
 
 [[package]]
 name = "arrow-schema"
-version = "54.2.1"
+version = "54.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "85934a9d0261e0fa5d4e2a5295107d743b543a6e0484a835d4b8db2da15306f9"
+checksum = "a5c53775bba63f319189f366d2b86e9a8889373eb198f07d8544938fc9f8ed9a"
 dependencies = [
  "serde",
 ]
@@ -163,9 +163,9 @@ dependencies = [
 
 [[package]]
 name = "cc"
-version = "1.2.16"
+version = "1.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "be714c154be609ec7f5dad223a33bf1482fff90472de28f7362806e6d4832b8c"
+checksum = "1fcb57c740ae1daf453ae85f16e37396f672b039e00d9d866e07ddb24e328e3a"
 dependencies = [
  "shlex",
 ]
@@ -192,9 +192,9 @@ dependencies = [
 
 [[package]]
 name = "chrono-tz"
-version = "0.10.1"
+version = "0.10.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c6ac4f2c0bf0f44e9161aec9675e1050aa4a530663c4a9e37e108fa948bca9f"
+checksum = "350e47081e7261af42fc634dfea5be88662523cc5acd9fe51da3fe44ba058669"
 dependencies = [
  "chrono",
  "chrono-tz-build",
@@ -335,17 +335,6 @@ dependencies = [
  "quote",
  "syn 2.0.100",
  "unicode-xid",
-]
-
-[[package]]
-name = "displaydoc"
-version = "0.2.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "97369cbbc041bc366949bc74d34658d6cda5621039731c6310521892a3a20ae0"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.100",
 ]
 
 [[package]]
@@ -795,7 +784,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen 0.5.0",
  "serde_urlencoded",
- "thiserror 1.0.69",
+ "thiserror",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -812,7 +801,7 @@ dependencies = [
  "serde",
  "serde-wasm-bindgen 0.6.5",
  "serde_urlencoded",
- "thiserror 1.0.69",
+ "thiserror",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -832,7 +821,7 @@ dependencies = [
  "pin-project",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -853,7 +842,7 @@ dependencies = [
  "pin-project",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -889,7 +878,7 @@ dependencies = [
  "js-sys",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -904,7 +893,7 @@ dependencies = [
  "js-sys",
  "serde",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror",
  "wasm-bindgen",
  "web-sys",
 ]
@@ -1002,7 +991,7 @@ dependencies = [
  "js-sys",
  "pinned",
  "serde",
- "thiserror 1.0.69",
+ "thiserror",
  "wasm-bindgen",
  "wasm-bindgen-futures",
  "web-sys",
@@ -1478,7 +1467,7 @@ checksum = "a829027bd95e54cfe13e3e258a1ae7b645960553fb82b75ff852c29688ee595b"
 dependencies = [
  "futures",
  "rustversion",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1585,7 +1574,7 @@ dependencies = [
  "bytes",
  "once_cell",
  "protobuf-support",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1600,7 +1589,7 @@ dependencies = [
  "protobuf-parse",
  "regex",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1615,7 +1604,7 @@ dependencies = [
  "protobuf",
  "protobuf-support",
  "tempfile",
- "thiserror 1.0.69",
+ "thiserror",
  "which",
 ]
 
@@ -1625,7 +1614,7 @@ version = "3.7.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3e36c2f31e0a47f9280fb347ef5e461ffcd2c52dd520d8e216b52f93b0b0d7d6"
 dependencies = [
- "thiserror 1.0.69",
+ "thiserror",
 ]
 
 [[package]]
@@ -1913,16 +1902,7 @@ version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
 dependencies = [
- "thiserror-impl 1.0.69",
-]
-
-[[package]]
-name = "thiserror"
-version = "2.0.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "567b8a2dae586314f7be2a752ec7474332959c6460e02bde30d702a66d488708"
-dependencies = [
- "thiserror-impl 2.0.12",
+ "thiserror-impl",
 ]
 
 [[package]]
@@ -1930,17 +1910,6 @@ name = "thiserror-impl"
 version = "1.0.69"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.100",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "2.0.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7f7cf42b4507d8ea322120659672cf1b9dbb93f8f2d4ecfd6e51350ff5b17a1d"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -2280,7 +2249,7 @@ dependencies = [
  "rustversion",
  "serde",
  "slab",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tracing",
  "wasm-bindgen",
@@ -2305,7 +2274,7 @@ dependencies = [
  "rustversion",
  "serde",
  "slab",
- "thiserror 1.0.69",
+ "thiserror",
  "tokio",
  "tracing",
  "wasm-bindgen",
@@ -2378,18 +2347,16 @@ dependencies = [
 
 [[package]]
 name = "zip"
-version = "2.4.2"
+version = "2.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fabe6324e908f85a1c52063ce7aa26b68dcb7eb6dbc83a2d148403c9bc3eba50"
+checksum = "27c03817464f64e23f6f37574b4fdc8cf65925b5bfd2b0f2aedf959791941f88"
 dependencies = [
  "arbitrary",
  "crc32fast",
  "crossbeam-utils",
- "displaydoc",
  "flate2",
  "indexmap 2.8.0",
  "memchr",
- "thiserror 2.0.12",
  "zopfli",
 ]
 
