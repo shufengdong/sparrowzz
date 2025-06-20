@@ -1,0 +1,4 @@
+#include ../lib/idx_gen.txt
+#include ../data/case14.txt
+
+return gencost;
