@@ -8,6 +8,7 @@
 nb = size(bus, 1);          // number of buses
 nl = size(branch, 1);       // number of lines
 
-println(nb);
-println(nl);
-return gencost;
+stat = slice(branch, [0], BR_STATUS);                    // ones at in-service branches
+Ys = stat ./ (slice(branch, [0], BR_R) + c(0,1) * slice(branch, [0], BR_X));  // series admittance
+
+return Ys;
