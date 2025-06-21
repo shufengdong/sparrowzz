@@ -1,4 +1,13 @@
-#include ../lib/idx_gen.txt
 #include ../data/case14.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
 
+
+// constants
+nb = size(bus, 1);          // number of buses
+nl = size(branch, 1);       // number of lines
+
+println(nb);
+println(nl);
 return gencost;
