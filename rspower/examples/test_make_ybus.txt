@@ -5,10 +5,20 @@
 
 
 // constants
-nb = size(bus, 1);          // number of buses
-nl = size(branch, 1);       // number of lines
+nb = size(bus, 0);          // number of buses
+nl = size(branch, 0);       // number of lines
 
 stat = slice(branch, [0], BR_STATUS);                    // ones at in-service branches
 Ys = stat ./ (slice(branch, [0], BR_R) + c(0,1) * slice(branch, [0], BR_X));  // series admittance
+Bc = stat .* slice(branch, [0], BR_B);                           // line charging susceptance
+tap = ones(nl, 1);                              // default tap ratio = 1
 
-return Ys;
+//i = find(branch(:, TAP));                       // indices of non-zero tap ratios
+//tap(i) = slice(branch, [0], TAP);               // assign non-zero tap ratios
+tap = tap .* exp(c(0,1)*pi/180 * slice(branch, [0], SHIFT)); // add phase shifters
+Ytt = Ys + c(0,1) * Bc/2;
+Yff = Ytt ./ (tap .* conj(tap));
+Yft = - Ys ./ conj(tap);
+Ytf = - Ys ./ tap;
+
+return Ytt;
