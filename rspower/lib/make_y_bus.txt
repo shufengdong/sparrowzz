@@ -21,38 +21,45 @@ fn make_y_bus(baseMVA, bus, branch) {
     // and Qsh is the reactive power injected by the shunt at V = 1.0 p.u.
     // then Psh - j Qsh = V * conj(Ysh * V) = conj(Ysh) = Gs - j Bs,
     // i.e. Ysh = Psh + j Qsh, so ...
-    //Ysh = (slice(bus, [0], GS) + c(0,1) * slice(bus, [0], BS)) / baseMVA; // vector of shunt admittances
+    Ysh = (slice(bus, [0], GS) + c(0,1) * slice(bus, [0], BS)) / baseMVA; // vector of shunt admittances
 
     // bus indices
-    //f = slice(branch, [0], F_BUS);                           // list of "from" buses
-    //t = slice(branch, [0], T_BUS);                           // list of "to" buses
+    f = slice(branch, [0], F_BUS);                           // list of "from" buses
+    t = slice(branch, [0], T_BUS);                           // list of "to" buses
 
     // for best performance, choose method based on MATLAB vs Octave and size
-    if nb < 300 {  // small case
+
+    if nb < 300 {
+        // small case
         // build Yf and Yt such that Yf * V is the vector of complex branch currents injected
         // at each branch's "from" bus, and Yt is the same for the "to" bus end
-        //i = [1:nl 1:nl]';                           // double set of row indices
-        //Yf = sparse(i, [f, t], [Yff, Yft], nl, nb);
-        //Yt = sparse(i, [f, t], [Ytf, Ytt], nl, nb);
+        i = [range(1,nl),rang(1,nl)]';                           // double set of row indices
+        Yf = sparse(i, [f, t], [Yff, Yft], nl, nb);
+        Yt = sparse(i, [f, t], [Ytf, Ytt], nl, nb);
 
         // build Ybus
-        //Ybus = sparse([f,f,t,t], [f,t,f,t], [Yff,Yft,Ytf,Ytt], nb, nb) + // branch admittances
-        //        sparse(1:nb, 1:nb, Ysh, nb, nb);        // shunt admittance
-    } else {  // large case running on MATLAB
+        // branch admittances + shunt admittance
+        Ybus = sparse([f,f,t,t], [f,t,f,t], [Yff,Yft,Ytf,Ytt], nb, nb) +
+               sparse(range(1,nb), range(1,nb), Ysh, nb, nb);
+    } else {
+        // large case running on MATLAB
         // build connection matrices
-        //Cf = sparse(1:nl, f, ones(nl, 1), nl, nb);      // connection matrix for line & from buses
-        //Ct = sparse(1:nl, t, ones(nl, 1), nl, nb);      // connection matrix for line & to buses
+        Cf = sparse(range(1,nl), f, ones(nl, 1), nl, nb);      // connection matrix for line & from buses
+        Ct = sparse(range(1,nl), t, ones(nl, 1), nl, nb);      // connection matrix for line & to buses
 
         // build Yf and Yt such that Yf * V is the vector of complex branch currents injected
         // at each branch's "from" bus, and Yt is the same for the "to" bus end
-        //Yf = sparse(1:nl, 1:nl, Yff, nl, nl) * Cf + sparse(1:nl, 1:nl, Yft, nl, nl) * Ct;
-        //Yt = sparse(1:nl, 1:nl, Ytf, nl, nl) * Cf + sparse(1:nl, 1:nl, Ytt, nl, nl) * Ct;
+        i = range(1,nl);
+        j = range(1,nb);
+        Yf = sparse(i, i, Yff, nl, nl) * Cf + sparse(i, i, Yft, nl, nl) * Ct;
+        Yt = sparse(i, i, Ytf, nl, nl) * Cf + sparse(i, i, Ytt, nl, nl) * Ct;
 
         // build Ybus
-        //Ybus = Cf' * Yf + Ct' * Yt + ...            // branch admittances
-        //        sparse(1:nb, 1:nb, Ysh, nb, nb);    // shunt admittance
+        // branch admittances + shunt admittance
+        Ybus = Cf' * Yf + Ct' * Yt +
+               sparse(j, j, Ysh, nb, nb);
     }
 
-    return Ytt;
+    return Ysh;
 }
 
