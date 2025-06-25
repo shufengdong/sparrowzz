@@ -9,13 +9,15 @@ fn make_y_bus(baseMVA, bus, branch) {
     //      |    | = |          | * |    |
     //      | It |   | Ytf  Ytt |   | Vt |
     //
-    stat = slice(branch, [0], [BR_STATUS-1,BR_STATUS]);                    // ones at in-service branches
-    Ys = stat ./ (slice(branch, [0], [BR_R-1,BR_R]) + c(0,1) * slice(branch, [0], [BR_X-1,BR_X]));  // series admittance
-    Bc = stat .* slice(branch, [0], [BR_B-1,BR_B]);                           // line charging susceptance
-    tap = ones(nl, 1);                              // default tap ratio = 1
+    stat = slice(branch, [0], [BR_STATUS-1,BR_STATUS]);     // ones at in-service branches
+    Ys = stat ./ (slice(branch, [0], [BR_R-1,BR_R])
+            + c(0,1) * slice(branch, [0], [BR_X-1,BR_X]));  // series admittance
+    Bc = stat .* slice(branch, [0], [BR_B-1,BR_B]);         // line charging susceptance
+    tap = ones(nl, 1);                                      // default tap ratio = 1
 
-    //i = find(branch(:, TAP));                       // indices of non-zero tap ratios
-    //tap(i) = slice(branch, [0], [TAP-1,TAP]);               // assign non-zero tap ratios
+    tap_col = slice(branch, [0], [TAP-1,TAP]); // tap ratio column
+    index = find(tap_col);      // indices of non-zero tap ratios
+    tap = set(tap, index, get(tap_col, index)); // assign non-zero tap ratios
     tap = tap .* exp(c(0,1)*pi/180 * slice(branch, [0], [SHIFT-1,SHIFT])); // add phase shifters
     Ytt = Ys + c(0,1) * Bc/2;
     Yff = Ytt ./ (tap .* conj(tap));
