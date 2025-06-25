@@ -3,14 +3,20 @@ fn make_y_bus(baseMVA, bus, branch) {
     nb = size(bus, 0);          // number of buses
     nl = size(branch, 0);       // number of lines
 
-    stat = slice(branch, [0], BR_STATUS);                    // ones at in-service branches
-    Ys = stat ./ (slice(branch, [0], BR_R) + c(0,1) * slice(branch, [0], BR_X));  // series admittance
-    Bc = stat .* slice(branch, [0], BR_B);                           // line charging susceptance
+    // for each branch, compute the elements of the branch admittance matrix where
+    //
+    //      | If |   | Yff  Yft |   | Vf |
+    //      |    | = |          | * |    |
+    //      | It |   | Ytf  Ytt |   | Vt |
+    //
+    stat = slice(branch, [0], [BR_STATUS-1,BR_STATUS]);                    // ones at in-service branches
+    Ys = stat ./ (slice(branch, [0], [BR_R-1,BR_R]) + c(0,1) * slice(branch, [0], [BR_X-1,BR_X]));  // series admittance
+    Bc = stat .* slice(branch, [0], [BR_B-1,BR_B]);                           // line charging susceptance
     tap = ones(nl, 1);                              // default tap ratio = 1
 
     //i = find(branch(:, TAP));                       // indices of non-zero tap ratios
-    //tap(i) = slice(branch, [0], TAP);               // assign non-zero tap ratios
-    tap = tap .* exp(c(0,1)*pi/180 * slice(branch, [0], SHIFT)); // add phase shifters
+    //tap(i) = slice(branch, [0], [TAP-1,TAP]);               // assign non-zero tap ratios
+    tap = tap .* exp(c(0,1)*pi/180 * slice(branch, [0], [SHIFT-1,SHIFT])); // add phase shifters
     Ytt = Ys + c(0,1) * Bc/2;
     Yff = Ytt ./ (tap .* conj(tap));
     Yft = - Ys ./ conj(tap);
@@ -21,36 +27,37 @@ fn make_y_bus(baseMVA, bus, branch) {
     // and Qsh is the reactive power injected by the shunt at V = 1.0 p.u.
     // then Psh - j Qsh = V * conj(Ysh * V) = conj(Ysh) = Gs - j Bs,
     // i.e. Ysh = Psh + j Qsh, so ...
-    Ysh = (slice(bus, [0], GS) + c(0,1) * slice(bus, [0], BS)) / baseMVA; // vector of shunt admittances
+    Ysh = (slice(bus, [0], [GS-1,GS]) + c(0,1) * slice(bus, [0], [BS-1,BS])) / baseMVA; // vector of shunt admittances
 
     // bus indices
-    f = slice(branch, [0], F_BUS);                           // list of "from" buses
-    t = slice(branch, [0], T_BUS);                           // list of "to" buses
-
-    // for best performance, choose method based on MATLAB vs Octave and size
-
+    f = slice(branch, [0], F_BUS-1);                           // list of "from" buses
+    t = slice(branch, [0], T_BUS-1);                           // list of "to" buses
+    Ybus = [0];
     if nb < 300 {
         // small case
         // build Yf and Yt such that Yf * V is the vector of complex branch currents injected
         // at each branch's "from" bus, and Yt is the same for the "to" bus end
-        i = [range(1,nl),rang(1,nl)]';                           // double set of row indices
-        Yf = sparse(i, [f, t], [Yff, Yft], nl, nb);
-        Yt = sparse(i, [f, t], [Ytf, Ytt], nl, nb);
+        i = horzcat(range(1,nl),range(1,nl));                           // double set of row indices
+        upper = horzcat(Yff, Yft);
+        lower = horzcat(Ytf, Ytt);
+        Yf = sparse(i - 1, horzcat(f, t) - 1, upper, nl, nb);
+        Yt = sparse(i - 1, horzcat(f, t) - 1, lower, nl, nb);
 
         // build Ybus
         // branch admittances + shunt admittance
-        Ybus = sparse([f,f,t,t], [f,t,f,t], [Yff,Yft,Ytf,Ytt], nb, nb) +
-               sparse(range(1,nb), range(1,nb), Ysh, nb, nb);
+        Ybus = sparse(horzcat(f,f,t,t) - 1, horzcat(f,t,f,t) - 1, vertcat(upper,lower), nb, nb) +
+               sparse(range(1,nb) - 1, range(1,nb) - 1, Ysh, nb, nb);
     } else {
         // large case running on MATLAB
         // build connection matrices
-        Cf = sparse(range(1,nl), f, ones(nl, 1), nl, nb);      // connection matrix for line & from buses
-        Ct = sparse(range(1,nl), t, ones(nl, 1), nl, nb);      // connection matrix for line & to buses
+        i = range(1,nl);
+        j = range(1,nb);
+        Cf = sparse(i, f, ones(nl, 1), nl, nb);      // connection matrix for line & from buses
+        Ct = sparse(i, t, ones(nl, 1), nl, nb);      // connection matrix for line & to buses
 
         // build Yf and Yt such that Yf * V is the vector of complex branch currents injected
         // at each branch's "from" bus, and Yt is the same for the "to" bus end
-        i = range(1,nl);
-        j = range(1,nb);
+
         Yf = sparse(i, i, Yff, nl, nl) * Cf + sparse(i, i, Yft, nl, nl) * Ct;
         Yt = sparse(i, i, Ytf, nl, nl) * Cf + sparse(i, i, Ytt, nl, nl) * Ct;
 
@@ -59,7 +66,6 @@ fn make_y_bus(baseMVA, bus, branch) {
         Ybus = Cf' * Yf + Ct' * Yt +
                sparse(j, j, Ysh, nb, nb);
     }
-
-    return Ysh;
+    return Ybus;
 }
 
