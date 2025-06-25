@@ -27,11 +27,13 @@ fn make_y_bus(baseMVA, bus, branch) {
     // and Qsh is the reactive power injected by the shunt at V = 1.0 p.u.
     // then Psh - j Qsh = V * conj(Ysh * V) = conj(Ysh) = Gs - j Bs,
     // i.e. Ysh = Psh + j Qsh, so ...
-    Ysh = (slice(bus, [0], [GS-1,GS]) + c(0,1) * slice(bus, [0], [BS-1,BS])) / baseMVA; // vector of shunt admittances
+
+    // vector of shunt admittances
+    Ysh = (slice(bus, [0], [GS-1,GS]) + c(0,1) * slice(bus, [0], [BS-1,BS])) / baseMVA;
 
     // bus indices
-    f = slice(branch, [0], F_BUS-1) - 1;                           // list of "from" buses
-    t = slice(branch, [0], T_BUS-1) - 1;                           // list of "to" buses
+    f = slice(branch, [0], F_BUS-1) - 1; // list of "from" buses
+    t = slice(branch, [0], T_BUS-1) - 1; // list of "to" buses
     Ybus = [0];
     if nb < 300 {
         // small case

@@ -1,0 +1,3 @@
+fn make_jac(bus, branch, gen, ybus) {
+
+}
