@@ -13,12 +13,10 @@ fn make_y_bus(baseMVA, bus, branch) {
     Ys = stat ./ (slice(branch, [0], [BR_R-1,BR_R])
             + c(0,1) * slice(branch, [0], [BR_X-1,BR_X]));  // series admittance
     Bc = stat .* slice(branch, [0], [BR_B-1,BR_B]);         // line charging susceptance
-    tap_init = ones(nl, 1);          // default tap ratio = 1
+    tap_col = slice(branch, [0], [TAP-1,TAP]); // tap ratio column
 
-    tap_colomn = slice(branch, [0], [TAP-1,TAP]); // tap ratio column
-
-    index = find(tap_colomn);      // indices of non-zero tap ratios
-    // tap = set(tap, index, get(tap_col, index)); // assign non-zero tap ratios
+    index = find(tap_col);      // indices of non-zero tap ratios
+    tap_init = set(ones(nl, 1), index, get_multi(tap_col, index)); // assign non-zero tap ratios
     tap = tap_init .* exp(c(0,1)*pi/180 * slice(branch, [0], [SHIFT-1,SHIFT])); // add phase shifters
     Ytt = Ys + c(0,1) * Bc/2;
     Yff = Ytt ./ (tap .* conj(tap));
