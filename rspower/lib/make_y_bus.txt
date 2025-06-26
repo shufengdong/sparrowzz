@@ -13,12 +13,13 @@ fn make_y_bus(baseMVA, bus, branch) {
     Ys = stat ./ (slice(branch, [0], [BR_R-1,BR_R])
             + c(0,1) * slice(branch, [0], [BR_X-1,BR_X]));  // series admittance
     Bc = stat .* slice(branch, [0], [BR_B-1,BR_B]);         // line charging susceptance
-    tap = ones(nl, 1);                                      // default tap ratio = 1
+    tap_init = ones(nl, 1);          // default tap ratio = 1
 
-    tap_col = slice(branch, [0], [TAP-1,TAP]); // tap ratio column
-    index = find(tap_col);      // indices of non-zero tap ratios
-    tap = set(tap, index, get(tap_col, index)); // assign non-zero tap ratios
-    tap = tap .* exp(c(0,1)*pi/180 * slice(branch, [0], [SHIFT-1,SHIFT])); // add phase shifters
+    tap_colomn = slice(branch, [0], [TAP-1,TAP]); // tap ratio column
+
+    index = find(tap_colomn);      // indices of non-zero tap ratios
+    // tap = set(tap, index, get(tap_col, index)); // assign non-zero tap ratios
+    tap = tap_init .* exp(c(0,1)*pi/180 * slice(branch, [0], [SHIFT-1,SHIFT])); // add phase shifters
     Ytt = Ys + c(0,1) * Bc/2;
     Yff = Ytt ./ (tap .* conj(tap));
     Yft = - Ys ./ conj(tap);
@@ -36,7 +37,6 @@ fn make_y_bus(baseMVA, bus, branch) {
     // bus indices
     f = slice(branch, [0], F_BUS-1) - 1; // list of "from" buses
     t = slice(branch, [0], T_BUS-1) - 1; // list of "to" buses
-    Ybus = [0];
     if nb < 300 {
         // small case
         // build Yf and Yt such that Yf * V is the vector of complex branch currents injected
@@ -71,6 +71,7 @@ fn make_y_bus(baseMVA, bus, branch) {
         Ybus = Cf' * Yf + Ct' * Yt +
                sparse(j, j, Ysh, nb, nb);
     }
+
     return Ybus;
 }
 
