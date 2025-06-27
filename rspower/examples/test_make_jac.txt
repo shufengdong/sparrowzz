@@ -1,0 +1,9 @@
+#include ../data/case14.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/make_y_bus.txt
+#include ../lib/make_jac.txt
+
+jac = make_jac(baseMVA, bus, branch, gen);
+return jac;
