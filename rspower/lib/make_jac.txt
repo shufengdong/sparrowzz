@@ -8,5 +8,7 @@ fn make_jac(baseMVA, bus, branch, gen) {
     // make sure we use generator setpoint voltage for PV and slack buses
     on = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);  // which generators are on?
     gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on); // what buses are they at?
-    return gbus;
+
+    r = dSbus_dV(Ybus, V, 0.);
+    return r;
 }
