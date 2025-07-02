@@ -6,6 +6,8 @@
 #include ../lib/dsbus_dv.txt
 #include ../lib/make_jac.txt
 #include ../lib/make_sdzip.txt
+#include ../lib/make_sbus.txt
 
 Ybus = make_y_bus(baseMVA, bus, branch);
-return make_sdzip(baseMVA, bus, 1);
+r = make_sbus(baseMVA, bus, gen, 1, 1, 1);
+return r;
