@@ -1,0 +1,39 @@
+//NEWTONPF  Solves power flow using full Newton's method (power/polar)
+//   [V, CONVERGED, I] = NEWTONPF(YBUS, SBUS, V0, REF, PV, PQ, MPOPT)
+//
+//   Solves for bus voltages using a full Newton-Raphson method, using nodal
+//   power balance equations and polar coordinate representation of
+//   voltages, given the following inputs:
+//       YBUS  - full system admittance matrix (for all buses)
+//       SBUS  - handle to function that returns the complex bus power
+//               injection vector (for all buses), given the bus voltage
+//               magnitude vector (for all buses)
+//       V0    - initial vector of complex bus voltages
+//       REF   - bus index of reference bus (voltage ang reference & gen slack)
+//       PV    - vector of bus indices for PV buses
+//       PQ    - vector of bus indices for PQ buses
+//       MPOPT - (optional) MATPOWER option struct, used to set the
+//               termination tolerance, maximum number of iterations, and
+//               output options (see MPOPTION for details).
+//
+//   The bus voltage vector contains the set point for generator
+//   (including ref bus) buses, and the reference angle of the swing
+//   bus, as well as an initial guess for remaining magnitudes and
+//   angles.
+//
+//   Returns the final complex voltages, a flag which indicates whether it
+//   converged or not, and the number of iterations performed.
+//
+//   See also RUNPF, NEWTONPF_S_CART, NEWTONPF_I_POLAR, NEWTONPF_I_CART.
+
+//   MATPOWER
+//   Copyright (c) 1996-2019, Power Systems Engineering Research Center (PSERC)
+//   by Ray Zimmerman, PSERC Cornell
+//
+//   This file is part of MATPOWER.
+//   Covered by the 3-clause BSD License (see LICENSE file for details).
+//   See https://matpower.org for more info.
+
+fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
+
+}
