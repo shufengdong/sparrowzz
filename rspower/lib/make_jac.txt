@@ -7,11 +7,17 @@ fn make_jac(baseMVA, bus, branch, gen) {
     
     // make sure we use generator setpoint voltage for PV and slack buses
     on = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);  // which generators are on?
-    gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on); // what buses are they at?
+    gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on) - 1; // what buses are they at?
     bus_type = slice(bus, [0], [BUS_TYPE-1,BUS_TYPE]);
     gbus_type = get_multi(bus_type, gbus);
     k = find(gbus_type == PV || gbus_type == REF);
-
-    r = dSbus_dV(Ybus, V, 0.);
-    return gbus_type;
+    index = get_multi(gbus, k);
+    voltage_g = get_multi(V, index);
+    on_k = get_multi(on, k);
+    gen_vg = get_multi(slice(gen, [0], [VG-1,VG]), on_k);
+    V = set(V, index, gen_vg ./ abs(voltage_g) .* voltage_g);
+    dsbus_dv = dSbus_dV(Ybus, V, 0.);
+    j_real = real(dsbus_dv);
+    j_imag = imag(dsbus_dv);
+    return vertcat(j_real, j_imag);
 }
