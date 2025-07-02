@@ -1,0 +1,29 @@
+//MAKESDZIP   Builds vectors of nominal complex bus power demands for ZIP loads.
+//   SD = MAKESDZIP(BASEMVA, BUS, MPOPT) returns a struct with three fields,
+//   each an nb x 1 vectors. The fields 'z', 'i' and 'p' correspond to the
+//   nominal p.u. complex power (at 1 p.u. voltage magnitude) of the constant
+//   impedance, constant current, and constant power portions, respectively of
+//   the ZIP load model.
+//
+//   Example:
+//       Sd = makeSdzip(baseMVA, bus, mpopt);
+
+//   MATPOWER
+//   Copyright (c) 2015-2016, Power Systems Engineering Research Center (PSERC)
+//   by Shrirang Abhyankar
+//   and Ray Zimmerman, PSERC Cornell
+//
+//   This file is part of MATPOWER.
+//   Covered by the 3-clause BSD License (see LICENSE file for details).
+//   See https://matpower.org for more info.
+
+fn make_sdzip(baseMVA, bus, mpopt) {
+    pw = [1, 0, 0];
+    qw = [1, 0, 0];
+    pd = slice(bus, [0], [PD-1,PD]);
+    qd = slice(bus, [0], [QD-1,QD]);
+    z = (pd * get(pw,2)  + c(0,1) * qd * get(qw,2)) / baseMVA;
+    i = (pd * get(pw,1)  + c(0,1) * qd * get(qw,1)) / baseMVA;
+    p = (pd * get(pw,0)  + c(0,1) * qd * get(qw,0)) / baseMVA;
+    return p;
+}

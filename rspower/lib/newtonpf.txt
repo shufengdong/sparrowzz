@@ -35,5 +35,14 @@
 //   See https://matpower.org for more info.
 
 fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
+    // options
+    tol         = get(mpopt, 0);
+    max_it      = get(mpopt, 1);
 
+    // initialize
+    converged = 0;
+    i = 0;
+    V = V0;
+    Va = angle(V);
+    Vm = abs(V);
 }

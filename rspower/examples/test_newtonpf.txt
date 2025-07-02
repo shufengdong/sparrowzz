@@ -1,0 +1,11 @@
+#include ../data/case14.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/make_y_bus.txt
+#include ../lib/dsbus_dv.txt
+#include ../lib/make_jac.txt
+#include ../lib/make_sdzip.txt
+
+Ybus = make_y_bus(baseMVA, bus, branch);
+return make_sdzip(baseMVA, bus, 1);
