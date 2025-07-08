@@ -93,13 +93,7 @@ fn dSbus_dV(Ybus, V, vcart) {
     Ibus = Ybus * V;
     diagV       = diag(V);
     diagIbus    = diag(Ibus);
-    // RustScript use ~~ means not
-    println(vcart);
-    if ~~vcart {
-        diagVnorm = diag(V./abs(V));
-        println("dSbus_dV: vcart is false, using polar coordinates");
-        println(diagVnorm);
-    }
+
     if vcart {
         dSbus_dV1 = conj(diagIbus) + diagV * conj(Ybus);        // dSbus/dVr
         dSbus_dV2 = c(0,1) * (conj(diagIbus) - diagV * conj(Ybus)); // dSbus/dVi

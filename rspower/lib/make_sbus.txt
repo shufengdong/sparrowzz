@@ -34,6 +34,6 @@ fn make_sbus(baseMVA, bus, gen, mpopt, Vm, Sg) {
     on = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);  // which generators are on?
     gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on) - 1; // what buses are they at?
     ngon = size(on, 0);
-    Cg = sparse(gbus, range(0,ngon - 1), 1, nb, ngon);
+    Cg = sparse(gbus, range(0, ngon-1), 1, nb, ngon);
     return Cg;
 }

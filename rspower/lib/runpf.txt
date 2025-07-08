@@ -1,0 +1,35 @@
+fn runpf() {
+    // get bus index lists of each type of bus
+    // get generator status
+    // bus_gen_status = zeros(size(bus, 1), 1);
+    // bus_gen_status(gen(:, GEN_BUS)) = gen(:, GEN_STATUS) > 0;
+    nb = size(bus, 0);
+    ng = size(gen, 0);
+    Cg = sparse(slice(gen, [0], [GEN_BUS-1,GEN_BUS]), range(0,ng-1), slice(gen, [0], [GEN_STATUS-1,GEN_STATUS]) > 0, nb, ng);  // gen connection matrix
+                                            // element i, j is 1 if, generator j at bus i is ON
+    bus_gen_status = Cg * ones(ng, 1);      // number of generators at each bus that are ON
+
+    // form index lists for slack, PV, and PQ buses
+    bus_type = slice(bus, [0], [BUS_TYPE-1,BUS_TYPE]); // bus type column
+    ref = find(bus_type == REF && bus_gen_status);   // reference bus index
+    pv  = find(bus_type == PV  && bus_gen_status);   // PV bus indices
+    pq  = find(bus_type == PQ || ~~bus_gen_status);   // PQ bus indices
+
+    // initial state
+    // V0    = ones(size(bus, 1), 1);            // flat start
+    V0  = slice(bus, [0], [VM-1,VM]) .* exp(c(0,1) * pi/180 * slice(bus, [0], [VA-1,VA]));
+    vcb = set(ones(size(V0)), qp, zeros(size(pq)));   // create mask of voltage-controlled buses
+    k = find(get_multi(vcb, gbus));            // in-service gens at v-c buses
+    gbus_index = get_multi(gbus, k);            // indices of in-service generators at v-c buses
+    on_k = get_multi(on, k);
+    gen_vg = get_multi(slice(gen, [0], [VG-1,VG]), on_k);
+    gbus_k = get_multi(gbus, k);
+    voltage_g = get_multi(V0, gbus_k);
+    V0 = set(V0, gbus_k, gen_vg ./ abs(voltage_g) .* voltage_g);
+
+    Ybus = make_y_bus(baseMVA, bus, branch);
+    repeat = 1;
+
+    Sbus = make_sbus(baseMVA, bus, gen, 1, 1, 1);
+    return V0;
+}
