@@ -7,6 +7,7 @@
 #include ../lib/make_jac.txt
 #include ../lib/make_sdzip.txt
 #include ../lib/make_sbus.txt
+#include ../lib/newtonpf.txt
 #include ../lib/runpf.txt
 
 return runpf();

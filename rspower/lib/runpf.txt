@@ -31,13 +31,20 @@ fn runpf() {
     voltage_g = get_multi(V0, gbus_k);
     V_init = set(V0, gbus_k, gen_vg ./ abs(voltage_g) .* voltage_g);
 
+    // build admittance matrices
     Ybus = make_y_bus(baseMVA, bus, branch);
-    repeat = 1;
-    while repeat {
+    qlim = 0;
+    loop {
         // compute bus power injections
         Sbus = make_sbus(baseMVA, bus, gen, 1, 1, 1);
-        repeat = 0;
+        V = newtonpf(Ybus, Sbus, V_init, ref, pv, pq, [1e-8, 100, 0]);
+        if ~~is_empty(V) && qlim {
+            // if V is empty, it means the power flow did not converge
+            break;
+        } else {
+            break;
+        }
     }
 
-    return V_init;
+    return V;
 }
