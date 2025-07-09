@@ -17,7 +17,5 @@ fn make_jac(baseMVA, bus, branch, gen) {
     gen_vg = get_multi(slice(gen, [0], [VG-1,VG]), on_k);
     V = set(V, index, gen_vg ./ abs(voltage_g) .* voltage_g);
     dsbus_dv = dSbus_dV(Ybus, V, 0.);
-    j_real = real(dsbus_dv);
-    j_imag = imag(dsbus_dv);
-    return vertcat(j_real, j_imag);
+    return dsbus_dv;
 }
