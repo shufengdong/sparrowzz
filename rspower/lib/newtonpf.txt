@@ -66,7 +66,7 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
         // dx = linsolve(J, -F);
         dx = J \ -F;
         // update voltage vector
-        V = V + dx';
+        V = V + dx;
 
         F = V .* conj(Ybus * V) - Sbus;
         // check for convergence

@@ -1,0 +1,7 @@
+#include ../data/case14.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/make_sdzip.txt
+#include ../lib/make_sbus.txt
+
+return make_sbus(baseMVA, bus, gen);
