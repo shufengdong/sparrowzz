@@ -45,7 +45,7 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
     V = V0;
     Va = angle(V);
     Vm = abs(V);
-    
+    nb = length(V);
     npv = length(pv);
     npq = length(pq);
     j1 = 1;         j2 = npv;           // j1:j2 - V angle of pv buses
@@ -61,10 +61,12 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
         // update iteration counter
         i = i + 1;
         // evaluate Jacobian
-        J = dSbus_dV(Ybus, V);
+        J = dSbus_dV(Ybus, V, 0);
+        dSbus_dVa = slice(J, [0], [0,nb]);
+        dSbus_dVm = slice(J, [0], [nb,2*nb]);
         // compute update step
         // dx = linsolve(J, -F);
-        dx = J \ -F;
+        dx = dSbus_dVm \ -F;
         // update voltage vector
         V = V + dx;
 
