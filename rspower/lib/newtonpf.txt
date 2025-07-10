@@ -51,9 +51,10 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
     j1 = 1;         j2 = npv;           // j1:j2 - V angle of pv buses
     j3 = j2 + 1;    j4 = j2 + npq;      // j3:j4 - V angle of pq buses
     j5 = j4 + 1;    j6 = j4 + npq;      // j5:j6 - V mag of pq buses
-
+    pv_pq_i = vertcat(pv, pq);
     // evaluate F(x0)
-    F = V .* conj(Ybus * V) - Sbus;
+    mis = V .* conj(Ybus * V) - Sbus;
+    F = vertcat(real(get_multi(mis, pv_pq_i)), imag(get_mult(mis, pq)));
     // check tolerance
     normF = norm_max(F);
     // do Newton iterations
@@ -61,16 +62,35 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
         // update iteration counter
         i = i + 1;
         // evaluate Jacobian
-        J = dSbus_dV(Ybus, V, 0);
-        dSbus_dVa = slice(J, [0], [0,nb]);
-        dSbus_dVm = slice(J, [0], [nb,2*nb]);
+        jac = dSbus_dV(Ybus, V, 0);
+        dSbus_dVa = slice(jac, [0], [0,nb]);
+        dSbus_dVm = slice(jac, [0], [nb,2*nb]);
+
+        j11 = real(select(dSbus_dVa, pv_pq_i, pv_pq_i));
+        j12 = real(select(dSbus_dVm, pv_pq_i, pq));
+        j21 = imag(select(dSbus_dVa, pq, pv_pq_i));
+        j22 = imag(select(dSbus_dVm, pq, pq));
+        J = vertcat(
+            horzcat(j11, j12),
+            horzcat(j21, j22)
+        );
         // compute update step
         // dx = linsolve(J, -F);
         dx = dSbus_dVm \ -F;
         // update voltage vector
-        V = V + dx;
+        if npv {
+            Va = set2(Va, pv, slice(dx, [j1,j2], [0]));
+        }
+        if npq {
+            Va = set2(Va, pq, slice(dx, [j3,j4], [0]));
+            Vm = set2(Vm, pq, slice(dx, [j5,j6], [0]));
+        }
+        V = Vm .* exp(c(0,1) * Va);
+        Vm = abs(V);            // update Vm and Va again in case
+        Va = angle(V);          // we wrapped around with a negative Vm
 
-        F = V .* conj(Ybus * V) - Sbus;
+        mis = V .* conj(Ybus * V) - Sbus;
+        F = vertcat(real(get_multi(mis, pv_pq_i)), imag(get_mult(mis, pq)));
         // check for convergence
          normF = norm_max(F);
         if normF < tol {
