@@ -53,8 +53,7 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
     j5 = j4 + 1;    j6 = j4 + npq;      // j5:j6 - V mag of pq buses
 
     // evaluate F(x0)
-    mis = V .* conj(Ybus * V);
-    F = mis;
+    F = V .* conj(Ybus * V) - Sbus;
     // check tolerance
     normF = norm_max(F);
     // do Newton iterations
@@ -64,10 +63,17 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
         // evaluate Jacobian
         J = dSbus_dV(Ybus, V);
         // compute update step
-        dx = linsolve(J, -F);
+        // dx = linsolve(J, -F);
+        dx = J \ -F;
+        // update voltage vector
+        V = V + dx';
+
+        F = V .* conj(Ybus * V) - Sbus;
+        // check for convergence
+         normF = norm_max(F);
         if normF < tol {
             converged = 1;
         }
     }
-    return dx;
+    return V;
 }

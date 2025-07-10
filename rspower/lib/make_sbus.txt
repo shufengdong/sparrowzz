@@ -28,12 +28,21 @@
 
 // define named indices into bus, gen matrices
 
-fn make_sbus(baseMVA, bus, gen, mpopt, Vm, Sg) {
+fn make_sbus(baseMVA, bus, gen) {
     nb = size(bus, 0);
     Sd = make_sdzip(baseMVA, bus, mpopt);
     on = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);  // which generators are on?
     gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on) - 1; // what buses are they at?
     ngon = size(on, 0);
     Cg = sparse(gbus, range(0, ngon-1), 1, nb, ngon);
-    return Cg;
+    Gp = slice(gen, [0], [PG-1, PG]);
+    Gq = slice(gen, [0], [PG-1, PG]);
+    Sbusg = Cg * (get_multi(Gp, on)  + c(0,1) * get_multi(Gq, on)) / baseMVA;
+    z = slice(Sd, [0], [0,1]);
+    i = slice(Sd, [0], [1,2]);
+    p = slice(Sd, [0], [2,3]);
+    Vm = ones(nb, 1);
+    Sbusd = p + i .* Vm + z .* Vm.^2;
+    // complex power injection at each bus
+    return Sbusg' - Sbusd;
 }

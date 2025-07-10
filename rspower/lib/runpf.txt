@@ -36,7 +36,7 @@ fn runpf() {
     qlim = 0;
     loop {
         // compute bus power injections
-        Sbus = make_sbus(baseMVA, bus, gen, 1, 1, 1);
+        Sbus = make_sbus(baseMVA, bus, gen);
         V = newtonpf(Ybus, Sbus, V_init, ref, pv, pq, [1e-6, 100]);
         if ~~is_empty(V) && qlim {
             // if V is empty, it means the power flow did not converge

@@ -25,5 +25,5 @@ fn make_sdzip(baseMVA, bus, mpopt) {
     z = (pd * get(pw,2)  + c(0,1) * qd * get(qw,2)) / baseMVA;
     i = (pd * get(pw,1)  + c(0,1) * qd * get(qw,1)) / baseMVA;
     p = (pd * get(pw,0)  + c(0,1) * qd * get(qw,0)) / baseMVA;
-    return p;
+    return horzcat(z,i,p);
 }
