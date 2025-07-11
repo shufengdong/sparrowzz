@@ -70,4 +70,3 @@ fn make_y_bus(baseMVA, bus, branch) {
 
     return Ybus;
 }
-

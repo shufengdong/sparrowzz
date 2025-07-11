@@ -48,7 +48,7 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
     nb = length(V);
     npv = length(pv);
     npq = length(pq);
-    j1 = 0;         j2 = npv;           // j1:j2 - V angle of pv buses
+    j1 = 0;         j2 = npv;       // j1:j2 - V angle of pv buses
     j3 = j2;    j4 = j2 + npq;      // j3:j4 - V angle of pq buses
     j5 = j4;    j6 = j4 + npq;      // j5:j6 - V mag of pq buses
     pv_pq_i = horzcat(pv, pq);
