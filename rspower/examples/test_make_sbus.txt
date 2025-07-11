@@ -4,4 +4,21 @@
 #include ../lib/make_sdzip.txt
 #include ../lib/make_sbus.txt
 
-return make_sbus(baseMVA, bus, gen);
+r = make_sbus(baseMVA, bus, gen);
+relative_eq(r, [
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)],
+    [c(1,0)]
+]);
+return r;
