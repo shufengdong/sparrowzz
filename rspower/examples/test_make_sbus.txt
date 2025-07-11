@@ -5,7 +5,8 @@
 #include ../lib/make_sbus.txt
 
 r = make_sbus(baseMVA, bus, gen);
-relative_eq(r, [
+// |a - b| <= max(|a|, |b|) * max_relative(default=1e-8)
+assert_relative_eq(r, [
     [c(1,0)],
     [c(1,0)],
     [c(1,0)],
