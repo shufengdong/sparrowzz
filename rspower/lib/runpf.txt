@@ -5,7 +5,8 @@ fn runpf() {
     // bus_gen_status(gen(:, GEN_BUS)) = gen(:, GEN_STATUS) > 0;
     nb = size(bus, 0);
     ng = size(gen, 0);
-    Cg = sparse(slice(gen, [0], [GEN_BUS-1,GEN_BUS]), range(0,ng-1), slice(gen, [0], [GEN_STATUS-1,GEN_STATUS]) > 0, nb, ng);  // gen connection matrix
+    g_i = slice(gen, [0], [GEN_BUS-1,GEN_BUS]) - 1; // generator bus indices
+    Cg = sparse(g_i, range(0,ng-1), slice(gen, [0], [GEN_STATUS-1,GEN_STATUS]) > 0, nb, ng);  // gen connection matrix
                                             // element i, j is 1 if, generator j at bus i is ON
     bus_gen_status = Cg * ones(ng, 1);      // number of generators at each bus that are ON
 
