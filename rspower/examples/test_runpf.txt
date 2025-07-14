@@ -10,4 +10,7 @@
 #include ../lib/newtonpf.txt
 #include ../lib/runpf.txt
 
-return runpf();
+info("Running power flow on case14...");
+r = runpf();
+info("Run power flow on case14 end");
+return r;
