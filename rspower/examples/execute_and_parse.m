@@ -59,7 +59,7 @@ function matrix = parse_complex_matrix_from_output(output)
     % 从命令输出中解析复数矩阵，自动检测矩阵大小
 
     % 使用正则表达式匹配所有复数对
-    pattern = 'Complex\s*{\s*re:\s*([-\d.eE]+),\s*im:\s*([-\d.eE]+)\s*}';
+    pattern = 'Complex\s*{\s*re:\s*([-\d.eE]+),\s*im:\s*([-\d.eE]+),?\s*}';
     [matches] = regexp(output, pattern, 'tokens');
 
     if isempty(matches)
