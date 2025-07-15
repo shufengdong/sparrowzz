@@ -5,6 +5,7 @@
 #include ../lib/make_y_bus.txt
 #include ../lib/dsbus_dv.txt
 #include ../lib/make_jac.txt
+#include ../lib/bustypes.txt
 
-jac = make_jac(baseMVA, bus, branch, gen);
+jac = make_jac(baseMVA, bus, branch, gen, 0);
 return jac;

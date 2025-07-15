@@ -1,0 +1,69 @@
+// bustypes - Builds index lists for each type of bus (REF, PV, PQ).
+// ::
+//
+//   [REF, PV, PQ] = BUSTYPES(BUS, GEN)
+//   Generators with "out-of-service" status are treated as PQ buses with
+//   zero generation (regardless of Pg/Qg values in gen). Expects BUS and
+//   GEN have been converted to use internal consecutive bus numbering.
+
+//   MATPOWER
+//   Copyright (c) 1996-2024, Power Systems Engineering Research Center (PSERC)
+//   by Ray Zimmerman, PSERC Cornell
+//
+//   This file is part of MATPOWER.
+//   Covered by the 3-clause BSD License (see LICENSE file for details).
+//   See https://matpower.org for more info.
+
+fn bustypes_ref(bus, gen) {
+    // get generator status
+    nb = size(bus, 0);
+    ng = size(gen, 0);
+    g_i = slice(gen, [0], [GEN_BUS-1,GEN_BUS]) - 1; // generator bus indices
+    Cg = sparse(g_i, range(0, ng), slice(gen, [0], [GEN_STATUS-1,GEN_STATUS]) > 0, nb, ng);  // gen connection matrix
+                                            // element i, j is 1 if, generator j at bus i is ON
+    bus_gen_status = Cg * ones(ng, 1);      // number of generators at each bus that are ON
+
+    // form index lists for slack, PV, and PQ buses
+    bus_type = slice(bus, [0], [BUS_TYPE-1,BUS_TYPE]); // bus type column
+    ref = find(bus_type == REF && bus_gen_status);   // reference bus index
+    pv  = find(bus_type == PV  && bus_gen_status);   // PV bus indices
+    pq  = find(bus_type == PQ || ~~bus_gen_status);   // PQ bus indices
+
+    return ref;
+}
+
+fn bustypes_pv(bus, gen) {
+    // get generator status
+    nb = size(bus, 0);
+    ng = size(gen, 0);
+    g_i = slice(gen, [0], [GEN_BUS-1,GEN_BUS]) - 1; // generator bus indices
+    Cg = sparse(g_i, range(0, ng), slice(gen, [0], [GEN_STATUS-1,GEN_STATUS]) > 0, nb, ng);  // gen connection matrix
+                                            // element i, j is 1 if, generator j at bus i is ON
+    bus_gen_status = Cg * ones(ng, 1);      // number of generators at each bus that are ON
+
+    // form index lists for slack, PV, and PQ buses
+    bus_type = slice(bus, [0], [BUS_TYPE-1,BUS_TYPE]); // bus type column
+    ref = find(bus_type == REF && bus_gen_status);   // reference bus index
+    pv  = find(bus_type == PV  && bus_gen_status);   // PV bus indices
+    pq  = find(bus_type == PQ || ~~bus_gen_status);   // PQ bus indices
+
+    return pv;
+}
+
+fn bustypes_pq(bus, gen) {
+    // get generator status
+    nb = size(bus, 0);
+    ng = size(gen, 0);
+    g_i = slice(gen, [0], [GEN_BUS-1,GEN_BUS]) - 1; // generator bus indices
+    Cg = sparse(g_i, range(0, ng), slice(gen, [0], [GEN_STATUS-1,GEN_STATUS]) > 0, nb, ng);  // gen connection matrix
+                                            // element i, j is 1 if, generator j at bus i is ON
+    bus_gen_status = Cg * ones(ng, 1);      // number of generators at each bus that are ON
+
+    // form index lists for slack, PV, and PQ buses
+    bus_type = slice(bus, [0], [BUS_TYPE-1,BUS_TYPE]); // bus type column
+    ref = find(bus_type == REF && bus_gen_status);   // reference bus index
+    pv  = find(bus_type == PV  && bus_gen_status);   // PV bus indices
+    pq  = find(bus_type == PQ || ~~bus_gen_status);   // PQ bus indices
+
+    return pq;
+}
