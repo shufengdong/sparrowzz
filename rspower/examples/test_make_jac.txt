@@ -7,5 +7,5 @@
 #include ../lib/make_jac.txt
 #include ../lib/bustypes.txt
 
-jac = make_jac(baseMVA, bus, branch, gen, 0);
+jac = make_jac(baseMVA, bus, branch, gen, 1);
 return jac;
