@@ -46,7 +46,7 @@ fn make_y_bus(baseMVA, bus, branch) {
 
         // build Ybus
         // branch admittances + shunt admittance
-        Ybus = sparse(horzcat(f,f,t,t), horzcat(f,t,f,t), horzcat(Yff,Yft,Ytf,Ytt), nb, nb) +
+        Ybus = sparse(horzcat(f,f,t,t), horzcat(f,t,f,t), vertcat(Yff,Yft,Ytf,Ytt), nb, nb) +
                sparse(j, j, Ysh, nb, nb);
     } else {
         // large case running on MATLAB
