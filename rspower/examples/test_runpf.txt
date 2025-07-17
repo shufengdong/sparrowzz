@@ -10,6 +10,8 @@
 #include ../lib/runpf.txt
 
 info("Running power flow on case14...");
-r = runpf();
+for i in 0..1000 {
+    r = runpf();
+}
 info("Run power flow on case14 end");
 return r;

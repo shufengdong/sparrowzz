@@ -22,7 +22,7 @@ function results = execute_and_parse()
         fprintf('正在处理: %s\n', test_file);
 
         % 构建并执行命令
-        cmd = sprintf('%s --complex %s', tensoreval_path, test_file);
+        cmd = sprintf('%s --complex --verbose %s', tensoreval_path, test_file);
         [status, output] = system(cmd);
 
         % 解析结果
