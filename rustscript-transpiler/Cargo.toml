@@ -1,0 +1,17 @@
+[package]
+name = "rustscript-transpiler"
+version = "0.1.0"
+edition = "2021"
+description = "A transpiler that converts MATLAB code to RustScript"
+
+[lib]
+name = "rustscript_transpiler"
+path = "src/lib.rs"
+
+[dependencies]
+regex = "1.10"
+anyhow = "1.0"
+serde = { version = "1.0", features = ["derive"] }
+
+[dev-dependencies]
+# 用于测试的依赖

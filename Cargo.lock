@@ -1732,6 +1732,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "rustscript-transpiler"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "regex",
+ "serde",
+]
+
+[[package]]
 name = "rustversion"
 version = "1.0.21"
 source = "registry+https://github.com/rust-lang/crates.io-index"
