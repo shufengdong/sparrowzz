@@ -78,12 +78,18 @@ function matrix = parse_complex_matrix_from_output(output)
     [rows, cols] = extract_matrix_dimensions(output);
 
     if rows * cols ~= length(complexNums)
-        error('矩阵维度与元素数量不匹配: %dx%d != %d', rows, cols, length(complexNums));
+        if rows * cols > length(complexNums)
+            error('  矩阵维度大于元素数量: %dx%d > %d', ...
+                rows, cols, length(complexNums));
+        else
+            fprintf('  矩阵维度小于元素数量: %dx%d < %d，取前%dx%d个元素', ...
+            rows, cols, length(complexNums),rows, cols);
+        end
     end
 
     % 重塑为指定维度的矩阵
     % 注意：根据输出格式调整reshape的维度顺序
-    matrix = reshape(complexNums, [cols, rows]).';
+    matrix = reshape(complexNums(1:cols*rows), [cols, rows]).';
 end
 
 function [rows, cols] = extract_matrix_dimensions(output)
