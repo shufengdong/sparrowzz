@@ -3,7 +3,7 @@ function results = execute_and_parse()
     % 返回一个结构体，包含所有测试文件的解析结果
 
     % 设置路径和文件
-    tensoreval_path = '..\..\..\eig-rc\target\release\examples\tensoreval.exe';
+    tensoreval_path = 'tensoreval.exe';
     test_files = {
         'test_make_jac.txt'
         'test_make_sbus.txt'

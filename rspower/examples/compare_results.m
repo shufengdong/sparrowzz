@@ -27,6 +27,8 @@ function compare_results(case_name)
     % 比较 Sbus 矩阵
     compare_sbus(parsed_results, case_name);
 
+    % 
+
     fprintf('\n所有比较完成!\n\n');
 end
 
@@ -101,10 +103,10 @@ function compare_sbus(parsed_results, case_name)
     end
 
     % 这里可以添加 matpower 计算 Sbus 的代码
-    % matpower_sbus = cal_makesbus(case_name);  % 需要实现这个函数
+    matpower_sbus = cal_makesbus(case_name);  % 需要实现这个函数
 
-    fprintf('Sbus 解析结果大小: %dx%d\n', size(tensor_sbus, 1), size(tensor_sbus, 2));
-    fprintf('暂时没有对应的 matpower Sbus 计算函数进行比较\n');
+      % 比较矩阵
+    compare_matrices(tensor_sbus, matpower_sbus, 'Sbus');
 end
 
 
@@ -118,6 +120,16 @@ function jac = cal_makejac(case_name)
     % 计算 Jacobian 矩阵
     mpc = loadcase(case_name);
     jac = full(makeJac(mpc, 1));
+end
+
+function sbus = cal_makesbus(case_name)
+    mpc = loadcase(case_name);
+    sbus = full(makeSbus(mpc));
+end
+
+function pf = cal_runpf(case_name)
+    mpc = loadcase(case_name);
+    pf = runpf(mpc);
 end
 
 
