@@ -1,23 +1,23 @@
 function convert_m_file(input_file, output_file)
-    % input_file: ÊäÈë.mÎÄ¼şÂ·¾¶£¨ÀıÈç 'case14.m'£©
-    % output_file£ºÊä³ö.txtÎÄ¼şÂ·¾¶£¨ÀıÈç 'case14_mems.txt'£©
-    % ½«matpower¾ØÕó¸ñÊ½×ª»»ÎªmemsÖ§³ÖµÄ½Å±¾¾ØÕó¸ñÊ½
-    % ¿ÉÊ¶±ğmpcµÄbus¡¢gen¡¢branch¡¢gencost¾ØÕó£¨µÚ21ĞĞ´¦¿ÉÊÖ¶¯ÔöÉ¾£©
+    % input_file: è¾“å…¥.mæ–‡ä»¶è·¯å¾„ï¼ˆä¾‹å¦‚ 'case14.m'ï¼‰
+    % output_fileï¼šè¾“å‡º.txtæ–‡ä»¶è·¯å¾„ï¼ˆä¾‹å¦‚ 'case14_mems.txt'ï¼‰
+    % å°†matpowerçŸ©é˜µæ ¼å¼è½¬æ¢ä¸ºmemsæ”¯æŒçš„è„šæœ¬çŸ©é˜µæ ¼å¼
+    % å¯è¯†åˆ«mpcçš„busã€genã€branchã€gencostçŸ©é˜µï¼ˆç¬¬21è¡Œå¤„å¯æ‰‹åŠ¨å¢åˆ ï¼‰
 
-    % ¶ÁÈ¡ÊäÈëÎÄ¼ş
+    % è¯»å–è¾“å…¥æ–‡ä»¶
     run(input_file); 
     mpc = ans;
     
-    % ´ò¿ªÊä³öÎÄ¼ş
+    % æ‰“å¼€è¾“å‡ºæ–‡ä»¶
     fid = fopen(output_file, 'w');
     if fid == -1
-        error('ÎŞ·¨´ò¿ªÎÄ¼ş');
+        error('æ— æ³•æ‰“å¼€æ–‡ä»¶');
     end
 
-    % Ğ´ÈëbaseMVA
+    % å†™å…¥baseMVA
     fprintf(fid, 'baseMVA = %d;\n\n', mpc.baseMVA);
     
-    % ¹Ì¶¨¶ÁÈ¡µÄ¾ØÕóÃû³Æ²¢±éÀú¡¢×ª»»
+    % å›ºå®šè¯»å–çš„çŸ©é˜µåç§°å¹¶éå†ã€è½¬æ¢
     matrix_names = {'bus', 'gen', 'branch', 'gencost'};
     for i = 1:length(matrix_names)
         matrix_name = matrix_names{i};
@@ -33,11 +33,11 @@ function convert_m_file(input_file, output_file)
     end
 
     fclose(fid);
-    disp(['ÎÄ¼şÒÑ×ª»»²¢±£´æÎª: ', output_file]);
+    disp(['æ–‡ä»¶å·²è½¬æ¢å¹¶ä¿å­˜ä¸º: ', output_file]);
 end
 
 function formatted_matrix = format_matrix(input_matrix)
-    % ÊäÈë¾ØÕóinput_matrix£¬Êä³ö¸ñÊ½»¯ºóµÄformatted_matrix
+    % è¾“å…¥çŸ©é˜µinput_matrixï¼Œè¾“å‡ºæ ¼å¼åŒ–åçš„formatted_matrix
 
     [num_rows, ~] = size(input_matrix);
     formatted_matrix = [];
@@ -45,7 +45,7 @@ function formatted_matrix = format_matrix(input_matrix)
     for i = 1:num_rows
         row = input_matrix(i, :);
         
-        % ½«¸ÃĞĞµÄÔªËØ×ª»»Îª¶ººÅ·Ö¸ôµÄ×Ö·û´®
+        % å°†è¯¥è¡Œçš„å…ƒç´ è½¬æ¢ä¸ºé€—å·åˆ†éš”çš„å­—ç¬¦ä¸²
         formatted_row = strjoin(arrayfun(@(x) num2str(x), row, 'UniformOutput', false), ',');
 
         if i ~= num_rows
