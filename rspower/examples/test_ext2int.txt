@@ -1,0 +1,7 @@
+#include ../data/case14.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/ext2int.txt
+
+return ext2int(bus, gen, branch, areas);

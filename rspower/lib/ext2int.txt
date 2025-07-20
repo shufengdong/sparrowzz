@@ -1,0 +1,43 @@
+fn ext2int(bus, gen, branch, areas){
+    //EXT2INT   Converts external to internal indexing.
+    //
+    //   [i2e, bus, gen, branch, areas] = ext2int(bus, gen, branch, areas);
+    //   [i2e, bus, gen, branch] = ext2int(bus, gen, branch);
+    //
+    //   If the first argument is a matrix, it simply converts from (possibly
+    //   non-consecutive) external bus numbers to consecutive internal bus
+    //   numbers which start at 1. Changes are made to BUS, GEN and BRANCH,
+    //   which are returned along with a vector of indices I2E that can be
+    //   passed to INT2EXT to perform the reverse conversion, where
+    //   EXTERNAL_BUS_NUMBER = I2E(INTERNAL_BUS_NUMBER).
+    //   AREAS is completely ignored and is only included here for backward
+    //   compatibility of the API.
+
+
+    // create map of external bus numbers to bus indices
+    i2e = slice(bus, [0], [BUS_I-1,BUS_I] );                //得到bus矩阵的母线序号所在列
+    e2i = sparse(range(0,max(i2e))', zeros(max(i2e),1), zeros(max(i2e),1), max(i2e), 1);  //创建（原bus矩阵母线最大序号值*1）的e2i全零稀疏矩阵
+    index_e2i = i2e - 1;                                    //索引值=母线序号-1 
+    e2i = set(e2i, index_e2i, range(1, size(bus, 0) + 1 )' );  //建立母线序号的映射，对应位置进行从1重新编号
+
+    // renumber buses consecutively
+    index_e2i_bus = slice(bus, [0], [BUS_I-1, BUS_I] ) - 1;  //索引值=母线序号-1
+    e2i_bus = get_multi(e2i, index_e2i_bus )';               //得到e2i矩阵中，重新编号后对应的序号
+    output_bus = assign(bus, e2i_bus, [0], [BUS_I-1, BUS_I] );      //转换为映射后的母线编号
+
+    index_e2i_gen = slice(gen, [0], [GEN_BUS-1, GEN_BUS] ) - 1;
+    e2i_gen = get_multi(e2i, index_e2i_gen )';
+    output_gen = assign(gen, e2i_gen, [0], [GEN_BUS-1, GEN_BUS] );
+
+    index_e2i_fbus = slice(branch, [0], [F_BUS-1, F_BUS] ) - 1;
+    e2i_fbus = get_multi(e2i, index_e2i_fbus )';
+    output_branch1 = assign(branch, e2i_fbus, [0], [F_BUS-1, F_BUS] );
+
+    index_e2i_tbus = slice(branch, [0], [T_BUS-1, T_BUS] ) - 1;
+    e2i_tbus = get_multi(e2i, index_e2i_tbus )';
+    output_branch2 = assign(output_branch1, e2i_tbus, [0], [T_BUS-1, T_BUS] );
+
+    //return i2e, bus, gen, branch, areas;
+    //return output_branch2;
+    return e2i;
+}
