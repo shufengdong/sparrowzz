@@ -18,97 +18,51 @@ function compare_results(case_name)
 
     fprintf('\n==============开始与 matpower 结果比较...==============\n');
 
-    % 比较 Jacobian 矩阵
-    compare_jacobian(parsed_results, case_name);
+    % 比较的field_name和使用matpower计算函数
+    field_names = {
+        'ybus'
+        'jac'
+        'sdzip'
+        'sbus'
+%         'runpf'
+    };
+    cal_makers = {
+        @cal_makeybus
+        @cal_makejac
+        @cal_makesdzip
+        @cal_makesbus
+        @cal_runpf
+    };
 
-    % 比较 Ybus 矩阵
-    compare_ybus(parsed_results, case_name);
+    % 依次比较每个矩阵
+    for i = 1:length(field_names)
+        field_name = field_names{i};
+        cal_maker = cal_makers{i};
 
-    % 比较 Sbus 矩阵
-    compare_sbus(parsed_results, case_name);
+        fprintf('\n=== 比较 %s 矩阵 ===\n', field_name);
 
-    % 
+        % 获取解析的矩阵
+        tensor_field = find_field_by_name(parsed_results, field_name);
+        if isempty(tensor_field)
+            fprintf('未找到 %s 矩阵结果\n', field_name);
+            continue;
+        end
+
+        tensor_r = parsed_results.(tensor_field);
+        if isempty(tensor_r)
+            fprintf('%s 矩阵为空\n', field_name);
+            continue;
+        end
+
+        % 计算 matpower 的矩阵
+        matpower_r = cal_maker(case_name);
+
+        % 比较矩阵
+        compare_matrices(tensor_r, matpower_r, field_name);
+    end
 
     fprintf('\n所有比较完成!\n\n');
 end
-
-function compare_jacobian(parsed_results, case_name)
-    % 比较 Jacobian 矩阵
-
-    fprintf('\n=== 比较 Jacobian 矩阵 ===\n');
-
-    % 获取解析的 Jacobian 矩阵
-    jac_field = find_field_by_name(parsed_results, 'jac');
-    if isempty(jac_field)
-        fprintf('未找到 Jacobian 矩阵结果\n');
-        return;
-    end
-
-    tensor_jac = parsed_results.(jac_field);
-    if isempty(tensor_jac)
-        fprintf('Jacobian 矩阵为空\n');
-        return;
-    end
-
-    % 计算 matpower 的 Jacobian 矩阵
-    matpower_jac = cal_makejac(case_name);
-
-    % 比较矩阵
-    compare_matrices(tensor_jac, matpower_jac, 'Jacobian');
-end
-
-
-
-function compare_ybus(parsed_results, case_name)
-    % 比较 Ybus 矩阵
-
-    fprintf('\n=== 比较 Ybus 矩阵 ===\n');
-
-    % 获取解析的 Ybus 矩阵
-    ybus_field = find_field_by_name(parsed_results, 'ybus');
-    if isempty(ybus_field)
-        fprintf('未找到 Ybus 矩阵结果\n');
-        return;
-    end
-
-    tensor_ybus = parsed_results.(ybus_field);
-    if isempty(tensor_ybus)
-        fprintf('Ybus 矩阵为空\n');
-        return;
-    end
-
-    % 计算 matpower 的 Ybus 矩阵
-    matpower_ybus = cal_makeybus(case_name);
-
-    % 比较矩阵
-    compare_matrices(tensor_ybus, matpower_ybus, 'Ybus');
-end
-
-function compare_sbus(parsed_results, case_name)
-    % 比较 Sbus 矩阵/向量
-
-    fprintf('\n=== 比较 Sbus 矩阵 ===\n');
-
-    % 获取解析的 Sbus 矩阵
-    sbus_field = find_field_by_name(parsed_results, 'sbus');
-    if isempty(sbus_field)
-        fprintf('未找到 Sbus 矩阵结果\n');
-        return;
-    end
-
-    tensor_sbus = parsed_results.(sbus_field);
-    if isempty(tensor_sbus)
-        fprintf('Sbus 矩阵为空\n');
-        return;
-    end
-
-    % 这里可以添加 matpower 计算 Sbus 的代码
-    matpower_sbus = cal_makesbus(case_name);  % 需要实现这个函数
-
-      % 比较矩阵
-    compare_matrices(tensor_sbus, matpower_sbus, 'Sbus');
-end
-
 
 function ybus = cal_makeybus(case_name)
     % 计算 Ybus 矩阵
@@ -122,6 +76,11 @@ function jac = cal_makejac(case_name)
     jac = full(makeJac(mpc, 1));
 end
 
+function sdzip = cal_makesdzip(case_name)
+    mpc = loadcase(case_name);
+    sdzip = full(makeSdzip(mpc));
+end
+
 function sbus = cal_makesbus(case_name)
     mpc = loadcase(case_name);
     sbus = full(makeSbus(mpc));
@@ -133,6 +92,7 @@ function pf = cal_runpf(case_name)
 end
 
 
+%% utils 一些工具函数
 function field_name = find_field_by_name(results, target_name)
     % 在结果结构体中查找包含特定名称的字段
 

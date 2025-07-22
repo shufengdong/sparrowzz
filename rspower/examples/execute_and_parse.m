@@ -5,9 +5,10 @@ function results = execute_and_parse()
     % 设置路径和文件
     tensoreval_path = '..\..\..\eig-rc\target\release\examples\tensoreval.exe';
     test_files = {
-        'test_make_jac.txt'
-        'test_make_sbus.txt'
         'test_make_ybus.txt'
+        'test_make_sbus.txt'
+        'test_make_sdzip.txt'
+        'test_make_jac.txt'
         'test_runpf.txt'
     };
 
