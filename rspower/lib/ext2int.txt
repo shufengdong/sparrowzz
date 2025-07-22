@@ -16,7 +16,7 @@ fn ext2int(bus, gen, branch, areas){
 
     // create map of external bus numbers to bus indices
     i2e = slice(bus, [0], [BUS_I-1,BUS_I] );                //得到bus矩阵的母线序号所在列
-    e2i = sparse(range(0,max(i2e))', zeros(max(i2e),1), zeros(max(i2e),1), max(i2e), 1);  //创建（原bus矩阵母线最大序号值*1）的e2i全零稀疏矩阵
+    e2i = full(sparse(range(0,max(i2e))', zeros(max(i2e),1), zeros(max(i2e),1), max(i2e), 1));  //创建（原bus矩阵母线最大序号值*1）的e2i全零稀疏矩阵
     index_e2i = i2e - 1;                                    //索引值=母线序号-1 
     e2i = set(e2i, index_e2i, range(1, size(bus, 0) + 1 )' );  //建立母线序号的映射，对应位置进行从1重新编号
 

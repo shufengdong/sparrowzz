@@ -41,31 +41,31 @@ fn make_y_bus(baseMVA, bus, branch) {
         // at each branch's "from" bus, and Yt is the same for the "to" bus end
         i = horzcat(range(0, nl),range(0, nl)) - 1;                           // double set of row indices
         j = range(0,nb);
-        Yf = sparse(i, horzcat(f, t), upper, nl, nb);
-        Yt = sparse(i, horzcat(f, t), lower, nl, nb);
+        Yf = full(sparse(i, horzcat(f, t), upper, nl, nb));
+        Yt = full(sparse(i, horzcat(f, t), lower, nl, nb));
 
         // build Ybus
         // branch admittances + shunt admittance
-        Ybus = sparse(horzcat(f,f,t,t), horzcat(f,t,f,t), vertcat(Yff,Yft,Ytf,Ytt), nb, nb) +
-               sparse(j, j, Ysh, nb, nb);
+        Ybus = full(sparse(horzcat(f,f,t,t), horzcat(f,t,f,t), vertcat(Yff,Yft,Ytf,Ytt), nb, nb)) +
+               full(sparse(j, j, Ysh, nb, nb));
     } else {
         // large case running on MATLAB
         // build connection matrices
         i = range(0, nl);
         j = range(0, nb);
-        Cf = sparse(i, f, ones(nl, 1), nl, nb);      // connection matrix for line & from buses
-        Ct = sparse(i, t, ones(nl, 1), nl, nb);      // connection matrix for line & to buses
+        Cf = full(sparse(i, f, ones(nl, 1), nl, nb));      // connection matrix for line & from buses
+        Ct = full(sparse(i, t, ones(nl, 1), nl, nb));      // connection matrix for line & to buses
 
         // build Yf and Yt such that Yf * V is the vector of complex branch currents injected
         // at each branch's "from" bus, and Yt is the same for the "to" bus end
 
-        Yf = sparse(i, i, Yff, nl, nl) * Cf + sparse(i, i, Yft, nl, nl) * Ct;
-        Yt = sparse(i, i, Ytf, nl, nl) * Cf + sparse(i, i, Ytt, nl, nl) * Ct;
+        Yf = full(sparse(i, i, Yff, nl, nl)) * Cf + full(sparse(i, i, Yft, nl, nl)) * Ct;
+        Yt = full(sparse(i, i, Ytf, nl, nl)) * Cf + full(sparse(i, i, Ytt, nl, nl)) * Ct;
 
         // build Ybus
         // branch admittances + shunt admittance
         Ybus = Cf' * Yf + Ct' * Yt +
-               sparse(j, j, Ysh, nb, nb);
+               full(sparse(j, j, Ysh, nb, nb));
     }
 
     return Ybus;
