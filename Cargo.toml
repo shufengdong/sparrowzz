@@ -13,7 +13,6 @@ members = [
     "mems/examples/ds-powerflow/ds-3phase-pf",
     "mems/examples/ds-guizhou",
     "mems/examples/iesplan",
-    "rustscript-transpiler",
 ]
 
 [workspace.package]

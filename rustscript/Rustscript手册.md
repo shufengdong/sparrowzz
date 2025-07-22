@@ -501,38 +501,10 @@ export fn fast_decoupled_pf(baseMVA, bus, gen, branch) {
 }
 ```
 
-## 12. 错误处理
 
-### 12.1 Result 类型
-```rustscript
-fn divide(a, b) -> Result<f64, String> {
-    if b == 0.0 {
-        return Err("Division by zero");
-    }
-    Ok(a / b)
-}
+## 12. 与MATLAB的对比
 
-// 使用
-result = divide(10.0, 2.0);
-match result {
-    Ok(value) => println("Result: {}", value),
-    Err(error) => println("Error: {}", error),
-}
-```
-
-### 12.2 异常处理
-```rustscript
-try {
-    result = risky_operation();
-} catch (error) {
-    println("Caught error: {}", error);
-    result = default_value;
-}
-```
-
-## 13. 与MATLAB的对比
-
-### 13.1 主要差异
+### 12.1 主要差异
 
 | 特性   | MATLAB              | RustScript            | 说明 |
 |------|---------------------|-----------------------|------|
@@ -543,8 +515,9 @@ try {
 | 字符串  | `'string'`          | `"string"`            | 引号类型不同 |
 | 函数定义 | `function y = f(x)` | `fn f(x){ return y;}` | 函数语法不同 |
 | 逻辑运算 | `&`, `\|`, `~`      | `&&`, `\|\|`, `~~`    | 逻辑运算符不同 |
+| 结构体  | `struct`              | 无结构体，使用张量和变量组织 | RustScript没有结构体概念 |
 
-### 13.2 索引转换详解
+### 12.2 索引转换详解
 
 **最重要的差异：MATLAB使用1基索引，RustScript使用0基索引**
 
@@ -564,7 +537,7 @@ slice(bus, [0], [i-1,i])      // 第i列所有行（需要减1）
 range(0, n)       // 生成 [0, 1, 2, ..., n-1] (前闭后开)
 ```
 
-### 13.3 转换示例对比
+### 12.3 转换示例对比
 
 **MATLAB到RustScript的典型转换：**
 
@@ -601,7 +574,7 @@ fn make_y_bus(baseMVA, bus, branch) {
 }
 ```
 
-### 13.4 转换器的索引处理策略
+### 12.4 转换器的索引处理策略
 
 在MATLAB到RustScript转换过程中，转换器需要特别处理索引：
 
@@ -613,3 +586,4 @@ fn make_y_bus(baseMVA, bus, branch) {
 - 函数中的索引操作需要转换：`A(i)` → `A[i-1]`
 - 循环变量需要调整：`for i = 1:n` → `for i in range(0, n)`
 - 序列生成需要转换：`1:n` → `range(1, n+1)` 或 `range(0, n)`
+
