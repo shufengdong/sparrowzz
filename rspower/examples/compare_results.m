@@ -24,7 +24,7 @@ function compare_results(case_name)
         'jac'
         'sdzip'
         'sbus'
-%         'runpf'
+        'runpf'
     };
     cal_makers = {
         @cal_makeybus
@@ -78,17 +78,22 @@ end
 
 function sdzip = cal_makesdzip(case_name)
     mpc = loadcase(case_name);
-    sdzip = full(makeSdzip(mpc));
+    sd = makeSdzip(mpc.baseMVA, mpc.bus);
+    sdzip = [sd.z, sd.i, sd.p];
 end
 
 function sbus = cal_makesbus(case_name)
     mpc = loadcase(case_name);
-    sbus = full(makeSbus(mpc));
+    baseMVA = mpc.baseMVA;
+    bus = mpc.bus;
+    gen = mpc.gen;
+    sbus = makeSbus(baseMVA, bus, gen);
 end
 
-function pf = cal_runpf(case_name)
+function pfv = cal_runpf(case_name)
     mpc = loadcase(case_name);
-    pf = runpf(mpc);
+    bus = runpf(mpc, mpoption('OUT_ALL',0','VERBOSE',0)).bus;
+    pfv = bus(:, 8) .* exp(1j * pi/180 * bus(:, 9));
 end
 
 

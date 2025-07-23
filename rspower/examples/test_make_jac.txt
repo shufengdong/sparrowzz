@@ -7,6 +7,8 @@
 #include ../lib/make_jac.txt
 #include ../lib/bustypes.txt
 
+// 可以同时测试dSbus_dV的计算
+
 jac = make_jac(baseMVA, bus, branch, gen, 1);
 println(jac);
 return jac;
