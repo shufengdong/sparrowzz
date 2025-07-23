@@ -36,7 +36,7 @@ fn make_sbus(baseMVA, bus, gen) {
     ngon = size(on, 0);
     Cg = full(sparse(gbus, range(0, ngon), 1, nb, ngon));
     Gp = slice(gen, [0], [PG-1, PG]);
-    Gq = slice(gen, [0], [PG-1, PG]);
+    Gq = slice(gen, [0], [QG-1, QG]);
     Sbusg = Cg * (get_multi(Gp, on)  + c(0,1) * get_multi(Gq, on)) / baseMVA;
     z = slice(Sd, [0], [0,1]);
     i = slice(Sd, [0], [1,2]);
