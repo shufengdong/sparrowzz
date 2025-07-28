@@ -1,4 +1,5 @@
 a = sparse([0,0,0,1,2,2], [0,1,2,1,1,2], [1,1,2,3,3,sin(8-2)], 3, 3);
 b = [1,12,7];
 r = sp_linsolve(a, b, [0,0,0]);
-return r;
+r2 = sp_linsolve(a, b);
+return r - r2;
