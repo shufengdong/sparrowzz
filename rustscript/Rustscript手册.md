@@ -40,8 +40,14 @@ PQ_bus
 "Power flow data for IEEE 14 bus"
 "File path: /data/case14.txt"
 ```
+### 2.4 数学常量约定
+- π：pi
+- 分母为零：NAN
+- 正无穷大：INF
+- 负无穷大：NEG_INF
 
-### 2.4 注释
+
+### 2.5 注释
 ```rustscript
 // 单行注释
 /* 多行注释 */
@@ -400,19 +406,20 @@ linspace(start, end, num)  // 在start和end间生成num个等间距点
 // 统计函数
 sum(tensor), mean(tensor), std(tensor), var(tensor)
 max(tensor), min(tensor), median(tensor)
+//其中，max()和min()可以如下用法：max(a, [0],1)，min(a, [0],1)，参数和slice函数的定义相同
 
 // 查找函数
 find(condition)       // 查找满足条件的索引
 any(tensor), all(tensor)
 
 // 获取多个元素
-get_multi(tensor, indices)  // 根据索引获取多个元素
+get_multi(tensor, indices)  // 根据索引获取多个元素(可不连续)
 ```
 
 ### 9.4 稀疏矩阵
 ```rustscript
 // 创建稀疏矩阵
-sparse(row_indices, col_indices, values, m, n);  // 创建m×n稀疏矩阵
+sparse(row_indices, col_indices, values, m, n);  // 创建m×n稀疏矩阵，其中row_indices, col_indices, values是三个等长的向量，分别指定非零元素的行下标、列下标和值。
 
 // 稀疏矩阵操作
 full_mat = full(sparse_mat);  // 转为密集矩阵
