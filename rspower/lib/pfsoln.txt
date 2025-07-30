@@ -1,0 +1,130 @@
+//PFSOLN  Updates bus, gen, branch data structures to match power flow soln.
+//   [BUS, GEN, BRANCH] = PFSOLN(BASEMVA, BUS0, GEN0, BRANCH0, ...
+//                                   YBUS, YF, YT, V, REF, PV, PQ, MPOPT)
+//  调用本函数时，需要调用如下文件
+//  #include ../lib/idx_gen.txt
+//  #include ../lib/idx_bus.txt
+//  #include ../lib/idx_brch.txt
+//  #include total_load.txt
+
+fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
+
+    // initialize return values（创建原始数据的副本）
+    bus     = bus0;
+    gen     = gen0;
+    branch  = branch0;
+
+    //----- update bus voltages -----(将求解得到的复数电压转换为幅值和角度)
+    bus = assign(bus, abs(V), [0], [VM-1, VM] );
+    bus = assign(bus, angle(V) * 180 / pi, [0], [VA-1, VA] );
+
+    //----- update Qg for gens at PV/slack buses and Pg for slack bus(es) -----
+    // generator info
+    //取非PQ且GEN_STATUS=1的generators
+    on_temp = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);    //which generators are on?
+    index_gbus_type = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on_temp) - 1;    //得到GEN_STATUS=1的发电机母线节点索引
+    on = find(get_multi(slice(bus, [0], [BUS_TYPE-1, BUS_TYPE]), index_gbus_type) != PQ)'; // which generators are not at PQ buses
+    off = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) <= 0)';       // which generators are off?
+    gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on)';         // what buses are they at?(注意索引需-1)
+
+    // compute total injected bus powers(计算节点注入功率)
+    Sbus = get_multi(V, gbus-1)' .* conj(select(Ybus, gbus-1) * V );
+
+    // update Qg for generators at PV/slack buses
+    gen_QG = set(slice(gen, [0], [QG-1, QG]), off, zeros(length(off), 1));  // zero out off-line Qg(离线发电机QG=0)
+    gen = assign(gen, gen_QG, [0], [QG-1, QG] );
+    // don't touch the ones at PQ buses
+    [Pd_gbus, Qd_gbus] = total_load(bus(gbus, :), [], 'bus', [], mpopt);    //total_load()函数现在没有，要另外开发(gbus索引注意是否-1)
+    gen_QG = set(slice(gen, [0], [QG-1, QG]), on, imag(Sbus) * baseMVA + Qd_gbus);  // inj Q + local Qd
+    gen = assign(gen, gen_QG, [0], [QG-1, QG] );
+
+    // ... at this point any buses with more than one generator will have
+    // the total Q dispatch for the bus assigned to each generator. This
+    // must be split between them. We do it first equally, then in proportion
+    // to the reactive range of the generator.（处理多发电机母线的无功分配）
+
+    if length(on) > 1 {
+        // build connection matrix, element i, j is 1 if gen on(i) at bus j is ON
+        nb = size(bus, 0);
+        ngon = size(on, 0);
+        Cg = full(sparse(range(0,ngon)', (gbus-1)', ones(ngon, 1), ngon, nb));
+
+        // divide Qg by number of generators at the bus to distribute equally(平均分配)
+        ngg = Cg * sum(Cg)';    // ngon x 1, number of gens at this gen's bus
+        gen_QG = set(slice(gen, [0], [QG-1, QG]), on, get_multi(slice(gen, [0], [QG-1, QG]), on)' ./ ngg);
+        gen = assign(gen, gen_QG, [0], [QG-1, QG] );
+
+        // set finite proxy M for infinite limits (for ~ proportional splitting)(处理无限限值)
+        // equal to sum over all gens at bus of abs(Qg) plus any finite Q limits
+        Qmin = select(gen, on, QMIN-1);
+        Qmax = select(gen, on, QMAX-1);
+        M = abs(select(gen, on, QG-1));
+        index_Qmax_inf = find( ~~is_inf(Qmax) );
+        M = set(M, index_Qmax_inf, get_multi(M, index_Qmax_inf) + abs(get_multi(Qmax, index_Qmax_inf)) );
+        index_Qmin_inf = find( ~~is_inf(Qmin) );
+        M = set(M, index_Qmin_inf, get_multi(M, index_Qmin_inf) + abs(get_multi(Qmin, index_Qmin_inf)) );
+        M = Cg * Cg' * M;   // each gen gets sum over all gens at same bus
+        // replace +/- Inf limits with proxy +/- M
+        Qmin = set(Qmin, find(Qmin == INF), get_multi(M, find(Qmin == INF) ) );
+        Qmin = set(Qmin, find(Qmin == -INF), -get_multi(M, find(Qmin == -INF) ) );
+        Qmax = set(Qmax, find(Qmax == INF), get_multi(M, find(Qmax == INF) ) );
+        Qmax = set(Qmax, find(Qmax == -INF), -get_multi(M, find(Qmax == -INF) ) );
+
+        // divide proportionally（按比例分配）
+        Cmin = full(sparse(range(0,ngon)', (gbus-1)', Qmin, ngon, nb) );
+        Cmax = full(sparse(range(0,ngon)', (gbus-1)', Qmax, ngon, nb) );
+        Qg_tot = Cg' * select(gen, on, QG-1);     // nb x 1 vector of total Qg at each bus(母线总无功)
+        Qg_min = sum(Cmin)';            // nb x 1 vector of min total Qg at each bus
+        Qg_max = sum(Cmax)';            // nb x 1 vector of max total Qg at each bus
+        gen_QG = set(slice(gen, [0], [QG-1, QG]), on, Qmin + (Cg * ((Qg_tot - Qg_min)./(Qg_max - Qg_min+eps))) .* (Qmax - Qmin) );
+        gen = assign(gen, gen_QG, [0], [QG-1, QG] );
+
+        // fix gens at buses with Qg range = 0 (use equal violation for all)（处理零范围特殊情况）
+        ig = find(abs(Cg * (Qg_min - Qg_max)) < 10*eps);  // gens at buses with Qg range = 0
+        if ~~(length(ig)==0){   //matlab中是isempty()函数，这里用length==0代替
+            ib = find(sum(select(Cg,ig), 0)')';   // buses with Qg range = 0
+            // total mismatch @ bus div by number of gens
+            mis_value = (get_multi(Qg_tot, ib)' - get_multi(Qg_min, ib)' ) ./ sum(select(Cg, [], ib)' , 1)';  
+            mis = full(sparse(range(0,nb)', zeros(nb,1), set(zeros(nb,1), ib, mis_value), nb, 1) );
+            gen_QG = set(slice(gen, [0], [QG-1, QG]), get_multi(on, ig), get_multi(Qmin, ig)' + select(Cg, ig) * mis);
+            gen = assign(gen, gen_QG, [0], [QG-1, QG] );
+        }
+    }                                            // (terms are mult by 0 anyway)
+
+    // update Pg for slack gen(s)
+    for k in 1..length(ref){
+        refgen = find(gbus == get_multi(get_multi(ref, [k-1]), 0) );              // which is(are) the reference gen(s)?
+        Pd_refk = total_load(bus(ref(k-1), :), [], 'bus', [], mpopt);     //total_load()函数现在没有，要另外开发
+        gen_PG = set(slice(gen, [0], [PG-1, PG]), get_multi(on, [get_multi(refgen,0)]), real(get_multi(Sbus, [get_multi(refgen,0)])) * baseMVA + Pd_refk );
+        gen = assign(gen, gen_PG, [0], [PG-1, PG] );
+
+        if length(refgen) > 1{          // more than one generator at this ref bus
+            // subtract off what is generated by other gens at this bus
+            refgen_PG_value = get_multi(slice(gen, [0], [PG-1, PG]), get_multi(on, [get_multi(refgen,0)]) ) 
+                                - sum(get_multi(slice(gen, [0], [PG-1, PG]), get_multi(on, get_multi(refgen,range(1,length(refgen)))) ));
+            gen_PG = set(slice(gen, [0], [PG-1, PG]), get_multi(on, [get_multi(refgen,0)]),  refgen_PG_value);
+            gen = assign(gen, gen_PG, [0], [PG-1, PG] );
+        }
+    }
+
+    //----- update/compute branch power flows -----（计算支路潮流）
+    out = find(slice(branch, [0], [BR_STATUS-1, BR_STATUS]) == 0);      // out-of-service branches
+    br = find(slice(branch, [0], [BR_STATUS-1, BR_STATUS] ));            // in-service branches
+    Sf = get_multi(V, get_multi(br, slice(branch, [0], [F_BUS-1, F_BUS] ) ) - 1)' .* conj(select(Yf, br) * V) * baseMVA; // complex power at "from" bus(bus索引需-1)
+    St = get_multi(V, get_multi(br, slice(branch, [0], [T_BUS-1, T_BUS] ) ) - 1)' .* conj(select(Yt, br) * V) * baseMVA; // complex power injected at "to" bus
+    branch_PF = zeros(size(branch,0), 1);
+    branch_PF = set(branch_PF, br, real(Sf));
+    branch = horzcat(branch, branch_PF);
+    branch_QF = zeros(size(branch,0), 1);
+    branch_QF = set(branch_QF, br, imag(Sf));
+    branch = horzcat(branch, branch_QF);
+    branch_PT = zeros(size(branch,0), 1);
+    branch_PT = set(branch_PT, br, real(St));
+    branch = horzcat(branch, branch_PT);
+    branch_QT = zeros(size(branch,0), 1);
+    branch_QT = set(branch_QT, br, imag(St));
+    branch = horzcat(branch, branch_QT);
+
+    //return bus, gen, branch;
+    return bus;
+}
