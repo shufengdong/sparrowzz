@@ -34,6 +34,8 @@ function compare_results(case_name)
         @cal_runpf
     };
 
+    
+
     % 依次比较每个矩阵
     for i = 1:length(field_names)
         field_name = field_names{i};
@@ -48,17 +50,34 @@ function compare_results(case_name)
             continue;
         end
 
-        tensor_r = parsed_results.(tensor_field);
-        if isempty(tensor_r)
+        tensor_result = parsed_results.(tensor_field);
+        if isempty(tensor_result.matrix)
             fprintf('%s 矩阵为空\n', field_name);
-            continue;
         end
 
-        % 计算 matpower 的矩阵
+        % 记录matlab执行时间
+        matlab_start = tic;
         matpower_r = cal_maker(case_name);
+        matlab_time = toc(matlab_start);
+
+        % 输出时间比较
+        tensoreval_time = tensor_result.tensoreval_time;
+        % 添加时间比较表头
+        fprintf('\n时间比较结果:\n');
+        fprintf('%-15s %-12s %-12s %-12s\n', '测试项目', 'TensorEval', 'MATLAB', '比较');
+        fprintf('%s\n', repmat('-', 1, 55));
+        fprintf('%-15s    %-5.4fs     %-5.4fs ', field_name, tensoreval_time, matlab_time);
+
+        if matlab_time > tensoreval_time
+            speedup = matlab_time / tensoreval_time;
+            fprintf('    %.2fx faster\n', speedup);
+        else
+            slowdown = tensoreval_time / matlab_time;
+            fprintf('    %.2fx slower\n', slowdown);
+        end
 
         % 比较矩阵
-        compare_matrices(tensor_r, matpower_r, field_name);
+        compare_matrices(tensor_result.matrix, matpower_r, field_name);
     end
 
     fprintf('\n所有比较完成!\n\n');

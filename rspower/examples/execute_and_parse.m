@@ -1,6 +1,6 @@
 function results = execute_and_parse()
     % 执行命令行并解析复数矩阵结果
-    % 返回一个结构体，包含所有测试文件的解析结果
+    % 返回一个结构体，包含所有测试文件的解析结果和tensoreval执行时间
 
     % 设置路径和文件
     tensoreval_path = '..\..\..\eig-rc\target\release\examples\tensoreval.exe';
@@ -22,23 +22,38 @@ function results = execute_and_parse()
         test_file = test_files{i};
         fprintf('正在处理: %s\n', test_file);
 
-        % 构建并执行命令
+        % 构建并执行命令，记录执行时间
         cmd = sprintf('%s --complex --verbose %s', tensoreval_path, test_file);
+        tensoreval_start = tic;
         [status, output] = system(cmd);
+        tensoreval_time = toc(tensoreval_start);
 
         % 解析结果
         if status == 0 && ~isempty(strtrim(output))
             try
                 parsed_matrix = parse_complex_matrix_from_output(output);
-                results.(sprintf('test_%d_%s', i, strrep(test_file, '.txt', ''))) = parsed_matrix;
-                fprintf('  成功解析矩阵: %dx%d\n', size(parsed_matrix, 1), size(parsed_matrix, 2));
+                field_name = sprintf('test_%d_%s', i, strrep(test_file, '.txt', ''));
+                results.(field_name) = struct(...
+                    'matrix', parsed_matrix, ...
+                    'tensoreval_time', tensoreval_time, ...
+                    'file', test_file ...
+                );
+                fprintf('  成功解析矩阵: %dx%d，执行时间: %.4fs\n', size(parsed_matrix, 1), size(parsed_matrix, 2), tensoreval_time);
             catch ME
                 fprintf('  解析失败: %s\n', ME.message);
-                results.(sprintf('test_%d_%s', i, strrep(test_file, '.txt', ''))) = [];
+                results.(sprintf('test_%d_%s', i, strrep(test_file, '.txt', ''))) = struct(...
+                    'matrix', [], ...
+                    'tensoreval_time', tensoreval_time, ...
+                    'file', test_file ...
+                );
             end
         else
             fprintf('  无输出或执行失败\n');
-            results.(sprintf('test_%d_%s', i, strrep(test_file, '.txt', ''))) = [];
+            results.(sprintf('test_%d_%s', i, strrep(test_file, '.txt', ''))) = struct(...
+                'matrix', [], ...
+                'tensoreval_time', tensoreval_time, ...
+                'file', test_file ...
+            );
         end
     end
 
@@ -47,11 +62,11 @@ function results = execute_and_parse()
     % 显示结果概要
     fieldNames = fieldnames(results);
     for i = 1:length(fieldNames)
-        matrix = results.(fieldNames{i});
-        if ~isempty(matrix)
-            fprintf('%s: %dx%d 复数矩阵\n', fieldNames{i}, size(matrix, 1), size(matrix, 2));
+        result = results.(fieldNames{i});
+        if ~isempty(result.matrix)
+            fprintf('%s: %dx%d 复数矩阵，TensorEval时间: %.4fs\n', fieldNames{i}, size(result.matrix, 1), size(result.matrix, 2), result.tensoreval_time);
         else
-            fprintf('%s: 空矩阵\n', fieldNames{i});
+            fprintf('%s: 空矩阵，TensorEval时间: %.4fs\n', fieldNames{i}, result.tensoreval_time);
         end
     end
 end
