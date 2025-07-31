@@ -1,4 +1,4 @@
-fn make_y_bus(baseMVA, bus, branch) {
+fn make_y_bus_Yt(baseMVA, bus, branch) {
     // constants
     nb = size(bus, 0);          // number of buses
     nl = size(branch, 0);       // number of lines
@@ -70,5 +70,5 @@ fn make_y_bus(baseMVA, bus, branch) {
                full(sparse(j, j, Ysh, nb, nb));
     }
 
-    return Ybus;
+    return Yt;
 }

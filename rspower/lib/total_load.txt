@@ -1,0 +1,81 @@
+//TOTAL_LOAD Returns vector of total load in each load zone.
+//   PD = TOTAL_LOAD(MPC)
+//   PD = TOTAL_LOAD(MPC, LOAD_ZONE)
+//   PD = TOTAL_LOAD(MPC, LOAD_ZONE, OPT)
+//   PD = TOTAL_LOAD(MPC, LOAD_ZONE, OPT, MPOPT)
+//   PD = TOTAL_LOAD(BUS)
+//   PD = TOTAL_LOAD(BUS, GEN)
+//   PD = TOTAL_LOAD(BUS, GEN, LOAD_ZONE)
+//   PD = TOTAL_LOAD(BUS, GEN, LOAD_ZONE, OPT)
+//   PD = TOTAL_LOAD(BUS, GEN, LOAD_ZONE, OPT, MPOPT)
+//   [PD, QD] = TOTAL_LOAD(...) returns both active and reative power
+//   demand for each zone.
+//
+//   MPC - standard MATPOWER case struct
+//
+//   BUS - standard BUS matrix with nb rows, where the fixed active
+//       and reactive loads are specified in columns PD and QD
+//
+//   GEN - (optional) standard GEN matrix with ng rows, where the
+//       dispatchable loads are specified by columns PG, QG, PMIN,
+//       QMIN and QMAX (in rows for which ISLOAD(GEN) returns true).
+//       If GEN is empty, it assumes there are no dispatchable loads.
+//
+//   LOAD_ZONE - (optional) nb element vector where the value of
+//       each element is either zero or the index of the load zone
+//       to which the corresponding bus belongs. If LOAD_ZONE(b) = k
+//       then the loads at bus b will added to the values of PD(k) and
+//       QD(k). If LOAD_ZONE is empty, the default is defined as the areas
+//       specified in the BUS matrix, i.e. LOAD_ZONE = BUS(:, BUS_AREA)
+//       and load will have dimension = MAX(BUS(:, BUS_AREA)). LOAD_ZONE
+//       can also take the following string values:
+//           'all'  - use a single zone for the entire system (return scalar)
+//           'area' - use LOAD_ZONE = BUS(:, BUS_AREA), same as default
+//           'bus'  - use a different zone for each bus (i.e. to compute
+//               final values of bus-wise loads, including voltage dependent
+//               fixed loads and or dispatchable loads)
+//
+//   OPT - (optional) option struct, with the following fields:
+//           'type'  -  string specifying types of loads to include, default
+//                      is 'BOTH' if GEN is provided, otherwise 'FIXED'
+//               'FIXED'        : sum only fixed loads
+//               'DISPATCHABLE' : sum only dispatchable loads
+//               'BOTH'         : sum both fixed and dispatchable loads
+//           'nominal' -  1 : use nominal load for dispatchable loads
+//                        0 : (default) use actual realized load for
+//                             dispatchable loads
+//
+//       For backward compatibility with MATPOWER 4.x, OPT can also
+//       take the form of a string, with the same options as OPT.type above.
+//       In this case, again for backward compatibility, it is the "nominal"
+//       load that is computed for dispatchable loads, not the actual
+//       realized load. Using a string for OPT is deprecated and
+//       will be removed in a future version.
+//
+//   MPOPT - (optional) MATPOWER options struct, which may specify
+//       a voltage dependent (ZIP) load model for fixed loads
+//
+//   Examples:
+//       Return the total active load for each area as defined in BUS_AREA.
+//
+//       Pd = total_load(bus);
+//
+//       Return total active and reactive load, fixed and dispatchable, for
+//       entire system.
+//
+//       [Pd, Qd] = total_load(bus, gen, 'all');
+//
+//       Return the total of the nominal dispatchable loads at buses 10-20.
+//
+//       load_zone = zeros(nb, 1);
+//       load_zone(10:20) = 1;
+//       opt = struct('type', 'DISPATCHABLE', 'nominal', 1);
+//       Pd = total_load(mpc, load_zone, opt)
+//
+//   See also SCALE_LOAD.
+
+fn  total_load(bus, gen, load_zone, opt, mpopt){
+
+    //return Pd, Qd;
+    return Pd;
+}

@@ -1,0 +1,33 @@
+#include ../data/case14.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/make_y_bus.txt
+#include ../lib/make_y_bus_Yf.txt
+#include ../lib/make_y_bus_Yt.txt
+#include ../lib/dsbus_dv.txt
+#include ../lib/make_sdzip.txt
+#include ../lib/make_sbus.txt
+#include ../lib/newtonpf.txt
+#include ../lib/runpf.txt
+#include ../lib/pfsoln.txt
+
+
+info("Running power flow on case14...");
+for i in 0..5 {
+    r = runpf();
+}
+info("Run power flow on case14 end");
+
+Ybus = make_y_bus(baseMVA, bus, branch);
+Yf = make_y_bus_Yf(baseMVA, bus, branch);
+Yt = make_y_bus_Yt(baseMVA, bus, branch);
+V = r;
+bus_type = slice(bus, [0], [BUS_TYPE-1,BUS_TYPE]);
+ref = find(bus_type == REF) + 1;
+pv  = find(bus_type == PV) + 1;
+pq  = find(bus_type == PQ) + 1;
+mpopt = 12;
+bus_output = pfsoln(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V, ref, pv, pq, mpopt);
+
+return bus_output;
