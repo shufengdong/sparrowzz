@@ -9,7 +9,7 @@ crate-type = ["cdylib"]
 [dependencies]
 log = "0.4"
 ciborium = "0.2"
-arrow-schema = { version = "55.1", features = ["serde"] }
+arrow-schema = { version = "56.0", features = ["serde"] }
 petgraph = "0.8"
 mems = { path = "../../.." }
 bytes = "1.10"
