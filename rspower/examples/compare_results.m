@@ -3,7 +3,7 @@ function compare_results(case_name)
     % case_name: 算例名称，如 'case14', 'case30', 'case57' 等
 
     if nargin < 1
-        case_name = 'case14';  % 默认使用 case14
+        case_name = 'case141';  % 默认使用 case14
     end
 
     fprintf('==============开始为算例 %s 执行测试...==============\n', case_name);
@@ -111,7 +111,10 @@ end
 
 function pfv = cal_runpf(case_name)
     mpc = loadcase(case_name);
-    bus = runpf(mpc, mpoption('OUT_ALL',0','VERBOSE',0)).bus;
+    for i = 1:100
+        r = runpf(mpc, mpoption('OUT_ALL',0','VERBOSE',0));
+    end
+    bus = r.bus;
     pfv = bus(:, 8) .* exp(1j * pi/180 * bus(:, 9));
 end
 
