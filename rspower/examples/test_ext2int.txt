@@ -4,4 +4,23 @@
 #include ../lib/idx_brch.txt
 #include ../lib/ext2int.txt
 
-return ext2int(bus, gen, branch, areas);
+i2e = ext2int(bus, gen, branch, areas);
+
+assert_relative_eq(i2e, [
+    [1],
+    [2],
+    [3],
+    [4],
+    [5],
+    [6],
+    [7],
+    [8],
+    [9],
+    [10],
+    [11],
+    [12],
+    [13],
+    [14]
+]);
+
+return i2e;

@@ -39,5 +39,5 @@ fn ext2int(bus, gen, branch, areas){
 
     //return i2e, bus, gen, branch, areas;
     //return output_branch2;
-    return e2i;
+    return i2e;
 }
