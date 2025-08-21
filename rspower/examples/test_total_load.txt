@@ -1,0 +1,24 @@
+#include ../data/case14.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/total_load.txt
+#include ../lib/make_sdzip.txt
+
+//Pd = total_load(bus, gen, 1, [], [], []);
+
+on_temp = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);
+index_gbus_type = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on_temp) - 1;
+on = find(get_multi(slice(bus, [0], [BUS_TYPE-1, BUS_TYPE]), index_gbus_type) != PQ)';
+gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on)' - 1;
+Pd = total_load(select(bus, gbus), [], 1, [], [], []);
+
+assert_relative_eq(Pd, [
+    [c(0,0)],
+    [c(21.7,0)],
+    [c(94.2,0)],
+    [c(11.2,0)],
+    [c(0,0)]
+]);
+
+return Pd;
