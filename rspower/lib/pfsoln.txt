@@ -5,7 +5,8 @@
 //  #include ../lib/idx_gen.txt
 //  #include ../lib/idx_bus.txt
 //  #include ../lib/idx_brch.txt
-//  #include total_load.txt
+//  #include ../lib/total_load.txt
+//  #include ../lib/make_sdzip.txt
 
 fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
 
@@ -34,8 +35,10 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     gen_QG = set(slice(gen, [0], [QG-1, QG]), off, zeros(length(off), 1));  // zero out off-line Qg(离线发电机QG=0)
     gen = assign(gen, gen_QG, [0], [QG-1, QG] );
     // don't touch the ones at PQ buses
-    [Pd_gbus, Qd_gbus] = total_load(bus(gbus, :), [], 'bus', [], mpopt);    //total_load()函数现在没有，要另外开发(gbus索引注意是否-1)
-    gen_QG = set(slice(gen, [0], [QG-1, QG]), on, imag(Sbus) * baseMVA + Qd_gbus);  // inj Q + local Qd
+    Pd_gbus = total_load(select(bus, gbus-1), [], 1, [], [], []);
+    //Pd_gbus = slice(total_load(select(bus, gbus-1), [], 1, [], [], mpopt), [0], [0,1]);
+    //Qd_gbus = slice(total_load(bus(gbus-1, :), [], 1, [], [], mpopt), [0], [1,2]);
+    /*gen_QG = set(slice(gen, [0], [QG-1, QG]), on, imag(Sbus) * baseMVA + Qd_gbus);  // inj Q + local Qd
     gen = assign(gen, gen_QG, [0], [QG-1, QG] );
 
     // ... at this point any buses with more than one generator will have
@@ -94,7 +97,8 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     // update Pg for slack gen(s)
     for k in 1..length(ref){
         refgen = find(gbus == get_multi(get_multi(ref, [k-1]), 0) );              // which is(are) the reference gen(s)?
-        Pd_refk = total_load(bus(ref(k-1), :), [], 'bus', [], mpopt);     //total_load()函数现在没有，要另外开发
+        //Pd_refk = slice(total_load(select(bus, get_multi(ref, [k-1] )), [], 1, [], [], mpopt), [0], [0,1]);
+        Pd_refk = [[c(0,0)]];
         gen_PG = set(slice(gen, [0], [PG-1, PG]), get_multi(on, [get_multi(refgen,0)]), real(get_multi(Sbus, [get_multi(refgen,0)])) * baseMVA + Pd_refk );
         gen = assign(gen, gen_PG, [0], [PG-1, PG] );
 
@@ -123,8 +127,11 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     branch = horzcat(branch, branch_PT);
     branch_QT = zeros(size(branch,0), 1);
     branch_QT = set(branch_QT, br, imag(St));
-    branch = horzcat(branch, branch_QT);
+    branch = horzcat(branch, branch_QT);*/
 
     //return bus, gen, branch;
-    return bus;
+    //return bus;
+    return Pd_gbus;
+    //return branch;
+
 }

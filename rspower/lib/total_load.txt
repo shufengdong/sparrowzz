@@ -180,6 +180,5 @@ fn  total_load(bus, gen, load_zone, opt_type, opt_nominal, mpopt){
         }
     }
 
-    //return Pd, Qd;
-    return Pd;
+    return horzcat(Pd,Qd);
 }

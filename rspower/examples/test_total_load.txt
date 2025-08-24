@@ -10,15 +10,15 @@
 on_temp = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);
 index_gbus_type = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on_temp) - 1;
 on = find(get_multi(slice(bus, [0], [BUS_TYPE-1, BUS_TYPE]), index_gbus_type) != PQ)';
-gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on)' - 1;
-Pd = total_load(select(bus, gbus), [], 1, [], [], []);
+gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on)';
+Pd_Qd = total_load(select(bus, gbus-1), [], 1, [], [], []);
 
-assert_relative_eq(Pd, [
-    [c(0,0)],
-    [c(21.7,0)],
-    [c(94.2,0)],
-    [c(11.2,0)],
-    [c(0,0)]
+assert_relative_eq(Pd_Qd, [
+    [c(0,0), c(0,0)],
+    [c(21.7,0), c(12.7,0)],
+    [c(94.2,0), c(19.0,0)],
+    [c(11.2,0), c(7.5,0)],
+    [c(0,0), c(0,0)]
 ]);
 
-return Pd;
+return Pd_Qd;

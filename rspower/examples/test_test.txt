@@ -1,0 +1,49 @@
+#include ../data/case14.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/make_y_bus.txt
+#include ../lib/make_y_bus_Yf.txt
+#include ../lib/make_y_bus_Yt.txt
+#include ../lib/dsbus_dv.txt
+#include ../lib/make_sdzip.txt
+#include ../lib/make_sbus.txt
+#include ../lib/newtonpf.txt
+#include ../lib/runpf.txt
+#include ../lib/pfsoln.txt
+#include ../lib/total_load.txt
+
+/*info("Running power flow on case14...");
+for i in 0..5 {
+    V = runpf();
+}
+info("Run power flow on case14 end");*/
+
+V = [
+    [c(1.06, 0.0)],
+    [c(1.0410510878563968, -0.09076140409343753)],
+    [c(0.9851925222806562, -0.22247627748206936)],
+    [c(1.0012301294030048, -0.18218725103727978)],
+    [c(1.0075836018455215, -0.1555114004249211)],
+    [c(1.0372104967857152, -0.26285810879166427)],
+    [c(1.0327936828708408, -0.24527724412925403)],
+    [c(1.0605034385798873, -0.25185800912465656)],
+    [c(1.0202443799343512, -0.27220066837791956)],
+    [c(1.0147098467803461, -0.2737382122352938)],
+    [c(1.0218861177448701, -0.2698150316344123)],
+    [c(1.0188727210261328, -0.2744472303583861)],
+    [c(1.0138455467690366, -0.27462511105715226)],
+    [c(0.9952474931854945, -0.28601520251885126)]
+];
+
+bus = assign(bus, abs(V), [0], [VM-1, VM] );
+bus = assign(bus, angle(V) * 180 / pi, [0], [VA-1, VA] );
+
+on_temp = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);
+index_gbus_type = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on_temp) - 1;
+on = find(get_multi(slice(bus, [0], [BUS_TYPE-1, BUS_TYPE]), index_gbus_type) != PQ)';
+off = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) <= 0)';
+gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on)';
+Pd_Qd = total_load(select(bus, gbus-1), [], 1, [], [], []);
+
+return Pd_Qd;
