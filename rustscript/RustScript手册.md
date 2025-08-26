@@ -324,9 +324,43 @@ bus_gen_status = ~~bus_gen_status;  // 逻辑非运算
 pq = find(bus_type == PQ || ~~bus_gen_status);  // 组合逻辑运算
 ```
 
-## 7. 函数定义
+## 7. 基本编程语句
 
-### 7.1 基本函数语法
+### 7.1 条件语句
+```rustscript
+//if语句
+if a ==1{
+    b = b+1;
+}
+
+//if-else语句
+if a ==1{
+    b = b+1;
+}else{
+    b = b+2;
+}
+
+//if-elseif-else语句
+if a == 0{
+    b = b + 1;
+}else if a == 1{
+    b = b + 2;
+}else{
+    b = b + 3;
+}
+```
+
+### 7.2 循环语句
+```rustscript
+//for语句
+for i in 0..10 {
+    r = runpf();
+}
+```
+
+## 8. 函数定义
+
+### 8.1 基本函数语法
 ```rustscript
 fn function_name(param1, param2, ...) {
     // 函数体
@@ -341,7 +375,7 @@ fn add(a, b) {
 
 **重要限制：RustScript函数只能返回一个变量，不支持多返回值。**
 
-### 7.2 函数示例
+### 8.2 函数示例
 ```rustscript
 fn make_y_bus(baseMVA, bus, branch) {
     nb = size(bus, 0);
