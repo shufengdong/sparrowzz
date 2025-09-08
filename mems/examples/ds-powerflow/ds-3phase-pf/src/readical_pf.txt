@@ -1,7 +1,0 @@
-dy_topo = [];
-dev_topo = [];
-terminal_cn_dev = [];
-tn_input = [];
-shunt_meas = [];
-// general matrix
-gm = [];
