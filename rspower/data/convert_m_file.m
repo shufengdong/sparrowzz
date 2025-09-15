@@ -1,4 +1,4 @@
-function convert_m_file3(input_file, output_file)
+function convert_m_file(input_file, output_file)
     % input_file: 输入.m文件路径（例如 'case14.m'）
     % output_file：输出.txt文件路径（例如 'case14_mems.txt'）
     % 将matpower矩阵格式转换为mems支持的脚本矩阵格式

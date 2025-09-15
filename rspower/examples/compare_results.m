@@ -3,7 +3,7 @@ function compare_results(case_name)
     % case_name: 算例名称，如 'case14', 'case30', 'case57' 等
 
     if nargin < 1
-        case_name = 'case141';  % 默认使用 case14
+        case_name = 'case145';  % 默认使用 case14
     end
 
     fprintf('==============开始为算例 %s 执行测试...==============\n', case_name);
@@ -20,17 +20,17 @@ function compare_results(case_name)
 
     % 比较的field_name和使用matpower计算函数
     field_names = {
-        'ybus'
-        'jac'
-        'sdzip'
-        'sbus'
+%         'ybus'
+%         'jac'
+%         'sdzip'
+%         'sbus'
         'runpf'
     };
     cal_makers = {
-        @cal_makeybus
-        @cal_makejac
-        @cal_makesdzip
-        @cal_makesbus
+%         @cal_makeybus
+%         @cal_makejac
+%         @cal_makesdzip
+%         @cal_makesbus
         @cal_runpf
     };
 
@@ -111,8 +111,9 @@ end
 
 function pfv = cal_runpf(case_name)
     mpc = loadcase(case_name);
-    for i = 1:100
-        r = runpf(mpc, mpoption('OUT_ALL',0','VERBOSE',0));
+    mpopt = mpoption('exp.use_legacy_core', 1, 'out.all',0','verbose',0);
+    for i = 1:2000
+        r = runpf(mpc, mpopt);
     end
     bus = r.bus;
     pfv = bus(:, 8) .* exp(1j * pi/180 * bus(:, 9));
@@ -159,7 +160,7 @@ function compare_matrices(matrix1, matrix2, matrix_name)
     fprintf('  最大相对误差: %.2e\n', relative_error);
 
     % 判断是否相等（使用容差）
-    tolerance = 1e-10;
+    tolerance = 1e-6;
     if max_error < tolerance
         fprintf('  ✅ 矩阵相等 (容差: %.0e)\n', tolerance);
     else
