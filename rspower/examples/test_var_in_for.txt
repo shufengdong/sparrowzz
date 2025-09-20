@@ -13,11 +13,12 @@
 #include ../lib/pfsoln.txt
 #include ../lib/total_load.txt
 
-/*info("Running power flow on case14...");
+info("Running power flow on case14...");
 for i in 0..5 {
-    V = runpf();
+    runpf();
+    //V = runpf();
 }
-info("Run power flow on case14 end");*/
+info("Run power flow on case14 end");
 
 V = [
     [c(1.06, 0.0)],
@@ -35,7 +36,6 @@ V = [
     [c(1.0138455467690366, -0.27462511105715226)],
     [c(0.9952474931854945, -0.28601520251885126)]
 ];
-
 bus = assign(bus, abs(V), [0], [VM-1, VM] );
 bus = assign(bus, angle(V) * 180 / pi, [0], [VA-1, VA] );
 
