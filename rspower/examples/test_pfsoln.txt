@@ -28,12 +28,12 @@ bus_type = slice(bus, [0], [BUS_TYPE-1,BUS_TYPE]);
 ref = find(bus_type == REF) + 1;
 pv  = find(bus_type == PV) + 1;
 pq  = find(bus_type == PQ) + 1;
-//bus_output = pfsoln(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V, ref, pv, pq, []);
-//branch_output = pfsoln(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V, ref, pv, pq, []);
+bus_output = pfsoln(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V, ref, pv, pq, []);
 gen_output = pfsoln(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V, ref, pv, pq, []);
+branch_output = pfsoln(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V, ref, pv, pq, []);
 
 //bus结果
-/*assert_relative_eq(bus_output, [
+assert_relative_eq(bus_output, [
     [c(1,0), c(3,0), c(0.0,0.0), c(0.0,0.0), c(0.0,0.0), c(0.0,0.0), c(1.0,0.0), c(1.0600,0.0), c(0.0,0.0), c(0.0,0.0), c(1.0,0.0), c(1.06,0.0), c(0.94,0.0)],
     [c(2,0), c(2,0), c(21.7,0.0), c(12.7,0.0), c(0.0,0.0), c(0.0,0.0), c(1.0,0.0), c(1.0450,0.0), c(-4.9826,0.0), c(0.0,0.0), c(1.0,0.0), c(1.06,0.0), c(0.94,0.0)],
     [c(3,0), c(2,0), c(94.2,0.0), c(19.0,0.0), c(0.0,0.0), c(0.0,0.0), c(1.0,0.0), c(1.0100,0.0), c(-12.7251,0.0), c(0.0,0.0), c(1.0,0.0), c(1.06,0.0), c(0.94,0.0)],
@@ -48,7 +48,7 @@ gen_output = pfsoln(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V, ref, pv, pq, [])
     [c(12,0), c(1,0), c(6.1,0.0), c(1.6,0.0), c(0.0,0.0), c(0.0,0.0), c(1.0,0.0), c(1.0552,0.0), c(-15.0756,0.0), c(0.0,0.0), c(1.0,0.0), c(1.06,0.0), c(0.94,0.0)],
     [c(13,0), c(1,0), c(13.5,0.0), c(5.8,0.0), c(0.0,0.0), c(0.0,0.0), c(1.0,0.0), c(1.0504,0.0), c(-15.1563,0.0), c(0.0,0.0), c(1.0,0.0), c(1.06,0.0), c(0.94,0.0)],
     [c(14,0), c(1,0), c(14.9,0.0), c(5.0,0.0), c(0.0,0.0), c(0.0,0.0), c(1.0,0.0), c(1.0355,0.0), c(-16.0336,0.0), c(0.0,0.0), c(1.0,0.0), c(1.06,0.0), c(0.94,0.0)]
-],4);*/
+],4);
 
 //gen结果
 /*assert_relative_eq(gen_output, [
@@ -84,4 +84,6 @@ gen_output = pfsoln(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V, ref, pv, pq, [])
 ],4);*/
 
 
-return gen_output;
+return bus_output;
+//return gen_output;
+//return branch_output;
