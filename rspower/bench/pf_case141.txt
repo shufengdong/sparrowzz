@@ -1,0 +1,17 @@
+#include ../data/case141.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/make_y_bus.txt
+#include ../lib/dsbus_dv.txt
+#include ../lib/make_sdzip.txt
+#include ../lib/make_sbus.txt
+#include ../lib/newtonpf.txt
+#include ../lib/runpf.txt
+
+info("Running 2000 times power flow case141...");
+for i in 0..2000 {
+    r = runpf();
+}
+info("Run power flow on case141 end");
+return r;
