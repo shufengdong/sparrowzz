@@ -9,6 +9,24 @@
 #include ../lib/newtonpf.txt
 #include ../lib/runpf.txt
 
+info("Running make_sbus on case141 2000 times...");
+for i in 0..2000 {
+    make_sbus(baseMVA, bus, gen);
+}
+info("Run make_sbus case141 end");
+
+info("Running make_y_bus on case141 2000 times...");
+for i in 0..2000 {
+    make_y_bus(baseMVA, bus, branch);
+}
+info("Run make_y_bus case141 end");
+
+info("Running make_jac on case141 2000 times...");
+for i in 0..2000 {
+    make_jac(baseMVA, bus, branch, gen, 1);
+}
+info("Run make_jac case141 end");
+
 info("Running 2000 times power flow case141...");
 for i in 0..2000 {
     r = runpf();
