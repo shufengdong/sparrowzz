@@ -9,11 +9,11 @@
 #include ../lib/newtonpf.txt
 #include ../lib/runpf.txt
 
-info("Running power flow on case14...");
+info(`Running power flow on case14...`);
 for i in 0..100 {
     r = runpf();
 }
-info("Run power flow on case14 end");
+info(`Run power flow on case14 end`);
 
 assert_relative_eq(r, [
     [c(1.0600,0)],
@@ -31,5 +31,3 @@ assert_relative_eq(r, [
     [c(1.0138,-0.2746)],
     [c(0.9952,-0.2860)]
 ],4);
-
-return r;

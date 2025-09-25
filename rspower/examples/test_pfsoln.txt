@@ -14,11 +14,11 @@
 #include ../lib/total_load.txt
 
 
-info("Running power flow on case14...");
+info(`Running power flow on case14...`);
 for i in 0..5 {
     r = runpf();
 }
-info("Run power flow on case14 end");
+info(`Run power flow on case14 end`);
 
 Ybus = make_y_bus(baseMVA, bus, branch);
 Yf = make_y_bus_Yf(baseMVA, bus, branch);
@@ -84,6 +84,6 @@ assert_relative_eq(bus_output, [
 ],4);*/
 
 
-return bus_output;
+//return bus_output;
 //return gen_output;
 //return branch_output;

@@ -21,5 +21,3 @@ assert_relative_eq(sdzip, [
     [c(0,0), c(0,0), c(0.1350,0.0580)],
     [c(0,0), c(0,0), c(0.1490,0.0500)]
 ],4);
-
-return sdzip;

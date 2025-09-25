@@ -22,4 +22,3 @@ assert_relative_eq(r, [
     [c(-0.135,-0.058)],
     [c(-0.149,-0.050)]
 ]);
-return r;

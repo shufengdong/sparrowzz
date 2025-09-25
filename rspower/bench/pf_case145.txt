@@ -9,9 +9,8 @@
 #include ../lib/newtonpf.txt
 #include ../lib/runpf.txt
 
-info("Running 2000 times power flow case145...");
+info(`Running 2000 times power flow case145...`);
 for i in 0..2000 {
     r = runpf();
 }
-info("Run power flow on case145 end");
-return r;
+info(`Run power flow on case145 end`);
