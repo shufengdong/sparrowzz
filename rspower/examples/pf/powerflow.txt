@@ -1,0 +1,21 @@
+#include ../../lib/idx_gen.txt
+#include ../../lib/idx_bus.txt
+#include ../../lib/idx_brch.txt
+#include ../../lib/make_y_bus.txt
+#include ../../lib/dsbus_dv.txt
+#include ../../lib/make_sdzip.txt
+#include ../../lib/make_sbus.txt
+#include ../../lib/newtonpf.txt
+#include ../../lib/runpf.txt
+
+
+// system MVA base
+baseMVA = 100;
+bus = read_tensor(`./bus.txt`);
+branch = read_tensor(`./branch.txt`);
+gen = read_tensor(`./gen.txt`);
+
+info(`Running power flow start...`);
+r = runpf();
+info(`Run power flow end`);
+return r;
