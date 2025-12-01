@@ -1,9 +1,15 @@
+% 使用说明:
+% 1. 在 MATLAB 中切换到 rspower/examples 目录
+% 2. 运行: compare_results()
+% 3. 程序会自动执行测试文件、解析结果，并与 matpower 计算结果比较
+% 4. 可选择调用 visualize_comparison() 进行可视化比较
+
 function compare_results(case_name)
     % 比较 execute_and_parse 结果与 matpower 计算结果
     % case_name: 算例名称，如 'case14', 'case30', 'case57' 等
 
     if nargin < 1
-        case_name = 'case145';  % 默认使用 case14
+        case_name = 'case14';  % 默认使用 case14
     end
 
     fprintf('==============开始为算例 %s 执行测试...==============\n', case_name);
@@ -20,17 +26,17 @@ function compare_results(case_name)
 
     % 比较的field_name和使用matpower计算函数
     field_names = {
-%         'ybus'
-%         'jac'
-%         'sdzip'
-%         'sbus'
+        'ybus'
+        'jac'
+        'sdzip'
+        'sbus'
         'runpf'
     };
     cal_makers = {
-%         @cal_makeybus
-%         @cal_makejac
-%         @cal_makesdzip
-%         @cal_makesbus
+        @cal_makeybus
+        @cal_makejac
+        @cal_makesdzip
+        @cal_makesbus
         @cal_runpf
     };
 
@@ -111,7 +117,7 @@ end
 
 function pfv = cal_runpf(case_name)
     mpc = loadcase(case_name);
-    mpopt = mpoption('exp.use_legacy_core', 1, 'out.all',0','verbose',0);
+    mpopt = mpoption('out.all',0','verbose',0);
     for i = 1:2000
         r = runpf(mpc, mpopt);
     end
@@ -160,7 +166,7 @@ function compare_matrices(matrix1, matrix2, matrix_name)
     fprintf('  最大相对误差: %.2e\n', relative_error);
 
     % 判断是否相等（使用容差）
-    tolerance = 1e-6;
+    tolerance = 1e-10;
     if max_error < tolerance
         fprintf('  ✅ 矩阵相等 (容差: %.0e)\n', tolerance);
     else
@@ -283,9 +289,3 @@ function update_single_test_file(filename, data_file)
         fprintf('    文件已更新\n');
     end
 end
-
-% 使用说明:
-% 1. 在 MATLAB 中切换到 rspower/examples 目录
-% 2. 运行: compare_results()
-% 3. 程序会自动执行测试文件、解析结果，并与 matpower 计算结果比较
-% 4. 可选择调用 visualize_comparison() 进行可视化比较
