@@ -2486,9 +2486,82 @@ Ybus = sparse(horzcat(f,f,t,t), horzcat(f,t,f,t),
               vertcat(Yff,Yft,Ytf,Ytt), nb, nb);
 ```
 
-## 10. 数据结构示例
+## 10. 方程组和优化模型求解
+### 10.1 线性方程组求解
+```rustscript
+函数
+    sp_linsolve
+语法
+    sp_linsolve([eqs], b, [init_val], [var_name]);
+输入参数
+    eqs - 包含变量的方程组表达式，多个方程之间用","分隔
+    b - 常数向量
+    init_val - 变量初值，用","分隔
+    var_name - 变量名称，用","分隔
+    注意：变量名称需包含在"`"中，如`x`
+返回结果
+	[变量求解结果,迭代次数]
+示例
+    输入 g1 = `x1`+3/3 * `x2`+ min(2,5)*`x3` - 1;
+        g2 = 1*3*`x2` - 4*3;
+        g3 = 1*3 * `x2`+sin(8-2)*x3 - 7;
+        b = [10,0,0];
+        r = sp_linsolve([`g1`,`g2`,`g3`], b, [], [`x1`,x2,x3]);
+    结果 [-28.79, 4, 17.89, 0]
+```
 
-### 10.1 电力系统数据（基于 case14）
+### 10.2 混合整数线性规划
+```rustscript
+函数
+    intlinprog
+语法
+    intlinprog(obj, [st], var_type, [var_name]);
+输入参数
+    obj - 目标函数表达式
+    st - 约束条件表达式，多个约束条件之间用","分隔
+    var_type - 变量类型向量，1为0-1变量、2为整型变量、3为实数变量
+    var_name - 变量名称，用","分隔
+    注意：变量名称需包含在"`"中，如`x`
+返回结果
+	[变量优化结果,最优目标值,迭代次数]
+示例
+    输入 f = (5*1)*`x1`+3*`x2`+2*`x3`+(10-3)*`x4`+4*x5;
+        g1 = 2*`x1` - (2*4)*`x2` + 4*`x3` + 2*`x4` + max(1,5)*`x5` <= 5*2;
+        g2 = `x2` <= 0.2;
+        r = intlinprog(max(`f`), [`g1`,`g2`], [1,3,1,1,1], [`x1`,`x2`,`x3`,`x4`,`x5`]);
+    结果 [1, 0.2, 0, 1, 1, 16.6, 0]
+```
+
+### 10.3 非线性规划
+```rustscript
+函数
+    fmincon
+语法
+    fmincon(obj, [st], st_lower, st_upper, var_lower, var_upper, [var_name]);
+输入参数
+    obj - 目标函数表达式
+    st - 约束条件表达式，多个约束条件之间用","分隔
+    st_lower - 约束下限向量
+    st_upper - 约束上限向量
+    var_lower - 变量下限向量
+    var_upper - 变量上限向量
+    var_name - 变量名称，用","分隔
+    注意：变量名称需包含在"`"中，如`x`
+返回结果
+	[变量优化结果,最优目标值,迭代次数]
+示例
+    输入 f = `x1` * x4 * (x1 + x2 + x3) + x3;
+        g1 = `x1` * x2 * x3 * x4;
+        g2 = `x1`^2 + x2^2 + x3^2 + x4^2;
+        x_lower = [1, 1, 1, 1];
+        x_upper = [5, 5, 5, 5];
+        r = fmincon(min(`f`), [`g1`, g2], [25, 40], [2e19, 40], x_lower,x_upper,[`x1`,x2,x3,x4]);
+    结果 [0.9999999900103392, 4.742999643578124, 3.8211499789476977, 1.379408293213419, 17.014017140221718, 0]
+```
+
+## 11. 数据结构示例
+
+### 11.1 电力系统数据（基于 case14）
 ```rustscript
 // 系统基准功率
 baseMVA = 100;
@@ -2516,9 +2589,9 @@ branch = [
 ];
 ```
 
-## 11. 模块系统
+## 12. 模块系统
 
-### 11.1 模块导入
+### 12.1 模块导入
 ```rustscript
 // 导入整个模块
 import power_flow;
@@ -2530,7 +2603,7 @@ import {newton_pf, fast_decoupled_pf} from power_flow;
 import newton_pf as newton from power_flow;
 ```
 
-### 11.2 模块定义
+### 12.2 模块定义
 ```rustscript
 // 模块文件: power_flow.rs
 export fn newton_pf(baseMVA, bus, gen, branch) {
@@ -2543,9 +2616,9 @@ export fn fast_decoupled_pf(baseMVA, bus, gen, branch) {
 ```
 
 
-## 12. 与MATLAB的对比
+## 13. 与MATLAB的对比
 
-### 12.1 主要差异
+### 13.1 主要差异
 
 | 特性   | MATLAB              | RustScript            | 说明 |
 |------|---------------------|-----------------------|------|
@@ -2558,7 +2631,7 @@ export fn fast_decoupled_pf(baseMVA, bus, gen, branch) {
 | 逻辑运算 | `&`, `\|`, `~`      | `&&`, `\|\|`, `~~`    | 逻辑运算符不同 |
 | 结构体  | `struct`              | 无结构体，使用张量和变量组织 | RustScript没有结构体概念 |
 
-### 12.2 索引转换详解
+### 13.2 索引转换详解
 
 **最重要的差异：MATLAB使用1基索引，RustScript使用0基索引**
 
@@ -2578,7 +2651,7 @@ slice(bus, [0], [i-1,i])      // 第i列所有行（需要减1）
 range(0, n)       // 生成 [0, 1, 2, ..., n-1] (前闭后开)
 ```
 
-### 12.3 转换示例对比
+### 13.3 转换示例对比
 
 **MATLAB到RustScript的典型转换：**
 
@@ -2615,7 +2688,7 @@ fn make_y_bus(baseMVA, bus, branch) {
 }
 ```
 
-### 12.4 转换器的索引处理策略
+### 13.4 转换器的索引处理策略
 
 在MATLAB到RustScript转换过程中，转换器需要特别处理索引：
 
