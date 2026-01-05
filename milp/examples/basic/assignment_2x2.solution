@@ -1,0 +1,11 @@
+Reading model from file: milp/examples/basic/assignment_2x2.model
+Constructing model...
+Model constructed. Solving...
+Solution found.
+Objective value: 2
+Iteration count: 0
+Variable values:
+x11: 1
+x12: 0
+x21: 0
+x22: 1

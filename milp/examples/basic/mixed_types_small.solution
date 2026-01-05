@@ -1,0 +1,10 @@
+Reading model from file: milp/examples/basic/mixed_types_small.model
+Constructing model...
+Model constructed. Solving...
+Solution found.
+Objective value: 4
+Iteration count: 0
+Variable values:
+x: 3
+y: -0
+z: 2

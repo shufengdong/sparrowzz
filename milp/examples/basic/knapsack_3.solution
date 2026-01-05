@@ -1,0 +1,10 @@
+Reading model from file: milp/examples/basic/knapsack_3.model
+Constructing model...
+Model constructed. Solving...
+Solution found.
+Objective value: 6
+Iteration count: 0
+Variable values:
+x1: 0
+x2: 1
+x3: 1

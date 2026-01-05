@@ -1,0 +1,4 @@
+
+thread 'main' (1267568) panicked at /home/dirreck/Desktop/eig-rc/rust-autograd/src/graph.rs:41:13:
+Maximum graph size exceeded: 10000000. Use Graph::clear, or stop using loops in the VariableEnvironment::run block
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
