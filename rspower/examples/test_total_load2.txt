@@ -3,8 +3,6 @@
 #include ../lib/idx_bus.txt
 #include ../lib/idx_brch.txt
 #include ../lib/make_y_bus.txt
-#include ../lib/make_y_bus_Yf.txt
-#include ../lib/make_y_bus_Yt.txt
 #include ../lib/dsbus_dv.txt
 #include ../lib/make_sdzip.txt
 #include ../lib/make_sbus.txt

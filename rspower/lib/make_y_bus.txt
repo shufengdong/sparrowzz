@@ -70,5 +70,5 @@ fn make_y_bus(baseMVA, bus, branch) {
                full(sparse(j, j, Ysh, nb, nb));
     }
 
-    return Ybus;
+    return(Ybus, Yf, Yt);
 }

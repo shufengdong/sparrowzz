@@ -37,7 +37,5 @@ fn ext2int(bus, gen, branch, areas){
     e2i_tbus = get_multi(e2i, index_e2i_tbus )';
     output_branch2 = assign(output_branch1, e2i_tbus, [0], [T_BUS-1, T_BUS] );
 
-    //return i2e, bus, gen, branch, areas;
-    //return output_branch2;
-    return i2e;
+    return(i2e, bus, gen, branch);
 }

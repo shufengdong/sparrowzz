@@ -33,7 +33,7 @@ fn runpf() {
     V_init = set(V0, gbus_k, gen_vg ./ abs(voltage_g) .* voltage_g);
 
     // build admittance matrices
-    Ybus = make_y_bus(baseMVA, bus, branch);
+    [Ybus, _, _] = make_y_bus(baseMVA, bus, branch);
     qlim = 0;
     loop {
         // compute bus power injections

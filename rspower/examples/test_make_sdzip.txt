@@ -3,7 +3,7 @@
 #include ../lib/idx_bus.txt
 #include ../lib/make_sdzip.txt
 
-sdzip = make_sdzip(baseMVA, bus, mpopt);
+sdzip = make_sdzip(baseMVA, bus);
 
 assert_relative_eq(sdzip, [
     [c(0,0), c(0,0), c(0,0)],

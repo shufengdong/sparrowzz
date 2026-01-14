@@ -1226,9 +1226,20 @@ fn function_name(param1, param2, ...) {
 fn add(a, b) {
     a + b
 }
+
+//函数支持多个返回
+fn two_return_fn(input) {
+    return(input, input+1);
+}
+fn three_return_fn(input) {
+    return(input, input+1, input+2);
+}
+a = 0;
+b = 1.0;
+[a, b] = two_return_fn(a);
+[_, b, _] = three_return_fn(a); //返回值若无目标变量可用“_”空置
 ```
 
-**重要限制：RustScript函数只能返回一个变量，不支持多返回值。**
 
 ### 9.2 函数示例
 ```rustscript
@@ -1241,7 +1252,7 @@ fn make_y_bus(baseMVA, bus, branch) {
     Ys = stat ./ (slice(branch, [0], [BR_R-1, BR_R]) 
             + c(0,1) * slice(branch, [0], [BR_X-1, BR_X]));
     
-    return Ys;  // 只能返回一个值
+    return Ys;
 }
 ```
 

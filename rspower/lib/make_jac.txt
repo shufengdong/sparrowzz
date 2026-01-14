@@ -1,6 +1,6 @@
 fn make_jac(baseMVA, bus, branch, gen, fullJac) {
     // build Ybus
-    Ybus = make_y_bus(baseMVA, bus, branch);
+    [Ybus, _, _] = make_y_bus(baseMVA, bus, branch);
     
     // extract voltage
     V = slice(bus, [0], [VM-1,VM]) .* exp(c(0,1) * pi/180 * slice(bus, [0], [VA-1,VA]));

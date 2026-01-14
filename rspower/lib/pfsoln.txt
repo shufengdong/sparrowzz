@@ -130,9 +130,6 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     branch_QT = set(branch_QT, br, imag(St));
     branch = horzcat(branch, branch_QT);
 
-    //return bus, gen, branch;
-    return bus;
-    //return gen;
-    //return branch;
+    return(bus, gen, branch);
 
 }
