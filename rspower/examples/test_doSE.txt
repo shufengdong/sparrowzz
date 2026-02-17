@@ -1,0 +1,83 @@
+//同时测试isobservable()
+
+#include ../data/case3bus_P6_6.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/isobservable.txt
+#include ../lib/bustypes.txt
+#include ../lib/make_y_bus.txt
+#include ../lib/dSbr_dV.txt
+#include ../lib/dSbus_dV.txt
+#include ../lib/doSE.txt
+
+[Ybus, Yf, Yt] = make_y_bus(baseMVA, bus, branch);
+V0 = [[1], [1.02], [1.02]];
+[ref,pv,pq] = bustypes(bus, gen);
+
+//函数输入的自变量“measure, idx, sigma”matpower中为结构体类型，拆分的话变量太多了，故先不作为函数输入自变量
+// which measurements are available
+idx_zPF = [[1],[2]];
+idx_zPT = [3];
+idx_zPG = [[1],[2],[3]];
+idx_zVa = [];
+idx_zQF = [];
+idx_zQT = [];
+idx_zQG = [];
+idx_zVm = [[2],[3]];
+
+// specify measurements
+measure_PF = [[0.12],[0.10]];
+measure_PT = [-0.04];
+measure_PG = [[0.58],[0.30],[0.14]];
+measure_Va = [];
+measure_QF = [];
+measure_QT = [];
+measure_QG = [];
+measure_Vm = [[1.04],[0.98]];
+
+// specify measurement variances
+sigma_PF = 0.02;
+sigma_PT = 0.02;
+sigma_PG = 0.015;
+sigma_Va = [];
+sigma_QF = [];
+sigma_QT = [];
+sigma_QG = [];
+sigma_Vm = 0.01;
+
+[V, converged, iter_num, z, z_est, error_sqrsum] = doSE(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V0, ref, pv, pq);
+
+assert_relative_eq(V, [
+    [c(1,0)],
+    [c(1.025603,-0.01745)],
+    [c(0.979010,0.000709)]
+], 0.001);
+
+assert_relative_eq(converged, 1);
+
+assert_relative_eq(iter_num, 7);
+
+assert_relative_eq(z, [
+    [0.1200],
+    [0.1000],
+    [-0.0400],
+    [0.5800],
+    [0.3000],
+    [0.1400],
+    [1.0400],
+    [0.9800]
+]);
+
+assert_relative_eq(z_est, [
+    [0.1474],
+    [0.0783],
+    [-0.0399],
+    [0.5757],
+    [0.3034],
+    [0.1336],
+    [1.0258],
+    [0.9790]
+], 0.001);
+
+assert_relative_eq(error_sqrsum, c(5.4179,-4.7371e-16), 0.001);

@@ -95,11 +95,11 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     }                                            // (terms are mult by 0 anyway)
 
     // update Pg for slack gen(s)
-    for k in 1..length(ref){
-        refgen = find(gbus == get_multi(get_multi(ref, [k-1]), 0) );              // which is(are) the reference gen(s)?
-        PQ_refk = total_load(select(bus, get_multi(ref, [k-1] )), [], 1, [], [], mpopt);
+    for k in 0..length(ref){
+        refgen = find(gbus == get_multi(get_multi(ref, [k]), 0) + 1);              // which is(are) the reference gen(s)?
+        PQ_refk = total_load(select(bus, get_multi(ref, [k])), [], 1, [], [], mpopt);
         Pd_refk = slice(PQ_refk, [0], [0,1]);
-        Pd_refk = [[c(0,0)]];
+        //Pd_refk = [[c(0,0)]];
         gen_PG = set(slice(gen, [0], [PG-1, PG]), get_multi(on, [get_multi(refgen,0)]), real(get_multi(Sbus, [get_multi(refgen,0)])) * baseMVA + Pd_refk );
         gen = assign(gen, gen_PG, [0], [PG-1, PG] );
 
@@ -115,8 +115,8 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     //----- update/compute branch power flows -----（计算支路潮流）
     out = find(slice(branch, [0], [BR_STATUS-1, BR_STATUS]) == 0);      // out-of-service branches
     br = find(slice(branch, [0], [BR_STATUS-1, BR_STATUS] ));            // in-service branches
-    Sf = get_multi(V, get_multi(br, slice(branch, [0], [F_BUS-1, F_BUS] ) ) - 1)' .* conj(select(Yf, br) * V) * baseMVA; // complex power at "from" bus(bus索引需-1)
-    St = get_multi(V, get_multi(br, slice(branch, [0], [T_BUS-1, T_BUS] ) ) - 1)' .* conj(select(Yt, br) * V) * baseMVA; // complex power injected at "to" bus
+    Sf = get_multi(V, get_multi(br, slice(branch, [0], [F_BUS-1, F_BUS]) - 1 ))' .* conj(select(Yf, br) * V) * baseMVA; // complex power at "from" bus(bus索引需-1)
+    St = get_multi(V, get_multi(br, slice(branch, [0], [T_BUS-1, T_BUS]) - 1 ))' .* conj(select(Yt, br) * V) * baseMVA; // complex power injected at "to" bus
     branch_PF = zeros(size(branch,0), 1);
     branch_PF = set(branch_PF, br, real(Sf));
     branch = horzcat(branch, branch_PF);
@@ -131,5 +131,4 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     branch = horzcat(branch, branch_QT);
 
     return(bus, gen, branch);
-
 }

@@ -1,0 +1,69 @@
+//RUN_SE  Run state estimation.
+//   [INPUT PARAMETERS]
+//   measure: measurements
+//   idx: measurement indices
+//   sigma: measurement variances
+//   [OUTPUT PARAMETERS]
+//   z: Measurement Vector. In the order of PF, PT, PG, Va, QF, QT, QG, Vm (if
+//   applicable), so it has ordered differently from original measurements
+//   z_est: Estimated Vector. In the order of PF, PT, PG, Va, QF, QT, QG, Vm
+//   (if applicable)
+//   error_sqrsum: Weighted sum of error squares
+
+
+fn run_se(type_initialguess, V0) {
+    // 转换为内部母线编号
+    [se_i2e, se_bus, se_gen, se_branch] = ext2int(bus, gen, branch);    //索引从“1”开始
+
+    // 获取母线类型
+    [ref, pv, pq] = bustypes(se_bus, se_gen);   //索引从“0”开始
+
+    // 构建导纳矩阵
+    [Ybus, Yf, Yt] = make_y_bus(baseMVA, se_bus, se_branch);
+    Ybus = full(Ybus);  // 转为稠密矩阵
+    Yf = full(Yf);
+    Yt = full(Yt);
+
+    // 初始电压猜测
+    V0 = getV0(se_bus, se_gen, type_initialguess, V0);
+
+    // 执行状态估计
+    [V, success, iterNum, z, z_est, error_sqrsum] = doSE(baseMVA, se_bus, se_gen, se_branch, Ybus, Yf, Yt, V0, ref, pv, pq);
+
+    // 更新发电机有功功率（PG列）
+    idx_zPG_len = length(idx_zPG);
+    if idx_zPG_len > 0 {
+        cnt = length(idx_zPF) + length(idx_zPT);
+        // 提取z_est中对应PG的部分并转换为标幺值
+        z_est_PG = slice(z_est, [cnt, cnt + idx_zPG_len], [0]);
+        gen_PG = z_est_PG * baseMVA;
+        // 更新gen矩阵的PG列
+        se_gen_PG = set(slice(se_gen, [0], [PG - 1, PG]), idx_zPG - 1, gen_PG);
+        se_gen = assign(se_gen, se_gen_PG, [0], [PG - 1, PG]);
+    }
+
+    // 更新发电机无功功率（QG列）
+    idx_zQG_len = length(idx_zQG);
+    if idx_zQG_len > 0 {
+        cnt = length(idx_zPF) + length(idx_zPT) + length(idx_zPG) + length(idx_zVa) + length(idx_zQF) + length(idx_zQT);
+        // 提取z_est中对应QG的部分并转换为标幺值
+        z_est_QG = slice(z_est, [cnt, cnt + idx_zQG_len], [0]);
+        gen_QG = z_est_QG * baseMVA;
+        // 更新gen矩阵的QG列
+        se_gen_QG = set(slice(se_gen, [0], [QG - 1, QG]), idx_zQG - 1, gen_QG);
+        se_gen = assign(se_gen, se_gen_QG, [0], [QG - 1, QG]);
+    }
+
+    // 更新潮流解
+    [new_bus, new_gen, new_branch] = pfsoln(baseMVA, se_bus, se_gen, se_branch, Ybus, Yf, Yt, V, ref, pv, pq, []);
+
+    // 转换回原始母线编号
+    [output_bus, output_gen, output_branch] = int2ext(se_i2e, new_bus, new_gen, new_branch, areas);
+
+    // 输出结果
+    //outputpfsoln(baseMVA, bus, gen, branch, success, et, 1, iterNum);
+    //outputsesoln(idx, sigma, z, z_est, error_sqrsum);
+
+    return (baseMVA, output_bus, output_gen, output_branch, success, z, z_est, error_sqrsum);
+
+}

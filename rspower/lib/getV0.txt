@@ -1,0 +1,49 @@
+// GETV0  Get initial voltage profile for power flow calculation.
+//   Note: The pv bus voltage will remain at the given value even for
+//   flat start.
+//   type_initialguess: 1 - initial guess from case data
+//                      2 - flat start
+//                      3 - from input
+// GETV0  获取潮流计算的初始电压分布
+//   注意：即使是平启动，PV节点电压也会保持给定值
+//   type_initialguess: 1 - 从案例数据获取初始猜测值
+//                      2 - 平启动
+//                      3 - 从输入获取
+
+fn getV0(bus, gen, type_initialguess, V0_in) {
+
+    // 发电机信息
+    on = find(slice(gen, [0], [GEN_STATUS - 1, GEN_STATUS]) > 0);  //查找运行中的发电机索引（这里索引从0开始）
+    gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on);  // 转换为一维张量（母线编号，注意是1基）
+    gbus_idx = gbus - 1;  // 转换为0基索引
+
+    if type_initialguess == 1 {
+        // 使用案例数据中的先前值
+        // 注意：案例数据中的角度是度，而潮流求解器中是弧度，因此需要转换
+        vm_col = slice(bus, [0], [VM - 1, VM]);  // 获取电压幅值列（二维张量）
+        vm = slice(vm_col, [0], 0);  // 转换为一维张量
+        va_col = slice(bus, [0], [VA - 1, VA]);  // 获取电压角度列（二维张量）
+        va_deg = slice(va_col, [0], 0);  // 转换为一维张量（度）
+        va_rad = va_deg * pi / 180;  // 转换为弧度
+        V0 = vm .* exp(c(0, 1) .* va_rad);  // 计算初始电压（复数）
+    } else if type_initialguess == 2 {
+        // 平启动
+        nb = size(bus, 0);  // 母线数量
+        V0 = ones(nb, 1);  // 初始电压幅值为1，角度为0（复数形式为1+0i）
+    } else if type_initialguess == 3 {
+        // 使用给定的初始电压
+        V0 = V0_in;
+    } else {
+        //info(`Error: unknown 'type_initialguess'`);
+        return [];
+    }
+
+    // 将PV节点和参考节点的电压设置到初始猜测值中
+    gen_vg_col = select(gen, on, [VG - 1, VG]);  // 获取运行中发电机的电压幅值设定值列（二维张量）       
+    gen_vg = slice(gen_vg_col, [0], 0);  // 转换为一维张量
+    v0_gbus = get_multi(V0, gbus_idx);  // 获取初始猜测中发电机所在母线的电压
+    new_v0 = gen_vg .* v0_gbus ./ abs(v0_gbus);  // 新的电压（设定幅值，保持原有角度）
+    V0 = set(V0, gbus_idx, new_v0);  // 更新初始电压
+
+    return V0;
+}

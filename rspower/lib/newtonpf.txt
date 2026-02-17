@@ -67,9 +67,7 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
         // update iteration counter
         i = i + 1;
         // evaluate Jacobian 因迭代中V变化，因此jac需要从dSbus_dV重新计算
-        jac = dSbus_dV(Ybus, V, 0);
-        dSbus_dVa = slice(jac, [0], [0,nb]);
-        dSbus_dVm = slice(jac, [0], [nb,2*nb]);
+        [dSbus_dVa, dSbus_dVm] = dSbus_dV(Ybus, V, 0);
 
         j11 = real(select(dSbus_dVa, pv_pq_i, pv_pq_i));
         j12 = real(select(dSbus_dVm, pv_pq_i, pq));

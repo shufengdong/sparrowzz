@@ -1,0 +1,86 @@
+//  ISOBSERVABLE  Test for observability.
+//  returns 1 if the system is observable, 0 otherwise.
+// 定义函数：判断系统是否可观测
+
+fn isobservable(H, pv, pq) {
+    // 默认容差
+    tol = 1e-5;
+    // 是否检查不可观测的原因（0不检查，1检查。由于不支持字符串赋值自变量，故暂不支持检查。）
+    check_reason = 0;
+
+    // 获取H矩阵的行列数
+    m = size(H, 0);
+    n = size(H, 1);
+
+    // 计算H矩阵的秩
+    r = rank(H);
+
+    // 判断是否满秩（满秩则可观测）
+    if r < min(m, n) {
+        TorF = 0;
+    } else {
+        TorF = 1;
+    }
+
+    /*// 如果需要检查不可观测的原因且系统不可观测
+    if check_reason && !TorF {
+        // 存储零列索引和对应的变量名
+        idx_trivialColumns = [];
+        varNames = [];
+
+        // 遍历每一列检查是否为零列
+        for j in 0..n {
+            // 计算列的无穷范数
+            col_j = slice(H, [0], j);
+            normJ = norm_max(col_j);
+
+            if normJ < tol {
+                // 记录零列索引（转换为1基显示）
+                idx_trivialColumns = horzcat(idx_trivialColumns, [j + 1]);
+                // 获取变量名
+                varName = getVarName(j, pv, pq);
+                varNames = horzcat(varNames, [varName]);
+            }
+        }
+
+        // 如果存在零列（变量未被任何测量关联）
+        if ~~is_empty(idx_trivialColumns) {
+            println("Warning: The following variables are not observable since they are not related with any measurement!");
+            println("Variables:");
+            println(varNames);
+            println("Indices (1-based):");
+            println(idx_trivialColumns);
+        } else {
+            // 检查是否存在线性相关的列
+            for j in 0..n {
+                // 计算前j+1列的秩（因为RustScript是0基，j从0开始）
+                subH = slice(H, [0], [0, j+1]);
+                rr = rank(subH);
+
+                // 如果秩小于列数，说明存在线性相关
+                if rr < (j + 1) {
+                    // 获取当前列
+                    colJ = slice(H, [0], j);
+                    varJName = getVarName(j, pv, pq);
+
+                    // 检查当前列与前面所有列的线性相关性
+                    for k in 0..j {
+                        colK = slice(H, [0], k);
+                        // 合并两列计算秩
+                        combined = horzcat(colK, colJ);
+                        if rank(combined) < 2 {
+                            varKName = getVarName(k, pv, pq);
+                            println("Warning: {}(th) column vector (w.r.t. {}) of H is linearly dependent of {}(th) column vector (w.r.t. {})!",
+                                j+1, varJName, k+1, varKName);
+                            return TorF;
+                        }
+                    }
+                }
+            }
+            println("Warning: No specific reason was found for system being not observable.");
+        }
+    }
+    */
+
+    return TorF;
+}

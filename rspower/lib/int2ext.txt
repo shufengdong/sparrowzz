@@ -1,0 +1,56 @@
+fn int2ext(i2e, bus, gen, branch, areas) {
+    //INT2EXT   Converts internal to external bus numbering.
+    //
+    //   This function has two forms, (1) the old form that operates on
+    //   and returns individual matrices and (2) the new form that operates
+    //   on and returns an entire MATPOWER case struct.
+    //
+    //   1.  [BUS, GEN, BRANCH, AREAS] = INT2EXT(I2E, BUS, GEN, BRANCH, AREAS)
+    //       [BUS, GEN, BRANCH] = INT2EXT(I2E, BUS, GEN, BRANCH)
+    //
+    //   Converts from the consecutive internal bus numbers back to the originals
+    //   using the mapping provided by the I2E vector returned from EXT2INT,
+    //   where EXTERNAL_BUS_NUMBER = I2E(INTERNAL_BUS_NUMBER).
+    //   AREAS is completely ignored and is only included here for backward
+    //   compatibility of the API.
+    //
+    //   Examples:
+    //       [bus, gen, branch, areas] = int2ext(i2e, bus, gen, branch, areas);
+    //       [bus, gen, branch] = int2ext(i2e, bus, gen, branch);
+    //
+    //   2.  MPC = INT2EXT(MPC)
+    //       MPC = INT2EXT(MPC, MPOPT)
+    //
+    //   If the input is a single MATPOWER case struct, followed optionally
+    //   by a MATOWER options struct, then it restores all buses, generators
+    //   and branches that were removed because of being isolated or off-line,
+    //   and reverts to the original generator ordering and original bus
+    //   numbering. This requires that the 'order' field created by EXT2INT be
+    //   in place.
+    //
+    //   Examples:
+    //       mpc = int2ext(mpc);
+    //       mpc = int2ext(mpc, mpopt);
+
+    // 重新编号母线
+    index_i2e_bus = slice(bus, [0], [BUS_I-1, BUS_I]) - 1;  // 索引值=内部母线编号-1
+    i2e_bus = get_multi(i2e, index_i2e_bus)';               // 获取对应的外部母线编号
+    output_bus = assign(bus, i2e_bus, [0], [BUS_I-1, BUS_I]); // 转换为外部母线编号
+
+    // 重新编号发电机连接的母线
+    index_i2e_gen = slice(gen, [0], [GEN_BUS-1, GEN_BUS]) - 1;
+    i2e_gen = get_multi(i2e, index_i2e_gen)';
+    output_gen = assign(gen, i2e_gen, [0], [GEN_BUS-1, GEN_BUS]);
+
+    // 重新编号支路的起始母线
+    index_i2e_fbus = slice(branch, [0], [F_BUS-1, F_BUS]) - 1;
+    i2e_fbus = get_multi(i2e, index_i2e_fbus)';
+    output_branch1 = assign(branch, i2e_fbus, [0], [F_BUS-1, F_BUS]);
+
+    // 重新编号支路的终止母线
+    index_i2e_tbus = slice(branch, [0], [T_BUS-1, T_BUS]) - 1;
+    i2e_tbus = get_multi(i2e, index_i2e_tbus)';
+    output_branch2 = assign(output_branch1, i2e_tbus, [0], [T_BUS-1, T_BUS]);
+
+    return (output_bus, output_gen, output_branch2, areas);
+}

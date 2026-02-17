@@ -3,7 +3,7 @@
 #include ../lib/idx_bus.txt
 #include ../lib/idx_brch.txt
 #include ../lib/make_y_bus.txt
-#include ../lib/dsbus_dv.txt
+#include ../lib/dSbus_dV.txt
 #include ../lib/make_sdzip.txt
 #include ../lib/make_sbus.txt
 #include ../lib/newtonpf.txt
@@ -30,4 +30,4 @@ assert_relative_eq(r, [
     [c(1.0189,-0.2744)],
     [c(1.0138,-0.2746)],
     [c(0.9952,-0.2860)]
-],4);
+], 0.001);

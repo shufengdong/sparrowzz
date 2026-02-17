@@ -1251,6 +1251,16 @@ for i in 0..b {
 ```
 **注意**：循环序列需“0..10”格式，不能跟tensor。
 
+```rustscript
+//while语句
+max_num = 10;
+a = 0;
+converged = 0;
+while (!converged && a < max_num) {
+    a = a + 1;
+}
+```
+
 ## 9. 函数定义
 
 ### 9.1 基本函数语法

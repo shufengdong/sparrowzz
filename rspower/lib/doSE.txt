@@ -1,0 +1,213 @@
+// 状态估计主函数
+fn doSE(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V0, ref, pv, pq) {
+    // 迭代参数设置
+    tol = 1e-5;       // 收敛 tolerance
+    max_it = 100;     // 最大迭代次数
+    verbose = 0;      // 输出控制
+
+    // 初始化变量
+    converged = 0;
+    iter_num = 0;
+    V = V0;
+    Va = angle(V);    // 电压角度（弧度）
+    Vm = abs(V);      // 电压幅值
+
+    nb = size(Ybus, 0);  // 母线数量
+    f = slice(branch, [0], [F_BUS - 1, F_BUS]) - 1;  // 支路"从"母线索引(f索引从'0'开始)
+    t = slice(branch, [0], [T_BUS - 1, T_BUS]) - 1;  // 支路"到"母线索引(t索引从'0'开始)
+
+    // 非平衡节点（PV+PQ）
+    nonref = vertcat(pv, pq);   //(pv, pq索引从'0'开始)
+
+    // ---------------------- 构建测量向量 z ----------------------
+    // 测量类型顺序：PF -> PT -> PG -> Va -> QF -> QT -> QG -> Vm
+    z = vertcat(
+        measure_PF, 
+        measure_PT, 
+        measure_PG, 
+        measure_Va, 
+        measure_QF, 
+        measure_QT, 
+        measure_QG, 
+        measure_Vm
+    );
+
+    // ---------------------- 构建权重矩阵 R_inv ----------------------
+    // 构建sigma向量（与z维度匹配）
+    sigma_vector = vertcat(
+        sigma_PF * ones(size(idx_zPF, 0), 1),
+        sigma_PT * ones(size(idx_zPT, 0), 1),
+        sigma_PG * ones(size(idx_zPG, 0), 1),
+        sigma_Va * ones(size(idx_zVa, 0), 1),
+        sigma_QF * ones(size(idx_zQF, 0), 1),
+        sigma_QT * ones(size(idx_zQT, 0), 1),
+        sigma_QG * ones(size(idx_zQG, 0), 1),
+        sigma_Vm * ones(size(idx_zVm, 0), 1)
+    );
+    sigma_square = sigma_vector .^ 2;
+    R_inv = diag(1.0 ./ sigma_square);  // 权重矩阵（对角阵）
+
+    // ---------------------- 牛顿迭代主循环 ----------------------
+    while (~~converged && iter_num < max_it) {
+        iter_num = iter_num + 1;
+
+        // ---------------------- 计算估计测量值 z_est ----------------------
+        // 支路潮流计算
+        Sfe = get_multi(V, f)' .* conj(Yf * V);     // 从端潮流
+        Ste = get_multi(V, t)' .* conj(Yt * V);     // 到端潮流
+
+        // 发电机节点注入功率计算
+        gbus = slice(gen, [0], [GEN_BUS - 1, GEN_BUS]) - 1;  // 发电机所在母线(索引从“0”开始)
+        Sgbus = get_multi(V, gbus)' .* conj(select(Ybus, gbus) * V);  // 母线注入功率
+        // 发电机输出功率 = 注入功率 + 本地负荷（标幺值）
+        Sgen = Sgbus * baseMVA + (select(bus, gbus, PD-1) + c(0,1) * select(bus, gbus, QD-1));
+        Sgen = Sgen / baseMVA;
+
+        // ---------------------- 计算雅可比矩阵 H ----------------------
+        // 节点注入功率雅可比
+        [dSbus_dVa, dSbus_dVm] = dSbus_dV(Ybus, V, 0);
+        // 支路潮流雅可比
+        [dSf_dVa, dSf_dVm, dSt_dVa, dSt_dVm, Sf, St] = dSbr_dV(branch, Yf, Yt, V, 0);
+
+        genbus_row = gbus;
+
+        // 雅可比子矩阵提取（仅非平衡节点）
+        // 1. 有功潮流雅可比
+        dPF_dVa = real(dSf_dVa);  // 从端有功对角度的偏导
+        dPF_dVm = real(dSf_dVm);  // 从端有功对幅值的偏导
+        dPT_dVa = real(dSt_dVa);  // 到端有功对角度的偏导
+        dPT_dVm = real(dSt_dVm);  // 到端有功对幅值的偏导
+
+        // 2. 无功潮流雅可比
+        dQF_dVa = imag(dSf_dVa);  // 从端无功对角度的偏导
+        dQF_dVm = imag(dSf_dVm);  // 从端无功对幅值的偏导
+        dQT_dVa = imag(dSt_dVa);  // 到端无功对角度的偏导
+        dQT_dVm = imag(dSt_dVm);  // 到端无功对幅值的偏导
+
+        // 3. 发电机功率雅可比
+        dPG_dVa = real(select(dSbus_dVa, genbus_row));  // 有功对角度的偏导
+        dPG_dVm = real(select(dSbus_dVm, genbus_row));  // 有功对幅值的偏导
+        dQG_dVa = imag(select(dSbus_dVa, genbus_row));  // 无功对角度的偏导
+        dQG_dVm = imag(select(dSbus_dVm, genbus_row));  // 无功对幅值的偏导
+
+        // 4. 电压角度雅可比（单位矩阵）
+        dVa_dVa = eye(nb);
+        dVa_dVm = zeros(nb, nb);
+
+        // 5. 电压幅值雅可比（单位矩阵）
+        dVm_dVa = zeros(nb, nb);
+        dVm_dVm = eye(nb);
+
+        // ---------------------- 构建估计测量向量 z_est和雅可比矩阵 H ----------------------
+        //有功潮流（从端）
+        if ~~is_empty(idx_zPF){
+            z_est1 = real(select(Sfe, idx_zPF - 1));
+            H_1 = horzcat(select(dPF_dVa, idx_zPF - 1, nonref), select(dPF_dVm, idx_zPF - 1, nonref));
+        }else{
+            z_est1 = [];
+            H_1 = [];
+        }
+        //有功潮流（到端）
+        if ~~is_empty(idx_zPT){
+            z_est2 = real(select(Ste, idx_zPT - 1));
+            H_2 = horzcat(select(dPT_dVa, idx_zPT - 1, nonref), select(dPT_dVm, idx_zPT - 1, nonref));
+        }else{
+            z_est2 = [];
+            H_2 = [];
+        }
+        //发电机有功输出
+        if ~~is_empty(idx_zPG){
+            z_est3 = real(select(Sgen, idx_zPG - 1));
+            H_3 = horzcat(select(dPG_dVa, idx_zPG - 1, nonref), select(dPG_dVm, idx_zPG - 1, nonref));
+        }else{
+            z_est3 = [];
+            H_3 = [];
+        }
+        //母线电压角度
+        if ~~is_empty(idx_zVa){
+            z_est4 = select(angle(V), idx_zVa - 1);
+            H_4 = horzcat(select(dVa_dVa, idx_zVa - 1, nonref), select(dVa_dVm, idx_zVa - 1, nonref));
+        }else{
+            z_est4 = [];
+            H_4 = [];
+        }
+        //无功潮流（从端）
+        if ~~is_empty(idx_zQF){
+            z_est5 = imag(select(Sfe, idx_zQF - 1));
+            H_5 = horzcat(select(dQF_dVa, idx_zQF - 1, nonref), select(dQF_dVm, idx_zQF - 1, nonref));
+        }else{
+            z_est5 = [];
+            H_5 = [];
+        }
+        //无功潮流（到端）
+        if ~~is_empty(idx_zQT){
+            z_est6 = imag(select(Ste, idx_zQT - 1));
+            H_6 = horzcat(select(dQT_dVa, idx_zQT - 1, nonref), select(dQT_dVm, idx_zQT - 1, nonref));
+        }else{
+            z_est6 = [];
+            H_6 = [];
+        }
+        //发电机无功输出
+        if ~~is_empty(idx_zQG){
+            z_est7 = imag(select(Sgen, idx_zQG - 1));
+            H_7 = horzcat(select(dQG_dVa, idx_zQG - 1, nonref), select(dQG_dVm, idx_zQG - 1, nonref));
+        }else{
+            z_est7 = [];
+            H_7 = [];
+        }
+        //母线电压幅值
+        if ~~is_empty(idx_zVm){
+            z_est8 = select(abs(V), idx_zVm - 1);
+            H_8 = horzcat(select(dVm_dVa, idx_zVm - 1, nonref), select(dVm_dVm, idx_zVm - 1, nonref));
+        }else{
+            z_est8 = [];
+            H_8 = [];
+        }
+
+        // 构建估计测量向量 z_est
+        z_est = vertcat(z_est1,z_est2,z_est3,z_est4,z_est5,z_est6,z_est7,z_est8);
+
+        // 拼接完整雅可比矩阵 H
+        H = vertcat(H_1,H_2,H_3,H_4,H_5,H_6,H_7,H_8);
+
+        // ---------------------- 计算修正量 dx ----------------------
+        J = H' * R_inv * H;                // 信息矩阵
+        mismatch = z - z_est;             // 测量残差
+        F = H' * R_inv * mismatch;        // 牛顿方向
+
+        // 可观测性检查
+        TorF = isobservable(H, pv, pq);
+        if ~~TorF {
+            println(`doSE: 系统不可观测`);
+        }
+
+        dx = J \ F;  // 求解修正方程
+
+        // ---------------------- 收敛判断 ----------------------
+        normF = max(abs(F));  // 残差无穷范数
+        if verbose > 1 {
+            println("\niteration [%3d]\t\tnorm of mismatch: %10.3e", iter_num, normF);
+        }
+        if normF < tol {
+            converged = 1;
+        }
+
+        // ---------------------- 更新电压 ----------------------
+        // 角度更新（非平衡节点）
+        Va = set(Va, nonref, select(Va,nonref) + slice(dx, [0,size(nonref, 0)], [0]));
+        // 幅值更新（非平衡节点）
+        Vm = set(Vm, nonref, select(Vm,nonref) + slice(dx, [size(nonref, 0),2*size(nonref, 0)], [0]));
+
+        // 重构电压向量（角度为弧度）
+        V = Vm .* exp(c(0,1) * Va);
+        // 重新计算幅值和角度（避免负幅值问题）
+        Vm = abs(V);
+        Va = angle(V);
+    }
+
+    // ---------------------- 计算加权残差平方和 ----------------------
+    error_sqrsum = sum_all((z - z_est) .^ 2 ./ sigma_square);
+
+    // 返回结果（多返回值）
+    return (V, converged, iter_num, z, z_est, error_sqrsum);
+}

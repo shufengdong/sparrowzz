@@ -19,10 +19,7 @@ fn make_jac(baseMVA, bus, branch, gen, fullJac) {
     V = set(V, index, gen_vg ./ abs(voltage_g) .* voltage_g);
 
     // build Jacobian
-    ds_dv = dSbus_dV(Ybus, V, 0);
-
-    dSbus_dVa = slice(ds_dv, [0], [0,nb]);
-    dSbus_dVm = slice(ds_dv, [0], [nb,2*nb]);
+    [dSbus_dVa,dSbus_dVm] = dSbus_dV(Ybus, V, 0);
 
     // fulljac
     if fullJac {
@@ -31,9 +28,8 @@ fn make_jac(baseMVA, bus, branch, gen, fullJac) {
         j21 = imag(dSbus_dVa);
         j22 = imag(dSbus_dVm);
     } else {
-        pv = bustypes_pv(bus, gen);
-        pq = bustypes_pq(bus, gen);
-        pv_pq_i = horzcat(pv, pq);
+        [_,pv,pq] = bustypes(bus, gen);
+        pv_pq_i = horzcat(pv', pq');
         j11 = real(select(dSbus_dVa, pv_pq_i, pv_pq_i));
         j12 = real(select(dSbus_dVm, pv_pq_i, pq));
         j21 = imag(select(dSbus_dVa, pq, pv_pq_i));

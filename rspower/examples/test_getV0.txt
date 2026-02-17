@@ -1,0 +1,16 @@
+#include ../data/case3bus_P6_6.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/getV0.txt
+
+type_initialguess = 2;
+V0_in = [[1],[2],[3]];
+
+V0 = getV0(bus, gen, type_initialguess, V0_in);
+
+assert_relative_eq(V0, [
+    [c(1,0)],
+    [c(1.02,0)],
+    [c(1.02,0)]
+]);
