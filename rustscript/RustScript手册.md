@@ -1256,7 +1256,7 @@ for i in 0..b {
 max_num = 10;
 a = 0;
 converged = 0;
-while (!converged && a < max_num) {
+while (~~converged && a < max_num) {
     a = a + 1;
 }
 ```

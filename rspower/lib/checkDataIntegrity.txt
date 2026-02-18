@@ -1,0 +1,151 @@
+//CHECKDATAINTEGRITY  Check state estimation input data integrity.
+//   returns 1 if the data is complete, 0 otherwise.
+//   NOTE: for each type of measurements, the measurement vector and index
+//   vector should have the same length. If not, the longer vector will be
+//   truncated to have the same length as the shorter vector.
+
+fn checkDataIntegrity(nbus) {
+
+    success = 1;    // pass integrity check?
+    nowarning = 1;  // no warning found?
+
+    // check input data consistency
+    // for PF
+    len_PF_measure = length(measure_PF);
+    len_PF_idx = length(idx_zPF);
+    if len_PF_measure != len_PF_idx {
+        println(`Warning: measurement vector and index vector for PF do not have the same length.`);
+        nowarning = 0;
+    }
+    if ~~is_empty(idx_zPF) && length(sigma_PF) <= 0 { // no sigma defined
+        println(`Error: Sigma for PF is not specified.`);
+        success = 0;
+    }
+    if length(sigma_PF) > 1 {
+        println(`Warning: Sigma for PF is assigned multiple values.`);  
+        nowarning = 0;
+    }
+
+    // for PT
+    len_PT_measure = length(measure_PT);
+    len_PT_idx = length(idx_zPT);
+    if len_PT_measure != len_PT_idx {
+        println(`Warning: measurement vector and index vector for PT do not have the same length.`);
+        nowarning = 0;
+    }
+    if ~~is_empty(idx_zPT) && length(sigma_PT) <= 0 { // no sigma defined
+        println(`Error: Sigma for PT is not specified.`);
+        success = 0;
+    }
+    if length(sigma_PT) > 1 {
+        println(`Warning: Sigma for PT is assigned multiple values.`);  
+        nowarning = 0;
+    }
+
+    // for PG
+    len_PG_measure = length(measure_PG);
+    len_PG_idx = length(idx_zPG);
+    if len_PG_measure != len_PG_idx {
+        println(`Warning: measurement vector and index vector for PG do not have the same length.`);
+        nowarning = 0;
+    }
+    if ~~is_empty(idx_zPG) && length(sigma_PG) <= 0 { // no sigma defined
+        println(`Error: Sigma for PG is not specified.`);
+        success = 0;
+    }
+    if length(sigma_PG) > 1 {
+        println(`Warning: Sigma for PG is assigned multiple values.`);  
+        nowarning = 0;
+    }
+
+    // for Va
+    len_Va_measure = length(measure_Va);
+    len_Va_idx = length(idx_zVa);
+    if len_Va_measure != len_Va_idx {
+        println(`Warning: measurement vector and index vector for Va do not have the same length.`);
+        nowarning = 0;
+    }
+    if ~~is_empty(idx_zVa) && length(sigma_Va) <= 0 { // no sigma defined
+        println(`Error: Sigma for Va is not specified.`);
+        success = 0;
+    }
+    if length(sigma_Va) > 1 {
+        println(`Warning: Sigma for Va is assigned multiple values.`);  
+        nowarning = 0;
+    }
+
+    // for QF
+    len_QF_measure = length(measure_QF);
+    len_QF_idx = length(idx_zQF);
+    if len_QF_measure != len_QF_idx {
+        println(`Warning: measurement vector and index vector for QF do not have the same length.`);
+        nowarning = 0;
+    }
+    if ~~is_empty(idx_zQF) && length(sigma_QF) <= 0 { // no sigma defined
+        println(`Error: Sigma for QF is not specified.`);
+        success = 0;
+    }
+    if length(sigma_QF) > 1 {
+        println(`Warning: Sigma for QF is assigned multiple values.`);  
+        nowarning = 0;
+    }
+
+    // for QT
+    len_QT_measure = length(measure_QT);
+    len_QT_idx = length(idx_zQT);
+    if len_QT_measure != len_QT_idx {
+        println(`Warning: measurement vector and index vector for QT do not have the same length.`);
+        nowarning = 0;
+    }
+    if ~~is_empty(idx_zQT) && length(sigma_QT) <= 0 { // no sigma defined
+        println(`Error: Sigma for QT is not specified.`);
+        success = 0;
+    }
+    if length(sigma_QT) > 1 {
+        println(`Warning: Sigma for QT is assigned multiple values.`);  
+        nowarning = 0;
+    }
+
+    // for QG
+    len_QG_measure = length(measure_QG);
+    len_QG_idx = length(idx_zQG);
+    if len_QG_measure != len_QG_idx {
+        println(`Warning: measurement vector and index vector for QG do not have the same length.`);
+        nowarning = 0;
+    }
+    if ~~is_empty(idx_zQG) && length(sigma_QG) <= 0 { // no sigma defined
+        println(`Error: Sigma for QG is not specified.`);
+        success = 0;
+    }
+    if length(sigma_QG) > 1 {
+        println(`Warning: Sigma for QG is assigned multiple values.`);  
+        nowarning = 0;
+    }
+
+    // for Vm
+    len_Vm_measure = length(measure_Vm);
+    len_Vm_idx = length(idx_zVm);
+    if len_Vm_measure != len_Vm_idx {
+        println(`Warning: measurement vector and index vector for Vm do not have the same length.`);
+        nowarning = 0;
+    }
+    if ~~is_empty(idx_zVm) && length(sigma_Vm) <= 0 { // no sigma defined
+        println(`Error: Sigma for Vm is not specified.`);
+        success = 0;
+    }
+    if length(sigma_Vm) > 1 {
+        println(`Warning: Sigma for Vm is assigned multiple values.`);  
+        nowarning = 0;
+    }
+
+    // check if total number of measurements is no less than total number of
+    // variables to be estimated
+    num_allMeasure = len_PF_measure + len_PT_measure + len_PG_measure + len_Va_measure + len_QF_measure + len_QT_measure + len_QG_measure + len_Vm_measure;
+    num_variables = 2 * (nbus - 1);
+    if num_allMeasure < num_variables {
+        println(`Error: There are less measurements than number of variables to be estimated.`);
+        success = 0;
+    }
+
+    return success;
+}

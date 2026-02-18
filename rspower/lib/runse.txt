@@ -60,10 +60,6 @@ fn run_se(type_initialguess, V0) {
     // 转换回原始母线编号
     [output_bus, output_gen, output_branch] = int2ext(se_i2e, new_bus, new_gen, new_branch, areas);
 
-    // 输出结果
-    //outputpfsoln(baseMVA, bus, gen, branch, success, et, 1, iterNum);
-    //outputsesoln(idx, sigma, z, z_est, error_sqrsum);
-
     return (baseMVA, output_bus, output_gen, output_branch, success, z, z_est, error_sqrsum);
 
 }

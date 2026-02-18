@@ -16,6 +16,7 @@
 #include ../lib/make_sbus.txt
 #include ../lib/pfsoln.txt
 #include ../lib/total_load.txt
+#include ../lib/checkDataIntegrity.txt
 
 //输入观测值
 // which measurements are available
@@ -47,6 +48,13 @@ sigma_QF = [];
 sigma_QT = [];
 sigma_QG = [];
 sigma_Vm = 0.01;
+
+// check input data integrity
+nbus = 3;
+success = checkDataIntegrity(nbus);
+if ~~success{
+    println('State Estimation input data are not complete or sufficient!');
+}
 
 type_initialguess = 2;
 V0 = [[1], [1.02], [1.02]];

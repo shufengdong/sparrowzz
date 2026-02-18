@@ -34,7 +34,7 @@ fn getV0(bus, gen, type_initialguess, V0_in) {
         // 使用给定的初始电压
         V0 = V0_in;
     } else {
-        //info(`Error: unknown 'type_initialguess'`);
+        //println(`Error: unknown 'type_initialguess`);
         return [];
     }
 

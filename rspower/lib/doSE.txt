@@ -186,7 +186,7 @@ fn doSE(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V0, ref, pv, pq) {
         // ---------------------- 收敛判断 ----------------------
         normF = max(abs(F));  // 残差无穷范数
         if verbose > 1 {
-            println("\niteration [%3d]\t\tnorm of mismatch: %10.3e", iter_num, normF);
+            //println("\niteration [%3d]\t\tnorm of mismatch: %10.3e", iter_num, normF);
         }
         if normF < tol {
             converged = 1;

@@ -135,36 +135,5 @@ fn dSbr_dV(branch, Yf, Yt, V, vcart) {
     Sf = get_multi(V, f)' .* Ifc;
     St = get_multi(V, t)' .* Itc;
 
-    /*if is_sparse(Yf) {             // 稀疏矩阵版本 (如果Yf是稀疏矩阵)
-        diagVf  = sparse(range(0, nl), range(0, nl), get_multi(V, f), nl, nl);
-        diagVt  = sparse(range(0, nl), range(0, nl), get_multi(V, t), nl, nl);
-        diagIfc = sparse(range(0, nl), range(0, nl), Ifc, nl, nl);
-        diagItc = sparse(range(0, nl), range(0, nl), Itc, nl, nl);
-        if vcart == 0 {  // 极坐标
-            Vnorm       = V ./ abs(V);
-            diagVc      = sparse(range(0, nb), range(0, nb), Vc, nb, nb);
-            diagVnorm   = sparse(range(0, nb), range(0, nb), Vnorm, nb, nb);
-            CVf  = sparse(range(0, nl), f, get_multi(V, f), nl, nb);
-            CVnf = sparse(range(0, nl), f, get_multi(get_multi(Vnorm, f), range(0, size(f, 0))), nl, nb);
-            CVt  = sparse(range(0, nl), t, get_multi(V, t), nl, nb);
-            CVnt = sparse(range(0, nl), t, get_multi(get_multi(Vnorm, t), range(0, size(t, 0))), nl, nb);
-        }
-    } else {                        // 稠密矩阵版本
-        diagVf  = diag(get_multi(V, f));
-        diagVt  = diag(get_multi(V, t));
-        diagIfc = diag(Ifc);
-        diagItc = diag(Itc);
-        if vcart == 0 {  // 极坐标
-            Vnorm       = V ./ abs(V);
-            diagVc      = diag(Vc);
-            diagVnorm   = diag(Vnorm);
-            CVf  = full(sparse(range(0, nl), f, get_multi(V, f), nl, nb));
-            CVnf = full(sparse(range(0, nl), f, get_multi(Vnorm, f), nl, nb));
-            CVt  = full(sparse(range(0, nl), t, get_multi(V, t), nl, nb));
-            CVnt = full(sparse(range(0, nl), t, get_multi(Vnorm, t), nl, nb));
-        }
-    }
-    */
-
     return (dSf_dV1, dSf_dV2, dSt_dV1, dSt_dV2, Sf, St);
 }
