@@ -56,10 +56,10 @@ if ~~success{
     println('State Estimation input data are not complete or sufficient!');
 }
 
-type_initialguess = 2;
-V0 = [[1], [1.02], [1.02]];
+type_initialguess = 2;    // 当type_initialguess=3时，需要同时给V0
+//V0 = [[1], [1.02], [1.02]];
 
-[baseMVA, bus, gen, branch, success, z, z_est, error_sqrsum] = run_se(type_initialguess, V0);
+[baseMVA, bus, gen, branch, success, z, z_est, error_sqrsum] = run_se(type_initialguess, []);
 
 assert_relative_eq(baseMVA, 1000);
 

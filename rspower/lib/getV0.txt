@@ -9,6 +9,8 @@
 //   type_initialguess: 1 - 从案例数据获取初始猜测值
 //                      2 - 平启动
 //                      3 - 从输入获取
+//
+// 当type_initialguess=3时，需要同时给V0_in
 
 fn getV0(bus, gen, type_initialguess, V0_in) {
 
