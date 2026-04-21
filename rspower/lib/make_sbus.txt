@@ -34,7 +34,7 @@ fn make_sbus(baseMVA, bus, gen) {
     on = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);  // which generators are on?
     gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on) - 1; // what buses are they at?
     ngon = size(on, 0);
-    Cg = full(sparse(gbus, range(0, ngon), 1, nb, ngon));
+    Cg = sparse(gbus, range(0, ngon), 1, nb, ngon);
     Gp = slice(gen, [0], [PG-1, PG]);
     Gq = slice(gen, [0], [QG-1, QG]);
     Sbusg = Cg * (get_multi(Gp, on)  + c(0,1) * get_multi(Gq, on)) / baseMVA;
@@ -44,5 +44,13 @@ fn make_sbus(baseMVA, bus, gen) {
     Vm = ones(nb, 1);
     Sbusd = p + i .* Vm + z .* Vm.^2;
     // complex power injection at each bus
-    return Sbusg' - Sbusd;
+    Sbus = Sbusg' - Sbusd;
+    
+    // ============ 新增：计算负荷对Vm的偏导数 ============
+    // For ZIP model: S_d = p + i*Vm + z*Vm^2
+    // dS_d/dVm = i + 2*z*Vm (as diagonal matrix)
+    // This must be SUBTRACTED from the overall dSbus_dVm
+    dSbus_dVm_load = diag(i + 2 * z .* Vm);
+    
+    return (Sbus, dSbus_dVm_load);
 }

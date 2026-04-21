@@ -79,7 +79,8 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
         );
         // compute update step
         // dx = linsolve(J, -F);
-        dx = J \ -F;
+        negF = 0 - F;
+        dx = J \ negF;
         // update voltage vector
         if npv {
             Va = set2(Va, pv, slice(dx, [j1,j2], [0]));
