@@ -1,0 +1,59 @@
+// makeSbus - Builds the vector of complex bus power injections.
+// ::
+//
+//   SBUS = MAKESBUS(BASEMVA, BUS, GEN)
+//   returns the vector of complex bus power injections, that is, generation
+//   minus load. Power is expressed in per unit. This implementation uses the
+//   nominal-voltage load returned by make_sdzip.
+//
+//   [SBUS, DSBUS_DVM] = MAKESBUS(BASEMVA, BUS, GEN)
+//   The currently supported constant-power load model has no voltage
+//   dependence, so DSBUS_DVM is a sparse zero matrix.
+//
+//   The VM implementation always returns the tuple (SBUS, DSBUS_DVM).
+//   Assigning the call to one variable takes SBUS, matching the common
+//   MATLAB calling form.
+//
+//   See also MAKEYBUS.
+
+//   MATPOWER
+//   Copyright (c) 1996-2024, Power Systems Engineering Research Center (PSERC)
+//   by Ray Zimmerman, PSERC Cornell
+//
+//   This file is part of MATPOWER.
+//   Covered by the 3-clause BSD License (see LICENSE file for details).
+//   See https://matpower.org for more info.
+
+// define named indices into bus, gen matrices
+
+fn makeSbus(baseMVA, bus, gen) {
+    nb = size(bus, 0);
+
+    // get load parameters
+    Sd = make_sdzip(baseMVA, bus, []);
+    z = slice(Sd, [0], [0,1]);
+    i = slice(Sd, [0], [1,2]);
+    p = slice(Sd, [0], [2,3]);
+
+    // compute per-bus generation in p.u.
+    on = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);  // which generators are on?
+    gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on) - 1; // what buses are they at?
+    ngon = size(on, 0);
+    Cg = sparse(gbus, range(0, ngon), 1, nb, ngon);
+
+    Gp = slice(gen, [0], [PG-1, PG]);
+    Gq = slice(gen, [0], [QG-1, QG]);
+    Sbusg = Cg * (get_multi(Gp, on) + c(0,1) * get_multi(Gq, on)) / baseMVA;
+
+    // compute per-bus loads in p.u.
+    Sbusd = p + i + z;
+
+    // form net complex bus power injection vector
+    Sbus = Sbusg' - Sbusd;
+
+    // derivative of net bus injection w.r.t. voltage magnitude
+    diag_index = range(0, nb);
+    dSbus_dVm = sparse(diag_index, diag_index, zeros(nb, 1), nb, nb);
+
+    return (Sbus, dSbus_dVm);
+}

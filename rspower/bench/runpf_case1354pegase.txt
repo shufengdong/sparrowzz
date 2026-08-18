@@ -1,0 +1,34 @@
+Inf = INF;
+#include ../data/case1354pegase.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/ext2int.txt
+#include ../lib/int2ext.txt
+#include ../lib/bustypes.txt
+#include ../lib/makeYbus.txt
+#include ../lib/dSbus_dV.txt
+#include ../lib/make_sdzip.txt
+#include ../lib/makeSbus.txt
+#include ../lib/newtonpf.txt
+#include ../lib/pfsoln.txt
+#include ../lib/total_load.txt
+#include ../lib/runpf.txt
+
+// Warm up VM dispatch, tensor kernels and MKL before timing.
+runpf();
+
+iterations = 3;
+start_ms = monotonic_ms();
+for i in 0..iterations {
+    runpf();
+}
+end_ms = monotonic_ms();
+elapsed_ms = end_ms - start_ms;
+
+println(`case1354pegase runpf iterations:`);
+println(iterations);
+println(`case1354pegase runpf total ms:`);
+println(elapsed_ms);
+println(`case1354pegase runpf average ms:`);
+println(elapsed_ms / iterations);

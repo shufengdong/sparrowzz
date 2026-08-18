@@ -4,18 +4,25 @@ Inf = INF;
 #include ../lib/idx_bus.txt
 #include ../lib/idx_brch.txt
 #include ../lib/ext2int.txt
-#include ../lib/make_y_bus.txt
-#include ../lib/dsbus_dv.txt
+#include ../lib/int2ext.txt
+#include ../lib/bustypes.txt
+#include ../lib/makeYbus.txt
+#include ../lib/dSbus_dV.txt
 #include ../lib/make_sdzip.txt
-#include ../lib/make_sbus.txt
+#include ../lib/makeSbus.txt
 #include ../lib/newtonpf.txt
+#include ../lib/pfsoln.txt
+#include ../lib/total_load.txt
 #include ../lib/runpf.txt
 
-[i2e, bus, gen, branch] = ext2int(bus, gen, branch);
+external_bus_numbers = slice(bus, [0], [BUS_I-1, BUS_I]);
 
 info(`Running power flow on case1354pegase...`);
-r = runpf();
+[r, solved_bus, solved_gen, solved_branch, success, iterations] = runpf();
 info(`Run power flow on case1354pegase end`);
+
+assert_relative_eq(slice(solved_bus, [0], [BUS_I-1, BUS_I]), external_bus_numbers);
+assert_relative_eq(success, 1);
 
 assert_relative_eq(r, [
     [c(0.9447255873558318,-0.3757565176872023)],

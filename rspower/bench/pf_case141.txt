@@ -2,25 +2,30 @@
 #include ../lib/idx_gen.txt
 #include ../lib/idx_bus.txt
 #include ../lib/idx_brch.txt
-#include ../lib/dsbus_dv.txt
+#include ../lib/ext2int.txt
+#include ../lib/int2ext.txt
+#include ../lib/bustypes.txt
+#include ../lib/dSbus_dV.txt
 #include ../lib/make_sdzip.txt
-#include ../lib/make_sbus.txt
-#include ../lib/make_y_bus.txt
+#include ../lib/makeSbus.txt
+#include ../lib/makeYbus.txt
 #include ../lib/make_jac.txt
 #include ../lib/newtonpf.txt
+#include ../lib/pfsoln.txt
+#include ../lib/total_load.txt
 #include ../lib/runpf.txt
 // ----------------- test make sbus ---------------
 info(`Running make_sbus on case141 2000 times...`);
 for i in 0..2000 {
-    make_sbus(baseMVA, bus, gen);
+    makeSbus(baseMVA, bus, gen);
 }
 info(`Run make_sbus case141 end`);
-// ----------------- test make_y_bus ---------------
-info(`Running make_y_bus on case141 2000 times...`);
+// ----------------- test makeYbus ---------------
+info(`Running makeYbus on case141 2000 times...`);
 for i in 0..2000 {
-    make_y_bus(baseMVA, bus, branch);
+    makeYbus(baseMVA, bus, branch);
 }
-info(`Run make_y_bus case141 end`);
+info(`Run makeYbus case141 end`);
 // ----------------- test make_jac ---------------
 info(`Running make_jac on case141 10000 times...`);
 for i in 0..10000 {
@@ -60,7 +65,7 @@ for i in 0..2000 {
     V_init = set(V0, gbus_k, gen_vg ./ abs(voltage_g) .* voltage_g);
 
     // build admittance matrices
-    Ybus = make_y_bus(baseMVA, bus, branch);
+    Ybus = makeYbus(baseMVA, bus, branch);
 }
 info(`Run prepare case141 end`);
 // ----------------- test runpf ---------------

@@ -1,36 +1,22 @@
-fn int2ext(i2e, bus, gen, branch, areas) {
-    //INT2EXT   Converts internal to external bus numbering.
-    //
-    //   This function has two forms, (1) the old form that operates on
-    //   and returns individual matrices and (2) the new form that operates
-    //   on and returns an entire MATPOWER case struct.
-    //
-    //   1.  [BUS, GEN, BRANCH, AREAS] = INT2EXT(I2E, BUS, GEN, BRANCH, AREAS)
-    //       [BUS, GEN, BRANCH] = INT2EXT(I2E, BUS, GEN, BRANCH)
-    //
-    //   Converts from the consecutive internal bus numbers back to the originals
-    //   using the mapping provided by the I2E vector returned from EXT2INT,
-    //   where EXTERNAL_BUS_NUMBER = I2E(INTERNAL_BUS_NUMBER).
-    //   AREAS is completely ignored and is only included here for backward
-    //   compatibility of the API.
-    //
-    //   Examples:
-    //       [bus, gen, branch, areas] = int2ext(i2e, bus, gen, branch, areas);
-    //       [bus, gen, branch] = int2ext(i2e, bus, gen, branch);
-    //
-    //   2.  MPC = INT2EXT(MPC)
-    //       MPC = INT2EXT(MPC, MPOPT)
-    //
-    //   If the input is a single MATPOWER case struct, followed optionally
-    //   by a MATOWER options struct, then it restores all buses, generators
-    //   and branches that were removed because of being isolated or off-line,
-    //   and reverts to the original generator ordering and original bus
-    //   numbering. This requires that the 'order' field created by EXT2INT be
-    //   in place.
-    //
-    //   Examples:
-    //       mpc = int2ext(mpc);
-    //       mpc = int2ext(mpc, mpopt);
+// int2ext - Converts internal to external bus numbering.
+// ::
+//
+//   [BUS, GEN, BRANCH] = INT2EXT(I2E, BUS, GEN, BRANCH)
+//
+//   Converts consecutive internal bus numbers back to the external numbers
+//   stored in I2E. This is the matrix form used by rspower. MATPOWER case
+//   structs, extra fields and the legacy AREAS argument are intentionally not
+//   implemented.
+//
+//   MATPOWER
+//   Copyright (c) 1996-2024, Power Systems Engineering Research Center (PSERC)
+//   by Ray Zimmerman, PSERC Cornell
+//
+//   This file is part of MATPOWER.
+//   Covered by the 3-clause BSD License (see LICENSE file for details).
+//   See https://matpower.org for more info.
+
+fn int2ext(i2e, bus, gen, branch) {
 
     // 重新编号母线
     index_i2e_bus = slice(bus, [0], [BUS_I-1, BUS_I]) - 1;  // 索引值=内部母线编号-1
@@ -52,5 +38,5 @@ fn int2ext(i2e, bus, gen, branch, areas) {
     i2e_tbus = get_multi(i2e, index_i2e_tbus)';
     output_branch2 = assign(output_branch1, i2e_tbus, [0], [T_BUS-1, T_BUS]);
 
-    return (output_bus, output_gen, output_branch2, areas);
+    return (output_bus, output_gen, output_branch2);
 }

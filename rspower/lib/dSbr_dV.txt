@@ -1,6 +1,7 @@
-//DSBR_DV   Computes partial derivatives of branch power flows w.r.t. voltage.
+// dSbr_dV - Computes partial derivatives of branch power flows w.r.t. voltage.
+// ::
 //
-//   The derivatives can be take with respect to polar or cartesian coordinates
+//   The derivatives can be taken with respect to polar or cartesian coordinates
 //   of voltage, depending on the 5th argument.
 //
 //   [DSF_DVA, DSF_DVM, DST_DVA, DST_DVM, SF, ST] = DSBR_DV(BRANCH, YF, YT, V)
@@ -76,7 +77,29 @@
 //           dSbr_dV(branch, Yf, Yt, V);
 //       [dSf_dVr, dSf_dVi, dSt_dVr, dSt_dVi, Sf, St] = ...
 //           dSbr_dV(branch, Yf, Yt, V, 1);
-//  计算支路功率流对电压的偏导数。
+//
+// For more details on the derivations behind the derivative code used
+// in |MATPOWER|, see::
+//
+//   [TN2]  R. D. Zimmerman, "AC Power Flows, Generalized OPF Costs and
+//          their Derivatives using Complex Matrix Notation", MATPOWER
+//          Technical Note 2, February 2010. [Online]. Available:
+//          https://matpower.org/docs/TN2-OPF-Derivatives.pdf
+//          doi: 10.5281/zenodo.3237866
+//   [TN4]  B. Sereeter and R. D. Zimmerman, "AC Power Flows and their
+//          Derivatives using Complex Matrix Notation and Cartesian
+//          Coordinate Voltages," MATPOWER Technical Note 4, April 2018.
+//          [Online]. Available: https://matpower.org/docs/TN4-OPF-Derivatives-Cartesian.pdf
+//          doi: 10.5281/zenodo.3237909
+//
+//   MATPOWER
+//   Copyright (c) 1996-2024, Power Systems Engineering Research Center (PSERC)
+//   by Ray Zimmerman, PSERC Cornell
+//   and Baljinnyam Sereeter, Delft University of Technology
+//
+//   This file is part of MATPOWER.
+//   Covered by the 3-clause BSD License (see LICENSE file for details).
+//   See https://matpower.org for more info.
 
 fn dSbr_dV(branch, Yf, Yt, V, vcart) {
 
@@ -88,8 +111,8 @@ fn dSbr_dV(branch, Yf, Yt, V, vcart) {
     // 定义
     f = slice(branch, [0], [F_BUS - 1, F_BUS]) - 1;     // "from" 母线列表(f索引从'0'开始)
     t = slice(branch, [0], [T_BUS - 1, T_BUS]) - 1;     // "to" 母线列表(t索引从'0'开始)
-    nl = size(f, 0);
-    nb = size(V, 0);
+    nl = length(f);
+    nb = length(V);
 
     // 计算中间值
     Yfc = conj(Yf);
@@ -98,18 +121,36 @@ fn dSbr_dV(branch, Yf, Yt, V, vcart) {
     Ifc = Yfc * Vc;     // "from" 电流的共轭
     Itc = Ytc * Vc;     // "to" 电流的共轭
 
-    diagVf  = diag(get_multi(V, f));
-    diagVt  = diag(get_multi(V, t));
-    diagIfc = diag(Ifc);
-    diagItc = diag(Itc);
-    if vcart == 0 {  // 极坐标
-        Vnorm       = V ./ abs(V);
-        diagVc      = diag(Vc);
-        diagVnorm   = diag(Vnorm);
-        CVf  = full(sparse(range(0, nl), f, get_multi(V, f), nl, nb));
-        CVnf = full(sparse(range(0, nl), f, get_multi(Vnorm, f), nl, nb));
-        CVt  = full(sparse(range(0, nl), t, get_multi(V, t), nl, nb));
-        CVnt = full(sparse(range(0, nl), t, get_multi(Vnorm, t), nl, nb));
+    branch_index = range(0, nl);
+    if issparse(Yf) {  // 稀疏版本
+        diagVf  = sparse(branch_index, branch_index, get_multi(V, f), nl, nl);
+        diagVt  = sparse(branch_index, branch_index, get_multi(V, t), nl, nl);
+        diagIfc = sparse(branch_index, branch_index, Ifc, nl, nl);
+        diagItc = sparse(branch_index, branch_index, Itc, nl, nl);
+        if vcart == 0 {
+            Vnorm       = V ./ abs(V);
+            bus_index   = range(0, nb);
+            diagVc      = sparse(bus_index, bus_index, Vc, nb, nb);
+            diagVnorm   = sparse(bus_index, bus_index, Vnorm, nb, nb);
+            CVf  = sparse(branch_index, f, get_multi(V, f), nl, nb);
+            CVnf = sparse(branch_index, f, get_multi(Vnorm, f), nl, nb);
+            CVt  = sparse(branch_index, t, get_multi(V, t), nl, nb);
+            CVnt = sparse(branch_index, t, get_multi(Vnorm, t), nl, nb);
+        }
+    } else {  // 稠密版本
+        diagVf  = diag(get_multi(V, f));
+        diagVt  = diag(get_multi(V, t));
+        diagIfc = diag(Ifc);
+        diagItc = diag(Itc);
+        if vcart == 0 {
+            Vnorm       = V ./ abs(V);
+            diagVc      = diag(Vc);
+            diagVnorm   = diag(Vnorm);
+            CVf  = full(sparse(branch_index, f, get_multi(V, f), nl, nb));
+            CVnf = full(sparse(branch_index, f, get_multi(Vnorm, f), nl, nb));
+            CVt  = full(sparse(branch_index, t, get_multi(V, t), nl, nb));
+            CVnt = full(sparse(branch_index, t, get_multi(Vnorm, t), nl, nb));
+        }
     }
 
     if vcart {  // 直角坐标

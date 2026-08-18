@@ -1,5 +1,5 @@
 % 使用说明:
-% 1. 在 MATLAB 中切换到 rspower/examples 目录
+% 1. 在 MATLAB 中切换到 rspower/tests 目录
 % 2. 运行: compare_results()
 % 3. 程序会自动执行测试文件、解析结果，并与 matpower 计算结果比较
 % 4. 可选择调用 visualize_comparison() 进行可视化比较
@@ -202,7 +202,7 @@ function update_test_files(case_name)
     test_files = {
         'test_make_jac.txt'
         'test_make_sbus.txt'
-        'test_make_ybus.txt'
+        'test_makeYbus.txt'
         'test_runpf.txt'
     };
 

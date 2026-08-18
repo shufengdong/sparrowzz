@@ -11,7 +11,7 @@
 //   error_sqrsum: Weighted sum of error squares
 
 
-fn run_se(type_initialguess, V0) {
+fn runse(type_initialguess, V0) {
     // 转换为内部母线编号
     [se_i2e, se_bus, se_gen, se_branch] = ext2int(bus, gen, branch);    //索引从“1”开始
 
@@ -19,10 +19,7 @@ fn run_se(type_initialguess, V0) {
     [ref, pv, pq] = bustypes(se_bus, se_gen);   //索引从“0”开始
 
     // 构建导纳矩阵
-    [Ybus, Yf, Yt] = make_y_bus(baseMVA, se_bus, se_branch);
-    Ybus = full(Ybus);  // 转为稠密矩阵
-    Yf = full(Yf);
-    Yt = full(Yt);
+    [Ybus, Yf, Yt] = makeYbus(baseMVA, se_bus, se_branch);
 
     // 初始电压猜测
     V0 = getV0(se_bus, se_gen, type_initialguess, V0);
@@ -58,7 +55,7 @@ fn run_se(type_initialguess, V0) {
     [new_bus, new_gen, new_branch] = pfsoln(baseMVA, se_bus, se_gen, se_branch, Ybus, Yf, Yt, V, ref, pv, pq, []);
 
     // 转换回原始母线编号
-    [output_bus, output_gen, output_branch] = int2ext(se_i2e, new_bus, new_gen, new_branch, areas);
+    [output_bus, output_gen, output_branch] = int2ext(se_i2e, new_bus, new_gen, new_branch);
 
     return (baseMVA, output_bus, output_gen, output_branch, success, z, z_est, error_sqrsum);
 

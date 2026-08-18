@@ -1,4 +1,4 @@
-#include ../data/case145.txt
+#include ../data/case30.txt
 #include ../lib/idx_gen.txt
 #include ../lib/idx_bus.txt
 #include ../lib/idx_brch.txt
@@ -9,20 +9,12 @@
 #include ../lib/dSbus_dV.txt
 #include ../lib/make_sdzip.txt
 #include ../lib/makeSbus.txt
-#include ../lib/make_jac.txt
 #include ../lib/newtonpf.txt
 #include ../lib/pfsoln.txt
 #include ../lib/total_load.txt
 #include ../lib/runpf.txt
+info(`Running AC Newton power flow on case30...`);
+[V, solved_bus, solved_gen, solved_branch, success, iterations] = runpf();
+info(`Run power flow on case30 end`);
 
-info(`Running make_jac on case145 6000 times...`);
-for i in 0..6000 {
-    make_jac(baseMVA, bus, branch, gen, 1);
-}
-info(`Run make_jac case145 end`);
-
-info(`Running 2000 times power flow case145...`);
-for i in 0..2000 {
-    r = runpf();
-}
-info(`Run power flow on case145 end`);
+return V;

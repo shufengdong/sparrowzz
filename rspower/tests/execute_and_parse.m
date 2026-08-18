@@ -6,7 +6,7 @@ function results = execute_and_parse()
 %     tensoreval_path = '..\..\..\eig-rc\target\release\examples\tensoreval.exe';
     tensoreval_path = 'tensoreval.exe';
     test_files = {
-        'test_make_ybus.txt'
+        'test_makeYbus.txt'
         'test_make_sbus.txt'
         'test_make_sdzip.txt'
         'test_make_jac.txt'
@@ -187,7 +187,7 @@ function demo_usage()
 end
 
 % 使用说明:
-% 1. 在 MATLAB 中切换到 rspower/examples 目录
+% 1. 在 MATLAB 中切换到 rspower/tests 目录
 % 2. 运行: results = execute_and_parse()
 % 3. 或者运行演示: demo_usage()
 % 4. 结果存储在返回的结构体中，每个字段对应一个测试文件的矩阵

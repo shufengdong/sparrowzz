@@ -1,17 +1,12 @@
-fn ext2int(bus, gen, branch, areas){
-    //EXT2INT   Converts external to internal indexing.
-    //
-    //   [i2e, bus, gen, branch, areas] = ext2int(bus, gen, branch, areas);
-    //   [i2e, bus, gen, branch] = ext2int(bus, gen, branch);
-    //
-    //   If the first argument is a matrix, it simply converts from (possibly
-    //   non-consecutive) external bus numbers to consecutive internal bus
-    //   numbers which start at 1. Changes are made to BUS, GEN and BRANCH,
-    //   which are returned along with a vector of indices I2E that can be
-    //   passed to INT2EXT to perform the reverse conversion, where
-    //   EXTERNAL_BUS_NUMBER = I2E(INTERNAL_BUS_NUMBER).
-    //   AREAS is completely ignored and is only included here for backward
-    //   compatibility of the API.
+// ext2int - Converts external to internal bus numbering.
+//
+//   [I2E, BUS, GEN, BRANCH] = EXT2INT(BUS, GEN, BRANCH)
+//
+//   Converts possibly non-consecutive external bus numbers to consecutive
+//   internal numbers beginning at 1. Only the matrix form needed by rspower is
+//   implemented; MATPOWER case structs, extra fields and AREAS are omitted.
+
+fn ext2int(bus, gen, branch){
 
 
     // create map of external bus numbers to bus indices

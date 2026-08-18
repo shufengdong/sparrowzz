@@ -2,17 +2,20 @@
 #include ../lib/idx_gen.txt
 #include ../lib/idx_bus.txt
 #include ../lib/idx_brch.txt
-#include ../lib/make_y_bus.txt
+#include ../lib/ext2int.txt
+#include ../lib/int2ext.txt
+#include ../lib/bustypes.txt
+#include ../lib/makeYbus.txt
 #include ../lib/dSbus_dV.txt
 #include ../lib/make_sdzip.txt
-#include ../lib/make_sbus.txt
+#include ../lib/makeSbus.txt
 #include ../lib/newtonpf.txt
+#include ../lib/pfsoln.txt
+#include ../lib/total_load.txt
 #include ../lib/runpf.txt
 
 info(`Running power flow on case30...`);
-for i in 0..100 {
-    r = runpf();
-}
+r = runpf();
 info(`Run power flow on case30 end`);
 
 assert_relative_eq(r, [

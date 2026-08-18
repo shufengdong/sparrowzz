@@ -1,4 +1,4 @@
-fn make_y_bus(baseMVA, bus, branch) {
+fn makeYbus(baseMVA, bus, branch) {
     // constants
     nb = size(bus, 0);          // number of buses
     nl = size(branch, 0);       // number of lines

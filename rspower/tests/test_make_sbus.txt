@@ -2,9 +2,9 @@
 #include ../lib/idx_gen.txt
 #include ../lib/idx_bus.txt
 #include ../lib/make_sdzip.txt
-#include ../lib/make_sbus.txt
+#include ../lib/makeSbus.txt
 
-r = make_sbus(baseMVA, bus, gen);
+[r, dSbus_dVm] = makeSbus(baseMVA, bus, gen);
 // |a - b| <= max(|a|, |b|) * max_relative(default=1e-8)
 assert_relative_eq(r, [
     [c(2.324,-0.169)],
@@ -22,3 +22,5 @@ assert_relative_eq(r, [
     [c(-0.135,-0.058)],
     [c(-0.149,-0.050)]
 ]);
+
+assert_relative_eq(full(dSbus_dVm), zeros(size(bus, 0), size(bus, 0)));

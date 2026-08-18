@@ -2,7 +2,7 @@
 #include ../lib/idx_gen.txt
 #include ../lib/idx_bus.txt
 #include ../lib/idx_brch.txt
-#include ../lib/make_y_bus.txt
+#include ../lib/makeYbus.txt
 #include ../lib/dSbus_dV.txt
 #include ../lib/make_jac.txt
 #include ../lib/bustypes.txt

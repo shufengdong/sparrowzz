@@ -1,6 +1,7 @@
-//DSBUS_DV   Computes partial derivatives of power injection w.r.t. voltage.
+// dSbus_dV - Computes partial derivatives of power injection w.r.t. voltage.
+// ::
 //
-//   The derivatives can be take with respect to polar or cartesian coordinates
+//   The derivatives can be taken with respect to polar or cartesian coordinates
 //   of voltage, depending on the 3rd argument.
 //
 //   [DSBUS_DVA, DSBUS_DVM] = DSBUS_DV(YBUS, V)
@@ -65,8 +66,8 @@
 //       [dSbus_dVa, dSbus_dVm] = dSbus_dV(Ybus, V);
 //       [dSbus_dVr, dSbus_dVi] = dSbus_dV(Ybus, V, 1);
 //
-//   For more details on the derivations behind the derivative code used
-//   in MATPOWER information, see:
+// For more details on the derivations behind the derivative code used
+// in |MATPOWER| information, see::
 //
 //   [TN2]  R. D. Zimmerman, "AC Power Flows, Generalized OPF Costs and
 //          their Derivatives using Complex Matrix Notation", MATPOWER
@@ -79,6 +80,15 @@
 //          [Online]. Available: https://matpower.org/docs/TN4-OPF-Derivatives-Cartesian.pdf
 //          doi: 10.5281/zenodo.3237909
 
+//   MATPOWER
+//   Copyright (c) 1996-2024, Power Systems Engineering Research Center (PSERC)
+//   by Ray Zimmerman, PSERC Cornell
+//   and Baljinnyam Sereeter, Delft University of Technology
+//
+//   This file is part of MATPOWER.
+//   Covered by the 3-clause BSD License (see LICENSE file for details).
+//   See https://matpower.org for more info.
+
 fn dSbus_dV(Ybus, V, vcart) {
     // 默认输入参数
     if is_empty(vcart) {
@@ -87,14 +97,25 @@ fn dSbus_dV(Ybus, V, vcart) {
     
     n = length(V);
     Ibus = Ybus * V;
-    diagV       = diag(V);
-    diagIbus    = diag(Ibus);
+    if issparse(Ybus) {          // sparse version (if Ybus is sparse)
+        diag_index  = range(0, n);
+        diagV       = sparse(diag_index, diag_index, V, n, n);
+        diagIbus    = sparse(diag_index, diag_index, Ibus, n, n);
+        if vcart == 0 {
+            diagVnorm = sparse(diag_index, diag_index, V./abs(V), n, n);
+        }
+    } else {                    // dense version
+        diagV       = diag(V);
+        diagIbus    = diag(Ibus);
+        if vcart == 0 {
+            diagVnorm   = diag(V./abs(V));
+        }
+    }
 
     if vcart {
         dSbus_dV1 = conj(diagIbus) + diagV * conj(Ybus);        // dSbus/dVr
         dSbus_dV2 = c(0,1) * (conj(diagIbus) - diagV * conj(Ybus)); // dSbus/dVi
     } else {
-        diagVnorm = diag(V./abs(V));
         dSbus_dV1 = c(0,1) * diagV * conj(diagIbus - Ybus * diagV);     // dSbus/dVa
         dSbus_dV2 = diagV * conj(Ybus * diagVnorm) + conj(diagIbus) * diagVnorm;    // dSbus/dVm
     }

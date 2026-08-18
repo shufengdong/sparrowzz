@@ -61,6 +61,9 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
 
     // check tolerance
     normF = norm_max(F);
+    if normF < tol {
+        converged = 1;
+    }
 
     // do Newton iterations
     while ~~converged && i < max_it {
@@ -78,7 +81,6 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
             horzcat(j21, j22)
         );
         // compute update step
-        // dx = linsolve(J, -F);
         negF = 0 - F;
         dx = J \ negF;
         // update voltage vector
@@ -101,5 +103,5 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
             converged = 1;
         }
     }
-    return V;
+    return (V, converged, i);
 }

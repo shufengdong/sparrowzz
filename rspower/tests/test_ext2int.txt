@@ -3,6 +3,7 @@
 #include ../lib/idx_bus.txt
 #include ../lib/idx_brch.txt
 #include ../lib/ext2int.txt
+#include ../lib/int2ext.txt
 
 [i2e, bus, gen, branch] = ext2int(bus, gen, branch);
 
@@ -70,3 +71,18 @@ assert_relative_eq(branch, [
 	[12,	13,	0.22092,	0.19988,	0,	0,	0,	0,	0,	0,	1,	-360,	360],
 	[13,	14,	0.17093,	0.34802,	0,	0,	0,	0,	0,	0,	1,	-360,	360]
 ]);
+
+external_bus = [[10], [30]];
+external_gen = [[30]];
+external_branch = [[10, 30]];
+
+[roundtrip_i2e, internal_bus, internal_gen, internal_branch] = ext2int(external_bus, external_gen, external_branch);
+assert_relative_eq(roundtrip_i2e, external_bus);
+assert_relative_eq(internal_bus, [[1], [2]]);
+assert_relative_eq(internal_gen, [[2]]);
+assert_relative_eq(internal_branch, [[1, 2]]);
+
+[roundtrip_bus, roundtrip_gen, roundtrip_branch] = int2ext(roundtrip_i2e, internal_bus, internal_gen, internal_branch);
+assert_relative_eq(roundtrip_bus, external_bus);
+assert_relative_eq(roundtrip_gen, external_gen);
+assert_relative_eq(roundtrip_branch, external_branch);

@@ -1,51 +1,50 @@
-fn runpf() {
-    // get bus index lists of each type of bus
-    // get generator status
-    // bus_gen_status = zeros(size(bus, 1), 1);
-    // bus_gen_status(gen(:, GEN_BUS)) = gen(:, GEN_STATUS) > 0;
-    nb = size(bus, 0);
-    ng = size(gen, 0);
-    g_i = slice(gen, [0], [GEN_BUS-1,GEN_BUS]) - 1; // generator bus indices
-    Cg = full(sparse(g_i, range(0, ng), slice(gen, [0], [GEN_STATUS-1,GEN_STATUS]) > 0, nb, ng));  // gen connection matrix
-                                            // element i, j is 1 if, generator j at bus i is ON
-    bus_gen_status = Cg * ones(ng, 1);      // number of generators at each bus that are ON
+// runpf - Runs an AC Newton power flow.
+//
+//   [V, BUS, GEN, BRANCH, SUCCESS, ITERATIONS] = RUNPF()
+//
+//   Uses the BASEMVA, BUS, GEN and BRANCH values in the script context. This
+//   rspower implementation intentionally supports only the AC power-balance,
+//   polar-voltage Newton method. It performs external/internal bus-number
+//   conversion and returns solved matrices using the original bus numbers.
 
-    // form index lists for slack, PV, and PQ buses
-    bus_type = slice(bus, [0], [BUS_TYPE-1,BUS_TYPE]); // bus type column
-    ref = find(bus_type == REF && bus_gen_status);   // reference bus index
-    pv  = find(bus_type == PV  && bus_gen_status);   // PV bus indices
-    pq  = find(bus_type == PQ || ~~bus_gen_status);   // PQ bus indices
+fn runpf() {
+    pf_branch = branch;
+    if size(pf_branch, 1) < QT {
+        pf_branch = horzcat(pf_branch, zeros(size(pf_branch, 0), QT - size(pf_branch, 1)));
+    }
+
+    [i2e, pf_bus, pf_gen, pf_branch] = ext2int(bus, gen, pf_branch);
+    [ref, pv, pq] = bustypes(pf_bus, pf_gen);
+    ref = ref';
+    pv = pv';
+    pq = pq';
+
+    nb = size(pf_bus, 0);
 
     // generator info
-    on = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);  // which generators are on?
-    gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on) - 1; // what buses are they at?
+    on = find(slice(pf_gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);
+    gbus = get_multi(slice(pf_gen, [0], [GEN_BUS-1, GEN_BUS]), on) - 1;
 
     // initial state
-    //V0    = ones(nb, 1);            // flat start
-    V0  = slice(bus, [0], [VM-1,VM]) .* exp(c(0,1) * pi/180 * slice(bus, [0], [VA-1,VA]));
-    vcb = set(ones(size(V0)), pq, zeros(size(pq)));   // create mask of voltage-controlled buses
-    k = find(get_multi(vcb, gbus));            // in-service gens at v-c buses
-    gbus_index = get_multi(gbus, k);            // indices of in-service generators at v-c buses
+    V0 = slice(pf_bus, [0], [VM-1,VM]) .* exp(c(0,1) * pi/180 * slice(pf_bus, [0], [VA-1,VA]));
+    vcb = set(ones(size(V0)), pq, zeros(size(pq)));
+    k = find(get_multi(vcb, gbus));
     on_k = get_multi(on, k);
-    gen_vg = get_multi(slice(gen, [0], [VG-1,VG]), on_k);
+    gen_vg = get_multi(slice(pf_gen, [0], [VG-1,VG]), on_k);
     gbus_k = get_multi(gbus, k);
     voltage_g = get_multi(V0, gbus_k);
     V_init = set(V0, gbus_k, gen_vg ./ abs(voltage_g) .* voltage_g);
 
     // build admittance matrices
-    [Ybus, _, _] = make_y_bus(baseMVA, bus, branch);
-    qlim = 0;
-    loop {
-        // compute bus power injections
-        Sbus = make_sbus(baseMVA, bus, gen);
-        V = newtonpf(Ybus, Sbus, V_init, ref, pv, pq, [1e-6, 100]);
-        if ~~is_empty(V) && qlim {
-            // if V is empty, it means the power flow did not converge
-            break;
-        } else {
-            break;
-        }
-    }
+    [Ybus, Yf, Yt] = makeYbus(baseMVA, pf_bus, pf_branch);
+    Sbus = makeSbus(baseMVA, pf_bus, pf_gen);
+    [V, success, iterations] = newtonpf(Ybus, Sbus, V_init, ref, pv, pq, [1e-6, 100]);
 
-    return V;
+    [pf_bus, pf_gen, pf_branch] = pfsoln(
+        baseMVA, pf_bus, pf_gen, pf_branch,
+        Ybus, Yf, Yt, V, ref, pv, pq, []
+    );
+    [result_bus, result_gen, result_branch] = int2ext(i2e, pf_bus, pf_gen, pf_branch);
+
+    return (V, result_bus, result_gen, result_branch, success, iterations);
 }

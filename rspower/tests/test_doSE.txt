@@ -6,12 +6,12 @@
 #include ../lib/idx_brch.txt
 #include ../lib/isobservable.txt
 #include ../lib/bustypes.txt
-#include ../lib/make_y_bus.txt
+#include ../lib/makeYbus.txt
 #include ../lib/dSbr_dV.txt
 #include ../lib/dSbus_dV.txt
 #include ../lib/doSE.txt
 
-[Ybus, Yf, Yt] = make_y_bus(baseMVA, bus, branch);
+[Ybus, Yf, Yt] = makeYbus(baseMVA, bus, branch);
 V0 = [[1], [1.02], [1.02]];
 [ref,pv,pq] = bustypes(bus, gen);
 
