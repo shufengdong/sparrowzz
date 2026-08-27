@@ -18,7 +18,7 @@ Inf = INF;
 // Warm up VM dispatch, tensor kernels and MKL before timing.
 runpf();
 
-iterations = 3;
+iterations = 30;
 start_ms = monotonic_ms();
 for i in 0..iterations {
     runpf();
