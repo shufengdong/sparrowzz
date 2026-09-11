@@ -43,7 +43,7 @@ fn makeSbus(baseMVA, bus, gen) {
 
     Gp = slice(gen, [0], [PG-1, PG]);
     Gq = slice(gen, [0], [QG-1, QG]);
-    Sbusg = Cg * (get_multi(Gp, on) + c(0,1) * get_multi(Gq, on)) / baseMVA;
+    Sbusg = Cg * (get_multi(Gp, on) + 1j * get_multi(Gq, on)) / baseMVA;
 
     // compute per-bus loads in p.u.
     Sbusd = p + i + z;

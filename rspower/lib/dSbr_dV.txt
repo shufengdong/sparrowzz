@@ -162,13 +162,13 @@ fn dSbr_dV(branch, Yf, Yt, V, vcart) {
         Bt = diagVt * Ytc;
 
         dSf_dV1 = Af + Bf;          // dSf_dVr
-        dSf_dV2 = c(0, 1) * (Af - Bf);   // dSf_dVi
+        dSf_dV2 = 1j * (Af - Bf);   // dSf_dVi
         dSt_dV1 = At + Bt;          // dSt_dVr
-        dSt_dV2 = c(0, 1) * (At - Bt);   // dSt_dVi
+        dSt_dV2 = 1j * (At - Bt);   // dSt_dVi
     } else {  // 极坐标
-        dSf_dV1 = c(0, 1) * (diagIfc * CVf - diagVf * Yfc * diagVc);     // dSf_dVa
+        dSf_dV1 = 1j * (diagIfc * CVf - diagVf * Yfc * diagVc);     // dSf_dVa
         dSf_dV2 = diagVf * conj(Yf * diagVnorm) + diagIfc * CVnf;   // dSf_dVm
-        dSt_dV1 = c(0, 1) * (diagItc * CVt - diagVt * Ytc * diagVc);     // dSt_dVa
+        dSt_dV1 = 1j * (diagItc * CVt - diagVt * Ytc * diagVc);     // dSt_dVa
         dSt_dV2 = diagVt * conj(Yt * diagVnorm) + diagItc * CVnt;   // dSt_dVm
     }
 

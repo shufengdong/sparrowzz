@@ -56,7 +56,8 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
         Cg = sparse(range(0,ngon)', (gbus-1)', ones(ngon, 1), ngon, nb);
 
         // divide Qg by number of generators at the bus to distribute equally(平均分配)
-        ngg = full(Cg * sum(full(Cg))');    // ngon x 1, number of gens at this gen's bus
+        // TensorEval's sparse sum requires an explicit axis.
+        ngg = Cg * sum(Cg, 0)';    // ngon x 1, number of gens at this gen's bus
         gen_QG = set(slice(gen, [0], [QG-1, QG]), on, get_multi(slice(gen, [0], [QG-1, QG]), on)' ./ ngg);
         gen = assign(gen, gen_QG, [0], [QG-1, QG] );
 
@@ -69,7 +70,7 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
         M = set(M, index_Qmax_finite, get_multi(M, index_Qmax_finite) + abs(get_multi(Qmax, index_Qmax_finite)) );
         index_Qmin_finite = find(is_inf(Qmin) == 0);
         M = set(M, index_Qmin_finite, get_multi(M, index_Qmin_finite) + abs(get_multi(Qmin, index_Qmin_finite)) );
-        M = full(Cg * Cg' * M);   // each gen gets sum over all gens at same bus
+        M = Cg * Cg' * M;   // each gen gets sum over all gens at same bus
         // replace +/- Inf limits with proxy +/- M
         Qmin = set(Qmin, find(Qmin == INF), get_multi(M, find(Qmin == INF) ) );
         Qmin = set(Qmin, find(Qmin == -INF), -get_multi(M, find(Qmin == -INF) ) );
@@ -79,20 +80,20 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
         // divide proportionally（按比例分配）
         Cmin = sparse(range(0,ngon)', (gbus-1)', Qmin, ngon, nb);
         Cmax = sparse(range(0,ngon)', (gbus-1)', Qmax, ngon, nb);
-        Qg_tot = full(Cg' * select(gen, on, QG-1));     // nb x 1 vector of total Qg at each bus(母线总无功)
-        Qg_min = sum(full(Cmin))';            // nb x 1 vector of min total Qg at each bus
-        Qg_max = sum(full(Cmax))';            // nb x 1 vector of max total Qg at each bus
-        gen_QG = set(slice(gen, [0], [QG-1, QG]), on, Qmin + full(Cg * ((Qg_tot - Qg_min)./(Qg_max - Qg_min+eps))) .* (Qmax - Qmin) );
+        Qg_tot = Cg' * select(gen, on, QG-1);     // nb x 1 vector of total Qg at each bus(母线总无功)
+        Qg_min = sum(Cmin, 0)';            // nb x 1 vector of min total Qg at each bus
+        Qg_max = sum(Cmax, 0)';            // nb x 1 vector of max total Qg at each bus
+        gen_QG = set(slice(gen, [0], [QG-1, QG]), on, Qmin + Cg * ((Qg_tot - Qg_min)./(Qg_max - Qg_min+eps)) .* (Qmax - Qmin) );
         gen = assign(gen, gen_QG, [0], [QG-1, QG] );
 
         // fix gens at buses with Qg range = 0 (use equal violation for all)（处理零范围特殊情况）
         ig = find(abs(Cg * (Qg_min - Qg_max)) < 10*eps);  // gens at buses with Qg range = 0
         if ~~(length(ig)==0){   //matlab中是isempty()函数，这里用length==0代替
-            ib = find(sum(full(select(Cg,ig)), 0)')';   // buses with Qg range = 0
+            ib = find(sum(select(Cg,ig), 0)')';   // buses with Qg range = 0
             // total mismatch @ bus div by number of gens
-            mis_value = (get_multi(Qg_tot, ib)' - get_multi(Qg_min, ib)' ) ./ sum(full(select(Cg, [], ib))' , 1)';
+            mis_value = (get_multi(Qg_tot, ib)' - get_multi(Qg_min, ib)' ) ./ sum(select(Cg, [], ib)' , 1)';
             mis = sparse(range(0,nb)', zeros(nb,1), set(zeros(nb,1), ib, mis_value), nb, 1);
-            gen_QG = set(slice(gen, [0], [QG-1, QG]), get_multi(on, ig), get_multi(Qmin, ig)' + full(select(Cg, ig) * mis));
+            gen_QG = set(slice(gen, [0], [QG-1, QG]), get_multi(on, ig), get_multi(Qmin, ig)' + select(Cg, ig) * mis);
             gen = assign(gen, gen_QG, [0], [QG-1, QG] );
         }
     }                                            // (terms are mult by 0 anyway)

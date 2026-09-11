@@ -60,7 +60,7 @@ fn doSE(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V0, ref, pv, pq) {
         gbus = slice(gen, [0], [GEN_BUS - 1, GEN_BUS]) - 1;  // 发电机所在母线(索引从“0”开始)
         Sgbus = get_multi(V, gbus)' .* conj(select(Ybus, gbus) * V);  // 母线注入功率
         // 发电机输出功率 = 注入功率 + 本地负荷（标幺值）
-        Sgen = Sgbus * baseMVA + (select(bus, gbus, PD-1) + c(0,1) * select(bus, gbus, QD-1));
+        Sgen = Sgbus * baseMVA + (select(bus, gbus, PD-1) + 1j * select(bus, gbus, QD-1));
         Sgen = Sgen / baseMVA;
 
         // ---------------------- 计算雅可比矩阵 H ----------------------
@@ -199,7 +199,7 @@ fn doSE(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V0, ref, pv, pq) {
         Vm = set(Vm, nonref, select(Vm,nonref) + slice(dx, [size(nonref, 0),2*size(nonref, 0)], [0]));
 
         // 重构电压向量（角度为弧度）
-        V = Vm .* exp(c(0,1) * Va);
+        V = Vm .* exp(1j * Va);
         // 重新计算幅值和角度（避免负幅值问题）
         Vm = abs(V);
         Va = angle(V);

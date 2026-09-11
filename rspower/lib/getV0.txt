@@ -27,7 +27,7 @@ fn getV0(bus, gen, type_initialguess, V0_in) {
         va_col = slice(bus, [0], [VA - 1, VA]);  // 获取电压角度列（二维张量）
         va_deg = slice(va_col, [0], 0);  // 转换为一维张量（度）
         va_rad = va_deg * pi / 180;  // 转换为弧度
-        V0 = vm .* exp(c(0, 1) .* va_rad);  // 计算初始电压（复数）
+        V0 = vm .* exp(1j .* va_rad);  // 计算初始电压（复数）
     } else if type_initialguess == 2 {
         // 平启动
         nb = size(bus, 0);  // 母线数量

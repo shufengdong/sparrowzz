@@ -11,14 +11,14 @@ fn makeYbus(baseMVA, bus, branch) {
     //
     stat = slice(branch, [0], [BR_STATUS-1,BR_STATUS]);     // ones at in-service branches
     Ys = stat ./ (slice(branch, [0], [BR_R-1,BR_R])
-            + c(0,1) * slice(branch, [0], [BR_X-1,BR_X]));  // series admittance
+            + 1j * slice(branch, [0], [BR_X-1,BR_X]));  // series admittance
     Bc = stat .* slice(branch, [0], [BR_B-1,BR_B]);         // line charging susceptance
     tap_col = slice(branch, [0], [TAP-1,TAP]); // tap ratio column
 
     index = find(tap_col);      // indices of non-zero tap ratios
     tap_init = set(ones(nl, 1), index, get_multi(tap_col, index)); // assign non-zero tap ratios
-    tap = tap_init .* exp(c(0,1)*pi/180 * slice(branch, [0], [SHIFT-1,SHIFT])); // add phase shifters
-    Ytt = Ys + c(0,1) * Bc/2;
+    tap = tap_init .* exp(1j*pi/180 * slice(branch, [0], [SHIFT-1,SHIFT])); // add phase shifters
+    Ytt = Ys + 1j * Bc/2;
     Yff = Ytt ./ (tap .* conj(tap));
     Yft = - Ys ./ conj(tap);
     Ytf = - Ys ./ tap;
@@ -30,7 +30,7 @@ fn makeYbus(baseMVA, bus, branch) {
     // i.e. Ysh = Psh + j Qsh, so ...
 
     // vector of shunt admittances
-    Ysh = (slice(bus, [0], [GS-1,GS]) + c(0,1) * slice(bus, [0], [BS-1,BS])) / baseMVA;
+    Ysh = (slice(bus, [0], [GS-1,GS]) + 1j * slice(bus, [0], [BS-1,BS])) / baseMVA;
 
     // bus indices
     f = slice(branch, [0], F_BUS-1) - 1; // list of "from" buses

@@ -142,12 +142,11 @@ fn total_load(bus, gen, load_zone, opt_type, opt_nominal, mpopt) {
         e2i = set(e2i, index_e2i, range(1, nb + 1 )' );
 
         index_line = get_multi(e2i, slice(gen, [0], [GEN_BUS-1, GEN_BUS]) - 1) - 1;
-        Cld = full(sparse(index_line', range(0, ng)', is_ld, nb, ng));
+        Cld = sparse(index_line', range(0, ng)', is_ld, nb, ng);
         if opt_nominal == 1 { // use nominal power
             Pdd = -Cld * slice(gen, [0], [PMIN-1, PMIN]);  // real power
 
             Q = zeros(ng, 1);
-            println("is empty 5");
             if ~~is_empty(ld) {
                 value_Qld = (select(gen, [ld], [QMIN - 1]) == 0) .* select(gen, [ld], [QMAX - 1]) + (select(gen, [ld], [QMAX - 1]) == 0) .* select(gen, [ld], [QMIN - 1]);
                 Q = set(Q, ld, value_Qld );

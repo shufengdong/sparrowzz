@@ -26,7 +26,7 @@ fn runpf() {
     gbus = get_multi(slice(pf_gen, [0], [GEN_BUS-1, GEN_BUS]), on) - 1;
 
     // initial state
-    V0 = slice(pf_bus, [0], [VM-1,VM]) .* exp(c(0,1) * pi/180 * slice(pf_bus, [0], [VA-1,VA]));
+    V0 = slice(pf_bus, [0], [VM-1,VM]) .* exp(1j * pi/180 * slice(pf_bus, [0], [VA-1,VA]));
     vcb = set(ones(size(V0)), pq, zeros(size(pq)));
     k = find(get_multi(vcb, gbus));
     on_k = get_multi(on, k);
