@@ -35,39 +35,17 @@ fn makeYbus(baseMVA, bus, branch) {
     // bus indices
     f = slice(branch, [0], F_BUS-1) - 1; // list of "from" buses
     t = slice(branch, [0], T_BUS-1) - 1; // list of "to" buses
-    if nb < 300 {
-        // small case
-        // build Yf and Yt such that Yf * V is the vector of complex branch currents injected
-        // at each branch's "from" bus, and Yt is the same for the "to" bus end
-        i = horzcat(range(0, nl),range(0, nl));                           // double set of row indices
-        j = range(0,nb);
-        upper = horzcat(Yff', Yft');
-        lower = horzcat(Ytf', Ytt');
-        Yf = sparse(i, horzcat(f, t), upper, nl, nb);
-        Yt = sparse(i, horzcat(f, t), lower, nl, nb);
-
-        // build Ybus
-        // branch admittances + shunt admittance
-        Ybus = sparse(horzcat(f,f,t,t), horzcat(f,t,f,t), vertcat(Yff,Yft,Ytf,Ytt), nb, nb) +
-               sparse(j, j, Ysh, nb, nb);
-    } else {
-        // large case running on MATLAB
-        // build connection matrices
-        i = range(0, nl);
-        j = range(0, nb);
-        Cf = sparse(i, f, ones(nl, 1), nl, nb);      // connection matrix for line & from buses
-        Ct = sparse(i, t, ones(nl, 1), nl, nb);      // connection matrix for line & to buses
-
-        // build Yf and Yt such that Yf * V is the vector of complex branch currents injected
-        // at each branch's "from" bus, and Yt is the same for the "to" bus end
-
-        Yf = sparse(i, i, Yff, nl, nl) * Cf + sparse(i, i, Yft, nl, nl) * Ct;
-        Yt = sparse(i, i, Ytf, nl, nl) * Cf + sparse(i, i, Ytt, nl, nl) * Ct;
-
-        // build Ybus
-        // branch admittances + shunt admittance
-        Ybus = Cf' * Yf + Ct' * Yt + sparse(j, j, Ysh, nb, nb);
-    }
+    // MATLAB uses the Cf/Ct formulation for large systems because its sparse
+    // matrices are CSC. TensorEval stores canonical sparse entries by row, so
+    // MATPOWER's direct coordinate formulation is faster at every size here.
+    i = horzcat(range(0, nl),range(0, nl));
+    j = range(0,nb);
+    upper = horzcat(Yff', Yft');
+    lower = horzcat(Ytf', Ytt');
+    Yf = sparse(i, horzcat(f, t), upper, nl, nb);
+    Yt = sparse(i, horzcat(f, t), lower, nl, nb);
+    Ybus = sparse(horzcat(f,f,t,t), horzcat(f,t,f,t), vertcat(Yff,Yft,Ytf,Ytt), nb, nb) +
+           sparse(j, j, Ysh, nb, nb);
 
     return (Ybus, Yf, Yt);
 }

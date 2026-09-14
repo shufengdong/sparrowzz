@@ -76,10 +76,7 @@ fn newtonpf(Ybus, Sbus, V0, ref, pv, pq, mpopt) {
         j12 = real(select(dSbus_dVm, pv_pq_i, pq));
         j21 = imag(select(dSbus_dVa, pq, pv_pq_i));
         j22 = imag(select(dSbus_dVm, pq, pq));
-        J = vertcat(
-            horzcat(j11, j12),
-            horzcat(j21, j22)
-        );
+        J = blockcat(2, 2, j11, j12, j21, j22);
         // compute update step
         negF = 0 - F;
         dx = J \ negF;

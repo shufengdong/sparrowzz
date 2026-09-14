@@ -1,0 +1,44 @@
+// POLYCOST  Evaluates polynomial generator costs and derivatives.
+//
+//   F = POLYCOST(GENCOST, PG, DER) returns the vector of polynomial costs
+//   (DER = 0), first derivatives (DER = 1), or second derivatives (DER = 2)
+//   evaluated at PG. PG is in MW or MVAr, not per unit.
+//
+//   Unlike MATLAB, DER is explicit because Sparrowzz functions do not expose
+//   nargin. GENCOST must contain polynomial cost rows. The implementation uses
+//   Horner evaluation and supports different NCOST values in the same matrix.
+//
+//   MATPOWER
+//   Copyright (c) 2009-2016, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn polycost(gencost, Pg, der) {
+    ng = length(Pg);
+    f = zeros(size(Pg));
+
+    for i in 0..ng {
+        ncost = get(gencost, i, NCOST - 1);
+        value = 0;
+        if ndim(Pg) > 1 {
+            p = get(Pg, i, 0);
+        } else {
+            p = get(Pg, i);
+        }
+
+        // Coefficients are stored from highest to lowest power. Evaluate the
+        // requested derivative directly, retaining MATPOWER's ragged rows.
+        for j in 0..ncost {
+            degree = ncost - j - 1;
+            if degree >= der {
+                multiplier = 1;
+                for d in 0..der {
+                    multiplier = multiplier * (degree - d);
+                }
+                value = value + get(gencost, i, COST - 1 + j)
+                    * multiplier * p ^ (degree - der);
+            }
+        }
+        f = set(f, [i], value);
+    }
+    return f;
+}

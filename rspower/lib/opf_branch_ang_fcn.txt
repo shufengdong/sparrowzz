@@ -1,0 +1,25 @@
+// OPF_BRANCH_ANG_FCN  Evaluates branch angle difference constraints/gradients.
+//
+//   [VADIF, DVADIF] = OPF_BRANCH_ANG_FCN(VR, VI, AANG, LANG, UANG)
+//   uses 0-based Sparrowzz matrices and otherwise follows MATPOWER.
+//
+//   MATPOWER
+//   Copyright (c) 2018-2020, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn opf_branch_ang_fcn(Vr, Vi, Aang, lang, uang) {
+    nb = length(Vi);
+    Va = angle(Vr + 1j * Vi);
+    Ax = Aang * Va;
+    VaDif = vertcat(lang - Ax, Ax - uang);
+
+    Vm2 = Vr .^ 2 + Vi .^ 2;
+    index = range(0, nb);
+    AangdVa_dVr = Aang * sparse(index, index, -Vi ./ Vm2, nb, nb);
+    AangdVa_dVi = Aang * sparse(index, index,  Vr ./ Vm2, nb, nb);
+    dVaDif = vertcat(
+        horzcat(-AangdVa_dVr, -AangdVa_dVi),
+        horzcat( AangdVa_dVr,  AangdVa_dVi)
+    );
+    return (VaDif, dVaDif);
+}

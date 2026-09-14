@@ -40,7 +40,6 @@ fn makeSbus(baseMVA, bus, gen) {
     gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on) - 1; // what buses are they at?
     ngon = size(on, 0);
     Cg = sparse(gbus, range(0, ngon), 1, nb, ngon);
-
     Gp = slice(gen, [0], [PG-1, PG]);
     Gq = slice(gen, [0], [QG-1, QG]);
     Sbusg = Cg * (get_multi(Gp, on) + 1j * get_multi(Gq, on)) / baseMVA;
@@ -52,8 +51,7 @@ fn makeSbus(baseMVA, bus, gen) {
     Sbus = Sbusg' - Sbusd;
 
     // derivative of net bus injection w.r.t. voltage magnitude
-    diag_index = range(0, nb);
-    dSbus_dVm = sparse(diag_index, diag_index, zeros(nb, 1), nb, nb);
+    dSbus_dVm = sparse([], [], [], nb, nb);
 
     return (Sbus, dSbus_dVm);
 }

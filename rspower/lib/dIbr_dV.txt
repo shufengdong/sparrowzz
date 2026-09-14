@@ -1,0 +1,40 @@
+// DIBR_DV  Computes partial derivatives of branch currents w.r.t. voltage.
+//
+//   [DIF_DV1, DIF_DV2, DIT_DV1, DIT_DV2, IF, IT] =
+//       DIBR_DV(BRANCH, YF, YT, V, VCART)
+//
+//   VCART = 0 returns derivatives with respect to VA and VM; VCART = 1
+//   returns derivatives with respect to VR and VI.
+//
+//   MATPOWER
+//   Copyright (c) 1996-2019, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn dIbr_dV(branch, Yf, Yt, V, vcart) {
+    nb = length(V);
+
+    if vcart {
+        dIf_dV1 = Yf;
+        dIf_dV2 = 1j * Yf;
+        dIt_dV1 = Yt;
+        dIt_dV2 = 1j * Yt;
+    } else {
+        Vnorm = V ./ abs(V);
+        if issparse(Yf) {
+            index = range(0, nb);
+            diagV = sparse(index, index, V, nb, nb);
+            diagVnorm = sparse(index, index, Vnorm, nb, nb);
+        } else {
+            diagV = diag(V);
+            diagVnorm = diag(Vnorm);
+        }
+        dIf_dV1 = Yf * 1j * diagV;
+        dIf_dV2 = Yf * diagVnorm;
+        dIt_dV1 = Yt * 1j * diagV;
+        dIt_dV2 = Yt * diagVnorm;
+    }
+
+    If = Yf * V;
+    It = Yt * V;
+    return (dIf_dV1, dIf_dV2, dIt_dV1, dIt_dV2, If, It);
+}

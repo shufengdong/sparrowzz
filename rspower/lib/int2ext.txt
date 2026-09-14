@@ -31,12 +31,12 @@ fn int2ext(i2e, bus, gen, branch) {
     // 重新编号支路的起始母线
     index_i2e_fbus = slice(branch, [0], [F_BUS-1, F_BUS]) - 1;
     i2e_fbus = get_multi(i2e, index_i2e_fbus)';
-    output_branch1 = assign(branch, i2e_fbus, [0], [F_BUS-1, F_BUS]);
-
     // 重新编号支路的终止母线
     index_i2e_tbus = slice(branch, [0], [T_BUS-1, T_BUS]) - 1;
     i2e_tbus = get_multi(i2e, index_i2e_tbus)';
-    output_branch2 = assign(output_branch1, i2e_tbus, [0], [T_BUS-1, T_BUS]);
+    output_branch = assign(
+        branch, horzcat(i2e_fbus, i2e_tbus), [0], [F_BUS-1, T_BUS]
+    );
 
-    return (output_bus, output_gen, output_branch2);
+    return (output_bus, output_gen, output_branch);
 }

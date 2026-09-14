@@ -1,0 +1,55 @@
+// OPF_GEN_COST_FCN  Evaluates polynomial generator costs and derivatives.
+//
+//   [F, DF, D2F] = OPF_GEN_COST_FCN(PQG, BASEMVA, GENCOST, IG)
+//
+//   PQG contains active or reactive dispatch in per unit. IG is a 0-based
+//   vector of generator rows of interest. Pass [] to select every polynomial
+//   row, as in MATPOWER. DF is with respect to per-unit dispatch and D2F is a
+//   sparse diagonal Hessian.
+//
+//   MATPOWER
+//   Copyright (c) 1996-2017, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn opf_gen_cost_fcn(PQg, baseMVA, gencost, ig) {
+    if is_empty(ig) {
+        ig = find(slice(gencost, [0], [MODEL - 1, MODEL]) == POLYNOMIAL);
+    }
+
+    ng = length(PQg);
+    nig = length(ig);
+    f = 0;
+    df = zeros(ng, 1);
+    d2_values = zeros(nig);
+
+    for k in 0..nig {
+        row = get(ig, k);
+        if ndim(PQg) > 1 {
+            p = get(PQg, row, 0) * baseMVA;
+        } else {
+            p = get(PQg, row) * baseMVA;
+        }
+        ncost = get(gencost, row, NCOST - 1);
+        value = 0;
+        first = 0;
+        second = 0;
+
+        for j in 0..ncost {
+            degree = ncost - j - 1;
+            coefficient = get(gencost, row, COST - 1 + j);
+            value = value + coefficient * p ^ degree;
+            if degree >= 1 {
+                first = first + coefficient * degree * p ^ (degree - 1);
+            }
+            if degree >= 2 {
+                second = second + coefficient * degree * (degree - 1) * p ^ (degree - 2);
+            }
+        }
+
+        f = f + value;
+        df = set(df, [row], baseMVA * first);
+        d2_values = set(d2_values, [k], baseMVA ^ 2 * second);
+    }
+    d2f = sparse(ig, ig, d2_values, ng, ng);
+    return (f, df, d2f);
+}

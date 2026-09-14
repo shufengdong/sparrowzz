@@ -26,11 +26,11 @@ fn ext2int(bus, gen, branch){
 
     index_e2i_fbus = slice(branch, [0], [F_BUS-1, F_BUS] ) - 1;
     e2i_fbus = get_multi(e2i, index_e2i_fbus )';
-    output_branch1 = assign(branch, e2i_fbus, [0], [F_BUS-1, F_BUS] );
-
     index_e2i_tbus = slice(branch, [0], [T_BUS-1, T_BUS] ) - 1;
     e2i_tbus = get_multi(e2i, index_e2i_tbus )';
-    output_branch2 = assign(output_branch1, e2i_tbus, [0], [T_BUS-1, T_BUS] );
+    output_branch = assign(
+        branch, horzcat(e2i_fbus, e2i_tbus), [0], [F_BUS-1, T_BUS]
+    );
 
-    return(i2e, output_bus, output_gen, output_branch2);
+    return(i2e, output_bus, output_gen, output_branch);
 }

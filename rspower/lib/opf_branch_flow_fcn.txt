@@ -1,0 +1,89 @@
+// OPF_BRANCH_FLOW_FCN  Evaluates AC branch flow constraints and Jacobian.
+//
+//   [H, DH] = OPF_BRANCH_FLOW_FCN(V1, V2, BASEMVA, BRANCH, YF, YT, IL,
+//                                  VCART, LIM_TYPE)
+//
+//   IL contains 0-based constrained branch rows; YF and YT contain the same
+//   rows. LIM_TYPE replaces mpopt.opf.flow_lim: 0 = apparent power (S),
+//   1 = active power (P), 2 = active power squared (2), 3 = current (I).
+//   V1/V2 are VA/VM in polar form or VR/VI in cartesian form.
+//
+//   MATPOWER
+//   Copyright (c) 1996-2018, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn opf_branch_flow_fcn(V1, V2, baseMVA, branch, Yf, Yt, il, vcart, lim_type) {
+    if vcart {
+        V = V1 + 1j * V2;
+    } else {
+        V = V2 .* exp(1j * V1);
+    }
+
+    nb = length(V);
+    nl2 = length(il);
+
+    if nl2 > 0 {
+        limited_branch = select(branch, il);
+        flow_max = slice(limited_branch, [0], [RATE_A - 1, RATE_A]) / baseMVA;
+        if lim_type != 1 {
+            flow_max = flow_max .^ 2;
+        }
+
+        if lim_type == 3 {
+            If = Yf * V;
+            It = Yt * V;
+            h = vertcat(
+                real(If .* conj(If)) - flow_max,
+                real(It .* conj(It)) - flow_max
+            );
+        } else {
+            f = slice(limited_branch, [0], [F_BUS - 1, F_BUS]) - 1;
+            t = slice(limited_branch, [0], [T_BUS - 1, T_BUS]) - 1;
+            Sf = select(V, f, [0]) .* conj(Yf * V);
+            St = select(V, t, [0]) .* conj(Yt * V);
+
+            if lim_type == 2 {
+                h = vertcat(real(Sf) .^ 2 - flow_max, real(St) .^ 2 - flow_max);
+            } else if lim_type == 1 {
+                h = vertcat(real(Sf) - flow_max, real(St) - flow_max);
+            } else {
+                h = vertcat(
+                    real(Sf .* conj(Sf)) - flow_max,
+                    real(St .* conj(St)) - flow_max
+                );
+            }
+        }
+
+        if lim_type == 3 {
+            [dFf_dV1, dFf_dV2, dFt_dV1, dFt_dV2, Ff, Ft] =
+                dIbr_dV(limited_branch, Yf, Yt, V, vcart);
+        } else {
+            [dFf_dV1, dFf_dV2, dFt_dV1, dFt_dV2, Ff, Ft] =
+                dSbr_dV(limited_branch, Yf, Yt, V, vcart);
+        }
+
+        if lim_type == 1 || lim_type == 2 {
+            dFf_dV1 = real(dFf_dV1);
+            dFf_dV2 = real(dFf_dV2);
+            dFt_dV1 = real(dFt_dV1);
+            dFt_dV2 = real(dFt_dV2);
+            Ff = real(Ff);
+            Ft = real(Ft);
+        }
+
+        if lim_type == 1 {
+            df_dV1 = dFf_dV1;
+            df_dV2 = dFf_dV2;
+            dt_dV1 = dFt_dV1;
+            dt_dV2 = dFt_dV2;
+        } else {
+            [df_dV1, df_dV2, dt_dV1, dt_dV2] =
+                dAbr_dV(dFf_dV1, dFf_dV2, dFt_dV1, dFt_dV2, Ff, Ft);
+        }
+        dh = vertcat(horzcat(df_dV1, df_dV2), horzcat(dt_dV1, dt_dV2));
+    } else {
+        h = zeros(0, 1);
+        dh = sparse([], [], [], 0, 2 * nb);
+    }
+    return (h, dh);
+}

@@ -1,0 +1,28 @@
+// OPF_VLIM_FCN  Evaluates cartesian voltage magnitude limits and gradients.
+//
+//   [VLIMS, DVLIMS] = OPF_VLIM_FCN(VR, VI, BUS, IDX)
+//   IDX is a 0-based vector of buses whose voltage magnitudes are constrained.
+//
+//   MATPOWER
+//   Copyright (c) 2018, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn opf_vlim_fcn(Vr, Vi, bus, idx) {
+    nb = length(Vi);
+    n = length(idx);
+    Vr_idx = select(Vr, idx, [0]);
+    Vi_idx = select(Vi, idx, [0]);
+    Vm2 = Vr_idx .^ 2 + Vi_idx .^ 2;
+    Vmin = select(bus, idx, [VMIN - 1]);
+    Vmax = select(bus, idx, [VMAX - 1]);
+    Vlims = vertcat(Vmin .^ 2 - Vm2, Vm2 - Vmax .^ 2);
+
+    rows = range(0, n);
+    dVm_dVr = sparse(rows, idx, 2 * Vr_idx, n, nb);
+    dVm_dVi = sparse(rows, idx, 2 * Vi_idx, n, nb);
+    dVlims = vertcat(
+        horzcat(-dVm_dVr, -dVm_dVi),
+        horzcat( dVm_dVr,  dVm_dVi)
+    );
+    return (Vlims, dVlims);
+}

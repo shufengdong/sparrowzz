@@ -1,0 +1,24 @@
+// DABR_DV  Partial derivatives of squared flow magnitudes w.r.t. voltage.
+//
+//   [DAF_DV1, DAF_DV2, DAT_DV1, DAT_DV2] = DABR_DV(...)
+//   accepts complex current/apparent-power flow or real active-power flow.
+//
+//   MATPOWER
+//   Copyright (c) 1996-2019, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn dAbr_dV(dFf_dV1, dFf_dV2, dFt_dV1, dFt_dV2, Ff, Ft) {
+    nl = length(Ff);
+    index = range(0, nl);
+
+    dAf_dFfr = sparse(index, index, 2 * real(Ff), nl, nl);
+    dAf_dFfi = sparse(index, index, 2 * imag(Ff), nl, nl);
+    dAt_dFtr = sparse(index, index, 2 * real(Ft), nl, nl);
+    dAt_dFti = sparse(index, index, 2 * imag(Ft), nl, nl);
+
+    dAf_dV1 = dAf_dFfr * real(dFf_dV1) + dAf_dFfi * imag(dFf_dV1);
+    dAf_dV2 = dAf_dFfr * real(dFf_dV2) + dAf_dFfi * imag(dFf_dV2);
+    dAt_dV1 = dAt_dFtr * real(dFt_dV1) + dAt_dFti * imag(dFt_dV1);
+    dAt_dV2 = dAt_dFtr * real(dFt_dV2) + dAt_dFti * imag(dFt_dV2);
+    return (dAf_dV1, dAf_dV2, dAt_dV1, dAt_dV2);
+}

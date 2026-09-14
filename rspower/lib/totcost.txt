@@ -1,0 +1,61 @@
+// TOTCOST  Computes total cost for generators at given output level.
+//
+//   TOTALCOST = TOTCOST(GENCOST, PG) computes the cost for every generator.
+//   The result has the same shape as PG. Polynomial and piecewise-linear rows
+//   can be mixed. Piecewise-linear costs use linear extrapolation outside the
+//   first and last breakpoints, matching MATPOWER's ppval implementation.
+//
+//   MATPOWER
+//   Copyright (c) 1996-2016, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn totcost(gencost, Pg) {
+    ng = size(gencost, 0);
+    totalcost = zeros(size(Pg));
+    columns = 1;
+    if ndim(Pg) > 1 {
+        columns = size(Pg, 1);
+    }
+
+    for i in 0..ng {
+        model = get(gencost, i, MODEL - 1);
+        ncost = get(gencost, i, NCOST - 1);
+
+        for column in 0..columns {
+            linear_index = i * columns + column;
+            if ndim(Pg) > 1 {
+                p = get(Pg, i, column);
+            } else {
+                p = get(Pg, i);
+            }
+            value = 0;
+
+            if model == POLYNOMIAL {
+                // Horner evaluation for one point avoids reshaping a row.
+                for j in 0..ncost {
+                    value = value * p + get(gencost, i, COST - 1 + j);
+                }
+            } else if model == PW_LINEAR && ncost > 0 {
+                if ncost == 1 {
+                    value = get(gencost, i, COST);
+                } else {
+                    segment = 0;
+                    if p >= get(gencost, i, COST - 1 + 2 * (ncost - 1)) {
+                        segment = ncost - 2;
+                    } else {
+                        while (segment < ncost - 2 && p > get(gencost, i, COST - 1 + 2 * (segment + 1))) {
+                            segment = segment + 1;
+                        }
+                    }
+                    x1 = get(gencost, i, COST - 1 + 2 * segment);
+                    y1 = get(gencost, i, COST + 2 * segment);
+                    x2 = get(gencost, i, COST - 1 + 2 * (segment + 1));
+                    y2 = get(gencost, i, COST + 2 * (segment + 1));
+                    value = y1 + (p - x1) * (y2 - y1) / (x2 - x1);
+                }
+            }
+            totalcost = set(totalcost, [linear_index], value);
+        }
+    }
+    return totalcost;
+}

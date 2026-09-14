@@ -1,0 +1,23 @@
+// OPF_VEQ_FCN  Evaluates cartesian voltage magnitude equalities/gradients.
+//
+//   [VEQ, DVEQ] = OPF_VEQ_FCN(VR, VI, BUS, IDX)
+//   fixes squared magnitudes to BUS(:, VMAX), matching MATPOWER.
+//
+//   MATPOWER
+//   Copyright (c) 2018, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn opf_veq_fcn(Vr, Vi, bus, idx) {
+    nb = length(Vi);
+    n = length(idx);
+    Vr_idx = select(Vr, idx, [0]);
+    Vi_idx = select(Vi, idx, [0]);
+    Vmax = select(bus, idx, [VMAX - 1]);
+    Veq = Vr_idx .^ 2 + Vi_idx .^ 2 - Vmax .^ 2;
+
+    rows = range(0, n);
+    dVm_dVr = sparse(rows, idx, 2 * Vr_idx, n, nb);
+    dVm_dVi = sparse(rows, idx, 2 * Vi_idx, n, nb);
+    dVeq = horzcat(dVm_dVr, dVm_dVi);
+    return (Veq, dVeq);
+}

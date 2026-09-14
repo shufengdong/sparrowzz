@@ -1,0 +1,24 @@
+// OPF_VREF_FCN  Evaluates cartesian reference-bus angles and gradients.
+//
+//   [VREF, DVREF] = OPF_VREF_FCN(VR, VI, BUS, REFS)
+//   REFS is a 0-based vector of reference buses.
+//
+//   MATPOWER
+//   Copyright (c) 2018, Power Systems Engineering Research Center (PSERC)
+//   Covered by the 3-clause BSD License. See https://matpower.org.
+
+fn opf_vref_fcn(Vr, Vi, bus, refs) {
+    n = length(refs);
+    nb = length(Vr);
+    Vr_ref = select(Vr, refs, [0]);
+    Vi_ref = select(Vi, refs, [0]);
+    Va_ref = select(bus, refs, [VA - 1]);
+    Vref = angle(Vr_ref + 1j * Vi_ref) - Va_ref * pi / 180;
+
+    Vm2 = Vr_ref .^ 2 + Vi_ref .^ 2;
+    rows = range(0, n);
+    dVa_dVr = sparse(rows, refs, -Vi_ref ./ Vm2, n, nb);
+    dVa_dVi = sparse(rows, refs,  Vr_ref ./ Vm2, n, nb);
+    dVref = horzcat(dVa_dVr, dVa_dVi);
+    return (Vref, dVref);
+}
