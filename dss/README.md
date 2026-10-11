@@ -15,10 +15,12 @@
 | `ieee34_harmonic.rss` | IEEE34 1/3/5/7 次谐波 |
 | `ieee13_short_circuit.rss` | IEEE13 母线 652 单相接地短路 |
 | `ieee34_short_circuit.rss` | IEEE34 母线 810 单相接地短路 |
+| `4bus_daily_qsts.rss` | 4Bus-DY-Bal 三时点 Daily QSTS |
 
-`models/*_static` 和 `models/*_harmonic` 是测试所用 OpenDSS 模型的静态投影。
-它们移除了求解命令和调压控制，并补齐 PSA 严格导入所需的线路额定值。谐波脚本在
-expr_df 中建立电源与负荷频谱，谐波模型保留相应的高短路容量电源参数。
+`models/*_static`、`models/*_harmonic` 和 `models/4bus_daily_qsts` 是测试所用
+OpenDSS 模型的静态投影。它们移除了求解命令和调压控制，并补齐 PSA 严格导入所需的
+线路额定值。谐波脚本在 expr_df 中建立电源与负荷频谱，谐波模型保留相应的高短路
+容量电源参数。QSTS 脚本在 expr_df 中建立三点时间轴、负荷曲线和曲线绑定。
 
 ## 运行
 
@@ -30,6 +32,18 @@ cargo run -p mems \
   --bin tensoreval -- \
   --df sparrowzz/dss/ieee13_power_flow.rss
 ```
+
+QSTS 脚本也可直接运行：
+
+```bash
+cargo run -p mems \
+  --features tensoreval-cli,with_dsa \
+  --bin tensoreval -- \
+  --df sparrowzz/dss/4bus_daily_qsts.rss
+```
+
+该脚本用 0、3600 和 7200 秒的负荷曲线样本求解三个一小时时步；结果时间是每个时步
+的结束时刻，即 3600、7200 和 10800 秒。
 
 谐波计算应使用 release 构建：
 
