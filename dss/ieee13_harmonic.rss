@@ -10,7 +10,7 @@ source_h7 = select(alias("source_shape", name), alias(7, h), alias(2, mag_pct), 
 // 负荷仅保留 100% 基波分量。
 load_h1 = select(alias("load_flat", name), alias(1, h), alias(100, mag_pct), alias(0, angle_deg), para);
 // 合并频谱行，并按频谱名称聚合成谐波列表。
-spectrum_rows = concat(source_h1, source_h3, source_h5, source_h7, load_h1);
+spectrum_rows = concat("vertical", source_h1, source_h3, source_h5, source_h7, load_h1);
 spectrum = aggregate(group_by(col(name)), col(h), col(mag_pct), col(angle_deg), spectrum_rows);
 // 将频谱名称绑定到电源和负荷对象。
 voltage_source = with_columns(alias("source_shape", spectrum), voltage_source_raw);
