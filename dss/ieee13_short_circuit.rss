@@ -1,0 +1,27 @@
+// IEEE 13 节点馈线单相接地短路示例。
+[bus, line, linecode, load, transformer, voltage_source, motor, transformer_winding, transformer_impedance, current_source, generator, ibr, switch, shunt, capacitor, reactor, spectrum, control_profile, xy_curve, storage, para] = import_dss("sparrowzz/dss/models/ieee13_static/IEEE13Nodeckt.dss");
+
+// 从线路表取出母线 652 的终端相映射，用于定义故障点。
+selected_terminal = filter(
+    cols(bus_to, terminal_map_to),
+    cast(col(bus_to), i64) == 652,
+    line
+);
+// 在母线 652 施加单相接地故障，故障阻抗 zf 为 0.1。
+fault = select(
+    alias("652", bus),
+    alias(head(col(terminal_map_to), 1), terminal_map),
+    alias(slg, kind),
+    alias(0.1, zf),
+    selected_terminal
+);
+// 短路计算使用精确线路模型。
+fault_para = with_columns(alias(exact, line_model), para);
+
+// fault_result 包含故障电流、故障点电压及相关结果。
+[fault_result] = ds_fault_study(
+    bus, line, linecode, load, transformer, voltage_source,
+    motor, transformer_winding, transformer_impedance, current_source,
+    generator, ibr, switch, shunt, capacitor, reactor, spectrum,
+    control_profile, xy_curve, storage, fault, fault_para
+);
