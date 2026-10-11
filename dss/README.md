@@ -8,9 +8,9 @@
 
 | 脚本 | 计算 |
 | --- | --- |
-| `ieee13_power_flow.rss` | IEEE13 径向潮流 |
-| `ieee34_power_flow.rss` | IEEE34 径向潮流 |
-| `ieee123_power_flow.rss` | IEEE123 径向潮流 |
+| `ieee13_power_flow.rss` | IEEE13 辐射状配电网潮流 |
+| `ieee34_power_flow.rss` | IEEE34 辐射状配电网潮流 |
+| `ieee123_power_flow.rss` | IEEE123 辐射状配电网潮流 |
 | `ieee13_harmonic.rss` | IEEE13 1/3/5/7 次谐波 |
 | `ieee34_harmonic.rss` | IEEE34 1/3/5/7 次谐波 |
 | `ieee13_short_circuit.rss` | IEEE13 母线 652 单相接地短路 |

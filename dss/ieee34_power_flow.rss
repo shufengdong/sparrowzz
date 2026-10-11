@@ -1,4 +1,4 @@
-// IEEE 34 节点馈线径向潮流示例。
+// IEEE 34 节点馈线辐射状配电网潮流示例。
 // import_dss 按固定顺序返回网络对象表和默认计算参数。
 [bus, line, linecode, load, transformer, voltage_source, motor, transformer_winding, transformer_impedance, current_source, generator, ibr, switch, shunt, capacitor, reactor, spectrum, control_profile, xy_curve, storage, para] = import_dss("sparrowzz/dss/models/ieee34_static/ieee34Mod1.dss");
 
