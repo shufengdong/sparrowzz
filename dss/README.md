@@ -4,6 +4,9 @@
 `.rss` 扩展名表示 RustScript 文件。
 请在 eig-rs 工作区根目录运行命令，因为脚本中的 DSS 路径相对于进程工作目录解析。
 
+从现有 OpenDSS 模型和 Python 仿真脚本迁移时，请参阅
+[从 OpenDSS Python 脚本迁移到 RSS](docs/opendss_to_rss.md)。
+
 ## 脚本
 
 | 脚本 | 计算 |
