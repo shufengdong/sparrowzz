@@ -441,7 +441,7 @@ result = intlinprog(
 
 ## 9. include 预处理
 
-`#include` 和 `#include_url` 是 `tensoreval` 在解析前执行的单遍预处理，不是模块语法：
+`#include` 和 `#include_url` 是 `tensoreval` 在解析前执行的文本预处理，不是模块语法：
 
 ```text
 #include shared/constants.rss
@@ -450,8 +450,10 @@ result = intlinprog(
 
 - `#include` 相对进程当前工作目录解析，不相对当前脚本；
 - 内容在指令位置展开；
-- 只扫描命令行直接输入文件，包含文件内的 include 不递归处理；
+- 本地 `#include` 递归展开，嵌套文件中的相对路径仍以进程当前工作目录为基准；
+- 本地展开拒绝包含循环、超过 32 层的嵌套和超过 16 MiB 的结果；
 - `#include_url` 需要网络权限；
+- URL 返回内容不继续扫描 include；
 - 不支持 `mod`、`module`、`import`、命名空间或可见性语法。
 
 ## 10. 当前未实现的旧手册名称

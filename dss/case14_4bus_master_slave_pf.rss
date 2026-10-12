@@ -86,22 +86,9 @@ d_pq0 = select(
 );
 
 // 第 1 轮：把馈线等值功率叠加到母线 14 的原始负荷，然后运行 rspower。
-// include 行位于数值代码块内部，因此全部轮次编排都能直接在本 .rss 文件中看到。
+// 每个数值代码块是独立 Prog，使用共享清单为各 VM 装入相同的 runpf 依赖。
 [t_pcc_power1, _, bus1, gen1, branch1, t_success1, t_iterations1] = {
-#include sparrowzz/rspower/lib/idx_gen.txt
-#include sparrowzz/rspower/lib/idx_bus.txt
-#include sparrowzz/rspower/lib/idx_brch.txt
-#include sparrowzz/rspower/lib/ext2int.txt
-#include sparrowzz/rspower/lib/int2ext.txt
-#include sparrowzz/rspower/lib/bustypes.txt
-#include sparrowzz/rspower/lib/makeYbus.txt
-#include sparrowzz/rspower/lib/dSbus_dV.txt
-#include sparrowzz/rspower/lib/make_sdzip.txt
-#include sparrowzz/rspower/lib/makeSbus.txt
-#include sparrowzz/rspower/lib/newtonpf.txt
-#include sparrowzz/rspower/lib/pfsoln.txt
-#include sparrowzz/rspower/lib/total_load.txt
-#include sparrowzz/rspower/lib/runpf.txt
+    #include sparrowzz/dss/runpf_bundle.txt
     pcc_row = 13;
     pcc_power = d_pq0;
     t_bus_input = set(
@@ -137,20 +124,7 @@ d_pq1 = select(
 // 第 2 轮：显式采用 alpha=0.5 的松弛系数。每轮都从 bus0 重建主网母线输入，
 // 避免重复累加馈线负荷。
 [t_pcc_power2, _, bus2, gen2, branch2, t_success2, t_iterations2] = {
-#include sparrowzz/rspower/lib/idx_gen.txt
-#include sparrowzz/rspower/lib/idx_bus.txt
-#include sparrowzz/rspower/lib/idx_brch.txt
-#include sparrowzz/rspower/lib/ext2int.txt
-#include sparrowzz/rspower/lib/int2ext.txt
-#include sparrowzz/rspower/lib/bustypes.txt
-#include sparrowzz/rspower/lib/makeYbus.txt
-#include sparrowzz/rspower/lib/dSbus_dV.txt
-#include sparrowzz/rspower/lib/make_sdzip.txt
-#include sparrowzz/rspower/lib/makeSbus.txt
-#include sparrowzz/rspower/lib/newtonpf.txt
-#include sparrowzz/rspower/lib/pfsoln.txt
-#include sparrowzz/rspower/lib/total_load.txt
-#include sparrowzz/rspower/lib/runpf.txt
+    #include sparrowzz/dss/runpf_bundle.txt
     pcc_row = 13;
     pcc_power = 0.5 * t_pcc_power1 + 0.5 * d_pq1;
     t_bus_input = set(
@@ -186,20 +160,7 @@ d_pq2 = select(
 // 第 3 轮：执行最后一次固定计算。本案例不检查收敛，也不提前退出；
 // bus3 和 d_bus_phase3 只表示第三轮状态。
 [t_pcc_power3, _, bus3, gen3, branch3, t_success3, t_iterations3] = {
-#include sparrowzz/rspower/lib/idx_gen.txt
-#include sparrowzz/rspower/lib/idx_bus.txt
-#include sparrowzz/rspower/lib/idx_brch.txt
-#include sparrowzz/rspower/lib/ext2int.txt
-#include sparrowzz/rspower/lib/int2ext.txt
-#include sparrowzz/rspower/lib/bustypes.txt
-#include sparrowzz/rspower/lib/makeYbus.txt
-#include sparrowzz/rspower/lib/dSbus_dV.txt
-#include sparrowzz/rspower/lib/make_sdzip.txt
-#include sparrowzz/rspower/lib/makeSbus.txt
-#include sparrowzz/rspower/lib/newtonpf.txt
-#include sparrowzz/rspower/lib/pfsoln.txt
-#include sparrowzz/rspower/lib/total_load.txt
-#include sparrowzz/rspower/lib/runpf.txt
+    #include sparrowzz/dss/runpf_bundle.txt
     pcc_row = 13;
     pcc_power = 0.5 * t_pcc_power2 + 0.5 * d_pq2;
     t_bus_input = set(

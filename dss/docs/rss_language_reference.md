@@ -148,9 +148,10 @@ tensoreval 在解析 RustScript 前处理以下行：
 #include_url https://example.test/common.rss
 ```
 
-内容按出现顺序拼接到当前程序。`#include` 相对进程当前工作目录解析；`#include_url`
-要求运行环境允许网络访问。DSS 文件中的 `Redirect`/`Compile` 由 DSS 导入器处理，与
-RSDss include 是两套机制。
+内容按出现顺序拼接到当前程序。`#include` 会递归展开本地包含文件，所有相对路径都以
+进程当前工作目录为基准；展开过程拒绝包含循环、超过 32 层的嵌套和超过 16 MiB 的结果。
+`#include_url` 要求运行环境允许网络访问，其返回内容不继续扫描 include。DSS 文件中的
+`Redirect`/`Compile` 由 DSS 导入器处理，与 RSDss include 是两套机制。
 
 ## 3. 声明、赋值和依赖图
 
