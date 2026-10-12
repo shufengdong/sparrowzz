@@ -24,6 +24,10 @@
 | `ieee13_daily_qsts.rss` | IEEE13 全负荷三时点 Daily QSTS |
 | `case14_4bus_master_slave_pf.rss` | IEEE case14 主网与 4Bus-DY-Bal 配网显式展开三轮的单 PCC 主从分裂案例 |
 
+主从分裂案例的每轮主网计算都是独立 Prog，通过
+`runpf_bundle.txt` 递归装入相同的 RSPower 依赖，避免在案例中重复维护
+函数清单。
+
 `models/*_static`、`models/*_harmonic` 和 `models/4bus_daily_qsts` 是测试所用
 OpenDSS 模型的静态投影。它们移除了求解命令和调压控制，并补齐 PSA 严格导入所需的
 线路额定值。谐波脚本在 expr_df 中建立电源与负荷频谱，谐波模型保留相应的高短路

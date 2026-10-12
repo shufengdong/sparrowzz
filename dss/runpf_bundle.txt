@@ -1,0 +1,15 @@
+// Shared RSPower dependencies for an embedded runpf_case program.
+#include sparrowzz/rspower/lib/idx_gen.txt
+#include sparrowzz/rspower/lib/idx_bus.txt
+#include sparrowzz/rspower/lib/idx_brch.txt
+#include sparrowzz/rspower/lib/ext2int.txt
+#include sparrowzz/rspower/lib/int2ext.txt
+#include sparrowzz/rspower/lib/bustypes.txt
+#include sparrowzz/rspower/lib/makeYbus.txt
+#include sparrowzz/rspower/lib/dSbus_dV.txt
+#include sparrowzz/rspower/lib/make_sdzip.txt
+#include sparrowzz/rspower/lib/makeSbus.txt
+#include sparrowzz/rspower/lib/newtonpf.txt
+#include sparrowzz/rspower/lib/pfsoln.txt
+#include sparrowzz/rspower/lib/total_load.txt
+#include sparrowzz/rspower/lib/runpf.txt
