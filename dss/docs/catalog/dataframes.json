@@ -1,0 +1,199 @@
+{
+  "schema_version": 1,
+  "source_of_truth": [
+    "psa/src/dsa/parse",
+    "psa/src/dsa/parse/dss_import.rs",
+    "psa/src/dsa/parse/dss_import/controls.rs",
+    "psa/src/dsa/parse/dss_import/metering.rs",
+    "mems/src/ml RSDss implementation"
+  ],
+  "type_notation": ["str", "bool", "u32", "f64", "list<str>", "list<bool>", "list<f64>"],
+  "unit_convention": {
+    "voltage": "V",
+    "current": "A",
+    "active_power": "W",
+    "reactive_power": "var",
+    "apparent_power": "VA",
+    "impedance": "ohm",
+    "time": "s",
+    "frequency": "Hz",
+    "power_flow_angle": "rad",
+    "harmonic_voltage_angle": "degree"
+  },
+  "network_order": [
+    {"position": 1, "name": "bus"},
+    {"position": 2, "name": "line"},
+    {"position": 3, "name": "linecode"},
+    {"position": 4, "name": "load"},
+    {"position": 5, "name": "transformer"},
+    {"position": 6, "name": "voltage_source"},
+    {"position": 7, "name": "motor"},
+    {"position": 8, "name": "transformer_winding"},
+    {"position": 9, "name": "transformer_impedance"},
+    {"position": 10, "name": "current_source"},
+    {"position": 11, "name": "generator"},
+    {"position": 12, "name": "ibr"},
+    {"position": 13, "name": "switch"},
+    {"position": 14, "name": "shunt"},
+    {"position": 15, "name": "capacitor"},
+    {"position": 16, "name": "reactor"},
+    {"position": 17, "name": "spectrum"},
+    {"position": 18, "name": "control_profile"},
+    {"position": 19, "name": "xy_curve"},
+    {"position": 20, "name": "storage"}
+  ],
+  "qsts_extension_order": [
+    {"position": 21, "name": "solution"},
+    {"position": 22, "name": "load_shape"},
+    {"position": 23, "name": "shape_assignment"},
+    {"position": 24, "name": "storage_controller"},
+    {"position": 25, "name": "switch_control"},
+    {"position": 26, "name": "tcc_curve"},
+    {"position": 27, "name": "fuse"},
+    {"position": 28, "name": "recloser"},
+    {"position": 29, "name": "relay"},
+    {"position": 30, "name": "monitor"},
+    {"position": 31, "name": "energy_meter"},
+    {"position": 32, "name": "fault"},
+    {"position": 33, "name": "para"}
+  ],
+  "frames": {
+    "bus": {
+      "required": {"id": "str", "terminals": "list<str>"},
+      "optional": {"grounded": "list<str>", "v_min": "f64", "v_max": "f64", "v_min_phase": "f64_or_list", "v_max_phase": "f64_or_list"}
+    },
+    "line": {
+      "required": {"name": "str", "bus_from": "str", "bus_to": "str", "terminal_map_from": "list<str>", "terminal_map_to": "list<str>", "length": "f64"},
+      "one_of": [["linecode", "geometry"]],
+      "optional": {"linecode": "str", "geometry": "str", "open_from": "list<bool>", "open_to": "list<bool>", "i_max": "f64", "s_max": "f64"}
+    },
+    "linecode": {
+      "required": {"name": "str", "n_conductors": "u32", "r_series": "matrix<f64>", "x_series": "matrix<f64>"},
+      "optional": {"g_from": "matrix<f64>", "b_from": "matrix<f64>", "g_to": "matrix<f64>", "b_to": "matrix<f64>", "i_max": "f64", "s_max": "f64"}
+    },
+    "load": {
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "p_nom": "f64", "q_nom": "f64"},
+      "optional": {"model": "str", "spectrum": "str"},
+      "defaults": {"model": "constant_power"}
+    },
+    "transformer": {
+      "required_simple": {"name": "str", "subtype": "str", "bus_from": "str", "bus_to": "str", "terminal_map_from": "list<str>", "terminal_map_to": "list<str>", "v_nom_from": "f64", "v_nom_to": "f64", "s_rating": "f64"},
+      "note": "multi_winding rows require matching transformer_winding and transformer_impedance tables"
+    },
+    "voltage_source": {
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "v_magnitude": "f64", "v_angle": "f64_or_list"},
+      "optional": {"spectrum": "str"}
+    },
+    "motor": {
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "kv": "f64", "kw": "f64"},
+      "optional": {"configuration": "str", "kva": "f64", "spectrum": "str"},
+      "defaults": {"configuration": "DELTA", "kva": "1.2 * abs(kw)"}
+    },
+    "transformer_winding": {
+      "note": "Use the exact schema emitted by import_dss; winding identity, connection, tap and ratings must match transformer and impedance rows."
+    },
+    "transformer_impedance": {
+      "note": "Use the exact schema emitted by import_dss; rows describe pairwise winding short-circuit impedances."
+    },
+    "current_source": {
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "i_magnitude": "f64", "i_angle": "f64_or_list"},
+      "optional": {"frequency_hz": "f64", "scan_type": "str", "spectrum": "str"},
+      "defaults": {"frequency_hz": "network base_frequency_hz"}
+    },
+    "generator": {
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "p_nom": "f64", "q_nom": "f64"},
+      "optional": {"spectrum": "str"}
+    },
+    "ibr": {
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "topology": "str", "prime_mover": "str", "s_max": "f64"},
+      "optional": {"i_max": "f64", "p_avail": "f64", "spectrum": "str"},
+      "enums": {"topology": ["SINGLE_PHASE", "THREE_LEG", "FOUR_LEG"], "prime_mover": ["PV", "BATTERY", "GENERIC", "STATCOM", "DSTATCOM"]}
+    },
+    "switch": {
+      "required": {"name": "str", "bus_from": "str", "bus_to": "str", "terminal_map_from": "list<str>", "terminal_map_to": "list<str>"},
+      "optional": {"open": "bool_or_list", "i_max": "f64"}
+    },
+    "shunt": {
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "g": "f64_or_matrix", "b": "f64_or_matrix"}
+    },
+    "capacitor": {
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "q_rated": "f64", "v_nom": "f64"},
+      "optional": {"steps": "u32", "states": "list<bool>", "enabled": "bool"}
+    },
+    "reactor": {
+      "note": "Multiple electrical forms are supported; prefer import_dss output or consult psa/src/dsa/parse/reactor.rs before hand-authoring."
+    },
+    "spectrum": {
+      "required": {"name": "str", "h": "list<f64>", "mag_pct": "list<f64>", "angle_deg": "list<f64>"},
+      "constraint": "h, mag_pct and angle_deg lists have equal length"
+    },
+    "control_profile": {
+      "note": "Columns depend on the control family; use import_dss output and the control parser as the contract."
+    },
+    "xy_curve": {
+      "required": {"name": "str", "x": "f64", "y": "f64"},
+      "shape": "long table; one point per row"
+    },
+    "storage": {
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "p_nom": "f64", "q_nom": "f64", "energy_rated": "f64", "soc_initial": "f64", "soc_min": "f64", "soc_max": "f64", "charge_efficiency": "f64", "discharge_efficiency": "f64"},
+      "note": "RSDss import_dss currently returns this frame empty"
+    },
+    "para": {
+      "required_for_imported_network": {"base_frequency_hz": "f64"},
+      "optional": {"line_model": "str", "result": "str"},
+      "constraints": ["one row when result is present", "base_frequency_hz is finite and positive", "result is a comma-separated list without empty, unknown or duplicate names"]
+    },
+    "solution": {
+      "required": {"mode": "str", "number": "u32_semantics", "step_size_s": "f64"},
+      "optional": {"hour": "f64", "seconds": "f64", "load_multiplier": "f64", "generation_multiplier": "f64", "control_mode": "str", "trapezoidal": "bool", "sample_energy_meters": "bool", "default_daily": "str", "default_yearly": "str", "default_duty": "str", "price_curve": "str", "price_signal": "f64", "peak_day": "u32"},
+      "enums": {"mode": ["DAILY", "YEARLY", "DUTY", "DUTYCYCLE", "PEAKDAY", "LOADDURATION", "LOADDURATION1", "LD1", "LOADDURATION2", "LD2"]}
+    },
+    "load_shape": {
+      "required": {"name": "str", "time_s": "f64", "p_multiplier": "f64"},
+      "optional": {"q_multiplier": "f64", "period_s": "f64", "interpolation": "str", "use_actual": "bool"},
+      "defaults": {"q_multiplier": "p_multiplier"},
+      "shape": "long table; one sample per row"
+    },
+    "shape_assignment": {
+      "required": {"device_kind": "str", "device": "str"},
+      "optional": {"daily": "str", "yearly": "str", "duty": "str"}
+    },
+    "storage_controller": {
+      "columns_in_order": ["name", "element", "terminal", "mon_phase", "mode_discharge", "mode_charge", "kw_target", "kw_target_low", "kw_band", "kw_band_low", "element_list", "weights", "pct_reserve", "disp_factor", "enabled"],
+      "types": {"name": "str", "element": "str", "terminal": "u32", "mon_phase": "str", "mode_discharge": "str", "mode_charge": "str", "kw_target": "f64", "kw_target_low": "f64", "kw_band": "f64", "kw_band_low": "f64", "element_list": "list<str>", "weights": "list<f64>", "pct_reserve": "f64", "disp_factor": "f64", "enabled": "bool"}
+    },
+    "switch_control": {
+      "columns_in_order": ["source_order", "name", "switched_obj", "switched_term", "action", "delay", "normal", "state", "construction_action_pending", "initial_locked", "lock", "reset", "enabled"]
+    },
+    "tcc_curve": {
+      "columns_in_order": ["source_order", "name", "npts", "c_array", "t_array"],
+      "types": {"source_order": "u32", "name": "str", "npts": "u32", "c_array": "list<f64>", "t_array": "list<f64>"},
+      "constraint": "len(c_array) == len(t_array) == npts"
+    },
+    "fuse": {
+      "columns_in_order": ["source_order", "name", "monitored_obj", "monitored_term", "switched_obj", "switched_term", "fuse_curve", "rated_current", "delay", "normal", "state", "reset", "enabled"]
+    },
+    "recloser": {
+      "columns_in_order": ["source_order", "name", "monitored_obj", "monitored_term", "switched_obj", "switched_term", "num_fast", "phase_fast", "phase_delayed", "phase_trip", "ground_trip", "phase_inst", "ground_inst", "reset", "shots", "reclose_intervals", "delay", "td_phase_fast", "td_ground_fast", "td_phase_delayed", "td_ground_delayed", "normal", "state", "enabled"],
+      "optional_columns": ["ground_fast", "ground_delayed"]
+    },
+    "relay": {
+      "common_prefix_columns": ["source_order", "name", "monitored_obj", "monitored_term", "switched_obj", "switched_term", "type", "phase_trip", "ground_trip", "td_phase", "td_ground", "phase_inst", "ground_inst", "kv_base", "pct_pickup_46", "base_amps_46", "isqt_46", "pct_pickup_47", "over_trip", "under_trip"],
+      "note": "Additional columns depend on relay type; consult relay_frame and the protection parser."
+    },
+    "monitor": {
+      "required": {"name": "str", "element": "str"},
+      "optional": {"source_order": "u32", "terminal": "u32", "mode": "u32", "enabled": "bool", "v_base": "f64", "residual": "bool", "vi_polar": "bool", "p_polar": "bool", "action": "str", "on_time": "f64"}
+    },
+    "energy_meter": {
+      "required": {"name": "str", "element": "str"},
+      "optional": {"source_order": "u32", "terminal": "u32", "enabled": "bool", "zone_elements": "list<str>", "local_only": "bool", "customers": "f64", "voltage_level": "f64", "option": "str", "kva_normal": "f64", "kva_emerg": "f64", "peak_current": "list<f64>", "action": "str", "on_time": "f64", "action_param": "str", "param": "f64", "reduce_pct": "f64"},
+      "additional_optional_pattern": "aux1..aux30"
+    },
+    "fault": {
+      "required": {"bus": "str", "terminal_map": "list<str>", "kind": "str"},
+      "optional": {"bus2": "str", "percent": "f64", "zf": "f64", "xf": "f64", "on_time": "f64", "ontime": "f64", "off_time": "f64", "temporary": "bool", "min_amps": "f64", "minamps": "f64", "enabled": "bool"},
+      "enums": {"kind": ["slg", "ll", "llg", "2pg", "3p", "3pg"]}
+    }
+  }
+}

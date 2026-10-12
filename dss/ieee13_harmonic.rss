@@ -1,0 +1,33 @@
+// IEEE 13 节点馈线 1/3/5/7 次谐波示例。
+// 该模型使用谐波计算所需的高短路容量电源参数。
+[bus, line, linecode, load_raw, transformer, voltage_source_raw, motor, transformer_winding, transformer_impedance, current_source, generator, ibr, switch, shunt, capacitor, reactor, _, control_profile, xy_curve, storage, para] = import_dss("sparrowzz/dss/models/ieee13_harmonic/IEEE13Nodeckt.dss");
+
+// 在 expr_df 中建立电源频谱：h 为谐波次数，mag_pct 为基波百分比。
+source_h1 = select(alias("source_shape", name), alias(1, h), alias(100, mag_pct), alias(0, angle_deg), para);
+source_h3 = select(alias("source_shape", name), alias(3, h), alias(5, mag_pct), alias(30, angle_deg), para);
+source_h5 = select(alias("source_shape", name), alias(5, h), alias(3, mag_pct), alias(-20, angle_deg), para);
+source_h7 = select(alias("source_shape", name), alias(7, h), alias(2, mag_pct), alias(15, angle_deg), para);
+// 负荷仅保留 100% 基波分量。
+load_h1 = select(alias("load_flat", name), alias(1, h), alias(100, mag_pct), alias(0, angle_deg), para);
+// 合并频谱行，并按频谱名称聚合成谐波列表。
+spectrum_rows = concat("vertical", source_h1, source_h3, source_h5, source_h7, load_h1);
+spectrum = aggregate(group_by(col(name)), col(h), col(mag_pct), col(angle_deg), spectrum_rows);
+// 将频谱名称绑定到电源和负荷对象。
+voltage_source = with_columns(alias("source_shape", spectrum), voltage_source_raw);
+load = with_columns(alias("load_flat", spectrum), load_raw);
+
+// 计算至 7 次谐波，并返回母线电压。
+harmonic_para = with_columns(
+    alias(7, h_max),
+    alias(exact, line_model),
+    alias(bus_voltage, result),
+    para
+);
+
+// harmonic_voltage 包含各母线、各相和各谐波次数的电压结果。
+[harmonic_voltage] = ds_harmonic_study(
+    bus, line, linecode, load, transformer, voltage_source,
+    motor, transformer_winding, transformer_impedance, current_source,
+    generator, ibr, switch, shunt, capacitor, reactor, spectrum,
+    control_profile, xy_curve, storage, storage, harmonic_para
+);

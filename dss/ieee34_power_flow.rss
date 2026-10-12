@@ -1,0 +1,18 @@
+// IEEE 34 节点馈线辐射状配电网潮流示例。
+// import_dss 按固定顺序返回网络对象表和默认计算参数。
+[bus, line, linecode, load, transformer, voltage_source, motor, transformer_winding, transformer_impedance, current_source, generator, ibr, switch, shunt, capacitor, reactor, spectrum, control_profile, xy_curve, storage, para] = import_dss("sparrowzz/dss/models/ieee34_static/ieee34Mod1.dss");
+
+// 使用精确线路模型，并返回按母线和相展开的电压结果。
+pf_para = with_columns(
+    alias(exact, line_model),
+    alias(bus_phase, result),
+    para
+);
+
+// voltage 是可继续用于 expr_df 处理的 DataFrame。
+[voltage] = ds_radial_pf(
+    bus, line, linecode, load, transformer, voltage_source,
+    motor, transformer_winding, transformer_impedance, current_source,
+    generator, ibr, switch, shunt, capacitor, reactor, spectrum,
+    control_profile, xy_curve, storage, pf_para
+);

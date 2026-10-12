@@ -1,0 +1,45 @@
+// 4Bus-DY-Bal 三时点 Daily QSTS 示例。
+// import_dss 只导入静态网络，时间轴和负荷曲线在 RustScript 中显式定义。
+[bus, line, linecode, load, transformer, voltage_source, motor, transformer_winding, transformer_impedance, current_source, generator, ibr, switch, shunt, capacitor, reactor, spectrum, control_profile, xy_curve, storage, para] = import_dss("sparrowzz/dss/models/4bus_daily_qsts/4bus_dy.dss");
+
+// Daily 模式计算 3 个时点，步长为 3600 s，并禁用自动控制动作。
+solution = select(
+    alias("DAILY", mode),
+    alias(3.0, number),
+    alias(3600.0, step_size_s),
+    alias("OFF", control_mode),
+    para
+);
+
+// 建立名为 daily_load 的有功、无功同比例负荷曲线。
+shape_0 = select(alias("daily_load", name), alias(0.0, time_s), alias(0.5, p_multiplier), alias(0.5, q_multiplier), para);
+shape_1 = select(alias("daily_load", name), alias(3600.0, time_s), alias(1.0, p_multiplier), alias(1.0, q_multiplier), para);
+shape_2 = select(alias("daily_load", name), alias(7200.0, time_s), alias(1.5, p_multiplier), alias(1.5, q_multiplier), para);
+load_shape = concat("vertical", shape_0, shape_1, shape_2);
+
+// 将 Daily 曲线绑定到 load1。
+shape_assignment = select(
+    alias("LOAD", device_kind),
+    alias("load1", device),
+    alias("daily_load", daily),
+    para
+);
+
+// 使用精确线路模型，返回每个时点按母线和相展开的复电压。
+qsts_para = with_columns(
+    alias(exact, line_model),
+    alias(bus_phase, result),
+    para
+);
+
+// 本例未配置储能控制、开关控制、保护、监视和计量对象，
+// 因此对应参数复用 import_dss 返回的空 spectrum DataFrame。
+[qsts_voltage] = ds_radial_qsts(
+    bus, line, linecode, load, transformer, voltage_source,
+    motor, transformer_winding, transformer_impedance, current_source,
+    generator, ibr, switch, shunt, capacitor, reactor, spectrum,
+    control_profile, xy_curve, storage,
+    solution, load_shape, shape_assignment,
+    spectrum, spectrum, spectrum, spectrum, spectrum, spectrum,
+    spectrum, spectrum, spectrum, qsts_para
+);

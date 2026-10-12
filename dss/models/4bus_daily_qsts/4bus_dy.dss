@@ -1,0 +1,24 @@
+Clear
+Set DefaultBaseFrequency=60
+
+! IEEE 4Bus-DY-Bal static projection for the RustScript Daily QSTS example.
+New Circuit.4busDYBal phases=3 bus1=sourcebus basekV=12.47 pu=1.0 angle=0
+~ R1=0.000188572539876062 X1=0.000754290159504246
+~ R0=0.000246352108376911 X0=0.000739056325130733
+
+New LineCode.bmopf nphases=3 units=m
+~ Rmatrix=[0.000200056516835817 | 0.0000818165918037784 0.000200056516835817 | 0.0000818165918037784 0.0000818165918037784 0.000200056516835817]
+~ Xmatrix=[0.000438914756196516 | 0.00019305725690576 0.000438914756196516 | 0.00019305725690576 0.00019305725690576 0.000438914756196516]
+~ Cmatrix=[0.00570813431189152 | -0.00122317163826247 0.00570813431189152 | -0.00122317163826247 -0.00122317163826247 0.00570813431189152]
+
+New Line.line1 bus1=sourcebus.1.2.3 bus2=n2.1.2.3 linecode=bmopf length=609.6 units=m normamps=1000 emergamps=1000
+
+New Transformer.t1 phases=3 windings=2 XHL=6
+~ wdg=1 bus=n2.1.2.3 conn=delta kV=12.47 kVA=6000 %R=0.5
+~ wdg=2 bus=n3.1.2.3.0 conn=wye kV=4.16 kVA=6000 %R=0.5
+
+New Line.line2 bus1=n3.1.2.3 bus2=n4.1.2.3 linecode=bmopf length=762.0 units=m normamps=1000 emergamps=1000
+
+! OpenDSS kW/kvar are three-phase totals; PSA stores the resulting per-phase values.
+New Load.load1 bus1=n4.1.2.3.0 phases=3 conn=wye model=1
+~ kV=4.16 kW=5400 kvar=2615.339366124404 Vminpu=0 Vmaxpu=100

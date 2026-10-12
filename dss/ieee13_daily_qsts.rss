@@ -1,0 +1,69 @@
+// IEEE 13 节点馈线三时点 Daily QSTS 示例。
+// 所有负荷共享 daily_load 曲线，依次按 0.8、1.0 和 1.1 倍额定 P/Q 求解。
+[
+    bus, line, linecode, load, transformer, voltage_source,
+    motor, transformer_winding, transformer_impedance, current_source,
+    generator, ibr, switch, shunt, capacitor, reactor, spectrum,
+    control_profile, xy_curve, storage, para
+] = import_dss("sparrowzz/dss/models/ieee13_static/IEEE13Nodeckt.dss");
+
+// 三个一小时时步；曲线在 0、3600、7200 s 采样，结果时间为
+// 3600、7200、10800 s。静态投影不执行自动控制，因此使用 OFF。
+solution = select(
+    alias("DAILY", mode),
+    alias(3.0, number),
+    alias(3600.0, step_size_s),
+    alias("OFF", control_mode),
+    para
+);
+
+// 建立有功、无功同比例的 Daily 曲线。
+shape_0 = select(
+    alias("daily_load", name),
+    alias(0.0, time_s),
+    alias(0.8, p_multiplier),
+    alias(0.8, q_multiplier),
+    para
+);
+shape_1 = select(
+    alias("daily_load", name),
+    alias(3600.0, time_s),
+    alias(1.0, p_multiplier),
+    alias(1.0, q_multiplier),
+    para
+);
+shape_2 = select(
+    alias("daily_load", name),
+    alias(7200.0, time_s),
+    alias(1.1, p_multiplier),
+    alias(1.1, q_multiplier),
+    para
+);
+load_shape = concat("vertical", shape_0, shape_1, shape_2);
+
+// load 每行生成一个绑定，使 IEEE13 的所有负荷都使用同一条 Daily 曲线。
+shape_assignment = select(
+    alias("LOAD", device_kind),
+    alias(col(name), device),
+    alias("daily_load", daily),
+    load
+);
+
+// 请求逐相电压、负荷实际状态和每步求解摘要。
+qsts_para = with_columns(
+    alias(exact, line_model),
+    alias("bus_phase,load_state,summary", result),
+    para
+);
+
+// import_dss 当前保证 storage 为零行表，本例也没有配置控制、保护、
+// Monitor、EnergyMeter 或 Fault，因此用它作为九个 QSTS 可选表的空占位。
+[qsts_voltage, qsts_load_state, qsts_summary] = ds_radial_qsts(
+    bus, line, linecode, load, transformer, voltage_source,
+    motor, transformer_winding, transformer_impedance, current_source,
+    generator, ibr, switch, shunt, capacitor, reactor, spectrum,
+    control_profile, xy_curve, storage,
+    solution, load_shape, shape_assignment,
+    storage, storage, storage, storage, storage, storage,
+    storage, storage, storage, qsts_para
+);
