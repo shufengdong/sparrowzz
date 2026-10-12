@@ -153,6 +153,20 @@ tensoreval 在解析 RustScript 前处理以下行：
 `#include_url` 要求运行环境允许网络访问，其返回内容不继续扫描 include。DSS 文件中的
 `Redirect`/`Compile` 由 DSS 导入器处理，与 RSDss include 是两套机制。
 
+expr_df 中每个 `{ ... }` 都会编译为独立 Prog。某个代码块调用的函数必须在该代码块内
+定义或包含，不能依赖另一个代码块已经加载的函数。多个代码块使用同一组依赖时，可把
+包含清单放在独立文件中：
+
+```text
+result = {
+    #include sparrowzz/dss/runpf_bundle.txt
+    return runpf_case(base_mva, bus, gen, branch);
+};
+```
+
+共享清单只集中维护依赖列表；预处理仍会在每个指令位置展开完整内容，因此各 Prog 的 VM
+上下文彼此独立。
+
 ## 3. 声明、赋值和依赖图
 
 ### 3.1 单结果声明
