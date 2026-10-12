@@ -1,0 +1,244 @@
+// IEEE 14 节点输电系统与 4Bus-DY-Bal 配电馈线的主从分裂计算案例。
+//
+// RSDss 当前没有顶层循环或分支语句，因此本案例显式展开三轮主从计算，
+// 用于展示每轮交换的 DataFrame，不表示第三轮已经收敛。
+
+// 第 0 轮配电网模型。静态设备表在本案例中保持不变；
+// voltage_source0..3 和四组配电潮流结果随轮次变化。
+[d_bus0, d_line0, d_linecode0, d_load0, d_transformer0, d_voltage_source0, d_motor0, d_transformer_winding0, d_transformer_impedance0, d_current_source0, d_generator0, d_ibr0, d_switch0, d_shunt0, d_capacitor0, d_reactor0, d_spectrum0, d_control_profile0, d_xy_curve0, d_storage0, d_import_para0] = import_dss("sparrowzz/dss/models/4bus_daily_qsts/4bus_dy.dss");
+
+// 第 0 轮的 MATPOWER case14 DataFrame。
+bus0 = {
+    return [
+        [1,3,0,0,0,0,1,1.06,0,0,1,1.06,0.94],
+        [2,2,21.7,12.7,0,0,1,1.045,-4.98,0,1,1.06,0.94],
+        [3,2,94.2,19,0,0,1,1.01,-12.72,0,1,1.06,0.94],
+        [4,1,47.8,-3.9,0,0,1,1.019,-10.33,0,1,1.06,0.94],
+        [5,1,7.6,1.6,0,0,1,1.02,-8.78,0,1,1.06,0.94],
+        [6,2,11.2,7.5,0,0,1,1.07,-14.22,0,1,1.06,0.94],
+        [7,1,0,0,0,0,1,1.062,-13.37,0,1,1.06,0.94],
+        [8,2,0,0,0,0,1,1.09,-13.36,0,1,1.06,0.94],
+        [9,1,29.5,16.6,0,19,1,1.056,-14.94,0,1,1.06,0.94],
+        [10,1,9,5.8,0,0,1,1.051,-15.1,0,1,1.06,0.94],
+        [11,1,3.5,1.8,0,0,1,1.057,-14.79,0,1,1.06,0.94],
+        [12,1,6.1,1.6,0,0,1,1.055,-15.07,0,1,1.06,0.94],
+        [13,1,13.5,5.8,0,0,1,1.05,-15.16,0,1,1.06,0.94],
+        [14,1,14.9,5,0,0,1,1.036,-16.04,0,1,1.06,0.94]
+    ];
+};
+
+gen0 = {
+    return [
+        [1,232.4,-16.9,10,0,1.06,100,1,332.4,0,0,0,0,0,0,0,0,0,0,0,0],
+        [2,40,42.4,50,-40,1.045,100,1,140,0,0,0,0,0,0,0,0,0,0,0,0],
+        [3,0,23.4,40,0,1.01,100,1,100,0,0,0,0,0,0,0,0,0,0,0,0],
+        [6,0,12.2,24,-6,1.07,100,1,100,0,0,0,0,0,0,0,0,0,0,0,0],
+        [8,0,17.4,24,-6,1.09,100,1,100,0,0,0,0,0,0,0,0,0,0,0,0]
+    ];
+};
+
+branch0 = {
+    return [
+        [1,2,0.01938,0.05917,0.0528,0,0,0,0,0,1,-360,360],
+        [1,5,0.05403,0.22304,0.0492,0,0,0,0,0,1,-360,360],
+        [2,3,0.04699,0.19797,0.0438,0,0,0,0,0,1,-360,360],
+        [2,4,0.05811,0.17632,0.034,0,0,0,0,0,1,-360,360],
+        [2,5,0.05695,0.17388,0.0346,0,0,0,0,0,1,-360,360],
+        [3,4,0.06701,0.17103,0.0128,0,0,0,0,0,1,-360,360],
+        [4,5,0.01335,0.04211,0,0,0,0,0,0,1,-360,360],
+        [4,7,0,0.20912,0,0,0,0,0.978,0,1,-360,360],
+        [4,9,0,0.55618,0,0,0,0,0.969,0,1,-360,360],
+        [5,6,0,0.25202,0,0,0,0,0.932,0,1,-360,360],
+        [6,11,0.09498,0.1989,0,0,0,0,0,0,1,-360,360],
+        [6,12,0.12291,0.25581,0,0,0,0,0,0,1,-360,360],
+        [6,13,0.06615,0.13027,0,0,0,0,0,0,1,-360,360],
+        [7,8,0,0.17615,0,0,0,0,0,0,1,-360,360],
+        [7,9,0,0.11001,0,0,0,0,0,0,1,-360,360],
+        [9,10,0.03181,0.0845,0,0,0,0,0,0,1,-360,360],
+        [9,14,0.12711,0.27038,0,0,0,0,0,0,1,-360,360],
+        [10,11,0.08205,0.19207,0,0,0,0,0,0,1,-360,360],
+        [12,13,0.22092,0.19988,0,0,0,0,0,0,1,-360,360],
+        [13,14,0.17093,0.34802,0,0,0,0,0,0,1,-360,360]
+    ];
+};
+
+// 请求三轮显式数据交换所需的全部配电潮流结果。
+d_pf_para = select(
+    col(base_frequency_hz),
+    alias("bus_phase,branch_flow,source_flow,summary", result),
+    d_import_para0
+);
+
+// 第 0 轮：使用配电网原始的 1 pu、0 度电源求解馈线，
+// 形成单位为 MW/MVAr 的初始三相 PCC 等值功率。
+[d_bus_phase0, d_branch_flow0, d_source_flow0, d_summary0] = ds_radial_pf(
+    d_bus0, d_line0, d_linecode0, d_load0, d_transformer0, d_voltage_source0,
+    d_motor0, d_transformer_winding0, d_transformer_impedance0,
+    d_current_source0, d_generator0, d_ibr0, d_switch0, d_shunt0,
+    d_capacitor0, d_reactor0, d_spectrum0, d_control_profile0, d_xy_curve0,
+    d_storage0, d_pf_para
+);
+d_pcc_flow0 = filter(cols(p_from, q_from), col(element) == "line1", d_branch_flow0);
+d_pq0 = select(
+    alias(sum(col(p_from)) / 1000000.0, p_mw),
+    alias(sum(col(q_from)) / 1000000.0, q_mvar),
+    d_pcc_flow0
+);
+
+// 第 1 轮：把馈线等值功率叠加到母线 14 的原始负荷，然后运行 rspower。
+// include 行位于数值代码块内部，因此全部轮次编排都能直接在本 .rss 文件中看到。
+[t_pcc_power1, _, bus1, gen1, branch1, t_success1, t_iterations1] = {
+#include sparrowzz/rspower/lib/idx_gen.txt
+#include sparrowzz/rspower/lib/idx_bus.txt
+#include sparrowzz/rspower/lib/idx_brch.txt
+#include sparrowzz/rspower/lib/ext2int.txt
+#include sparrowzz/rspower/lib/int2ext.txt
+#include sparrowzz/rspower/lib/bustypes.txt
+#include sparrowzz/rspower/lib/makeYbus.txt
+#include sparrowzz/rspower/lib/dSbus_dV.txt
+#include sparrowzz/rspower/lib/make_sdzip.txt
+#include sparrowzz/rspower/lib/makeSbus.txt
+#include sparrowzz/rspower/lib/newtonpf.txt
+#include sparrowzz/rspower/lib/pfsoln.txt
+#include sparrowzz/rspower/lib/total_load.txt
+#include sparrowzz/rspower/lib/runpf.txt
+    pcc_row = 13;
+    pcc_power = d_pq0;
+    t_bus_input = set(
+        bus0,
+        [pcc_row * 13 + 2, pcc_row * 13 + 3],
+        [get(bus0, pcc_row, 2) + get(pcc_power, 0, 0), get(bus0, pcc_row, 3) + get(pcc_power, 0, 1)]
+    );
+    [v, solved_bus, solved_gen, solved_branch, success, iterations] = runpf_case(100, t_bus_input, gen0, branch0);
+    return (pcc_power, v, solved_bus, solved_gen, solved_branch, [[success]], [[iterations]]);
+};
+
+t_pcc_voltage1 = filter(cols(col_7, col_8), col(col_0) == 14, bus1);
+d_source_with_boundary1 = concat("horizontal", d_voltage_source0, t_pcc_voltage1);
+d_voltage_source1 = with_columns(
+    alias(col(v_magnitude) * col(col_7), v_magnitude),
+    alias(col(v_angle) + radians(col(col_8)), v_angle),
+    d_source_with_boundary1
+);
+[d_bus_phase1, d_branch_flow1, d_source_flow1, d_summary1] = ds_radial_pf(
+    d_bus0, d_line0, d_linecode0, d_load0, d_transformer0, d_voltage_source1,
+    d_motor0, d_transformer_winding0, d_transformer_impedance0,
+    d_current_source0, d_generator0, d_ibr0, d_switch0, d_shunt0,
+    d_capacitor0, d_reactor0, d_spectrum0, d_control_profile0, d_xy_curve0,
+    d_storage0, d_pf_para
+);
+d_pcc_flow1 = filter(cols(p_from, q_from), col(element) == "line1", d_branch_flow1);
+d_pq1 = select(
+    alias(sum(col(p_from)) / 1000000.0, p_mw),
+    alias(sum(col(q_from)) / 1000000.0, q_mvar),
+    d_pcc_flow1
+);
+
+// 第 2 轮：显式采用 alpha=0.5 的松弛系数。每轮都从 bus0 重建主网母线输入，
+// 避免重复累加馈线负荷。
+[t_pcc_power2, _, bus2, gen2, branch2, t_success2, t_iterations2] = {
+#include sparrowzz/rspower/lib/idx_gen.txt
+#include sparrowzz/rspower/lib/idx_bus.txt
+#include sparrowzz/rspower/lib/idx_brch.txt
+#include sparrowzz/rspower/lib/ext2int.txt
+#include sparrowzz/rspower/lib/int2ext.txt
+#include sparrowzz/rspower/lib/bustypes.txt
+#include sparrowzz/rspower/lib/makeYbus.txt
+#include sparrowzz/rspower/lib/dSbus_dV.txt
+#include sparrowzz/rspower/lib/make_sdzip.txt
+#include sparrowzz/rspower/lib/makeSbus.txt
+#include sparrowzz/rspower/lib/newtonpf.txt
+#include sparrowzz/rspower/lib/pfsoln.txt
+#include sparrowzz/rspower/lib/total_load.txt
+#include sparrowzz/rspower/lib/runpf.txt
+    pcc_row = 13;
+    pcc_power = 0.5 * t_pcc_power1 + 0.5 * d_pq1;
+    t_bus_input = set(
+        bus0,
+        [pcc_row * 13 + 2, pcc_row * 13 + 3],
+        [get(bus0, pcc_row, 2) + get(pcc_power, 0, 0), get(bus0, pcc_row, 3) + get(pcc_power, 0, 1)]
+    );
+    [v, solved_bus, solved_gen, solved_branch, success, iterations] = runpf_case(100, t_bus_input, gen0, branch0);
+    return (pcc_power, v, solved_bus, solved_gen, solved_branch, [[success]], [[iterations]]);
+};
+
+t_pcc_voltage2 = filter(cols(col_7, col_8), col(col_0) == 14, bus2);
+d_source_with_boundary2 = concat("horizontal", d_voltage_source0, t_pcc_voltage2);
+d_voltage_source2 = with_columns(
+    alias(col(v_magnitude) * col(col_7), v_magnitude),
+    alias(col(v_angle) + radians(col(col_8)), v_angle),
+    d_source_with_boundary2
+);
+[d_bus_phase2, d_branch_flow2, d_source_flow2, d_summary2] = ds_radial_pf(
+    d_bus0, d_line0, d_linecode0, d_load0, d_transformer0, d_voltage_source2,
+    d_motor0, d_transformer_winding0, d_transformer_impedance0,
+    d_current_source0, d_generator0, d_ibr0, d_switch0, d_shunt0,
+    d_capacitor0, d_reactor0, d_spectrum0, d_control_profile0, d_xy_curve0,
+    d_storage0, d_pf_para
+);
+d_pcc_flow2 = filter(cols(p_from, q_from), col(element) == "line1", d_branch_flow2);
+d_pq2 = select(
+    alias(sum(col(p_from)) / 1000000.0, p_mw),
+    alias(sum(col(q_from)) / 1000000.0, q_mvar),
+    d_pcc_flow2
+);
+
+// 第 3 轮：执行最后一次固定计算。本案例不检查收敛，也不提前退出；
+// bus3 和 d_bus_phase3 只表示第三轮状态。
+[t_pcc_power3, _, bus3, gen3, branch3, t_success3, t_iterations3] = {
+#include sparrowzz/rspower/lib/idx_gen.txt
+#include sparrowzz/rspower/lib/idx_bus.txt
+#include sparrowzz/rspower/lib/idx_brch.txt
+#include sparrowzz/rspower/lib/ext2int.txt
+#include sparrowzz/rspower/lib/int2ext.txt
+#include sparrowzz/rspower/lib/bustypes.txt
+#include sparrowzz/rspower/lib/makeYbus.txt
+#include sparrowzz/rspower/lib/dSbus_dV.txt
+#include sparrowzz/rspower/lib/make_sdzip.txt
+#include sparrowzz/rspower/lib/makeSbus.txt
+#include sparrowzz/rspower/lib/newtonpf.txt
+#include sparrowzz/rspower/lib/pfsoln.txt
+#include sparrowzz/rspower/lib/total_load.txt
+#include sparrowzz/rspower/lib/runpf.txt
+    pcc_row = 13;
+    pcc_power = 0.5 * t_pcc_power2 + 0.5 * d_pq2;
+    t_bus_input = set(
+        bus0,
+        [pcc_row * 13 + 2, pcc_row * 13 + 3],
+        [get(bus0, pcc_row, 2) + get(pcc_power, 0, 0), get(bus0, pcc_row, 3) + get(pcc_power, 0, 1)]
+    );
+    [v, solved_bus, solved_gen, solved_branch, success, iterations] = runpf_case(100, t_bus_input, gen0, branch0);
+    return (pcc_power, v, solved_bus, solved_gen, solved_branch, [[success]], [[iterations]]);
+};
+
+t_pcc_voltage3 = filter(cols(col_7, col_8), col(col_0) == 14, bus3);
+d_source_with_boundary3 = concat("horizontal", d_voltage_source0, t_pcc_voltage3);
+d_voltage_source3 = with_columns(
+    alias(col(v_magnitude) * col(col_7), v_magnitude),
+    alias(col(v_angle) + radians(col(col_8)), v_angle),
+    d_source_with_boundary3
+);
+[d_bus_phase3, d_branch_flow3, d_source_flow3, d_summary3] = ds_radial_pf(
+    d_bus0, d_line0, d_linecode0, d_load0, d_transformer0, d_voltage_source3,
+    d_motor0, d_transformer_winding0, d_transformer_impedance0,
+    d_current_source0, d_generator0, d_ibr0, d_switch0, d_shunt0,
+    d_capacitor0, d_reactor0, d_spectrum0, d_control_profile0, d_xy_curve0,
+    d_storage0, d_pf_para
+);
+d_pcc_flow3 = filter(cols(p_from, q_from), col(element) == "line1", d_branch_flow3);
+d_pq3 = select(
+    alias(sum(col(p_from)) / 1000000.0, p_mw),
+    alias(sum(col(q_from)) / 1000000.0, q_mvar),
+    d_pcc_flow3
+);
+
+// 生成紧凑的终端结果表，使 CLI 始终输出四组交换功率。
+// 完整的 bus0..3、gen0..3、branch0..3、voltage_source0..3 以及
+// d_bus_phase0..3、d_branch_flow0..3 DataFrame 仍作为计算图中的具名变量保存。
+d_pq3_matrix = select(alias(col(p_mw), col_0), alias(col(q_mvar), col_1), d_pq3);
+td_power_steps = concat("vertical", t_pcc_power1, t_pcc_power2, t_pcc_power3, d_pq3_matrix);
+t_success_steps = concat("vertical", t_success1, t_success2, t_success3);
+d_summary_steps = concat("vertical", d_summary0, d_summary1, d_summary2, d_summary3);
+t_success_column = select(alias(col(col_0), transmission_success), t_success_steps);
+d_converged_column = select(alias(cast(col(converged), f64), distribution_converged), d_summary_steps);
+td_iteration_report = concat("horizontal", td_power_steps, t_success_column, d_converged_column);

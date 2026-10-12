@@ -1,13 +1,20 @@
 // runpf - Runs an AC Newton power flow.
 //
 //   [V, BUS, GEN, BRANCH, SUCCESS, ITERATIONS] = RUNPF()
+//   [V, BUS, GEN, BRANCH, SUCCESS, ITERATIONS] =
+//       RUNPF_CASE(BASEMVA, BUS, GEN, BRANCH)
 //
 //   Uses the BASEMVA, BUS, GEN and BRANCH values in the script context. This
 //   rspower implementation intentionally supports only the AC power-balance,
 //   polar-voltage Newton method. It performs external/internal bus-number
 //   conversion and returns solved matrices using the original bus numbers.
 
-fn runpf() {
+fn runpf_case(case_baseMVA, case_bus, case_gen, case_branch) {
+    baseMVA = case_baseMVA;
+    bus = case_bus;
+    gen = case_gen;
+    branch = case_branch;
+
     pf_branch = branch;
     if size(pf_branch, 1) < QT {
         pf_branch = horzcat(pf_branch, zeros(size(pf_branch, 0), QT - size(pf_branch, 1)));
@@ -47,4 +54,9 @@ fn runpf() {
     [result_bus, result_gen, result_branch] = int2ext(i2e, pf_bus, pf_gen, pf_branch);
 
     return (V, result_bus, result_gen, result_branch, success, iterations);
+}
+
+// Backward-compatible entry point for scripts that load a case into globals.
+fn runpf() {
+    return runpf_case(baseMVA, bus, gen, branch);
 }

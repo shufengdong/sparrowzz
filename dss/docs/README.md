@@ -47,6 +47,7 @@ RSDss 已公开相同入口。
 | [`../ieee34_short_circuit.rss`](../ieee34_short_circuit.rss) | 单相接地短路 | `fault` | OpenDSS 复相量 |
 | [`../4bus_daily_qsts.rss`](../4bus_daily_qsts.rss) | 三时点 Daily QSTS | `bus_phase` | 36 行 OpenDSS 复电压 |
 | [`../ieee13_daily_qsts.rss`](../ieee13_daily_qsts.rss) | IEEE13 全负荷三时点 Daily QSTS | `bus_phase`, `load_state`, `summary` | 可执行行为与完整行覆盖 |
+| [`../case14_4bus_master_slave_pf.rss`](../case14_4bus_master_slave_pf.rss) | case14 正序主网 + 4Bus 三相配网主从分裂 | `bus0..3` 等各轮 DataFrame | 显式执行三轮、PCC 功率与电压交换 |
 
 ## 运行入口
 

@@ -34,3 +34,8 @@ assert_relative_eq(r, [
     [c(1.0138,-0.2746)],
     [c(0.9952,-0.2860)]
 ], 0.001);
+
+// The parameterized entry point must produce the same voltage solution and is
+// the API used by RSDss transmission/distribution orchestration.
+r_case = runpf_case(baseMVA, bus, gen, branch);
+assert_relative_eq(r_case, r, 1e-12);

@@ -22,6 +22,7 @@
 | `ieee34_short_circuit.rss` | IEEE34 母线 810 单相接地短路 |
 | `4bus_daily_qsts.rss` | 4Bus-DY-Bal 三时点 Daily QSTS |
 | `ieee13_daily_qsts.rss` | IEEE13 全负荷三时点 Daily QSTS |
+| `case14_4bus_master_slave_pf.rss` | IEEE case14 主网与 4Bus-DY-Bal 配网显式展开三轮的单 PCC 主从分裂案例 |
 
 `models/*_static`、`models/*_harmonic` 和 `models/4bus_daily_qsts` 是测试所用
 OpenDSS 模型的静态投影。它们移除了求解命令和调压控制，并补齐 PSA 严格导入所需的
@@ -50,6 +51,15 @@ cargo run -p mems \
 
 该脚本用 0、3600 和 7200 秒的负荷曲线样本求解三个一小时时步；结果时间是每个时步
 的结束时刻，即 3600、7200 和 10800 秒。
+
+联合潮流案例需要主网数值求解器和配网后端：
+
+```bash
+cargo run -p mems \
+  --features tensoreval-cli,with_dsa_mumps,full_mumps-static \
+  --bin tensoreval -- \
+  --df sparrowzz/dss/case14_4bus_master_slave_pf.rss
+```
 
 谐波计算应使用 release 构建：
 
