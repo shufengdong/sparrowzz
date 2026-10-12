@@ -6,6 +6,8 @@
 
 从现有 OpenDSS 模型和 Python 仿真脚本迁移时，请参阅
 [从 OpenDSS Python 脚本迁移到 RSS](docs/opendss_to_rss.md)。
+完整语法、函数、schema、兼容范围和智能体编写指南见
+[`docs/README.md`](docs/README.md)。
 
 ## 脚本
 
@@ -19,6 +21,7 @@
 | `ieee13_short_circuit.rss` | IEEE13 母线 652 单相接地短路 |
 | `ieee34_short_circuit.rss` | IEEE34 母线 810 单相接地短路 |
 | `4bus_daily_qsts.rss` | 4Bus-DY-Bal 三时点 Daily QSTS |
+| `ieee13_daily_qsts.rss` | IEEE13 全负荷三时点 Daily QSTS |
 
 `models/*_static`、`models/*_harmonic` 和 `models/4bus_daily_qsts` 是测试所用
 OpenDSS 模型的静态投影。它们移除了求解命令和调压控制，并补齐 PSA 严格导入所需的

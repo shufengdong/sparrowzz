@@ -2,23 +2,23 @@
 
 本文面向已经使用 OpenDSS 或 OpenDSSDirect.py 的配电网仿真用户，说明如何保留现有
 `.dss` 模型文件，并把“载入模型、执行分析、读取结果和后处理”迁移到 `mems` 的
-RSS（expr_df）脚本。
+RSS（RSDss）脚本。
 
 当前最成熟的迁移路径是静态辐射状配电网潮流、Newton 潮流、谐波和短路计算。仓库中的对照
-测试已经用同一批 IEEE 13、34 和 123 节点模型分别运行 OpenDSS 与 expr_df，并比较
+测试已经用同一批 IEEE 13、34 和 123 节点模型分别运行 OpenDSS 与 RSDss，并比较
 复电压；IEEE 13 和 34 节点还比较了谐波复电压与短路复相量，4Bus-DY-Bal 案例比较了
 三时点 Daily QSTS 复电压。QSTS、状态估计、随机潮流、恢复重构、故障定位、电动机
-动态和保护配合也有 expr_df 入口，但它们需要额外的 DataFrame 配置，不能只把
+动态和保护配合也有 RSDss 入口，但它们需要额外的 DataFrame 配置，不能只把
 OpenDSS 的 `Solve` 命令改名后直接执行。
 
 ## 1. 迁移后的执行模型
 
-OpenDSS 同时用一条命令流描述模型和执行过程。expr_df 把两者拆开：
+OpenDSS 同时用一条命令流描述模型和执行过程。RSDss 把两者拆开：
 
 ```mermaid
 flowchart LR
     A[声明式 DSS 文件] -->|import_dss| B[20 张网络表和 para]
-    B --> C[expr_df 数据准备]
+    B --> C[RSDss 数据准备]
     C --> D[ds_radial_pf / ds_newton_raphson_pf]
     C --> E[ds_harmonic_study / ds_fault_study]
     C --> F[QSTS 和其他分析入口]
@@ -30,7 +30,7 @@ flowchart LR
 
 对应关系如下。
 
-| OpenDSS/OpenDSSDirect 操作 | expr_df 操作 |
+| OpenDSS/OpenDSSDirect 操作 | RSDss 操作 |
 | --- | --- |
 | `Compile` 或 `Redirect` 主文件 | `import_dss("path/to/Master.dss")` |
 | `Solution.Solve()` | `ds_radial_pf(...)` 或 `ds_newton_raphson_pf(...)` |
@@ -38,7 +38,7 @@ flowchart LR
 | 创建 `Fault` 后求解或 `mode=faultstudy` | 构造 `fault` 表后调用 `ds_fault_study(...)` |
 | `Circuit.AllBusNames`、`Bus.Voltages` | 请求 `bus_phase` 结果 |
 | `CktElement.Currents/Powers/Losses` | 请求 `branch_flow`、`source_flow` 等结果 |
-| Python 中的筛选、拼接和派生列 | expr_df 的 `select`、`filter`、`join`、`with_columns` |
+| Python 中的筛选、拼接和派生列 | RSDss 的 `select`、`filter`、`join`、`with_columns` |
 
 `import_dss` 是转换器，不是 OpenDSS 命令解释器。它使用
 `DssImportProfile::StaticPowerFlow`，把声明式模型转换为 PSA 的 DataFrame 网络契约；
@@ -47,7 +47,7 @@ flowchart LR
 
 ## 2. 构建要求
 
-expr_df 的配电系统分析函数由 `with_dsa` feature 提供：
+RSDss 的配电系统分析函数由 `with_dsa` feature 提供：
 
 ```bash
 cargo check -p mems --features with_dsa
@@ -77,10 +77,13 @@ cargo check -p mems --features with_dsa_mkl
 静态入口会拒绝没有静态 DataFrame 语义的执行命令，例如：
 
 - `Solve`；
-- `Clear`；
 - `CalcVoltageBases`/`CalcV`；
 - 除 `Set DefaultBaseFrequency=...` 外的运行时 `Set`；
 - `Export`、`Show` 等依赖 OpenDSS 运行状态的命令。
+
+仓库已验证模型允许在入口开头使用 `Clear` 重置 DSS 声明环境；它不会转换成运行期
+DataFrame 动作。需要在多个 `Solve` 之间清空或重建状态时，不能用静态 `import_dss`
+表达。
 
 推荐把旧文件拆成两层：
 
@@ -93,7 +96,7 @@ case/
 └── run.rss         # RustScript：import_dss、ds_*、结果处理
 ```
 
-这样同一份 `model.dss` 可以同时作为 OpenDSS 基准输入和 expr_df 输入。不要为了让导入
+这样同一份 `model.dss` 可以同时作为 OpenDSS 基准输入和 RSDss 输入。不要为了让导入
 成功而删除一个不认识的对象或属性；导入器采用 fail-closed 策略，错误通常表示该语义
 还不能无损转换，应先确认兼容范围或把相应设备改为显式 DataFrame 输入。
 
@@ -240,7 +243,7 @@ newton_para = with_columns(
 );
 ```
 
-## 6. OpenDSS 结果与 expr_df 结果的对应
+## 6. OpenDSS 结果与 RSDss 结果的对应
 
 ### 6.1 母线电压
 
@@ -260,9 +263,9 @@ for bus_name in dss.Circuit.AllBusNames():
     values = dss.Bus.Voltages()  # [re1, im1, re2, im2, ...]
 ```
 
-expr_df 的 `bus_phase` 对应字段为：
+RSDss 的 `bus_phase` 对应字段为：
 
-| expr_df 列 | 含义 | 单位 | OpenDSSDirect 来源 |
+| RSDss 列 | 含义 | 单位 | OpenDSSDirect 来源 |
 | --- | --- | --- | --- |
 | `bus` | 母线名 | — | `Circuit.AllBusNames()` |
 | `phase` | 相/端子标签 | — | `Bus.Nodes()` |
@@ -286,7 +289,7 @@ OpenDSS 的 `Bus.VMagAngle()` 和部分导出文件使用角度制；`bus_phase.
 
 OpenDSS `CktElement.Currents()` 返回的各端口电流通常都以“从端口流入元件”为正，
 所以比较末端电流时需要根据上述约定处理符号。OpenDSS `CktElement.Powers()` 常用
-kW/kvar，expr_df 详细结果统一使用 W/var；电流为 A，电压为 V。
+kW/kvar，RSDss 详细结果统一使用 W/var；电流为 A，电压为 V。
 
 ### 6.3 名称和相序
 
@@ -381,7 +384,7 @@ fault_para = with_columns(alias(exact, line_model), para);
 ## 9. QSTS 和其他分析如何迁移
 
 OpenDSS 的 `mode=daily/yearly/duty`、LoadShape、Monitor、EnergyMeter 和保护控制不应
-放进静态 `import_dss` 后期待自动执行。expr_df 的 QSTS 入口在完整 20 张网络表后明确
+放进静态 `import_dss` 后期待自动执行。RSDss 的 QSTS 入口在完整 20 张网络表后明确
 接收：
 
 ```text
@@ -414,9 +417,9 @@ LoadShape 绑定，并请求逐母线逐相电压；测试将 36 行复电压与
 `time + bus + phase` 对齐，复数相对误差容差为 `1e-3`。曲线在时步起点采样，结果以
 时步结束时刻标记。
 
-其他 OpenDSS 工作流与 expr_df 入口的选择如下：
+其他 OpenDSS 工作流与 RSDss 入口的选择如下：
 
-| 工作目标 | expr_df 入口 |
+| 工作目标 | RSDss 入口 |
 | --- | --- |
 | 径向/弱网静态潮流 | `ds_radial_pf` |
 | 通用 Newton 静态潮流 | `ds_newton_raphson_pf` |
@@ -432,7 +435,7 @@ LoadShape 绑定，并请求逐母线逐相电压；测试将 36 行复电压与
 
 ## 10. 在 mems 中运行 RSS 脚本
 
-`tensoreval` 命令行工具可以直接运行 RSS（expr_df）文件。脚本使用 `import_dss` 等自包含入口时
+`tensoreval` 命令行工具可以直接运行 RSS（RSDss）文件。脚本使用 `import_dss` 等自包含入口时
 不需要外部 DataFrame：
 
 ```bash
@@ -455,67 +458,25 @@ cargo run -p mems --features tensoreval-cli --bin tensoreval -- \
 ```
 
 命令会按脚本声明顺序打印所有末层结果的变量名和 DataFrame；`--verbose` 还会打印
-schema。expr_df 错误会写入标准错误并返回非零退出码。使用
+schema。RSDss 错误会写入标准错误并返回非零退出码。使用
 `cargo run -p mems --features tensoreval-cli --bin tensoreval -- --help` 查看完整参数。
 
 在持久化流程中，把脚本放入 `TensorEval` 节点并设置 `TE_PARA_DF`。节点输入的别名会
 成为脚本中的 DataFrame 变量，末层变量成为节点输出。`import_dss` 自己可以作为零输入
 节点读取本地模型。
 
-Rust 代码中也可以直接编译和执行脚本，仓库测试使用以下模式：
-
-```rust
-use std::collections::HashMap;
-
-use eig_expr::scipt::parse::Parser;
-use mems::ml::expr_df::{
-    try_do_update_df_graph_named,
-    try_prog_to_df_expr_graph,
-};
-
-let code = r#"
-    [
-        bus, line, linecode, load, transformer, voltage_source,
-        motor, transformer_winding, transformer_impedance, current_source,
-        generator, ibr, switch, shunt, capacitor, reactor, spectrum,
-        control_profile, xy_curve, storage, para
-    ] = import_dss("case/model.dss");
-    pf_para = with_columns(
-        alias(exact, line_model),
-        alias(bus_phase, result),
-        para
-    );
-    [voltage] = ds_radial_pf(
-        bus, line, linecode, load, transformer, voltage_source,
-        motor, transformer_winding, transformer_impedance, current_source,
-        generator, ibr, switch, shunt, capacitor, reactor, spectrum,
-        control_profile, xy_curve, storage,
-        pf_para
-    );
-"#;
-
-let program = Parser::new(code).prog().expect("expr_df script must parse");
-let graph = try_prog_to_df_expr_graph(&program).expect("expr_df script must compile");
-let outputs = try_do_update_df_graph_named(&graph, HashMap::new())
-    .expect("expr_df script must run");
-let voltage = outputs
-    .iter()
-    .find(|(name, _)| name == "voltage")
-    .map(|(_, frame)| frame)
-    .expect("voltage is a terminal output");
-```
-
-生产代码应使用带 `try_` 前缀的接口，以保留导入、参数和求解错误。旧的非 `try_`
-接口会把错误写入 warning 并转换为 `None`，不适合迁移验收。
+对外执行入口是 `tensoreval --dataframe`（或 `--df`）。Rust 内部模块接口不作为
+RSDss 对外兼容契约；应用集成应通过脚本文件、命令行退出码和具名结果 DataFrame
+建立稳定边界。
 
 ## 11. 建立 OpenDSS 对照基准
 
 迁移时应保留一套独立的 OpenDSS oracle。推荐流程如下：
 
 1. 固定 OpenDSSDirect.py、DSS C-API、模型文件和所有外部曲线文件的版本。
-2. 用 Python 只调用 OpenDSS，不导入 PSA，也不读取 expr_df 输出。
+2. 用 Python 只调用 OpenDSS，不导入 PSA，也不读取 RSDss 输出。
 3. 记录复数原始量，例如 `v_re/v_im`、`i_re/i_im`，并保存为 CSV。
-4. expr_df 使用同一声明式模型，显式记录为对齐语义所做的投影。
+4. RSDss 使用同一声明式模型，显式记录为对齐语义所做的投影。
 5. 用规范化后的业务键连接两边结果，检查行覆盖完整性。
 6. 比较复相量相对误差，而不是分别比较幅值和角度。
 
@@ -544,7 +505,7 @@ IEEE 13、34、123 节点静态潮流当前使用 `1e-3` 最大相对误差门�
 
 关键文件：
 
-- `mems/tests/dff/dff_script.rs`：DSS 导入、expr_df 脚本执行及 OpenDSS 结果比较；
+- `mems/tests/dff/dff_script.rs`：DSS 导入、RSDss 脚本执行及 OpenDSS 结果比较；
 - `psa/tests/bmopf/generate_opendss_voltage.py`：独立 OpenDSSDirect 潮流基准生成器；
 - `psa/tests/bmopf/generate_opendss_ieee13_harmonics.py`、
   `generate_opendss_ieee34_harmonics.py`：独立谐波基准生成器；
@@ -563,8 +524,8 @@ cargo test -p mems --test main --features with_dsa \
 
 ```bash
 cargo test -p mems --test main --features with_dsa \
-  dff::dff_script::dsa_tests::expr_df_script_imports_ieee13_dss_and_matches_opendss \
-  -- --exact --test-threads=1
+  imports_ieee13_dss_and_matches_opendss \
+  -- --test-threads=1
 ```
 
 CIGRE-LV 谐波案例在 debug 构建中很慢，完整验证应使用 release：
@@ -607,5 +568,5 @@ cargo test --release -p psa --test network_harmonics --features mumps-static \
 8. 在 CI 中运行聚焦对照测试；慢速 CIGRE-LV 谐波测试放到 release 测试任务。
 
 完成这些步骤后，OpenDSS 仍可作为独立基准生成器，而日常仿真、DataFrame 后处理和
-流程编排由 expr_df 承担。新增对象或属性时，应先扩展兼容性测试和独立参考结果，再把
+流程编排由 RSDss 承担。新增对象或属性时，应先扩展兼容性测试和独立参考结果，再把
 它加入生产模型。
