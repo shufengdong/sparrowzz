@@ -115,12 +115,30 @@ bus, line, linecode, load, transformer, voltage_source,
 bus_voltage, bus_phase, load_state, branch_flow, source_flow,
 transformer_winding_flow, conductor_flow, regulator_state,
 capacitor_state, reactor_state, ibr_state, gfm_state,
-violations, summary, monitor, monitor_save, energy_meter,
+violations, summary,
+storage_state, storage_controller_state, switch_control_state,
+fuse_state, recloser_state, relay_state, fault_state,
+monitor, monitor_save, energy_meter,
 meter_loss_breakdown, reliability, meter_zone, meter_save,
 load_duration
 ```
 
-逐时步结果自动追加 `time`、`load_multiplier` 和 `generation_multiplier` 三列。
+潮流表、`summary` 以及七张 typed state 表都是逐时步结果，自动追加 `time`、
+`load_multiplier` 和 `generation_multiplier` 三列。typed state 表直接对应 PSA 当前的
+`TimeSeriesStepResult`：
+
+| 结果名 | 内容 |
+|---|---|
+| `storage_state` | 储能 SOC、能量及受限后的实际 P/Q |
+| `storage_controller_state` | 控制模式、目标、死区、群组请求/实际有功及锁定状态 |
+| `switch_control_state` | 被控端子、逐相状态、量测条件和待执行动作 |
+| `fuse_state` | 逐相熔断状态、电流、动作时间和到期时刻 |
+| `recloser_state` | 操作序号、快/慢曲线、电流、锁定及待执行动作 |
+| `relay_state` | Relay 类型对应的电流、电压、方向、距离、TD21 与多次重合闸状态 |
+| `fault_state` | 各输入故障的投退、清除、相别及最近故障电流状态 |
+
+保护状态表中的 `phases` 与 `phase_states` 是位置对应的 `list<str>`。没有配置某个
+子系统时，相应结果是保留固定列结构的零行表。
 
 ## 5. 谐波
 

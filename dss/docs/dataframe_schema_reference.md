@@ -32,7 +32,7 @@ ohm、时间 s、频率 Hz、角度 rad。DSS 导入器负责把 OpenDSS 常用�
 | 15 | `capacitor` | 电容器组 | `name`, `bus`, `terminal_map`, `configuration`, `q_rated`, `v_nom` |
 | 16 | `reactor` | 电抗器 | 由 `reactor` 解析器规定；优先使用导入器生成 |
 | 17 | `spectrum` | 谐波频谱 | `name`, `h`, `mag_pct`, `angle_deg`，三列可为等长列表 |
-| 18 | `control_profile` | 调压/电容等控制配置 | 与目标设备和控制类型配套 |
+| 18 | `control_profile` | InvControl、ExpControl 和 GFM 控制配置 | 由 `ibr.control_profile` 引用 |
 | 19 | `xy_curve` | XY 曲线点 | `name`, `x`, `y`；一个曲线占多行 |
 | 20 | `storage` | 储能设备及状态 | 见“可注入设备” |
 
@@ -94,17 +94,57 @@ terminal_map_from, terminal_map_to`。可选 `open` 给出开断状态，`i_max`
 电压模型边界和 `spectrum`。有功/无功的符号由设备契约决定，不能通过观察某个结果表的
 功率方向反推输入符号。
 
+`generator` 还支持当前 PSA 的 typed execution contract：`execution_mode` 可为
+`CONSTANT_PQ` 或 `CONSTANT_PV`，显式 PV 必须提供逐相 `v_ref:list<f64>`，PQ 禁止提供。
+`kvar_limit` 与 `v_ref` 互斥；`v_min_pu/v_max_pu` 默认 0.95/1.05。逐相
+`p_min/p_max/q_min/q_max`、`s_max/i_max` 约束工作点。短路等值使用 `z_r/z_x`，或
+`z1_r/z1_x/z0_r/z0_x`，也可由 `xdpp`（优先）/`xdp`、`s_rating`、`v_nom` 和 `x_r`
+折算。`dispatcher` 相同的发电机组成 GenDispatcher；同组还使用
+`dispatch_bus_from`, `dispatch_bus_to`, `dispatch_terminal`, `dispatch_kw_limit`,
+`dispatch_kvar_limit`, `dispatch_kw_band`, `dispatch_weight`。
+
 ### `voltage_source` 与 `current_source`
 
-电压源使用 `v_magnitude: f64` 和 `v_angle: f64/list<f64>`；电流源使用
-`i_magnitude` 和 `i_angle`。`current_source.frequency_hz` 默认网络基频，`scan_type` 和
-`spectrum` 用于谐波行为。
+电压源使用逐端子的 `v_magnitude:list<f64>` 和 `v_angle:list<f64>`；电流源使用逐相的
+`i_magnitude:list<f64>` 和 `i_angle:list<f64>`。电压源还可用 `bus2/terminal_map2`
+表达 Newton 双端口，并通过短路容量或序阻抗字段表示源阻抗。
+`current_source.frequency_hz` 默认网络基频，`scan_type` 和 `spectrum` 用于谐波行为。
 
 ### `ibr`
 
 `topology` 当前使用 `SINGLE_PHASE`、`THREE_LEG` 或 `FOUR_LEG`；`prime_mover` 使用
 `PV`、`BATTERY`、`GENERIC`、`STATCOM` 或 `DSTATCOM`。除必需的 `s_max` 外，可选
 `i_max`、`p_avail` 和控制/限值列决定实际注入。OpenDSS `PVSystem` 映射到这张表。
+`port_model` 可为 `PQ` 或 `GFM`；GFM 还使用 `v_nom`, `e_mag_pu`, `e_angle_deg`,
+`gfm_angle_source`, `r_ohm`, `x_ohm`, `droop_p`, `droop_q`。PV 可用
+`pmpp`, `irradiance`, `pct_pmpp`, 温度字段、`pv_pt_curve_x/y`、`pv_eff_curve_x/y`、
+`inverter_efficiency`, `cut_in/cut_out`, `var_follow_inverter` 描述阵列和逆变器。
+`q_setpoint` 优先于控制配置中的定功率因数。多个设备共享 bounded InvControl 或
+ExpControl 时，分别用从 0 连续递增的 `invcontrol_member_order` 或
+`expcontrol_member_order` 固定 OpenDSS DERList/PVSystemList 的逐设备顺序；这些序号
+不表示 fleet、权重或优先级。
+
+### `control_profile`
+
+`name` 必需，`enabled` 默认 true。`mode` 支持 `VOLTVAR`, `VOLTWATT`,
+`DYNAMICREACCURR`, `WATTPF`, `WATTVAR`, `AVR`, `EXPCONTROL`, `GFM`；`combi_mode`
+支持 `VV_VW`, `VV_DRC` 以及兼容的 GFM 值，且不能与 `mode` 同时给出。
+
+曲线与公共控制字段包括 `volt_var_breakpoints/volt_var_q_limits`,
+`volt_watt_breakpoints/volt_watt_p_limits`,
+`volt_watt_charge_breakpoints/volt_watt_charge_p_limits`,
+`watt_pf_breakpoints/watt_pf_pf`, `watt_var_breakpoints/watt_var_q_limits`,
+`voltage_reference`, `voltage_curve_x_ref`, `reactive_power_reference`,
+`delta_p_factor/delta_q_factor`, 三个 change tolerance、`rate_of_change_mode`,
+`lpf_tau`, `rise_fall_limit`, `control_model`, `mon_voltage_calc`，以及远方量测的
+`monitored_bus/monitored_phases/monitored_v_base`。
+
+AVR 使用 `v_setpoint/avr_gain`。ExpControl 使用 `exp_vreg`, `exp_slope`,
+`exp_vreg_tau`, `exp_q_bias`, `exp_vreg_min/max`, `exp_q_max_lead/lag`,
+`exp_t_response`, `prefer_q`。`prefer_q=true` 允许当前 bounded 契约中的三相或单相
+PVSystem 在无功能力不足时削减本机有功释放 kVA，且与 `ibr.watt_priority` 独立。
+GFM 使用 `frequency_deviation_pu`。这些字段的单位、缺省值与组合约束以当前
+`psa/src/dsa/parse.rs` 的 `control_profile` 表为准。
 
 ### `motor`
 
@@ -121,7 +161,12 @@ p_nom, q_nom, energy_rated, soc_initial, soc_min, soc_max,
 charge_efficiency, discharge_efficiency
 ```
 
-功率、kVA、电流、充放电阈值、待机损耗、时间状态和 dispatch 相关列均为可选扩展。
+逐相 `p_rated`, `p_min/p_max/q_min/q_max`, `s_max/i_max`，以及 `v_nom`,
+`sc_r_pct/sc_x_pct`, `spectrum`, `watt_priority`, `idling_loss`, `cut_in/cut_out`,
+`var_follow_inverter`, `voltage_model`, `v_min_pu/v_max_pu`, `limit_current` 均为可选。
+调度字段包括 `dispatch_mode`（`DEFAULT`, `FOLLOW`, `EXTERNAL`, `LOADLEVEL`, `PRICE`）、
+`dispatch_state`, `charge_rate/discharge_rate`, `charge_trigger/discharge_trigger` 和
+`time_charge_trigger`。QSTS 按潮流实际有功推进 SOC，并把 dispatch 状态跨时点保留。
 `import_dss` 的 RSDss 静态返回值当前不会填充这张表；需要储能时，应在 RSS 中构造或从
 外部数据读取后放在完整网络的第 20 位。
 
@@ -184,27 +229,28 @@ charge_efficiency, discharge_efficiency
 
 ### `storage_controller`
 
-导入器生成的列为：
+核心列是 `name`, `element`, `terminal`, `mon_phase`, `mode_discharge`,
+`mode_charge`, `kw_target`, `kw_target_low`。放电模式支持 `PeakShave`, `Follow`,
+`Support`, `Loadshape`, `Time`, `Schedule`, `I-PeakShave`；充电模式支持 `Loadshape`,
+`Time`, `PeakShaveLow`, `I-PeakShaveLow`。绝对死区 `kw_band/kw_band_low` 优先于百分比
+死区 `pct_kw_band/pct_kw_band_low`。
 
-```text
-name, element, terminal, mon_phase, mode_discharge, mode_charge,
-kw_target, kw_target_low, kw_band, kw_band_low,
-element_list, weights, pct_reserve, disp_factor, enabled
-```
-
-`element_list:list<str>` 与 `weights:list<f64>` 按位置对应。运行时对多控制器、功率/电流
-限制和成员仲裁有明确规则；不要通过重复行模拟优先级。
+`element_list:list<str>` 与正 `weights:list<f64>` 按位置对应。其他当前字段为
+`pct_rate_kw`, `pct_rate_charge`, `pct_reserve`, `reset_level`,
+`time_discharge_trigger`, `time_charge_trigger`, `inhibit_time`, `t_up/t_flat/t_down`,
+`kw_threshold`, `disp_factor`, `daily/yearly/duty`, `season_shape`,
+`season_targets/season_targets_low`, `enabled`。一个储能只能属于一个启用控制器；省略
+`element_list` 时按表顺序接管尚未分配的储能。
 
 ### `switch_control`
 
-```text
-source_order:u32, name:str, switched_obj:str, switched_term:u32,
-action:str, delay:f64, normal:str, state:str,
-construction_action_pending:bool, initial_locked:bool,
-lock:bool, reset:bool, enabled:bool
-```
-
-`source_order` 用于保留 OpenDSS 命令流中的稳定顺序。
+核心列为 `name`, `switched_obj`, `switched_term`, `action`；`switched_conductor=0`
+表示整个端子，正数表示从 1 开始的单导体。状态列包括 `delay`, `normal`, `state`,
+`lock`, `reset`, `enabled`。声明式 QSTS 扩展还支持 `action_time`, `repeat_daily`,
+`condition`, `monitored_element`, `monitored_terminal`, `monitored_phase`, `threshold`,
+`reset_threshold`。`condition` 可为 `Always/Time` 或 Voltage/Current/ActivePower/
+ReactivePower 的 Above/Below。DSS 导入器另保留 `source_order`,
+`construction_action_pending`, `initial_locked`，以重放 New/Edit/More 的全局稳定顺序。
 
 ## 6. 保护表
 
@@ -293,6 +339,21 @@ QSTS 故障还可使用 `on_time`/`ontime`, `off_time`, `temporary`, `min_amps`/
 
 `bus_phase` 最适合逐相对照，稳定键为 `lower(bus), phase`；`bus_voltage` 把相量放在列表
 列中。支路比较应使用元件、端点/terminal 和 phase 作为键。QSTS 为每张逐时步结果追加
-`time`, `load_multiplier`, `generation_multiplier`。具体输出列由分析实现决定，生成脚本时
-先请求最小结果集，再用 `cols()` 检查实际 schema，避免猜测不存在的输出列。
+`time`, `load_multiplier`, `generation_multiplier`。
 
+PSA 的 typed continuation state 在 RSDss 中对应七张可选结果表：
+
+| 表 | PSA 状态类型 | 主要列 |
+|---|---|---|
+| `storage_state` | `TimeSeriesStorageState` | `name,soc,energy,p_total,q_total` |
+| `storage_controller_state` | `TimeSeriesStorageControllerState` | `name,mode,state,monitored,target,deadband,requested_p,fleet_p,inhibited,locked` |
+| `switch_control_state` | `TimeSeriesSwitchControlState` | 被控对象/端子/导体、`state,normal,locked,condition_active,measurement,pending_action,due_time` |
+| `fuse_state` | `TimeSeriesFuseState` | 被测/被控对象、`state,blown,current,trip_time,due_time` |
+| `recloser_state` | `TimeSeriesRecloserState` | 被测/被控对象、`state,locked_out,operation,curve_mode`、电流和队列状态 |
+| `relay_state` | `TimeSeriesRelayState` | 公共状态以及 Voltage、ReversePower、46、47、Generic、DOC、Distance、TD21 的 typed 量测字段 |
+| `fault_state` | `TimeSeriesFaultState` | `index,bus,phases,kind,active,cleared,on_time,off_time,temporary,min_amps,current` |
+
+四张保护/开关状态表中的 `phases` 与 `phase_states` 都是按位置对应的 `list<str>`。
+`operation`, `index`, `td21_history_points`, `td21_quiet_samples` 输出为 `u64`；端子和导体
+编号为 `u32`。具体输出列由分析实现决定，生成脚本时先请求最小结果集，再用 `cols()`
+检查实际 schema，避免猜测不存在的输出列。

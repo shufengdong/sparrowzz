@@ -65,15 +65,15 @@
     "line": {
       "required": {"name": "str", "bus_from": "str", "bus_to": "str", "terminal_map_from": "list<str>", "terminal_map_to": "list<str>", "length": "f64"},
       "one_of": [["linecode", "geometry"]],
-      "optional": {"linecode": "str", "geometry": "str", "open_from": "list<bool>", "open_to": "list<bool>", "i_max": "f64", "s_max": "f64"}
+      "optional": {"linecode": "str", "geometry": "str", "open_from": "list<bool>", "open_to": "list<bool>", "i_max": "list<f64>", "s_max": "list<f64>", "i_normal": "list<f64>", "i_emergency": "list<f64>", "s_normal": "list<f64>", "s_emergency": "list<f64>", "r_neutral_from": "f64", "x_neutral_from": "f64", "r_neutral_to": "f64", "x_neutral_to": "f64"}
     },
     "linecode": {
       "required": {"name": "str", "n_conductors": "u32", "r_series": "matrix<f64>", "x_series": "matrix<f64>"},
-      "optional": {"g_from": "matrix<f64>", "b_from": "matrix<f64>", "g_to": "matrix<f64>", "b_to": "matrix<f64>", "i_max": "f64", "s_max": "f64"}
+      "optional": {"g_from": "matrix<f64>", "b_from": "matrix<f64>", "g_to": "matrix<f64>", "b_to": "matrix<f64>", "i_max": "list<f64>", "s_max": "list<f64>", "i_normal": "list<f64>", "i_emergency": "list<f64>", "s_normal": "list<f64>", "s_emergency": "list<f64>", "line_geometry": "str"}
     },
     "load": {
-      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "p_nom": "f64", "q_nom": "f64"},
-      "optional": {"model": "str", "spectrum": "str"},
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "p_nom": "list<f64>", "q_nom": "list<f64>"},
+      "optional": {"model": "str", "v_nom": "list<f64>", "alpha_z": "list<f64>", "alpha_i": "list<f64>", "alpha_p": "list<f64>", "beta_z": "list<f64>", "beta_i": "list<f64>", "beta_p": "list<f64>", "gamma_p": "list<f64>", "gamma_q": "list<f64>", "v_min_pu": "f64", "v_max_pu": "f64", "v_low_pu": "f64", "v_min_normal_pu": "f64", "v_min_emergency_pu": "f64", "zip_v_cutoff": "f64", "spectrum": "str", "pct_series_rl": "f64", "pu_x_harm": "f64", "xr_harm": "f64"},
       "defaults": {"model": "constant_power"}
     },
     "transformer": {
@@ -81,8 +81,8 @@
       "note": "multi_winding rows require matching transformer_winding and transformer_impedance tables"
     },
     "voltage_source": {
-      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "v_magnitude": "f64", "v_angle": "f64_or_list"},
-      "optional": {"spectrum": "str"}
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "v_magnitude": "list<f64>", "v_angle": "list<f64>"},
+      "optional": {"bus2": "str", "terminal_map2": "list<str>", "sc_va": "f64", "x_r": "f64", "z1_r": "f64", "z1_x": "f64", "z2_r": "f64", "z2_x": "f64", "z0_r": "f64", "z0_x": "f64", "scan_type": "str", "v_profile_base": "list<f64>", "pf_z_r": "f64", "pf_z_x": "f64", "spectrum": "str"}
     },
     "motor": {
       "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "kv": "f64", "kw": "f64"},
@@ -96,22 +96,23 @@
       "note": "Use the exact schema emitted by import_dss; rows describe pairwise winding short-circuit impedances."
     },
     "current_source": {
-      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "i_magnitude": "f64", "i_angle": "f64_or_list"},
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "i_magnitude": "list<f64>", "i_angle": "list<f64>"},
       "optional": {"frequency_hz": "f64", "scan_type": "str", "spectrum": "str"},
       "defaults": {"frequency_hz": "network base_frequency_hz"}
     },
     "generator": {
-      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "p_nom": "f64", "q_nom": "f64"},
-      "optional": {"spectrum": "str"}
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "p_nom": "list<f64>", "q_nom": "list<f64>"},
+      "optional": {"execution_mode": "str", "v_ref": "list<f64>", "kvar_limit": "f64", "v_min_pu": "f64", "v_max_pu": "f64", "p_min": "list<f64>", "p_max": "list<f64>", "q_min": "list<f64>", "q_max": "list<f64>", "z_r": "f64", "z_x": "f64", "z1_r": "f64", "z1_x": "f64", "z0_r": "f64", "z0_x": "f64", "r_neutral": "f64", "x_neutral": "f64", "xdpp": "f64", "xdp": "f64", "s_rating": "f64", "v_nom": "f64", "x_r": "f64", "cost": "list<f64>", "s_max": "list<f64>", "i_max": "list<f64>", "spectrum": "str", "dispatcher": "str", "dispatch_bus_from": "str", "dispatch_bus_to": "str", "dispatch_terminal": "u32", "dispatch_kw_limit": "f64", "dispatch_kvar_limit": "f64", "dispatch_kw_band": "f64", "dispatch_weight": "f64"},
+      "enums": {"execution_mode": ["CONSTANT_PQ", "CONSTANT_PV"]}
     },
     "ibr": {
-      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "topology": "str", "prime_mover": "str", "s_max": "f64"},
-      "optional": {"i_max": "f64", "p_avail": "f64", "spectrum": "str"},
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "topology": "str", "prime_mover": "str", "s_max": "list<f64>"},
+      "optional": {"port_model": "str", "i_max": "list<f64>", "p_avail": "f64", "p_rated": "f64", "pct_p_rated": "f64", "q_setpoint": "f64", "watt_priority": "bool", "sc_model": "str", "v_nom": "f64", "sc_r_pct": "f64", "sc_x_pct": "f64", "p_min": "list<f64>", "p_max": "list<f64>", "q_min": "list<f64>", "q_max": "list<f64>", "e_mag_pu": "f64", "e_angle_deg": "f64", "gfm_angle_source": "str", "r_ohm": "f64", "x_ohm": "f64", "droop_p": "f64", "droop_q": "f64", "control_profile": "str", "invcontrol_member_order": "u32", "expcontrol_member_order": "u32", "voltage_aggregation": "str", "pmpp": "f64", "irradiance": "f64", "pct_pmpp": "f64", "temperature": "f64", "temperature_reference": "f64", "temperature_coefficient": "f64", "temperature_factor": "f64", "pv_pt_curve_x": "list<f64>", "pv_pt_curve_y": "list<f64>", "pv_eff_curve_x": "list<f64>", "pv_eff_curve_y": "list<f64>", "inverter_efficiency": "f64", "cut_in": "f64", "cut_out": "f64", "var_follow_inverter": "bool", "spectrum": "str"},
       "enums": {"topology": ["SINGLE_PHASE", "THREE_LEG", "FOUR_LEG"], "prime_mover": ["PV", "BATTERY", "GENERIC", "STATCOM", "DSTATCOM"]}
     },
     "switch": {
       "required": {"name": "str", "bus_from": "str", "bus_to": "str", "terminal_map_from": "list<str>", "terminal_map_to": "list<str>"},
-      "optional": {"open": "bool_or_list", "i_max": "f64"}
+      "optional": {"open": "bool", "i_max": "list<f64>", "i_normal": "list<f64>", "i_emergency": "list<f64>", "s_normal": "list<f64>", "s_emergency": "list<f64>"}
     },
     "shunt": {
       "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "g": "f64_or_matrix", "b": "f64_or_matrix"}
@@ -128,14 +129,17 @@
       "constraint": "h, mag_pct and angle_deg lists have equal length"
     },
     "control_profile": {
-      "note": "Columns depend on the control family; use import_dss output and the control parser as the contract."
+      "required": {"name": "str"},
+      "optional": {"enabled": "bool", "mode": "str", "combi_mode": "str", "frequency_deviation_pu": "f64", "pf": "f64", "voltage_reference": "str", "volt_var_breakpoints": "list<f64>", "volt_var_q_limits": "list<f64>", "volt_var_q_unit": "str", "volt_var_q_ref": "str", "volt_var_p_min_for_q": "f64", "volt_var_p_min_for_q_max": "f64", "volt_watt_breakpoints": "list<f64>", "volt_watt_p_limits": "list<f64>", "volt_watt_charge_breakpoints": "list<f64>", "volt_watt_charge_p_limits": "list<f64>", "volt_watt_p_unit": "str", "volt_watt_p_ref": "str", "volt_watt_y_axis": "str", "watt_pf_breakpoints": "list<f64>", "watt_pf_pf": "list<f64>", "watt_var_breakpoints": "list<f64>", "watt_var_q_limits": "list<f64>", "drc_deadband_min": "f64", "drc_deadband_max": "f64", "drc_gain_low": "f64", "drc_gain_high": "f64", "drc_avg_window_sec": "f64", "hysteresis_offset": "f64", "voltage_curve_x_ref": "str", "avg_window_sec": "f64", "reactive_power_reference": "str", "delta_p_factor": "f64", "delta_q_factor": "f64", "voltage_change_tolerance": "f64", "var_change_tolerance": "f64", "active_p_change_tolerance": "f64", "rate_of_change_mode": "str", "lpf_tau": "f64", "rise_fall_limit": "f64", "control_model": "str", "mon_voltage_calc": "str", "monitored_bus": "str", "monitored_phases": "list<str>", "monitored_v_base": "f64", "v_setpoint": "f64", "avr_gain": "f64", "exp_vreg": "f64", "exp_slope": "f64", "exp_vreg_tau": "f64", "exp_q_bias": "f64", "exp_vreg_min": "f64", "exp_vreg_max": "f64", "exp_q_max_lead": "f64", "exp_q_max_lag": "f64", "exp_t_response": "f64", "prefer_q": "bool"},
+      "enums": {"mode": ["VOLTVAR", "VOLTWATT", "DYNAMICREACCURR", "WATTPF", "WATTVAR", "AVR", "EXPCONTROL", "GFM"], "combi_mode": ["VV_VW", "VV_DRC", "GFM"]}
     },
     "xy_curve": {
       "required": {"name": "str", "x": "f64", "y": "f64"},
       "shape": "long table; one point per row"
     },
     "storage": {
-      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "p_nom": "f64", "q_nom": "f64", "energy_rated": "f64", "soc_initial": "f64", "soc_min": "f64", "soc_max": "f64", "charge_efficiency": "f64", "discharge_efficiency": "f64"},
+      "required": {"name": "str", "bus": "str", "terminal_map": "list<str>", "configuration": "str", "p_nom": "list<f64>", "q_nom": "list<f64>", "energy_rated": "f64", "soc_initial": "f64", "soc_min": "f64", "soc_max": "f64", "charge_efficiency": "f64", "discharge_efficiency": "f64"},
+      "optional": {"p_rated": "list<f64>", "i_max": "list<f64>", "s_max": "list<f64>", "v_nom": "f64", "sc_r_pct": "f64", "sc_x_pct": "f64", "spectrum": "str", "watt_priority": "bool", "p_min": "list<f64>", "p_max": "list<f64>", "q_min": "list<f64>", "q_max": "list<f64>", "idling_loss": "f64", "cut_in": "f64", "cut_out": "f64", "var_follow_inverter": "bool", "voltage_model": "u32", "v_min_pu": "f64", "v_max_pu": "f64", "limit_current": "bool", "dispatch_mode": "str", "dispatch_state": "str", "charge_rate": "f64", "discharge_rate": "f64", "charge_trigger": "f64", "discharge_trigger": "f64", "time_charge_trigger": "f64"},
       "note": "RSDss import_dss currently returns this frame empty"
     },
     "para": {
@@ -159,11 +163,13 @@
       "optional": {"daily": "str", "yearly": "str", "duty": "str"}
     },
     "storage_controller": {
-      "columns_in_order": ["name", "element", "terminal", "mon_phase", "mode_discharge", "mode_charge", "kw_target", "kw_target_low", "kw_band", "kw_band_low", "element_list", "weights", "pct_reserve", "disp_factor", "enabled"],
-      "types": {"name": "str", "element": "str", "terminal": "u32", "mon_phase": "str", "mode_discharge": "str", "mode_charge": "str", "kw_target": "f64", "kw_target_low": "f64", "kw_band": "f64", "kw_band_low": "f64", "element_list": "list<str>", "weights": "list<f64>", "pct_reserve": "f64", "disp_factor": "f64", "enabled": "bool"}
+      "required": {"name": "str", "element": "str"},
+      "optional": {"terminal": "u32", "mon_phase": "str", "mode_discharge": "str", "mode_charge": "str", "kw_target": "f64", "kw_target_low": "f64", "pct_kw_band": "f64", "pct_kw_band_low": "f64", "kw_band": "f64", "kw_band_low": "f64", "element_list": "list<str>", "weights": "list<f64>", "pct_rate_kw": "f64", "pct_rate_charge": "f64", "pct_reserve": "f64", "reset_level": "f64", "time_discharge_trigger": "f64", "time_charge_trigger": "f64", "inhibit_time": "f64", "t_up": "f64", "t_flat": "f64", "t_down": "f64", "kw_threshold": "f64", "disp_factor": "f64", "daily": "str", "yearly": "str", "duty": "str", "season_shape": "str", "season_targets": "list<f64>", "season_targets_low": "list<f64>", "enabled": "bool"},
+      "enums": {"mode_discharge": ["PeakShave", "Follow", "Support", "Loadshape", "Time", "Schedule", "I-PeakShave"], "mode_charge": ["Loadshape", "Time", "PeakShaveLow", "I-PeakShaveLow"]}
     },
     "switch_control": {
-      "columns_in_order": ["source_order", "name", "switched_obj", "switched_term", "action", "delay", "normal", "state", "construction_action_pending", "initial_locked", "lock", "reset", "enabled"]
+      "required": {"name": "str", "switched_obj": "str", "action": "str"},
+      "optional": {"source_order": "u32", "switched_term": "u32", "switched_conductor": "u32", "delay": "f64", "normal": "str", "state": "str", "construction_action_pending": "bool", "initial_locked": "bool", "lock": "bool", "reset": "bool", "enabled": "bool", "action_time": "f64", "repeat_daily": "bool", "condition": "str", "monitored_element": "str", "monitored_terminal": "u32", "monitored_phase": "str", "threshold": "f64", "reset_threshold": "f64"}
     },
     "tcc_curve": {
       "columns_in_order": ["source_order", "name", "npts", "c_array", "t_array"],
@@ -195,5 +201,15 @@
       "optional": {"bus2": "str", "percent": "f64", "zf": "f64", "xf": "f64", "on_time": "f64", "ontime": "f64", "off_time": "f64", "temporary": "bool", "min_amps": "f64", "minamps": "f64", "enabled": "bool"},
       "enums": {"kind": ["slg", "ll", "llg", "2pg", "3p", "3pg"]}
     }
+  },
+  "qsts_result_frames": {
+    "common_appended_columns": {"time": "f64", "load_multiplier": "f64", "generation_multiplier": "f64"},
+    "storage_state": ["name", "soc", "energy", "p_total", "q_total"],
+    "storage_controller_state": ["name", "mode", "state", "monitored", "target", "deadband", "requested_p", "fleet_p", "inhibited", "locked"],
+    "switch_control_state": ["name", "switched_obj", "switched_term", "switched_conductor", "state", "normal", "locked", "condition_active", "measurement", "pending_action", "due_time", "phases", "phase_states"],
+    "fuse_state": ["name", "monitored_obj", "monitored_term", "switched_obj", "switched_term", "state", "blown", "current", "trip_time", "due_time", "phases", "phase_states"],
+    "recloser_state": ["name", "monitored_obj", "monitored_term", "switched_obj", "switched_term", "switched_conductor", "state", "locked_out", "operation", "curve_mode", "phase_current", "ground_current", "trip_source", "trip_time", "pending_action", "due_time", "phases", "phase_states"],
+    "relay_state": ["name", "relay_type", "monitored_obj", "monitored_term", "switched_obj", "switched_term", "switched_conductor", "state", "normal_state", "locked_out", "operation", "phase_current", "ground_current", "min_voltage", "max_voltage", "reverse_power", "negative_sequence_current", "negative_sequence_voltage", "generic_variable", "generic_value", "doc_current", "doc_current_angle", "doc_control_power", "distance_loop", "distance_impedance_re", "distance_impedance_im", "distance_reach_fraction", "td21_fault_detected", "td21_loop", "td21_directional_impedance_re", "td21_directional_impedance_im", "td21_distance", "td21_history_points", "td21_quiet_samples", "trip_source", "trip_time", "pending_action", "due_time", "phases", "phase_states"],
+    "fault_state": ["index", "bus", "kind", "active", "cleared", "on_time", "off_time", "temporary", "min_amps", "current", "phases"]
   }
 }

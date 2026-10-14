@@ -37,7 +37,7 @@ OpenDSS 语言兼容。状态含义如下：
 | `TCC_Curve` | QSTS `tcc_curve` | 显式表/有界 | `npts/c_array/t_array` 必须一致 |
 | `Fuse` | QSTS `fuse` | 显式表/有界 | 曲线、额定电流、开断状态和 reset |
 | `Recloser` | QSTS `recloser` | 显式表/有界 | fast/delayed 曲线和 multi-shot 延续状态 |
-| `Relay` | QSTS `relay` | 显式表/有界 | 过流、电压、频率、距离和方向型能力按各自 schema 校验 |
+| `Relay` | QSTS `relay` | 显式表/有界 | Current、Voltage、ReversePower、46、47、Generic、DOC、Distance、TD21 按各自 schema 校验 |
 | `Monitor` | QSTS/harmonic `monitor` | 显式表/有界 | 目标类型必须与 mode 匹配 |
 | `EnergyMeter` | QSTS `energy_meter` | 显式表/有界 | 区域、累计量和可靠性输出使用 PSA 的计量契约 |
 | `Fault` | `fault` | 显式表/有界 | 静态短路或带起止时间的 QSTS 故障 |
@@ -58,7 +58,8 @@ QSTS 时必须显式传入第 21–32 位的研究表。
 | `Set DefaultBaseFrequency` | 支持 | 支持 | 导入为 `para.base_frequency_hz` |
 | 其他运行时 `Set` | fail-closed | 在执行契约内有界支持 | 在 `solution`/`para` 中显式设置 |
 | `Solve` | fail-closed | 单 Solve profile 和多 Solve execution plan 均有 PSA API | `ds_radial_qsts` 等；RSDss 尚未公开 execution-plan adapter |
-| `Open`, `Close`, `Enable`, `Disable` | 静态最终状态必须可表示 | 执行前/epoch mutation 有界支持 | 修改显式开关/设备表或使用 QSTS 控制表 |
+| `Open`, `Close` | 静态最终状态必须可表示 | 显式开关的整设备动作及 epoch mutation 有界支持 | 修改显式开关表或使用 QSTS 控制表 |
+| `Enable`, `Disable` | 已支持对象的最终静态状态必须可表示 | 当前 execution profile 明确为 unsupported，遇到即 fail-closed | 在 RSS 中显式构造所需设备表 |
 | `CalcVoltageBases`, `Export`, `Show` | fail-closed | 不作为网络 DataFrame 语义 | 求解后用 RSDss 选择和导出结果 |
 | 未知命令/属性/对象 | fail-closed | fail-closed | 查看稳定 diagnostic code 后改写或补充 adapter |
 
@@ -83,6 +84,11 @@ QSTS 时必须显式传入第 21–32 位的研究表。
 | 电机网络动态 | `ds_motor_dynamics` | 显式表 | timeline/event/保护/spec；当前拒绝非空 storage |
 | 多个 `Solve` 连续命令流 | 无 RSDss 公开函数 | 未公开 | PSA 已有 execution plan 和 continuation state adapter，尚未接到 `tensoreval` |
 
+QSTS 可直接选择 PSA 当前的 typed continuation state：`storage_state`,
+`storage_controller_state`, `switch_control_state`, `fuse_state`, `recloser_state`,
+`relay_state`, `fault_state`。这些结果用于观察一个 `ds_*_qsts` 调用内部的跨时点状态；
+它们不等同于尚未公开的多 `Solve` execution-plan adapter。
+
 ## 4. 数值语义差异
 
 兼容对象并不自动保证逐位相同。对照前至少统一：
@@ -97,4 +103,3 @@ QSTS 时必须显式传入第 21–32 位的研究表。
 
 兼容性判断应以导入诊断和数值对照为准。对象名相同、脚本成功执行，只能证明 schema 和
 拓扑被接受，不能证明 OpenDSS 的全部内部算法已被复现。
-
