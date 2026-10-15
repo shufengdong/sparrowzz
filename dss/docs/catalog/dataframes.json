@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source_of_truth": [
     "psa/src/dsa/parse",
     "psa/src/dsa/parse/dss_import.rs",
@@ -7,7 +7,7 @@
     "psa/src/dsa/parse/dss_import/metering.rs",
     "mems/src/ml RSDss implementation"
   ],
-  "type_notation": ["str", "bool", "u32", "f64", "list<str>", "list<bool>", "list<f64>"],
+  "type_notation": ["str", "bool", "u32", "u64", "f64", "list<str>", "list<bool>", "list<f64>"],
   "unit_convention": {
     "voltage": "V",
     "current": "A",
@@ -195,5 +195,155 @@
       "optional": {"bus2": "str", "percent": "f64", "zf": "f64", "xf": "f64", "on_time": "f64", "ontime": "f64", "off_time": "f64", "temporary": "bool", "min_amps": "f64", "minamps": "f64", "enabled": "bool"},
       "enums": {"kind": ["slg", "ll", "llg", "2pg", "3p", "3pg"]}
     }
+  },
+  "analysis_inputs": {
+    "state_estimation_measurement": {
+      "context": ["ds_wls_se", "ds_mnmr_se", "ds_mce_se"],
+      "required": {"type": "str", "phase": "str", "value": "f64"},
+      "optional": {"bus": "str", "bus_from": "str", "bus_to": "str", "kind": "str", "weight": "f64"},
+      "enums": {"type": ["voltage_magnitude", "power_injection", "power_flow", "current_magnitude"], "kind": ["P", "Q"]},
+      "defaults": {"weight": 1.0},
+      "constraints": ["value is finite", "weight is finite and greater than zero", "voltage_magnitude and power_injection require bus", "power_flow and current_magnitude require bus_from and bus_to", "power_injection and power_flow require kind"]
+    },
+    "monte_carlo_spec": {
+      "context": ["ds_monte_carlo"],
+      "row_count": 1,
+      "optional": {"mode": "str", "solver": "str", "n_scenarios": "u64", "seed": "u64", "mean": "f64", "std": "f64", "v_min": "f64", "v_max": "f64"},
+      "enums": {"mode": ["m1", "global", "m1_replay", "global_replay"], "solver": ["radial", "newton", "newton_raphson"]},
+      "defaults": {"mode": "m1", "solver": "radial", "n_scenarios": 100, "mean": 1.0, "std": 0.1, "v_min": 0.95, "v_max": 1.05}
+    },
+    "monte_carlo_multipliers": {
+      "context": ["ds_monte_carlo"],
+      "required_for_replay": {"scenario": "u64", "multiplier": "f64"},
+      "conditional": {"m1_replay": {"load": "str"}, "global_replay": {}},
+      "constraints": ["random modes require an empty table", "scenario values are positive and contiguous from 1", "multipliers are finite", "m1_replay has exactly one value for every load and scenario"]
+    },
+    "protection_fault_case": {
+      "context": ["ds_protection_coordination"],
+      "required": {"name": "str", "location": "str"},
+      "optional": {"start_time_seconds": "f64"},
+      "defaults": {"start_time_seconds": 0.0},
+      "constraints": ["name is unique ignoring ASCII case", "start_time_seconds is finite"]
+    },
+    "protection_current_sample": {
+      "context": ["ds_protection_coordination"],
+      "required": {"fault": "str", "device": "str", "phase_currents_amp": "list<f64>"},
+      "optional": {"ground_current_amp": "f64"},
+      "defaults": {"ground_current_amp": 0.0},
+      "constraints": ["phase_currents_amp is non-empty", "all currents are finite and non-negative", "fault references protection_fault_case.name"]
+    },
+    "protection_pair": {
+      "context": ["ds_protection_coordination"],
+      "required": {"primary": "str", "backup": "str"},
+      "optional": {"minimum_margin_seconds": "f64"},
+      "defaults": {"minimum_margin_seconds": 0.0},
+      "constraints": ["primary and backup differ ignoring ASCII case", "minimum_margin_seconds is finite and non-negative"]
+    },
+    "protection_observed_action": {
+      "context": ["ds_protection_coordination"],
+      "required": {"fault": "str", "device": "str", "action": "str", "time_seconds": "f64"},
+      "constraints": ["time_seconds is finite", "fault references protection_fault_case.name"]
+    },
+    "protection_para": {
+      "context": ["ds_protection_coordination"],
+      "row_count": "0_or_1",
+      "optional": {"pickup_tolerance_seconds": "f64", "operation_tolerance_seconds": "f64", "reclose_tolerance_seconds": "f64", "result": "str"},
+      "constraints": ["tolerances are finite and non-negative"]
+    },
+    "fault_location_measurement": {
+      "context": ["ds_fault_location"],
+      "min_rows": 1,
+      "required": {"bus": "str", "element": "str", "current_re": "list<f64>", "current_im": "list<f64>"},
+      "optional": {"terminal": "u32", "voltage_re": "list<f64>", "voltage_im": "list<f64>", "current_standard_deviation": "list<f64>", "voltage_standard_deviation": "list<f64>", "covariance": "list<f64>", "weight": "f64"},
+      "defaults": {"terminal": 1, "weight": 1.0},
+      "constraints": ["terminal is 1 or 2", "real and imaginary lists are paired, non-empty, equal length and finite", "standard-deviation lists are positive and match their phasor lengths", "covariance and standard-deviation columns are mutually exclusive", "covariance is a positive-definite flattened square matrix in current-re,current-im,voltage-re,voltage-im residual order", "weight is finite and positive"]
+    },
+    "fault_location_hypothesis_switch": {
+      "context": ["ds_fault_location"],
+      "required": {"hypothesis": "str", "name": "str", "open": "bool"},
+      "constraints": ["a switch name occurs at most once within a hypothesis ignoring ASCII case"]
+    },
+    "fault_location_hypothesis_line": {
+      "context": ["ds_fault_location"],
+      "required": {"hypothesis": "str", "name": "str", "scale": "f64"},
+      "constraints": ["scale is finite and positive", "a line name occurs at most once within a hypothesis ignoring ASCII case"]
+    },
+    "fault_location_para": {
+      "context": ["ds_fault_location"],
+      "row_count": "0_or_1",
+      "optional": {"candidate_lines": "list<str>", "step_percent": "f64", "top_n": "u64", "resistance_min_ohm": "f64", "resistance_max_ohm": "f64", "reactance_min_ohm": "f64", "reactance_max_ohm": "f64", "loss": "str", "loss_parameter": "f64", "max_iter": "u64", "max_control_iter": "u64", "tol": "f64", "line_model": "str"},
+      "enums": {"loss": ["least_squares", "huber", "cauchy"]}
+    },
+    "dynamic_timeline": {
+      "context": ["ds_motor_dynamics"],
+      "required": {"time_s": "f64"},
+      "optional": {"source_scale_re": "f64", "source_scale_im": "f64"},
+      "defaults": {"source_scale_re": 1.0, "source_scale_im": 0.0},
+      "constraints": ["all values are finite", "time_s is strictly increasing"]
+    },
+    "dynamic_event": {
+      "context": ["ds_motor_dynamics"],
+      "required": {"time_s": "f64", "kind": "str"},
+      "optional": {"event_id": "str", "bus": "str", "bus2": "str", "phases": "list<str>", "fault_kind": "str", "percent": "f64", "zf_re": "f64", "zf_im": "f64", "element": "str", "device": "str", "terminal": "u32", "conductor": "u64", "action": "str"},
+      "enums": {"kind": ["fault_on", "fault_off", "topology", "conductor_topology", "protection", "conductor_protection"], "action": ["open", "trip", "close", "reclose"]},
+      "constraint": "Required optional columns depend on kind; see dataframe_schema_reference.md."
+    },
+    "dynamic_spec": {
+      "context": ["ds_motor_dynamics"],
+      "row_count": "0_or_1",
+      "optional": {"frequency_hz": "f64", "initial_slip": "f64", "shaft_power_w": "f64", "mechanical_load": "str", "torque_exponent": "f64", "voltage_exponent": "f64", "speed_exponent": "f64", "locked_rotor": "bool", "stall_slip_threshold": "f64", "max_corrector_iterations": "u64", "tolerance": "f64", "max_network_iterations": "u64", "voltage_tolerance": "f64", "relaxation": "f64"},
+      "enums": {"mechanical_load": ["constant_power", "constant", "speed_dependent_torque", "torque", "power_law"]}
+    }
+  },
+  "result_frames": {
+    "bus_voltage": {"columns": ["bus", "v_mag", "v_ang"], "units": {"v_mag": "V", "v_ang": "rad"}},
+    "bus_phase": {"columns": ["bus", "phase", "v_re", "v_im", "v_mag", "v_ang"], "units": {"v_re": "V", "v_im": "V", "v_mag": "V", "v_ang": "rad"}},
+    "load_state": {"columns": ["load", "bus", "requested_p", "requested_q", "served_p", "served_q", "v_min_pu", "deenergized"], "schema_source": "psa/src/dsa/output/power_flow.rs"},
+    "branch_flow": {"columns": ["branch", "element", "bus_from", "bus_to", "phase_from", "phase_to", "v_from_re", "v_from_im", "v_to_re", "v_to_im", "i_from_re", "i_from_im", "i_from_mag", "i_to_re", "i_to_im", "i_to_mag", "p_from", "q_from", "p_to", "q_to", "p_loss", "q_loss", "winding_1_phase", "winding_1_v_re", "winding_1_v_im", "winding_1_i_re", "winding_1_i_im", "winding_1_tap", "winding_2_phase", "winding_2_v_re", "winding_2_v_im", "winding_2_i_re", "winding_2_i_im", "winding_2_tap"], "schema_source": "psa/src/dsa/output/power_flow.rs"},
+    "source_flow": {"columns": ["source", "terminal", "bus", "phase", "v_re", "v_im", "i_re", "i_im", "i_mag", "p", "q"], "schema_source": "psa/src/dsa/output/power_flow.rs"},
+    "transformer_winding_flow": {"columns": ["transformer", "winding", "bus", "phase", "v_re", "v_im", "i_re", "i_im", "tap"], "schema_source": "psa/src/dsa/output/power_flow.rs"},
+    "conductor_flow": {"columns": ["element", "kind", "conductor", "terminal_from", "terminal_to", "bus_from", "bus_to", "harmonic", "frequency_hz", "v_from_re", "v_from_im", "v_from_mag", "v_to_re", "v_to_im", "v_to_mag", "i_from_re", "i_from_im", "i_from_mag", "i_to_re", "i_to_im", "i_to_mag"], "schema_source": "psa/src/dsa/output/line_conductor.rs"},
+    "regulator_state": {"columns": ["transformer", "bus_from", "bus_to", "phase", "regulator_group", "monitored", "monitored_bus", "monitored_phase", "remote", "ptratio", "remote_ptratio", "reversible", "cogen", "rev_vreg", "rev_band", "rev_threshold", "reverse_state", "cogen_state", "delay", "tap_delay", "rev_delay", "tap_ratio", "tap_winding", "tap_winding_tap", "winding_1_tap", "winding_2_tap", "tap_position", "tap_min", "tap_max", "at_min", "at_max"], "schema_source": "psa/src/dsa/output/device_state.rs"},
+    "capacitor_state": {"columns": ["capacitor", "bus", "enabled", "control_mode", "monitored_bus", "monitored_bus_from", "monitored_bus_to", "monitored_terminal", "monitored_phase", "steps", "states", "q_rated", "q_effective", "on_setting", "off_setting", "ptratio", "ctratio", "pct_min_kvar", "delay", "delay_off", "dead_time"], "schema_source": "psa/src/dsa/output/device_state.rs"},
+    "reactor_state": {"columns": ["reactor", "kind", "bus_from", "bus_to", "enabled", "state", "kv", "r_ohm", "x_ohm", "kvar"], "schema_source": "psa/src/dsa/output/device_state.rs"},
+    "ibr_state": {"columns": ["ibr", "bus", "phase", "terminal_to", "topology", "prime_mover", "control_profile", "voltage_aggregation", "inv_control_mode", "volt_var", "volt_watt", "dynamic_reactive_current", "watt_pf", "watt_var", "avr", "watt_priority", "p_available", "p_command", "q_command", "p_limited", "q_limited", "p_output", "q_output", "p_curtailed", "v_mag", "i_output", "s_max", "i_limit", "power_limited", "current_limited"], "schema_source": "psa/src/dsa/output/device_state.rs"},
+    "gfm_state": {"columns": ["ibr", "bus", "phase", "terminal_to", "e_mag", "e_angle_deg", "target_p", "target_q", "p", "q", "frequency_deviation_pu", "voltage_deviation_pu", "p_limited", "q_limited", "s_limited", "i_limited"], "schema_source": "psa/src/dsa/output/device_state.rs"},
+    "violations": {"columns": ["kind", "element", "bus", "phase", "value", "limit", "ratio"], "schema_source": "psa/src/dsa/output/power_flow.rs"},
+    "summary": {"columns": ["method", "converged", "control_iterations", "control_actions", "control_time", "solve_count", "plan_builds", "last_iterations", "total_iterations", "p_loss", "q_loss", "violation_count", "max_violation_ratio"]},
+    "harmonic_bus_voltage": {"result_name": "bus_voltage", "context": ["ds_harmonic_study"], "columns": ["bus", "phase", "harmonic", "voltage_mag", "voltage_angle", "thd"], "units": {"voltage_mag": "V", "voltage_angle": "deg", "thd": "%"}},
+    "harmonic_branch_flow": {"result_name": "branch_flow", "context": ["ds_harmonic_study"], "columns": ["kind", "element", "terminal", "bus", "phase", "harmonic", "voltage_re", "voltage_im", "voltage_mag", "voltage_angle", "current_re", "current_im", "current_mag", "current_angle", "p", "q"], "schema_source": "psa/src/dsa/harmonics/api.rs"},
+    "harmonic_bus_sequence": {"result_name": "bus_sequence", "context": ["ds_harmonic_study"], "columns": ["bus", "harmonic", "sequence", "voltage_re", "voltage_im", "voltage_mag", "voltage_angle"], "schema_source": "psa/src/dsa/harmonics/api.rs"},
+    "harmonic_branch_sequence": {"result_name": "branch_sequence", "context": ["ds_harmonic_study"], "columns": ["kind", "element", "terminal", "bus", "harmonic", "sequence", "voltage_re", "voltage_im", "voltage_mag", "voltage_angle", "current_re", "current_im", "current_mag", "current_angle", "p", "q"], "schema_source": "psa/src/dsa/harmonics/api.rs"},
+    "harmonic_monitor": {"result_name": "monitor", "context": ["ds_harmonic_study"], "columns": ["monitor", "frequency_hz", "harmonic", "mode", "element", "terminal", "phase", "channel", "value", "v_re", "v_im", "v_mag", "v_angle_deg", "i_re", "i_im", "i_mag", "i_angle_deg", "p", "q", "s_va", "s_angle_deg", "p_loss", "q_loss"], "schema_source": "psa/src/dsa/harmonics/monitor.rs"},
+    "harmonic_monitor_save": {"result_name": "monitor_save", "context": ["ds_harmonic_study"], "prefix_columns": ["save_harmonic", "save_frequency_hz"], "base_schema": "harmonic_monitor", "schema_source": "psa/src/dsa/harmonics/monitor.rs"},
+    "fault": {"context": ["ds_fault_study"], "columns": ["bus", "kind", "i_f_mag", "i_f_ang", "voc_mag", "voc_ang", "v_f_mag", "v_f_ang", "i_seq_mag", "i_seq_ang", "i_residual_mag", "i_residual_ang", "z_sc_mag", "z_sc_ang"], "schema_source": "psa/src/dsa/sc/api.rs", "note": "One row per independent fault case. Phasor and sequence columns are list<f64>; residual columns are scalar f64."},
+    "fault_branch_flow": {"result_name": "branch_flow", "context": ["ds_fault_study"], "columns": ["fault_bus", "kind", "element", "bus_from", "bus_to", "phase_from", "phase_to", "v_from_re", "v_from_im", "v_to_re", "v_to_im", "i_from_re", "i_from_im", "i_from_mag", "i_to_re", "i_to_im", "i_to_mag", "p_from", "q_from", "p_to", "q_to", "i_fault_max"]},
+    "voltage_statistics": {"columns": ["bus", "phase", "v_mean", "v_std", "v_min", "v_max", "v_violation_pct", "successful_scenarios", "non_converged_scenarios"]},
+    "scenario_voltage": {"columns": ["scenario", "bus", "phase", "v_mag", "violated"]},
+    "scenario_load_power": {"columns": ["scenario", "load", "multiplier", "p_total", "q_total", "converged"]},
+    "monte_carlo_summary": {"result_name": "summary", "context": ["ds_monte_carlo"], "columns": ["requested_scenarios", "successful_scenarios", "non_converged_scenarios", "seed", "solver"]},
+    "restore_switches": {"result_name": "switches", "columns": ["switch", "closed"]},
+    "restored_loads": {"columns": ["bus", "phase", "demand_p", "demand_q", "restored_p", "restored_q", "fraction"]},
+    "restore_objective": {"result_name": "objective", "columns": ["objective"], "units": {"objective": "W"}},
+    "protection_operations": {"result_name": "operations", "columns": ["fault", "location", "device", "kind", "shot", "curve_mode", "phase", "source", "phase_current_amp", "ground_current_amp", "pickup_time_seconds", "trip_time_seconds", "operating_time_seconds"]},
+    "protection_selectivity": {"result_name": "selectivity", "columns": ["fault", "location", "primary", "backup", "shot", "phase", "primary_source", "backup_source", "primary_time_seconds", "backup_time_seconds", "margin_seconds", "required_margin_seconds", "selective", "status"], "also_used_by": ["misoperations", "uncovered"]},
+    "protection_minimum_margins": {"result_name": "minimum_margins", "columns": ["primary", "backup", "minimum_margin_seconds", "required_margin_seconds", "worst_fault", "worst_location", "worst_shot", "worst_phase", "insufficient_margin_count", "overtrip_count", "uncovered_count"]},
+    "action_diagnostics": {"columns": ["event_id", "device", "action_family", "observed_action", "predicted_action", "observed_time_seconds", "predicted_time_seconds", "time_error_seconds", "tolerance_seconds", "status"]},
+    "fault_location": {"result_name": "result", "context": ["ds_fault_location"], "columns": ["model_hypothesis", "relative_likelihood", "line", "distance_percent", "fault_kind", "fault_phases", "fault_resistance_ohm", "fault_reactance_ohm", "current_match_error", "objective", "refined", "identifiable", "identifiability_condition", "distance_stddev_percent", "distance_ci95_low_percent", "distance_ci95_high_percent", "fault_resistance_stddev_ohm", "fault_reactance_stddev_ohm", "weak_parameter_direction", "measurement_count", "residual_count", "measurement_element", "measurement_terminal", "predicted_current_re", "predicted_current_im", "predicted_voltage_re", "predicted_voltage_im"]},
+    "dynamic_bus_voltage": {"result_name": "bus_voltage", "context": ["ds_motor_dynamics"], "columns": ["time_s", "bus", "phase", "v_re", "v_im", "v_mag", "v_angle_deg", "source_scale_re", "source_scale_im"]},
+    "motor_state": {"columns": ["time_s", "motor", "phase", "voltage_re", "voltage_im", "current_re", "current_im", "current_mag", "current_angle_deg", "slip", "speed_pu", "relative_speed_rad_s", "rotor_angle_deg", "p_w", "q_var", "electromagnetic_torque_nm", "shaft_power_w", "stalled"]},
+    "dynamic_event": {"result_name": "event", "context": ["ds_motor_dynamics"], "columns": ["time_s", "kind", "event_id", "device", "element", "terminal", "conductor", "action", "bus", "bus2", "percent"]},
+    "execution_diagnostics": {"result_name": "diagnostics", "columns": ["category", "severity", "code", "target", "message"]},
+    "execution_events": {"result_name": "events", "columns": ["sequence", "source", "line", "kind", "verb", "arguments", "target_class", "target_name", "parameters"]},
+    "storage_state": {"columns_before_time_metadata": ["name", "soc", "energy", "p_total", "q_total"], "schema_source": "mems/src/ml/expr_df/frame_ops.rs"},
+    "storage_controller_state": {"columns_before_time_metadata": ["name", "mode", "state", "monitored", "target", "deadband", "requested_p", "fleet_p", "inhibited", "locked"], "schema_source": "mems/src/ml/expr_df/frame_ops.rs"},
+    "switch_control_state": {"columns_before_time_metadata": ["name", "switched_obj", "switched_term", "switched_conductor", "state", "normal", "locked", "condition_active", "measurement", "pending_action", "due_time", "phases", "phase_states"], "schema_source": "mems/src/ml/expr_df/frame_ops.rs"},
+    "fuse_state": {"columns_before_time_metadata": ["name", "monitored_obj", "monitored_term", "switched_obj", "switched_term", "state", "blown", "current", "trip_time", "due_time", "phases", "phase_states"], "schema_source": "mems/src/ml/expr_df/frame_ops.rs"},
+    "recloser_state": {"columns_before_time_metadata": ["name", "monitored_obj", "monitored_term", "switched_obj", "switched_term", "switched_conductor", "state", "locked_out", "operation", "curve_mode", "phase_current", "ground_current", "trip_source", "trip_time", "pending_action", "due_time", "phases", "phase_states"], "schema_source": "mems/src/ml/expr_df/frame_ops.rs"},
+    "relay_state": {"columns_before_time_metadata": ["name", "relay_type", "monitored_obj", "monitored_term", "switched_obj", "switched_term", "switched_conductor", "state", "normal_state", "locked_out", "operation", "phase_current", "ground_current", "min_voltage", "max_voltage", "reverse_power", "negative_sequence_current", "negative_sequence_voltage", "generic_variable", "generic_value", "doc_current", "doc_current_angle", "doc_control_power", "distance_loop", "distance_impedance_re", "distance_impedance_im", "distance_reach_fraction", "td21_fault_detected", "td21_loop", "td21_directional_impedance_re", "td21_directional_impedance_im", "td21_distance", "td21_history_points", "td21_quiet_samples", "trip_source", "trip_time", "pending_action", "due_time", "phases", "phase_states"], "schema_source": "mems/src/ml/expr_df/frame_ops.rs"},
+    "fault_state": {"columns_before_time_metadata": ["index", "bus", "kind", "active", "cleared", "on_time", "off_time", "temporary", "min_amps", "current", "phases"], "schema_source": "mems/src/ml/expr_df/frame_ops.rs"},
+    "execution_trace": {"columns": ["schema_version", "step_index", "planned_time_s", "event_time_s", "sequence", "action_id", "causes", "subsystem", "lifecycle", "action", "target_device", "target_element", "target_terminal", "target_conductor", "target_phase", "scheduled_time_s", "due_time_s", "reason", "state_before", "state_after", "solve_ordinal", "status", "failure_stage", "controller", "controller_request_id", "controller_action_id", "member_order", "supersedes_controller_action_id", "profile_causes", "controller_solve_causes"], "schema_source": "mems/src/ml/expr_df/frame_ops.rs", "json_string_columns": ["causes", "state_before", "state_after", "profile_causes", "controller_solve_causes"]},
+    "qsts_time_metadata": {"columns": ["time", "load_multiplier", "generation_multiplier"], "applies_to": "Every per-step QSTS result frame, including state frames."},
+    "execution_plan_epoch_metadata": {"columns": ["epoch_index", "solve_event_sequence"], "applies_to": "Every DSS execution-plan result frame; trailing events after the final Solve contain null epoch metadata."}
   }
 }
