@@ -477,8 +477,8 @@ cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
 该参数也可写成 `--dss2rss`、`--dsstorss` 或 `--dss_to_rss`。
 
 转换器会先完成导入和一次实际求解；可能改变 OpenDSS 结果的导入 Warning 也会使转换失败，
-并逐项输出诊断码与源位置。Snapshot 和 ExecutionStudy 的映射范围见
-[DSS 到 RSS 严格转换](dss_to_rss.md)。
+并逐项输出诊断码与源位置。Snapshot 和 ExecutionStudy 的映射范围遵循本节上述严格
+转换示例及第 9 节的分析模式边界。
 
 `tensoreval` 命令行工具可以直接运行 RSS（RSDss）文件。脚本使用 `import_dss` 等自包含入口时
 不需要外部 DataFrame：
