@@ -453,6 +453,33 @@ LoadShape 绑定，并请求逐母线逐相电压；测试将 36 行复电压与
 
 ## 10. 在 mems 中运行 RSS 脚本
 
+已有完整 OpenDSS 执行主文件时，可以先用严格转换器生成 RSS：
+
+```bash
+cargo run -p mems --features tensoreval-cli,with_dsa --bin dss2rss -- \
+  path/to/run.dss --output path/to/run.rss
+```
+
+也可以直接计算 DSS 入口：
+
+```bash
+cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
+  path/to/run.dss
+```
+
+若只需生成同目录同名的 RSS 而不执行生成脚本，可使用：
+
+```bash
+cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
+  --dss-to-rss path/to/run.dss
+```
+
+该参数也可写成 `--dss2rss`、`--dsstorss` 或 `--dss_to_rss`。
+
+转换器会先完成导入和一次实际求解；可能改变 OpenDSS 结果的导入 Warning 也会使转换失败，
+并逐项输出诊断码与源位置。Snapshot 和 ExecutionStudy 的映射范围见
+[DSS 到 RSS 严格转换](dss_to_rss.md)。
+
 `tensoreval` 命令行工具可以直接运行 RSS（RSDss）文件。脚本使用 `import_dss` 等自包含入口时
 不需要外部 DataFrame：
 

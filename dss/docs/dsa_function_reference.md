@@ -11,7 +11,8 @@
 - 完整形式中，第 1–6 张网络表必须能通过各自解析器，位置 7–20 的零行表表示该设备族
   未配置；
 - `para?` 表示整个参数可省略，`para` 表示必须传入一张表，但该表可以为零行；
-- `returns` 中的顺序由 `para.result` 决定；没有 `para.result` 时使用该函数的默认结果；
+- `returns` 中的顺序由 `para.result` 决定；DSS plan 的第二参数也可直接使用结果字符串；
+  两者都没有时使用该函数的默认结果；
 - 入口名按 ASCII 大小写不敏感规则匹配，结果名转为小写后精确匹配；
 - 本参考给出函数级契约，所有输入列、类型、默认值和结果列以
   [DataFrame schema 参考](dataframe_schema_reference.md)及机器目录为准。
@@ -20,7 +21,7 @@
 |---|---:|---|---|
 | `import_dss/import_dss_url/import_bmopf/import_bmopf_url` | 1 | 不适用 | 固定 21 |
 | `import_dss_execution/import_dss_execution_url` | 1 | 不适用 | 固定 35 |
-| `ds_*_dss_plan*` | 1 或 2 | `bus_voltage` | 由 `para.result` 决定 |
+| `ds_*_dss_plan*` | 1 或 2 | `bus_voltage` | 由结果字符串或 `para.result` 决定 |
 | `ds_radial_pf/ds_newton_raphson_pf` | 21；兼容 6–11 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_radial_qsts/ds_newton_raphson_qsts` | 33 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_harmonic_study` | 22；兼容 8/14 | `bus_voltage` | 由 `para.result` 决定 |
@@ -174,13 +175,16 @@ DSS execution-plan 入口。
 
 ```text
 voltage = ds_radial_dss_plan("run.dss");
+voltage = ds_radial_dss_plan("run.dss", "bus_phase");
 [results...] = ds_radial_dss_plan("run.dss", para);
 [results...] = ds_newton_raphson_dss_plan("run.dss", para);
 ```
 
 URL 形式为 `ds_radial_dss_plan_url` 和 `ds_newton_raphson_dss_plan_url`。入口导入并按顺序
 执行一个或多个 `Solve`，在 epoch 之间延续 PSA 已声明的 Storage、控制、保护、计量和
-设备状态。`para` 可省略，默认返回 `bus_voltage`；`para.result` 接受上面的全部 QSTS 结果，并额外接受
+设备状态。第二个参数可省略、传一张 `para` 表，或直接传一个逗号分隔的结果字符串。
+省略时默认返回 `bus_voltage`；字符串形式直接选择结果且不改变求解参数。`para.result`
+接受上面的全部 QSTS 结果，并额外接受
 `diagnostics` 和 `events`。逐 epoch 结果带 `epoch_index`、`solve_event_sequence`；
 `execution_trace` 是覆盖全部 `Solve` 的全局轨迹，也支持 fault-aware 执行计划。
 计划入口的诊断表也带 epoch 标识；全局事件表把每条事件映射到对应 epoch，最后一个
