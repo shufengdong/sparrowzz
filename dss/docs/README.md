@@ -15,6 +15,7 @@
 7. [仿真配方](simulation_recipes.md)：按任务组织的可执行脚本模板。
 8. [验证与故障排查](validation_and_troubleshooting.md)：结果核验、容差和错误处理。
 9. [从 OpenDSS 迁移到 RSS](opendss_to_rss.md)：完整迁移流程和数值对照方法。
+10. [DSS 到 RSS 严格转换](dss_to_rss.md)：`dss2rss` 命令、成功条件和不支持诊断。
 
 机器可读索引位于 [`catalog/functions.json`](catalog/functions.json) 和
 [`catalog/dataframes.json`](catalog/dataframes.json)。Markdown 解释语义，JSON 固定名称、
