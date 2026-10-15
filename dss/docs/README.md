@@ -34,6 +34,17 @@
 一个可运行案例。不能根据 OpenDSS 属性名推测 RSS 列名，也不能根据 PSA 内部结构推测
 RSDss 已公开相同入口。
 
+修改目录后从仓库根目录运行一致性检查：
+
+```bash
+python3 sparrowzz/dss/docs/catalog/validate_catalog.py
+```
+
+该检查会核对两个 JSON 的版本和内部引用、完整网络顺序、全部公开 DSA 名称、Rust
+`*_RESULT_NAMES` 常量与 catalog 结果列表、QSTS 状态/轨迹构造器的固定列，以及 Markdown
+本地链接；潮流的 11 张详细结果表也直接与 PSA DataFrame 构造器核对。它不会替代 Rust
+编译和仿真案例测试。
+
 ## 已验证案例
 
 | 案例 | 分析 | 主要输出 | 验证 |
