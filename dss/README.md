@@ -35,6 +35,16 @@ OpenDSS 模型的静态投影。它们移除了求解命令和调压控制，并
 
 ## 运行
 
+完整 OpenDSS 执行文件可先严格转换为 RSS；详细边界见
+[DSS 到 RSS 严格转换](docs/dss_to_rss.md)：
+
+```bash
+cargo run -p mems \
+  --features tensoreval-cli,with_dsa \
+  --bin dss2rss -- \
+  path/to/run.dss --output path/to/run.rss
+```
+
 潮流或短路脚本可直接运行：
 
 ```bash

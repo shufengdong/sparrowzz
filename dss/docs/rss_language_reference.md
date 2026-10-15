@@ -429,6 +429,15 @@ tensoreval --df declarations.rss study.rss
 本地脚本、`#include` 和 `--input` 的相对路径都以进程当前工作目录为基准，不以入口文件
 所在目录为基准。
 
+位置参数后缀为 `.dss` 时，`tensoreval` 不把文件当作 RSS 文本解析，而是直接调用严格
+DSS 转换器并计算；后缀匹配不区分大小写，也不要求 `--df`。该模式只接受一个位置参数，
+不接受 `--input`，固定使用径向求解器，并要求构建启用 `with_dsa`。转换边界见
+[DSS 到 RSS 严格转换](dss_to_rss.md)。
+
+增加 `--dss-to-rss` 时，命令只生成输入文件同目录、同名的 `.rss` 文件，不执行生成脚本，
+也不输出潮流结果。`--dss2rss`、`--dsstorss`、`--dss_to_rss` 是等价别名。严格转换仍会
+进行导入和求解校验；目标文件已存在时拒绝覆盖。
+
 ### 7.2 命令行 DataFrame 输入
 
 外部表通过可重复的 `--input NAME=FILE` 注入：
