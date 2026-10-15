@@ -8,8 +8,8 @@ RSS（RSDss）脚本。
 测试已经用同一批 IEEE 13、34 和 123 节点模型分别运行 OpenDSS 与 RSDss，并比较
 复电压；IEEE 13 和 34 节点还比较了谐波复电压与短路复相量，4Bus-DY-Bal 案例比较了
 三时点 Daily QSTS 复电压。QSTS、状态估计、随机潮流、恢复重构、故障定位、电动机
-动态和保护配合也有 RSDss 入口，但它们需要额外的 DataFrame 配置，不能只把
-OpenDSS 的 `Solve` 命令改名后直接执行。
+动态和保护配合也有 RSDss 入口。显式 DataFrame 工作流仍适合逐表控制；PSA
+ExecutionStudy 支持范围内的单个或多个 `Solve` 也可以由执行型入口直接导入和运行。
 
 ## 1. 迁移后的执行模型
 
@@ -22,6 +22,7 @@ flowchart LR
     C --> D[ds_radial_pf / ds_newton_raphson_pf]
     C --> E[ds_harmonic_study / ds_fault_study]
     C --> F[QSTS 和其他分析入口]
+    A -->|ds_*_dss_plan| F
     D --> G[具名 DataFrame 结果]
     E --> G
     F --> G
@@ -34,6 +35,7 @@ flowchart LR
 | --- | --- |
 | `Compile` 或 `Redirect` 主文件 | `import_dss("path/to/Master.dss")` |
 | `Solution.Solve()` | `ds_radial_pf(...)` 或 `ds_newton_raphson_pf(...)` |
+| 一个或多个时序 `Solve` | `ds_radial_dss_plan(...)` 或 `ds_newton_raphson_dss_plan(...)` |
 | `Solve mode=harmonic` | `ds_harmonic_study(...)` |
 | 创建 `Fault` 后求解或 `mode=faultstudy` | 构造 `fault` 表后调用 `ds_fault_study(...)` |
 | `Circuit.AllBusNames`、`Bus.Voltages` | 请求 `bus_phase` 结果 |
@@ -42,7 +44,8 @@ flowchart LR
 
 `import_dss` 是转换器，不是 OpenDSS 命令解释器。它使用
 `DssImportProfile::StaticPowerFlow`，把声明式模型转换为 PSA 的 DataFrame 网络契约；
-求解由后续 `ds_*` 函数完成。这个边界让脚本中的数据依赖和结果都能进入 mems 流程图，
+求解由后续 `ds_*` 函数完成。执行型 `import_dss_execution` 和 `ds_*_dss_plan` 则使用
+PSA 的有界 ExecutionStudy 契约保留 `Solve`、控制、保护和计量状态。这个边界让脚本中的数据依赖和结果都能进入 mems 流程图，
 也防止无法等价表示的 OpenDSS 命令被静默忽略。
 
 ## 2. 构建要求
@@ -82,8 +85,9 @@ cargo check -p mems --features with_dsa_mkl
 - `Export`、`Show` 等依赖 OpenDSS 运行状态的命令。
 
 仓库已验证模型允许在入口开头使用 `Clear` 重置 DSS 声明环境；它不会转换成运行期
-DataFrame 动作。需要在多个 `Solve` 之间清空或重建状态时，不能用静态 `import_dss`
-表达。
+DataFrame 动作。需要保留多个 `Solve` 及其间的有序变更时，不能用静态 `import_dss`
+表达，应改用 `ds_radial_dss_plan` 或 `ds_newton_raphson_dss_plan`。无法无损进入 PSA typed
+continuation contract 的动作仍会 fail closed。
 
 推荐把旧文件拆成两层：
 
@@ -410,6 +414,20 @@ monitor, energy_meter, fault, para
 这些表的 schema 和支持边界见 [README 的准静态时序仿真章节](../../../mems/README.md#准静态时序仿真)。
 迁移顺序建议是先用一个静态时点验证网络和单位，再加入曲线与时间轴，最后逐个加入
 控制、保护和计量对象。这样每一步都能定位差异来源。
+
+如果原 DSS 已经使用 PSA 支持的 ExecutionStudy 子集，可以保留命令流并直接执行：
+
+```text
+# plan_para.result = "bus_phase,summary,execution_trace,diagnostics,events"
+[voltage, summary, trace, diagnostics, events] = ds_radial_dss_plan(
+    "case/run.dss",
+    plan_para
+);
+```
+
+单个 `Solve` 也可以用 `import_dss_execution` 展开成 QSTS 的 33 张输入表，另带
+`diagnostics` 和 `events`。多 `Solve` 计划的逐 epoch 结果增加 `epoch_index` 与
+`solve_event_sequence`；执行轨迹覆盖整个命令流，并可记录 fault-aware 保护过程。
 
 仓库中的 [`4bus_daily_qsts.rss`](../4bus_daily_qsts.rss) 是可直接运行的
 最小 Daily QSTS 示例。它在脚本中构造三个一小时时步、0.5/1.0/1.5 的负荷倍数及其

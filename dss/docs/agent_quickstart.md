@@ -12,6 +12,7 @@
 | 环网、并联支路、多电源、PV/GFM 或通用静态潮流 | `ds_newton_raphson_pf` | 需要 MUMPS 或 MKL feature |
 | Daily/Yearly/Duty/PeakDay/LoadDuration 时序 | `ds_radial_qsts` | 网络满足 Radial 边界 |
 | 通用网络时序 | `ds_newton_raphson_qsts` | 需要 MUMPS 或 MKL feature |
+| 保留 DSS 单/多 `Solve` 命令流 | `ds_radial_dss_plan` / `ds_newton_raphson_dss_plan` | 输入满足 PSA ExecutionStudy 有界合同 |
 | 谐波扫频 | `ds_harmonic_study` | 需要 Spectrum 和 `h_max` |
 | 故障/短路 | `ds_fault_study` | 显式构造 `fault` 表 |
 | WLS、MNMR、MCE 状态估计 | `ds_wls_se`、`ds_mnmr_se`、`ds_mce_se` | 需要 measurement 表和稀疏后端 |
@@ -39,6 +40,10 @@
 
 必须保留位置。空对象表也占据自己的槽位。当前 `import_dss` 使用静态导入 profile；
 `Solve`、运行时 `Set`、`Export` 等执行命令不能作为静态模型的一部分。
+
+需要保留受支持的单 `Solve` 时，可用 `import_dss_execution` 得到完整 33 项 QSTS bundle
+及 `diagnostics/events`；需要直接连续执行多个 `Solve` 时，使用 `ds_*_dss_plan`，不要先走
+静态 `import_dss`。
 
 ## 3. 显式构造分析配置
 
@@ -100,6 +105,8 @@ monitor, energy_meter, fault, para
 | 收敛、迭代和总损耗 | `summary` |
 | QSTS Monitor | `monitor` 或 `monitor_save` |
 | QSTS 电量计 | `energy_meter`、`meter_loss_breakdown` |
+| QSTS 跨步设备状态 | `storage_state`、`storage_controller_state`、`switch_control_state`、`fuse_state`、`recloser_state`、`relay_state`、`fault_state` |
+| DSS 执行计划证据 | `execution_trace`、`diagnostics`、`events` |
 | 谐波母线结果 | `bus_voltage` |
 | 故障和故障支路电流 | `fault,branch_flow` |
 

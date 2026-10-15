@@ -374,8 +374,11 @@ combined = concat("vertical", first, second, third);
 
 ```text
 import_dss import_dss_url import_bmopf import_bmopf_url
+import_dss_execution import_dss_execution_url
 ds_radial_pf ds_newton_raphson_pf
 ds_radial_qsts ds_newton_raphson_qsts
+ds_radial_dss_plan ds_newton_raphson_dss_plan
+ds_radial_dss_plan_url ds_newton_raphson_dss_plan_url
 ds_harmonic_study ds_fault_study
 ds_wls_se ds_mnmr_se ds_mce_se
 ds_monte_carlo ds_restore ds_protection_coordination
