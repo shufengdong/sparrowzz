@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source_of_truth": [
     "mems/src/ml RSDss frame and DSA dispatch",
     "mems/src/ml RSDss DataFrame-function dispatch",
@@ -8,9 +8,16 @@
   "notes": [
     "Top-level function names are matched case-insensitively.",
     "For single-frame operations the final argument is the input DataFrame.",
+    "The arity field on frame_functions is the canonical script arity. The single-frame dispatcher validates only the minimum expression count described by frame_function_arity_contract; script generators must emit the canonical signature and must not add ignored expressions.",
     "DSA functions are available only when mems is built with the with_dsa feature or a backend feature that enables it.",
     "New DSA scripts should use the complete network form instead of legacy compact arities."
   ],
+  "frame_function_arity_contract": {
+    "zero_expressions_before_frame": ["height", "width", "drop_nulls", "dropnulls", "drop_nans", "dropnans", "count", "null_count", "nullcount", "first", "last", "reverse", "sum", "max", "min", "mean", "median"],
+    "minimum_one_expression_before_frame": ["select", "filter", "with_column", "withcolumn", "with_columns", "withcolumns", "group_by", "groupby", "fill_null", "fillnull", "fill_nan", "fillnan", "cast_all", "castall", "limit", "tail", "shift"],
+    "minimum_two_expressions_before_frame": ["agg", "aggregate", "shift_and_fill", "shiftandfill"],
+    "canonical_rule": "Use only the signature on frame_functions. Extra expressions accepted by the minimum-arity compatibility check can be ignored or change selection behavior."
+  },
   "network_argument_order": [
     "bus",
     "line",
@@ -185,6 +192,32 @@
       ]
     },
     {
+      "names": ["import_dss_execution", "import_dss_execution_url"],
+      "arity": 1,
+      "arguments": ["path_or_url"],
+      "behavior": "import one DSS ExecutionStudy profile into the QSTS input frames plus diagnostics and events",
+      "returns": [
+        "bus", "line", "linecode", "load", "transformer", "voltage_source",
+        "motor", "transformer_winding", "transformer_impedance", "current_source",
+        "generator", "ibr", "switch", "shunt", "capacitor", "reactor", "spectrum",
+        "control_profile", "xy_curve", "storage", "solution", "load_shape",
+        "shape_assignment", "storage_controller", "switch_control", "tcc_curve", "fuse",
+        "recloser", "relay", "monitor", "energy_meter", "fault", "para", "diagnostics",
+        "events"
+      ],
+      "restriction": "The profile contains exactly one Solve. The URL form downloads one source and cannot resolve remote relative includes."
+    },
+    {
+      "names": ["ds_radial_dss_plan", "ds_newton_raphson_dss_plan", "ds_radial_dss_plan_url", "ds_newton_raphson_dss_plan_url"],
+      "allowed_arities": [1, 2],
+      "arguments": ["path_or_url", "para?"],
+      "behavior": "import and execute a DSS command plan containing one or more Solve epochs while preserving runtime state between epochs",
+      "default_result": "bus_voltage",
+      "results": ["bus_voltage", "bus_phase", "load_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary", "storage_state", "storage_controller_state", "switch_control_state", "fuse_state", "recloser_state", "relay_state", "fault_state", "monitor", "monitor_save", "energy_meter", "meter_loss_breakdown", "reliability", "meter_zone", "meter_save", "load_duration", "execution_trace", "diagnostics", "events"],
+      "appended_columns": ["epoch_index", "solve_event_sequence"],
+      "restriction": "The URL form downloads one source and cannot resolve remote relative includes."
+    },
+    {
       "names": ["ds_radial_pf", "ds_newton_raphson_pf"],
       "complete_arity": 21,
       "legacy_arities": [6, 7, 8, 9, 10, 11],
@@ -203,7 +236,7 @@
       ],
       "behavior": "run a quasi-static time-series study with schedules, controls, protection, monitoring, and metering",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "bus_phase", "load_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary", "storage_state", "storage_controller_state", "switch_control_state", "fuse_state", "recloser_state", "relay_state", "fault_state", "monitor", "monitor_save", "energy_meter", "meter_loss_breakdown", "reliability", "meter_zone", "meter_save", "load_duration"],
+      "results": ["bus_voltage", "bus_phase", "load_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary", "storage_state", "storage_controller_state", "switch_control_state", "fuse_state", "recloser_state", "relay_state", "fault_state", "monitor", "monitor_save", "energy_meter", "meter_loss_breakdown", "reliability", "meter_zone", "meter_save", "load_duration", "execution_trace"],
       "appended_columns": ["time", "load_multiplier", "generation_multiplier"]
     },
     {

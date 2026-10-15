@@ -4,6 +4,34 @@
 需要 `with_dsa`；Newton 潮流、Newton QSTS 和状态估计还需要 MUMPS 或 Intel MKL 稀疏
 后端。
 
+## 阅读规则
+
+- `arity` 是顶层调用的参数总数，包含末尾的 DataFrame 参数，不包含左值数量；
+- `network[20]` 始终表示第 1 节的固定顺序，不能省略中间位置；
+- 完整形式中，第 1–6 张网络表必须能通过各自解析器，位置 7–20 的零行表表示该设备族
+  未配置；
+- `para?` 表示整个参数可省略，`para` 表示必须传入一张表，但该表可以为零行；
+- `returns` 中的顺序由 `para.result` 决定；没有 `para.result` 时使用该函数的默认结果；
+- 入口名按 ASCII 大小写不敏感规则匹配，结果名转为小写后精确匹配；
+- 本参考给出函数级契约，所有输入列、类型、默认值和结果列以
+  [DataFrame schema 参考](dataframe_schema_reference.md)及机器目录为准。
+
+| 函数组 | arity | 默认结果 | 返回数量 |
+|---|---:|---|---|
+| `import_dss/import_dss_url/import_bmopf/import_bmopf_url` | 1 | 不适用 | 固定 21 |
+| `import_dss_execution/import_dss_execution_url` | 1 | 不适用 | 固定 35 |
+| `ds_*_dss_plan*` | 1 或 2 | `bus_voltage` | 由 `para.result` 决定 |
+| `ds_radial_pf/ds_newton_raphson_pf` | 21；兼容 6–11 | `bus_voltage` | 由 `para.result` 决定 |
+| `ds_radial_qsts/ds_newton_raphson_qsts` | 33 | `bus_voltage` | 由 `para.result` 决定 |
+| `ds_harmonic_study` | 22；兼容 8/14 | `bus_voltage` | 由 `para.result` 决定 |
+| `ds_fault_study` | 22；兼容 8/13 | `fault` | 由 `para.result` 决定 |
+| `ds_wls_se/ds_mnmr_se/ds_mce_se` | 22；兼容 11/12 | 不适用 | 固定 1 |
+| `ds_monte_carlo` | 23 | `voltage_statistics` | 由 `para.result` 决定 |
+| `ds_restore` | 22；兼容 9 | `switches` | 由 `para.result` 决定 |
+| `ds_protection_coordination` | 9 | `operations` | 由 `para.result` 决定 |
+| `ds_fault_location` | 24 | 不适用 | 固定 1 |
+| `ds_motor_dynamics` | 28 | `motor_state` | 由 `para.result` 决定 |
+
 ## 1. 完整网络参数顺序
 
 所有“完整网络形式”固定使用以下 20 个位置：
@@ -51,6 +79,23 @@
 ### `import_bmopf` / `import_bmopf_url`
 
 调用与返回顺序相同，后缀必须是 `.json`。
+
+### `import_dss_execution` / `import_dss_execution_url`
+
+```text
+[20 network frames,
+ solution, load_shape, shape_assignment, storage_controller,
+ switch_control, tcc_curve, fuse, recloser, relay,
+ monitor, energy_meter, fault, para,
+ diagnostics, events] = import_dss_execution("run.dss");
+```
+
+固定一个参数并返回 35 张表。输入必须是 PSA ExecutionStudy 支持的单 `Solve` 命令流；
+前 33 张表与 QSTS 的固定参数顺序完全相同，其中第 20 位 `storage` 来自执行研究表。
+`diagnostics` 保留成功导入时的非致命诊断，`events` 保留 include 展开后的全局命令顺序。
+前者列为 `category,severity,code,target,message`；后者列为 `sequence,source,line,kind,verb,
+arguments,target_class,target_name,parameters`，其中 `parameters` 是 JSON 字符串。
+URL 形式仍只下载一个 source，不能解析远程目录中的相对 include 文件。
 
 ## 3. 静态潮流
 
@@ -115,17 +160,16 @@ bus, line, linecode, load, transformer, voltage_source,
 bus_voltage, bus_phase, load_state, branch_flow, source_flow,
 transformer_winding_flow, conductor_flow, regulator_state,
 capacitor_state, reactor_state, ibr_state, gfm_state,
-violations, summary,
-storage_state, storage_controller_state, switch_control_state,
-fuse_state, recloser_state, relay_state, fault_state,
-monitor, monitor_save, energy_meter,
-meter_loss_breakdown, reliability, meter_zone, meter_save,
-load_duration
+violations, summary, storage_state, storage_controller_state,
+switch_control_state, fuse_state, recloser_state, relay_state,
+fault_state, monitor, monitor_save, energy_meter, meter_loss_breakdown,
+reliability, meter_zone, meter_save, load_duration, execution_trace
 ```
 
-潮流表、`summary` 以及七张 typed state 表都是逐时步结果，自动追加 `time`、
-`load_multiplier` 和 `generation_multiplier` 三列。typed state 表直接对应 PSA 当前的
-`TimeSeriesStepResult`：
+逐时步结果自动追加 `time`、`load_multiplier` 和 `generation_multiplier` 三列。
+
+潮流表、`summary` 以及七张 typed state 表都是逐时步结果。typed state 表直接对应 PSA
+当前的 `TimeSeriesStepResult`：
 
 | 结果名 | 内容 |
 |---|---|
@@ -139,6 +183,24 @@ load_duration
 
 保护状态表中的 `phases` 与 `phase_states` 是位置对应的 `list<str>`。没有配置某个
 子系统时，相应结果是保留固定列结构的零行表。
+显式 33 参数入口在 `fault` 非空时不接受 `execution_trace`；带故障轨迹应使用下面的
+DSS execution-plan 入口。
+
+### DSS execution plan
+
+```text
+voltage = ds_radial_dss_plan("run.dss");
+[results...] = ds_radial_dss_plan("run.dss", para);
+[results...] = ds_newton_raphson_dss_plan("run.dss", para);
+```
+
+URL 形式为 `ds_radial_dss_plan_url` 和 `ds_newton_raphson_dss_plan_url`。入口导入并按顺序
+执行一个或多个 `Solve`，在 epoch 之间延续 PSA 已声明的 Storage、控制、保护、计量和
+设备状态。`para` 可省略，默认返回 `bus_voltage`；`para.result` 接受上面的全部 QSTS 结果，并额外接受
+`diagnostics` 和 `events`。逐 epoch 结果带 `epoch_index`、`solve_event_sequence`；
+`execution_trace` 是覆盖全部 `Solve` 的全局轨迹，也支持 fault-aware 执行计划。
+计划入口的诊断表也带 epoch 标识；全局事件表把每条事件映射到对应 epoch，最后一个
+`Solve` 之后尚未执行的 trailing events 的 epoch 列为空。
 
 ## 5. 谐波
 
@@ -196,6 +258,10 @@ result = ds_mce_se(network_1, ..., network_20, measurement, para);
 - 11 参数：六张基础网络表、`generator, shunt, capacitor, storage, measurement`；
 - 12 参数：上述参数再加 `para`。
 
+这里的 `measurement` 是状态估计量测表，必需列和按 `type` 变化的位置列见
+[状态估计 measurement](dataframe_schema_reference.md#状态估计-measurement)。它不是第 11 节
+故障定位使用的相量列表表。返回列固定为 `bus,v_mag,v_ang`。
+
 ## 8. Monte Carlo
 
 ```text
@@ -218,6 +284,10 @@ result = ds_mce_se(network_1, ..., network_20, measurement, para);
 voltage_statistics, scenario_voltage, scenario_load_power, summary
 ```
 
+`spec` 必须恰好一行；四种 mode 对 `multipliers` 的空表/列要求不同，详见
+[Monte Carlo spec 与 multipliers](dataframe_schema_reference.md#monte-carlo-spec-与-multipliers)。
+四张结果的固定列见 [Monte Carlo 结果 schema](dataframe_schema_reference.md#monte-carlo)。
+
 ## 9. 恢复重构
 
 ```text
@@ -236,6 +306,7 @@ switch, fault, para
 ```
 
 默认结果为 `switches`。支持 `switches, restored_loads, bus_voltage, objective`。
+四张结果的固定列见[恢复重构结果 schema](dataframe_schema_reference.md#恢复重构)。
 
 ## 10. 保护配合审计
 
@@ -254,6 +325,11 @@ operations, selectivity, minimum_margins,
 misoperations, uncovered, action_diagnostics
 ```
 
+`fault_case/current_sample/pair/observed_action/para` 的列、引用关系和默认值见
+[保护配合输入](dataframe_schema_reference.md#保护配合输入)；六张结果的固定列见
+[保护配合结果 schema](dataframe_schema_reference.md#保护配合)。零行 `observed_action` 表示没有
+现场动作证据；零行 `pair` 允许只计算设备动作表。
+
 ## 11. 故障定位
 
 ```text
@@ -266,6 +342,10 @@ result = ds_fault_location(
 固定 24 个参数，返回单张结果表。当前不接受非空独立 `storage` 表。候选表可为空，表示
 不启用对应候选类型。
 
+这里的 `measurement` 使用逐相复电流/电压列表，和状态估计量测表完全不同。精确列、协方差
+顺序、假设表约束及输出列见[故障定位输入](dataframe_schema_reference.md#故障定位输入)与
+[故障定位结果](dataframe_schema_reference.md#故障定位)。
+
 ## 12. 电机网络动态
 
 ```text
@@ -277,6 +357,11 @@ result = ds_fault_location(
 
 固定 28 个参数，当前不接受非空独立 `storage` 表。默认结果为 `motor_state`；支持
 `bus_voltage, motor_state, event`。
+
+`timeline/event/spec` 的条件列和默认值见
+[电机网络动态输入](dataframe_schema_reference.md#电机网络动态输入)。三张结果的固定列见
+[电机网络动态结果](dataframe_schema_reference.md#电机网络动态)。`event` 输入可为空；
+`timeline` 必须至少能形成有效且严格递增的求解时间序列。
 
 ## 13. `para.result` 契约
 
@@ -298,3 +383,15 @@ para2 = with_columns(
 ```
 
 `para.base_frequency_hz` 若存在，必须可转换为 `Float64`、非 null、有限且大于零。
+
+## 14. 空表、错误和后端边界
+
+- 固定位置必须始终传入 DataFrame 变量。可选设备没有数据时传零行表，不能删除参数；
+- 解析失败、未知结果、返回数量不匹配、求解失败和不可用后端都通过 RSDss
+  `OperationFailed` 或更具体的表达式错误返回，`tensoreval --df` 以非零状态退出；
+- 完整网络中的非空可选表会被实际解析。若某分析明确拒绝该设备族，必须把对应位置改为
+  零行表；不能传任意一行占位数据；
+- Newton、状态估计和恢复重构在没有相应稀疏/优化后端时不会自动退化为 Radial；
+- URL 导入遵守下载大小和超时边界，且 DSS URL 入口不递归获取远程相对 include；
+- `import_dss*` 和 `import_dss_execution*` 的返回数量固定，左值必须完整绑定；分析函数的
+  多结果左值数量必须与 `para.result` 解析后的名称数量完全一致。

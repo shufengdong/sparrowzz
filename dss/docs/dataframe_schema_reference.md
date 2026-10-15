@@ -78,6 +78,10 @@ terminal_map_to, v_nom_from, v_nom_to, s_rating`，并提供相应串联/励磁�
 `subtype=multi_winding` 时，绕组连接和两两阻抗放入 `transformer_winding` 与
 `transformer_impedance`。该契约包含绕组编号、tap、连接方式和阻抗基准等关联约束，手写
 前应查阅 `psa/src/dsa/parse/transformer*.rs`；普通 DSS 变压器优先交给 `import_dss`。
+PSA owned DataFrame 支持的混合相数子集要求完整三相主绕组，其他非空相子集只能使用
+grounded-Wye，并由各行 `terminal_map` 保留物理相身份。mixed Delta、floating-Wye、
+两绕组混合宽度和 AutoTrans 混合宽度会 fail closed；该扩展不能由 DSS Transformer
+自动导入，因为 OpenDSS 没有逐绕组相数属性。
 
 ### `switch`
 
@@ -333,27 +337,242 @@ voltage_level, aux1..aux30, action, on_time, action_param, param, reduce_pct`。
 | `zf`, `xf` | `f64` | 否 | 故障阻抗分量 |
 
 QSTS 故障还可使用 `on_time`/`ontime`, `off_time`, `temporary`, `min_amps`/`minamps`,
-`enabled`。
+`enabled`。DSS ExecutionStudy 的有界 Fault 导入要求显式提供 `ontime`、`temporary`、
+`minamps` 和 `enabled`，不从 OpenDSS 运行期默认值猜测。
+相间故障使用 `kind=ll` 和两个不同的非接地 `terminal_map` 节点。ExecutionStudy 可把
+`Phases=1 Bus1=bus.1 Bus2=bus.2` 的同母线 DSS Fault 无损降低为该形式；跨母线、同节点、
+显式 `GMatrix` 或多节点非接地 Bus2 仍会 fail closed。
 
-## 8. 输出表选择原则
+## 8. 分析专用输入表
 
-`bus_phase` 最适合逐相对照，稳定键为 `lower(bus), phase`；`bus_voltage` 把相量放在列表
-列中。支路比较应使用元件、端点/terminal 和 phase 作为键。QSTS 为每张逐时步结果追加
-`time`, `load_multiplier`, `generation_multiplier`。
+本节中的逻辑表名用于区分同一个 RSDss 参数槽在不同函数中的 schema。例如状态估计和
+故障定位都把参数写成 `measurement`，但它们不是同一种表，不能互换。机器目录使用
+`state_estimation_measurement` 和 `fault_location_measurement` 消除这种歧义。
 
-PSA 的 typed continuation state 在 RSDss 中对应七张可选结果表：
+### 状态估计 `measurement`
 
-| 表 | PSA 状态类型 | 主要列 |
+每行必需 `type:str, phase:str, value:f64`；`weight:f64` 可省略，默认 `1.0`，且必须
+有限并大于零。其余必需列由 `type` 决定：
+
+| `type` | 位置列 | 其他列 |
 |---|---|---|
-| `storage_state` | `TimeSeriesStorageState` | `name,soc,energy,p_total,q_total` |
-| `storage_controller_state` | `TimeSeriesStorageControllerState` | `name,mode,state,monitored,target,deadband,requested_p,fleet_p,inhibited,locked` |
-| `switch_control_state` | `TimeSeriesSwitchControlState` | 被控对象/端子/导体、`state,normal,locked,condition_active,measurement,pending_action,due_time` |
-| `fuse_state` | `TimeSeriesFuseState` | 被测/被控对象、`state,blown,current,trip_time,due_time` |
-| `recloser_state` | `TimeSeriesRecloserState` | 被测/被控对象、`state,locked_out,operation,curve_mode`、电流和队列状态 |
-| `relay_state` | `TimeSeriesRelayState` | 公共状态以及 Voltage、ReversePower、46、47、Generic、DOC、Distance、TD21 的 typed 量测字段 |
-| `fault_state` | `TimeSeriesFaultState` | `index,bus,phases,kind,active,cleared,on_time,off_time,temporary,min_amps,current` |
+| `voltage_magnitude` | `bus` | 无 |
+| `power_injection` | `bus` | `kind=P/Q` |
+| `power_flow` | `bus_from,bus_to` | `kind=P/Q` |
+| `current_magnitude` | `bus_from,bus_to` | 无 |
 
-四张保护/开关状态表中的 `phases` 与 `phase_states` 都是按位置对应的 `list<str>`。
-`operation`, `index`, `td21_history_points`, `td21_quiet_samples` 输出为 `u64`；端子和导体
-编号为 `u32`。具体输出列由分析实现决定，生成脚本时先请求最小结果集，再用 `cols()`
-检查实际 schema，避免猜测不存在的输出列。
+未知 `type`、非有限 `value`、无效 `kind` 或缺少对应位置列都会使整个量测表解析失败。
+状态估计结果采用 `bus_voltage` 列表 schema：`bus,v_mag,v_ang`，电压单位 V、角度单位 rad。
+
+### Monte Carlo `spec` 与 `multipliers`
+
+`spec` 必须恰好一行。可选列和默认值为：
+
+| 列 | 类型 | 默认值/范围 |
+|---|---|---|
+| `mode` | `str` | `m1`；还可取 `global,m1_replay,global_replay` |
+| `solver` | `str` | `radial`；还可取 `newton,newton_raphson` |
+| `n_scenarios` | 无符号整数 | `100`，随机模式使用 |
+| `seed` | 无符号整数 | PSA 固定默认 seed |
+| `mean` | `f64` | `1.0` |
+| `std` | `f64` | `0.1`，必须非负 |
+| `v_min` / `v_max` | `f64` | `0.95` / `1.05`，满足 `0 <= v_min < v_max` |
+
+随机模式要求 `multipliers` 是零行表。Replay 模式要求
+`scenario:整数,multiplier:f64`；场景编号从 1 连续递增。`m1_replay` 还要求 `load:str`，
+并为每个场景和每个网络负荷恰好提供一行；`global_replay` 每个场景恰好一行。
+
+### 保护配合输入
+
+| 参数表 | 必需列 | 可选列与默认值 |
+|---|---|---|
+| `fault_case` | `name,location` | `start_time_seconds=0` |
+| `current_sample` | `fault,device,phase_currents_amp:list<f64>` | `ground_current_amp=0` |
+| `pair` | `primary,backup` | `minimum_margin_seconds=0` |
+| `observed_action` | `fault,device,action,time_seconds` | 整张表可为空 |
+| `para` | 无 | 三个非负容差列及 `result` |
+
+`fault_case.name` 按 ASCII 大小写不敏感规则唯一。电流列表必须非空，所有电流有限且非负。
+`current_sample.fault` 和 `observed_action.fault` 必须引用已有工况；主保护和后备保护不能是
+同一个设备。`para` 的容差列为 `pickup_tolerance_seconds`、
+`operation_tolerance_seconds`、`reclose_tolerance_seconds`。
+
+### 故障定位输入
+
+`measurement` 至少一行，必需列为：
+
+```text
+bus:str, element:str,
+current_re:list<f64>, current_im:list<f64>
+```
+
+可选列为 `terminal=1`、成对的 `voltage_re/voltage_im`、
+`current_standard_deviation`、`voltage_standard_deviation`、`covariance` 和 `weight=1`。
+实虚部列表必须非空、等长且有限；标准差必须为正并与相量等长。`covariance` 使用
+电流实/虚部后接电压实/虚部的残差顺序，长度必须为矩阵阶数的平方且矩阵正定；它与两列
+标准差不能同时设置。
+
+`hypothesis_switch` 使用 `hypothesis,name,open`，`hypothesis_line` 使用
+`hypothesis,name,scale`。后者的 `scale` 必须有限且大于零。同一假设中不能重复同名设备。
+两张表都可为零行表。
+
+故障定位 `para` 可为零行或一行。可选列是 `candidate_lines,step_percent,top_n,
+resistance_min_ohm,resistance_max_ohm,reactance_min_ohm,reactance_max_ohm,loss,
+loss_parameter`，以及公共潮流列 `max_iter,max_control_iter,tol,line_model`。`loss` 仅接受
+`least_squares,huber,cauchy`。
+
+### 电机网络动态输入
+
+`timeline` 必需 `time_s:f64`，可选 `source_scale_re=1,source_scale_im=0`。所有值必须
+有限，时刻必须严格递增。
+
+`event` 每行必需 `time_s,kind`，`kind` 决定其他列：
+
+| `kind` | 必需列 | 可选列 |
+|---|---|---|
+| `fault_on` | `event_id,bus,phases,fault_kind` | `bus2,percent,zf_re=0,zf_im=0` |
+| `fault_off` | `event_id` | 无 |
+| `topology` | `element,action` | 无 |
+| `conductor_topology` | `element,terminal,conductor,action` | 无 |
+| `protection` | `device,element,action` | 无 |
+| `conductor_protection` | `device,element,terminal,conductor,action` | 无 |
+
+`action` 接受 `open/trip` 或 `close/reclose`。`spec` 可为零行或一行；支持
+`frequency_hz,initial_slip,shaft_power_w,mechanical_load,torque_exponent,
+voltage_exponent,speed_exponent,locked_rotor,stall_slip_threshold,
+max_corrector_iterations,tolerance,max_network_iterations,voltage_tolerance,relaxation`。
+`mechanical_load` 接受 `constant_power/constant`、`speed_dependent_torque/torque` 或
+`power_law`；省略的数值取 PSA `MotorNetworkDynamicSpec` 默认值。
+
+## 9. 固定结果 schema
+
+同一个结果名可能随分析不同而改变 schema。例如静态潮流的 `bus_voltage` 与谐波的
+`bus_voltage` 不同。下列上下文是契约的一部分。
+
+### 潮流与状态估计
+
+- `bus_voltage`：`bus,v_mag,v_ang`，其中后两列是按母线相序排列的列表，单位 V/rad；
+- `bus_phase`：`bus,phase,v_re,v_im,v_mag,v_ang`，单位 V/rad；
+- `summary`：`method,converged,control_iterations,control_actions,control_time,solve_count,
+  plan_builds,last_iterations,total_iterations,p_loss,q_loss,violation_count,
+  max_violation_ratio`；
+- `violations`：`kind,element,bus,phase,value,limit,ratio`。
+
+支路、电源、绕组、导体和设备状态表的固定列定义在 PSA
+`src/dsa/output/power_flow.rs`、`device_state.rs` 和 `line_conductor.rs`。它们的精确列顺序
+已登记在 [`catalog/dataframes.json`](catalog/dataframes.json) 的 `result_frames`，并由目录
+校验器直接与这些 DataFrame 构造器核对。不能从 OpenDSS 导出列猜测名称。
+
+### 谐波和短路
+
+谐波 `bus_voltage` 固定为
+`bus,phase,harmonic,voltage_mag,voltage_angle,thd`，角度单位 deg，THD 单位 `%`。
+谐波 `bus_sequence` 为
+`bus,harmonic,sequence,voltage_re,voltage_im,voltage_mag,voltage_angle`；
+`sequence` 取 `zero/positive/negative`。
+
+谐波 `branch_flow` 为 `kind,element,terminal,bus,phase,harmonic,voltage_re,
+voltage_im,voltage_mag,voltage_angle,current_re,current_im,current_mag,current_angle,p,q`。
+`branch_sequence` 在相同电气量之前使用
+`kind,element,terminal,bus,harmonic,sequence` 标识行。`monitor` 的固定 23 列及
+`monitor_save` 的两个前缀列已登记在机器目录；后者是在相同 monitor schema 前增加
+`save_harmonic,save_frequency_hz`。
+
+短路 `fault` 每个独立故障一行，固定列为：
+
+```text
+bus,kind,i_f_mag,i_f_ang,voc_mag,voc_ang,v_f_mag,v_f_ang,
+i_seq_mag,i_seq_ang,i_residual_mag,i_residual_ang,z_sc_mag,z_sc_ang
+```
+
+逐相故障电流、故障前/故障后电压和序量使用 `list<f64>`；残流幅值/相角是标量。电压、
+电流和角度分别使用 V、A 和 rad。
+
+短路 `branch_flow` 固定为：
+
+```text
+fault_bus,kind,element,bus_from,bus_to,phase_from,phase_to,
+v_from_re,v_from_im,v_to_re,v_to_im,
+i_from_re,i_from_im,i_from_mag,i_to_re,i_to_im,i_to_mag,
+p_from,q_from,p_to,q_to,i_fault_max
+```
+
+### Monte Carlo
+
+| 结果 | 固定列 |
+|---|---|
+| `voltage_statistics` | `bus,phase,v_mean,v_std,v_min,v_max,v_violation_pct,successful_scenarios,non_converged_scenarios` |
+| `scenario_voltage` | `scenario,bus,phase,v_mag,violated` |
+| `scenario_load_power` | `scenario,load,multiplier,p_total,q_total,converged` |
+| `summary` | `requested_scenarios,successful_scenarios,non_converged_scenarios,seed,solver` |
+
+### 恢复重构
+
+- `switches`：`switch,closed`；
+- `restored_loads`：`bus,phase,demand_p,demand_q,restored_p,restored_q,fraction`；
+- `bus_voltage`：潮流列表 schema；
+- `objective`：单行单列 `objective`，单位 W。
+
+### 保护配合
+
+- `operations`：`fault,location,device,kind,shot,curve_mode,phase,source,
+  phase_current_amp,ground_current_amp,pickup_time_seconds,trip_time_seconds,
+  operating_time_seconds`；
+- `selectivity`：`fault,location,primary,backup,shot,phase,primary_source,backup_source,
+  primary_time_seconds,backup_time_seconds,margin_seconds,required_margin_seconds,selective,status`；
+- `minimum_margins`：`primary,backup,minimum_margin_seconds,required_margin_seconds,
+  worst_fault,worst_location,worst_shot,worst_phase,insufficient_margin_count,overtrip_count,
+  uncovered_count`；
+- `misoperations` 和 `uncovered` 与 `selectivity` 同 schema；
+- `action_diagnostics`：`event_id,device,action_family,observed_action,predicted_action,
+  observed_time_seconds,predicted_time_seconds,time_error_seconds,tolerance_seconds,status`。
+
+### 故障定位
+
+单张结果固定为：
+
+```text
+model_hypothesis,relative_likelihood,line,distance_percent,fault_kind,fault_phases,
+fault_resistance_ohm,fault_reactance_ohm,current_match_error,objective,refined,
+identifiable,identifiability_condition,distance_stddev_percent,
+distance_ci95_low_percent,distance_ci95_high_percent,
+fault_resistance_stddev_ohm,fault_reactance_stddev_ohm,weak_parameter_direction,
+measurement_count,residual_count,measurement_element,measurement_terminal,
+predicted_current_re,predicted_current_im,predicted_voltage_re,predicted_voltage_im
+```
+
+### 电机网络动态
+
+- `bus_voltage`：`time_s,bus,phase,v_re,v_im,v_mag,v_angle_deg,source_scale_re,
+  source_scale_im`；
+- `motor_state`：`time_s,motor,phase,voltage_re,voltage_im,current_re,current_im,
+  current_mag,current_angle_deg,slip,speed_pu,relative_speed_rad_s,rotor_angle_deg,p_w,
+  q_var,electromagnetic_torque_nm,shaft_power_w,stalled`；
+- `event`：`time_s,kind,event_id,device,element,terminal,conductor,action,bus,bus2,percent`。
+
+## 10. 时序和执行计划附加列
+
+QSTS 对每张逐时步结果追加 `time,load_multiplier,generation_multiplier`。执行计划入口再
+追加 `epoch_index,solve_event_sequence`；`diagnostics` 和 `events` 使用各自的执行审计
+schema。各状态结果在三列时序元数据之前的固定列为：
+
+| 结果 | 固定列 |
+|---|---|
+| `storage_state` | `name,soc,energy,p_total,q_total` |
+| `storage_controller_state` | `name,mode,state,monitored,target,deadband,requested_p,fleet_p,inhibited,locked` |
+| `switch_control_state` | `name,switched_obj,switched_term,switched_conductor,state,normal,locked,condition_active,measurement,pending_action,due_time,phases,phase_states` |
+| `fuse_state` | `name,monitored_obj,monitored_term,switched_obj,switched_term,state,blown,current,trip_time,due_time,phases,phase_states` |
+| `recloser_state` | `name,monitored_obj,monitored_term,switched_obj,switched_term,switched_conductor,state,locked_out,operation,curve_mode,phase_current,ground_current,trip_source,trip_time,pending_action,due_time,phases,phase_states` |
+| `fault_state` | `index,bus,kind,active,cleared,on_time,off_time,temporary,min_amps,current,phases` |
+
+`relay_state` 列较多，完整顺序登记在机器目录的 `result_frames.relay_state`。其中包含一般
+电流/电压状态、DOC、Distance、TD21、动作时刻，以及末尾的 `phases,phase_states`。
+
+`execution_trace` 不是逐时步电气结果，不追加 `time/load_multiplier/generation_multiplier`；
+它的固定 30 列登记在机器目录的 `result_frames.execution_trace`。其中 `causes,state_before,
+state_after,profile_causes,controller_solve_causes` 是 JSON 字符串。执行计划为该表追加
+`epoch_index,solve_event_sequence`。
+
+RSDss 当前没有运行期“查询 schema”的函数。`cols(...)` 是选择器，不会返回列名；脚本
+生成器必须在执行前依据本参考和机器目录选择列。结果对照时，`bus_phase` 的稳定键为
+`lower(bus),phase`，支路表使用元件、terminal/端点和 phase 作为稳定键。

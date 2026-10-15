@@ -19,7 +19,7 @@ OpenDSS 语言兼容。状态含义如下：
 | `LineCode` | `linecode` | 直接/有界 | 相矩阵、单位和额定值；无法解析的几何/引用 fail-closed |
 | `Line` | `line` | 直接 | 显式线路、电缆参数和端子映射 |
 | `Line switch=yes` | `switch` | 有界 | 导入器识别开关线路并恢复为显式开关身份 |
-| `Transformer` | `transformer`, `transformer_winding`, `transformer_impedance` | 有界 | 两绕组和受支持的多绕组约束；绕组关系必须可无损表达 |
+| `Transformer` | `transformer`, `transformer_winding`, `transformer_impedance` | 有界 | DSS 两绕组和受支持的多绕组约束；PSA owned DataFrame 另支持完整三相主绕组加 grounded-Wye 非空相子集，DSS 没有逐绕组相数语义 |
 | `Load` | `load` | 有界 | 支持已实现的负荷模型、电压边界、曲线和 spectrum 绑定 |
 | `Generator` | `generator` | 有界 | 已实现 operating model、Model 3 和 GenDispatcher 子集；组合限制会显式报错 |
 | `PVSystem` | `ibr`, `control_profile`, `xy_curve` | 有界 | DC operating point、曲线和 InvControl/ExpControl 的已声明子集 |
@@ -40,11 +40,12 @@ OpenDSS 语言兼容。状态含义如下：
 | `Relay` | QSTS `relay` | 显式表/有界 | Current、Voltage、ReversePower、46、47、Generic、DOC、Distance、TD21 按各自 schema 校验 |
 | `Monitor` | QSTS/harmonic `monitor` | 显式表/有界 | 目标类型必须与 mode 匹配 |
 | `EnergyMeter` | QSTS `energy_meter` | 显式表/有界 | 区域、累计量和可靠性输出使用 PSA 的计量契约 |
-| `Fault` | `fault` | 显式表/有界 | 静态短路或带起止时间的 QSTS 故障 |
+| `Fault` | `fault` | 显式表/有界 | 静态短路或带起止时间的 QSTS 故障；ExecutionStudy 支持接地故障及同母线不同非零节点的 `Phases=1` 相间故障 |
 
-“显式表”不表示该对象无法由 PSA 的 `ExecutionStudy` 导入器降低；它表示当前
-`tensoreval` 的 `import_dss()` 只调用 `StaticPowerFlow` 并返回固定 21 项，因此 RSS 调用
-QSTS 时必须显式传入第 21–32 位的研究表。
+“显式表”不表示该对象无法由 PSA 的 `ExecutionStudy` 导入器降低。静态
+`import_dss()` 只调用 `StaticPowerFlow` 并返回固定 21 项，因此这条路径要求 RSS 显式
+传入第 21–32 位的研究表；`import_dss_execution()` 可从受支持的单 `Solve` 命令流返回
+完整 33 项 QSTS bundle。
 
 ## 2. DSS 命令流
 
@@ -57,7 +58,7 @@ QSTS 时必须显式传入第 21–32 位的研究表。
 | `Redirect`, `Compile` | 本地入口支持相对 include 树 | 支持保留的 include | 使用本地 `import_dss` |
 | `Set DefaultBaseFrequency` | 支持 | 支持 | 导入为 `para.base_frequency_hz` |
 | 其他运行时 `Set` | fail-closed | 在执行契约内有界支持 | 在 `solution`/`para` 中显式设置 |
-| `Solve` | fail-closed | 单 Solve profile 和多 Solve execution plan 均有 PSA API | `ds_radial_qsts` 等；RSDss 尚未公开 execution-plan adapter |
+| `Solve` | fail-closed | 单 Solve profile 和多 Solve execution plan 均有 PSA API | 单 Solve 可用 `import_dss_execution` 展开；多 Solve 用 `ds_radial_dss_plan` / `ds_newton_raphson_dss_plan` |
 | `Open`, `Close` | 静态最终状态必须可表示 | 显式开关的整设备动作及 epoch mutation 有界支持 | 修改显式开关表或使用 QSTS 控制表 |
 | `Enable`, `Disable` | 已支持对象的最终静态状态必须可表示 | 当前 execution profile 明确为 unsupported，遇到即 fail-closed | 在 RSS 中显式构造所需设备表 |
 | `CalcVoltageBases`, `Export`, `Show` | fail-closed | 不作为网络 DataFrame 语义 | 求解后用 RSDss 选择和导出结果 |
@@ -82,7 +83,7 @@ QSTS 时必须显式传入第 21–32 位的研究表。
 | 保护配合审计 | `ds_protection_coordination` | 显式表 | 消费故障电流和动作证据，不执行网络故障求解 |
 | 故障定位 | `ds_fault_location` | 显式表 | measurement 与候选表；当前拒绝非空 storage |
 | 电机网络动态 | `ds_motor_dynamics` | 显式表 | timeline/event/保护/spec；当前拒绝非空 storage |
-| 多个 `Solve` 连续命令流 | 无 RSDss 公开函数 | 未公开 | PSA 已有 execution plan 和 continuation state adapter，尚未接到 `tensoreval` |
+| 多个 `Solve` 连续命令流 | `ds_radial_dss_plan`, `ds_newton_raphson_dss_plan` | 有界 | 保留 typed continuation state；结果按 epoch 合并并携带全局 trace |
 
 QSTS 可直接选择 PSA 当前的 typed continuation state：`storage_state`,
 `storage_controller_state`, `switch_control_state`, `fuse_state`, `recloser_state`,
