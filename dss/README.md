@@ -25,8 +25,8 @@
 | `case14_4bus_master_slave_pf.rss` | IEEE case14 主网与 4Bus-DY-Bal 配网显式展开三轮的单 PCC 主从分裂案例 |
 
 主从分裂案例的每轮主网计算都是独立 Prog，通过
-`runpf_bundle.txt` 递归装入相同的 RSPower 依赖，避免在案例中重复维护
-函数清单。
+[`runpf_bundle.txt`](runpf_bundle.txt) 递归装入相同的 RSPower 依赖，避免在案例中重复维护
+函数清单。共享清单仍需写在每个 `{ ... }` 内，使对应 VM 获得完整函数定义。
 
 `models/*_static`、`models/*_harmonic` 和 `models/4bus_daily_qsts` 是测试所用
 OpenDSS 模型的静态投影。它们移除了求解命令和调压控制，并补齐 PSA 严格导入所需的

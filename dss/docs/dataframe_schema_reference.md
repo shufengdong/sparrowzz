@@ -78,6 +78,10 @@ terminal_map_to, v_nom_from, v_nom_to, s_rating`，并提供相应串联/励磁�
 `subtype=multi_winding` 时，绕组连接和两两阻抗放入 `transformer_winding` 与
 `transformer_impedance`。该契约包含绕组编号、tap、连接方式和阻抗基准等关联约束，手写
 前应查阅 `psa/src/dsa/parse/transformer*.rs`；普通 DSS 变压器优先交给 `import_dss`。
+PSA owned DataFrame 支持的混合相数子集要求完整三相主绕组，其他非空相子集只能使用
+grounded-Wye，并由各行 `terminal_map` 保留物理相身份。mixed Delta、floating-Wye、
+两绕组混合宽度和 AutoTrans 混合宽度会 fail closed；该扩展不能由 DSS Transformer
+自动导入，因为 OpenDSS 没有逐绕组相数属性。
 
 ### `switch`
 
@@ -287,7 +291,11 @@ voltage_level, aux1..aux30, action, on_time, action_param, param, reduce_pct`。
 | `zf`, `xf` | `f64` | 否 | 故障阻抗分量 |
 
 QSTS 故障还可使用 `on_time`/`ontime`, `off_time`, `temporary`, `min_amps`/`minamps`,
-`enabled`。
+`enabled`。DSS ExecutionStudy 的有界 Fault 导入要求显式提供 `ontime`、`temporary`、
+`minamps` 和 `enabled`，不从 OpenDSS 运行期默认值猜测。
+相间故障使用 `kind=ll` 和两个不同的非接地 `terminal_map` 节点。ExecutionStudy 可把
+`Phases=1 Bus1=bus.1 Bus2=bus.2` 的同母线 DSS Fault 无损降低为该形式；跨母线、同节点、
+显式 `GMatrix` 或多节点非接地 Bus2 仍会 fail closed。
 
 ## 8. 输出表选择原则
 
@@ -295,4 +303,3 @@ QSTS 故障还可使用 `on_time`/`ontime`, `off_time`, `temporary`, `min_amps`/
 列中。支路比较应使用元件、端点/terminal 和 phase 作为键。QSTS 为每张逐时步结果追加
 `time`, `load_multiplier`, `generation_multiplier`。具体输出列由分析实现决定，生成脚本时
 先请求最小结果集，再用 `cols()` 检查实际 schema，避免猜测不存在的输出列。
-

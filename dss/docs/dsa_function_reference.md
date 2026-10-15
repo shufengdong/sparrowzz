@@ -52,6 +52,23 @@
 
 调用与返回顺序相同，后缀必须是 `.json`。
 
+### `import_dss_execution` / `import_dss_execution_url`
+
+```text
+[20 network frames,
+ solution, load_shape, shape_assignment, storage_controller,
+ switch_control, tcc_curve, fuse, recloser, relay,
+ monitor, energy_meter, fault, para,
+ diagnostics, events] = import_dss_execution("run.dss");
+```
+
+固定一个参数并返回 35 张表。输入必须是 PSA ExecutionStudy 支持的单 `Solve` 命令流；
+前 33 张表与 QSTS 的固定参数顺序完全相同，其中第 20 位 `storage` 来自执行研究表。
+`diagnostics` 保留成功导入时的非致命诊断，`events` 保留 include 展开后的全局命令顺序。
+前者列为 `category,severity,code,target,message`；后者列为 `sequence,source,line,kind,verb,
+arguments,target_class,target_name,parameters`，其中 `parameters` 是 JSON 字符串。
+URL 形式仍只下载一个 source，不能解析远程目录中的相对 include 文件。
+
 ## 3. 静态潮流
 
 ### 推荐完整形式
@@ -115,12 +132,31 @@ bus, line, linecode, load, transformer, voltage_source,
 bus_voltage, bus_phase, load_state, branch_flow, source_flow,
 transformer_winding_flow, conductor_flow, regulator_state,
 capacitor_state, reactor_state, ibr_state, gfm_state,
-violations, summary, monitor, monitor_save, energy_meter,
-meter_loss_breakdown, reliability, meter_zone, meter_save,
-load_duration
+violations, summary, storage_state, storage_controller_state,
+switch_control_state, fuse_state, recloser_state, relay_state,
+fault_state, monitor, monitor_save, energy_meter, meter_loss_breakdown,
+reliability, meter_zone, meter_save, load_duration, execution_trace
 ```
 
 逐时步结果自动追加 `time`、`load_multiplier` 和 `generation_multiplier` 三列。
+显式 33 参数入口在 `fault` 非空时不接受 `execution_trace`；带故障轨迹应使用下面的
+DSS execution-plan 入口。
+
+### DSS execution plan
+
+```text
+voltage = ds_radial_dss_plan("run.dss");
+[results...] = ds_radial_dss_plan("run.dss", para);
+[results...] = ds_newton_raphson_dss_plan("run.dss", para);
+```
+
+URL 形式为 `ds_radial_dss_plan_url` 和 `ds_newton_raphson_dss_plan_url`。入口导入并按顺序
+执行一个或多个 `Solve`，在 epoch 之间延续 PSA 已声明的 Storage、控制、保护、计量和
+设备状态。`para` 可省略，默认返回 `bus_voltage`；`para.result` 接受上面的全部 QSTS 结果，并额外接受
+`diagnostics` 和 `events`。逐 epoch 结果带 `epoch_index`、`solve_event_sequence`；
+`execution_trace` 是覆盖全部 `Solve` 的全局轨迹，也支持 fault-aware 执行计划。
+计划入口的诊断表也带 epoch 标识；全局事件表把每条事件映射到对应 epoch，最后一个
+`Solve` 之后尚未执行的 trailing events 的 epoch 列为空。
 
 ## 5. 谐波
 
