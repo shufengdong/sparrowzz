@@ -50,6 +50,9 @@ python3 sparrowzz/dss/docs/catalog/validate_catalog.py
 
 | 案例 | 分析 | 主要输出 | 验证 |
 |---|---|---|---|
+| [`../bmopf_4bus_power_flow.rss`](../bmopf_4bus_power_flow.rss) | BMOPF 4Bus Radial 静态潮流 | `bus_phase` | OpenDSS 复电压 |
+| [`../bmopf_ieee13_power_flow.rss`](../bmopf_ieee13_power_flow.rss) | BMOPF IEEE13 Radial 静态潮流 | `bus_phase` | OpenDSS 复电压 |
+| [`../bmopf_ieee34_power_flow.rss`](../bmopf_ieee34_power_flow.rss) | BMOPF IEEE34 Radial 静态潮流 | `bus_phase` | OpenDSS 复电压 |
 | [`../ieee13_power_flow.rss`](../ieee13_power_flow.rss) | Radial 静态潮流 | `bus_phase` | OpenDSS 复电压 |
 | [`../ieee34_power_flow.rss`](../ieee34_power_flow.rss) | Radial 静态潮流 | `bus_phase` | OpenDSS 复电压 |
 | [`../ieee123_power_flow.rss`](../ieee123_power_flow.rss) | Radial 静态潮流 | `bus_phase` | OpenDSS 复电压 |
