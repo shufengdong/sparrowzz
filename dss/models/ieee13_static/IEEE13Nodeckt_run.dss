@@ -1,0 +1,5 @@
+// Executable OpenDSS entry deck for the PSA-compatible IEEE13 projection.
+Redirect IEEE13Nodeckt.dss
+Set VoltageBases=[115, 4.16, .48]
+CalcVoltageBases
+Solve

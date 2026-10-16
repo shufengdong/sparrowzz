@@ -13,6 +13,9 @@
 
 | 脚本 | 计算 |
 | --- | --- |
+| `bmopf_4bus_power_flow.rss` | BMOPF JSON 4Bus-DY-Bal 辐射状配电网潮流 |
+| `bmopf_ieee13_power_flow.rss` | BMOPF JSON IEEE13 辐射状配电网潮流 |
+| `bmopf_ieee34_power_flow.rss` | BMOPF JSON IEEE34 辐射状配电网潮流 |
 | `ieee13_power_flow.rss` | IEEE13 辐射状配电网潮流 |
 | `ieee34_power_flow.rss` | IEEE34 辐射状配电网潮流 |
 | `ieee123_power_flow.rss` | IEEE123 辐射状配电网潮流 |
@@ -52,6 +55,15 @@ cargo run -p mems \
   --features tensoreval-cli,with_dsa \
   --bin tensoreval -- \
   --df sparrowzz/dss/ieee13_power_flow.rss
+```
+
+BMOPF JSON 潮流脚本同样从工作区根目录运行：
+
+```bash
+cargo run -p mems \
+  --features tensoreval-cli,with_dsa \
+  --bin tensoreval -- \
+  --df sparrowzz/dss/bmopf_ieee13_power_flow.rss
 ```
 
 QSTS 脚本也可直接运行：
