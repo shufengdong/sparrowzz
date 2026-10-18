@@ -206,6 +206,67 @@ URL 形式为 `ds_radial_dss_plan_url` 和 `ds_newton_raphson_dss_plan_url`。�
 计划入口的诊断表也带 epoch 标识；全局事件表把每条事件映射到对应 epoch，最后一个
 `Solve` 之后尚未执行的 trailing events 的 epoch 列为空。
 
+### DSS 原生 Harmonic、AutoAdd 和 RelCalc
+
+三个入口都固定接收两个参数：本地 `.dss` 路径，以及参数 DataFrame 或结果选择字符串。
+字符串形式使用 `PfParams` 默认值；DataFrame 形式由 `para.result` 选择结果，并允许设置
+通用潮流参数。结果名按逗号顺序与左侧解构位置一一对应；未知名、重复名、错误参数数目
+或无法执行的 DSS 生命周期都会失败，不返回部分表。
+
+```text
+[bus_voltage, branch_flow, conductor_flow, bus_sequence, branch_sequence, monitor]
+    = ds_dss_harmonic_plan("run.dss", "bus_voltage,branch_flow,conductor_flow,bus_sequence,branch_sequence,monitor");
+
+[ranking, selection, final_voltage, summary]
+    = ds_dss_auto_add("run.dss", auto_add_para);
+
+[meter, section, branch, bus]
+    = ds_dss_relcalc("run.dss", "meter,section,branch,bus");
+```
+
+| 函数 | DSS 生命周期 | 默认结果 | 全部可选结果 |
+|---|---|---|---|
+| `ds_dss_harmonic_plan` | `Harmonic` / `HarmonicT` | `bus_voltage` | `bus_voltage,branch_flow,conductor_flow,bus_sequence,branch_sequence,monitor` |
+| `ds_dss_auto_add` | 有界 `AutoAdd` | `ranking` | `ranking,selection,final_voltage,summary` |
+| `ds_dss_relcalc` | Snapshot 后的有界 `RelCalc` | `meter` | `meter,section,branch,bus` |
+
+Harmonic/HarmonicT 的每张非空结果表都含 `step_index:UInt32,time_s:Float64`；含
+`harmonic` 的表还含 `frequency_hz:Float64`。角度单位为度，电压为 V，电流为 A，功率
+为 W/var，`thd` 为百分比。各结果主体列如下：
+
+| 结果 | 主体列与顺序 |
+|---|---|
+| `bus_voltage` | `bus,phase,harmonic,voltage_mag,voltage_angle,thd` |
+| `branch_flow` | `kind,element,terminal,bus,phase,harmonic,voltage_re,voltage_im,voltage_mag,voltage_angle,current_re,current_im,current_mag,current_angle,p,q` |
+| `conductor_flow` | 与潮流 `conductor_flow` 相同，另含 `harmonic,frequency_hz`；内部屏蔽导体的端电压可为空 |
+| `bus_sequence` | `bus,harmonic,sequence,voltage_re,voltage_im,voltage_mag,voltage_angle`，`sequence` 为 `zero/positive/negative` |
+| `branch_sequence` | `kind,element,terminal,bus,harmonic,sequence` 加与 `branch_flow` 相同的数值列；序功率为 `3·Vseq·conj(Iseq)` |
+| `monitor` | `monitor,frequency_hz,harmonic,mode,element,terminal,phase,channel,value`；未配置 Monitor 时返回固定 schema 零行表 |
+
+AutoAdd 只接受 PSA 已限定的单次、径向、固定额定值候选搜索。结果按 `score` 升序，分数
+相同按源候选顺序排列：
+
+| 结果 | 列与语义 |
+|---|---|
+| `ranking` | `rank,candidate,kind,bus,converged,p_loss_w,voltage_penalty,unserved_power_w,score,improvement,selected` |
+| `selection` | `selected_bus:String,added_device:String`；选中时一行，否则固定 schema 零行 |
+| `final_voltage` | `bus,v_mag,v_ang`；V 和弧度；为加入所选设备后的径向潮流，未选中时为原网络 |
+| `summary` | 单行 `baseline_score,selected,final_score`；未选中时 `final_score=baseline_score` |
+
+RelCalc 只接受 PSA 已限定的互不重叠径向 EnergyMeter 区域、显式客户数据和受支持保护
+分段。`meter` 每表计一行；`section` 按表计及源顺序分段；`branch` 按区域径向顺序；
+`bus` 按表计和区域顺序。`*_h` 为小时：
+
+| 结果 | 列与顺序 |
+|---|---|
+| `meter` | `meter,restore,total_customers,saifi,saifi_kw,saidi_h,caidi_h,customer_interruptions` |
+| `section` | `meter,section,ocp_device_type,customers,branches,total_customers,sequence_index,average_repair_time_h,fault_rate_x_repair_h,sum_branch_fault_rates` |
+| `branch` | `meter,branch_class,branch,from_terminal,section,lambda,accumulated_lambda,repair_hours,customers,total_customers` |
+| `bus` | `meter,bus,section,interruptions,interruption_duration_h,total_customers,customer_duration_h` |
+
+这三个入口只读取本地文件，不提供 URL 变体。它们不会把 Harmonic、AutoAdd 或 RelCalc
+与普通 QSTS 自动拆分或串联；混合生命周期应由上层显式编排。
+
 ## 5. 谐波
 
 ### 完整形式
