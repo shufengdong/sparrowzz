@@ -14,6 +14,7 @@ FUNCTIONS = DOCS / "catalog/functions.json"
 DATAFRAMES = DOCS / "catalog/dataframes.json"
 TRANSLATE = ROOT / "mems/src/ml/expr_df/translate.rs"
 FRAME_OPS = ROOT / "mems/src/ml/expr_df/frame_ops.rs"
+NATIVE_DSS = ROOT / "mems/src/ml/expr_df/frame_ops/dsa/native_dss.rs"
 
 RESULT_CONSTANTS = {
     "MOTOR_DYNAMIC_RESULT_NAMES": {"ds_motor_dynamics"},
@@ -32,6 +33,12 @@ RESULT_CONSTANTS = {
     "POWER_FLOW_RESULT_NAMES": {"ds_radial_pf", "ds_newton_raphson_pf"},
 }
 
+NATIVE_DSS_RESULT_CONSTANTS = {
+    "HARMONIC_RESULTS": {"ds_dss_harmonic_plan"},
+    "AUTO_ADD_RESULTS": {"ds_dss_auto_add"},
+    "RELCALC_RESULTS": {"ds_dss_relcalc"},
+}
+
 QSTS_RESULT_BUILDERS = {
     "storage_state": ("qsts_storage_state_frame", []),
     "storage_controller_state": ("qsts_storage_controller_state_frame", []),
@@ -45,6 +52,7 @@ QSTS_RESULT_BUILDERS = {
 
 PSA_RESULT_BUILDERS = {
     "load_state": ("psa/src/dsa/output/power_flow.rs", "load_state_result_df"),
+    "generator_state": ("psa/src/dsa/output/device_state.rs", "generator_state_result_df"),
     "branch_flow": ("psa/src/dsa/output/power_flow.rs", "branch_flow_result_df"),
     "source_flow": ("psa/src/dsa/output/power_flow.rs", "source_flow_result_df"),
     "transformer_winding_flow": ("psa/src/dsa/output/power_flow.rs", "transformer_winding_flow_df"),
@@ -60,6 +68,7 @@ PSA_RESULT_BUILDERS = {
     "harmonic_bus_sequence": ("psa/src/dsa/harmonics/api.rs", "bus_sequence_frame"),
     "harmonic_branch_sequence": ("psa/src/dsa/harmonics/api.rs", "branch_sequence_frame"),
     "harmonic_monitor": ("psa/src/dsa/harmonics/monitor.rs", "monitor_frame"),
+    "meter_phase_voltage": ("psa/src/dsa/pf/metering.rs", "meter_phase_voltage_frame"),
 }
 
 
@@ -150,6 +159,7 @@ def main():
 
     translate = TRANSLATE.read_text(encoding="utf-8")
     frame_ops = FRAME_OPS.read_text(encoding="utf-8")
+    native_dss = NATIVE_DSS.read_text(encoding="utf-8")
     registered_dsa = registered_dsa_names(frame_ops)
 
     dsa_by_name, duplicates = catalog_dsa_entries(functions)
@@ -172,6 +182,16 @@ def main():
 
     for constant, function_names in RESULT_CONSTANTS.items():
         rust_results = result_constant(frame_ops, constant)
+        for function_name in function_names:
+            catalog_results = dsa_by_name[function_name].get("results")
+            if catalog_results != rust_results:
+                fail(
+                    f"{function_name} result list differs from {constant}: "
+                    f"catalog={catalog_results}, rust={rust_results}"
+                )
+
+    for constant, function_names in NATIVE_DSS_RESULT_CONSTANTS.items():
+        rust_results = result_constant(native_dss, constant)
         for function_name in function_names:
             catalog_results = dsa_by_name[function_name].get("results")
             if catalog_results != rust_results:

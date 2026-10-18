@@ -110,7 +110,7 @@ URL 形式仍只下载一个 source，不能解析远程目录中的相对 inclu
 固定 21 个参数。默认结果为 `bus_voltage`。`para.result` 支持：
 
 ```text
-bus_voltage, bus_phase, load_state, branch_flow, source_flow,
+bus_voltage, bus_phase, load_state, generator_state, branch_flow, source_flow,
 transformer_winding_flow, conductor_flow, regulator_state,
 capacitor_state, reactor_state, ibr_state, gfm_state,
 violations, summary
@@ -158,13 +158,14 @@ bus, line, linecode, load, transformer, voltage_source,
 保护量测的 QSTS 入口。默认结果为 `bus_voltage`。支持结果：
 
 ```text
-bus_voltage, bus_phase, load_state, branch_flow, source_flow,
+bus_voltage, bus_phase, load_state, generator_state, branch_flow, source_flow,
 transformer_winding_flow, conductor_flow, regulator_state,
 capacitor_state, reactor_state, ibr_state, gfm_state,
 violations, summary, storage_state, storage_controller_state,
 switch_control_state, fuse_state, recloser_state, relay_state,
 fault_state, monitor, monitor_save, energy_meter, meter_loss_breakdown,
-reliability, meter_zone, meter_save, load_duration, execution_trace
+reliability, meter_zone, meter_phase_voltage, meter_save, load_duration,
+execution_trace
 ```
 
 逐时步结果自动追加 `time`、`load_multiplier` 和 `generation_multiplier` 三列。
@@ -174,6 +175,7 @@ reliability, meter_zone, meter_save, load_duration, execution_trace
 
 | 结果名 | 内容 |
 |---|---|
+| `generator_state` | 发电机逐相 P/Q、电压、电流、无功上下限、控制模式及限幅状态 |
 | `storage_state` | 储能 SOC、能量及受限后的实际 P/Q |
 | `storage_controller_state` | 控制模式、目标、死区、群组请求/实际有功及锁定状态 |
 | `switch_control_state` | 被控端子、逐相状态、量测条件和待执行动作 |

@@ -453,6 +453,8 @@ max_corrector_iterations,tolerance,max_network_iterations,voltage_tolerance,rela
 
 - `bus_voltage`：`bus,v_mag,v_ang`，其中后两列是按母线相序排列的列表，单位 V/rad；
 - `bus_phase`：`bus,phase,v_re,v_im,v_mag,v_ang`，单位 V/rad；
+- `generator_state`：`generator,bus,phase,p,q,v_mag,i_mag,q_min,q_max,control_mode,
+  q_limited`；
 - `summary`：`method,converged,control_iterations,control_actions,control_time,solve_count,
   plan_builds,last_iterations,total_iterations,p_loss,q_loss,violation_count,
   max_violation_ratio`；
@@ -462,6 +464,9 @@ max_corrector_iterations,tolerance,max_network_iterations,voltage_tolerance,rela
 `src/dsa/output/power_flow.rs`、`device_state.rs` 和 `line_conductor.rs`。它们的精确列顺序
 已登记在 [`catalog/dataframes.json`](catalog/dataframes.json) 的 `result_frames`，并由目录
 校验器直接与这些 DataFrame 构造器核对。不能从 OpenDSS 导出列猜测名称。
+
+QSTS 的 `meter_phase_voltage` 固定为
+`meter,time,voltage_base_v,phase,sample_count,v_min_pu,v_max_pu,v_avg_pu`。
 
 ### 谐波和短路
 

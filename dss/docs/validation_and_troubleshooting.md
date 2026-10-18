@@ -31,6 +31,21 @@ cargo test --release -p mems --features with_dsa --test main \
 Newton QSTS、Newton PF 和状态估计改用项目可用的 `with_dsa_mumps` 或
 `with_dsa_mkl`。不要同时启用两个后端。
 
+### Bundle 验证
+
+便携 `.rssbundle` 直接作为 `tensoreval` 的唯一输入：
+
+```bash
+cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
+  path/to/case.rssbundle
+```
+
+运行器依次校验 manifest schema、规范化相对路径与文件存在性、文件哈希、外部输入 schema，
+然后才解析和执行 `main.rss`，最后核对结果名称与顺序。因此被修改的脚本或 DSS 文件会以
+`MEMS.RSS.BUNDLE.HASH_MISMATCH` 失败，不会先进入解析器。不要手工修改已发布 bundle；应从
+源 DSS 重新构建。移动整个 bundle 不影响运行；删除原始 DSS 文件树也不影响运行。若转换时
+依赖根目录推断不符合项目布局，应显式传入 `dss2rss --source-root ... --mode bundle`。
+
 ## 2. 当前案例的对照规则
 
 `mems/tests/dff/dff_script.rs` 直接执行 `sparrowzz/dss/*.rss`，并复用
