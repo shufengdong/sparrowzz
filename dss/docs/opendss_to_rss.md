@@ -36,7 +36,10 @@ flowchart LR
 | `Compile` 或 `Redirect` 主文件 | `import_dss("path/to/Master.dss")` |
 | `Solution.Solve()` | `ds_radial_pf(...)` 或 `ds_newton_raphson_pf(...)` |
 | 一个或多个时序 `Solve` | `ds_radial_dss_plan(...)` 或 `ds_newton_raphson_dss_plan(...)` |
-| `Solve mode=harmonic` | `ds_harmonic_study(...)` |
+| 原生 `Solve mode=harmonic/harmonict` 命令流 | `ds_dss_harmonic_plan(path, para_or_results)` |
+| 已显式准备网络与频谱表的谐波研究 | `ds_harmonic_study(...)` |
+| 原生 `Solve mode=autoadd` | `ds_dss_auto_add(path, para_or_results)` |
+| 原生 Snapshot 后 `RelCalc` | `ds_dss_relcalc(path, para_or_results)` |
 | 创建 `Fault` 后求解或 `mode=faultstudy` | 构造 `fault` 表后调用 `ds_fault_study(...)` |
 | `Circuit.AllBusNames`、`Bus.Voltages` | 请求 `bus_phase` 结果 |
 | `CktElement.Currents/Powers/Losses` | 请求 `branch_flow`、`source_flow` 等结果 |
@@ -47,6 +50,11 @@ flowchart LR
 求解由后续 `ds_*` 函数完成。执行型 `import_dss_execution` 和 `ds_*_dss_plan` 则使用
 PSA 的有界 ExecutionStudy 契约保留 `Solve`、控制、保护和计量状态。这个边界让脚本中的数据依赖和结果都能进入 mems 流程图，
 也防止无法等价表示的 OpenDSS 命令被静默忽略。
+
+Harmonic/HarmonicT、AutoAdd 和 RelCalc 使用各自的 PSA 原生 adapter，不先降为通用 QSTS。
+这些函数的第二参数可传 `para` DataFrame，也可直接传逗号分隔结果字符串；字符串形式使用
+默认求解参数，适合 `dss2rss` 生成的自包含 linked RSS。完整结果 schema 和限制见
+[RSDss 函数参考](dsa_function_reference.md#dss-原生-harmonicautoadd-和-relcalc)。
 
 ## 2. 构建要求
 
@@ -442,7 +450,10 @@ LoadShape 绑定，并请求逐母线逐相电压；测试将 36 行复电压与
 | 径向/弱网静态潮流 | `ds_radial_pf` |
 | 通用 Newton 静态潮流 | `ds_newton_raphson_pf` |
 | Daily/Yearly/Duty 时序 | `ds_radial_qsts` / `ds_newton_raphson_qsts` |
+| 保留原 DSS Daily/Yearly/Duty/PeakDay/LD1/LD2 命令流 | `ds_radial_dss_plan` / `ds_newton_raphson_dss_plan` |
 | 谐波扫描 | `ds_harmonic_study` |
+| 保留原 DSS Harmonic/HarmonicT 命令流 | `ds_dss_harmonic_plan` |
+| 原生 AutoAdd / RelCalc | `ds_dss_auto_add` / `ds_dss_relcalc` |
 | 短路 | `ds_fault_study` |
 | WLS/鲁棒状态估计 | `ds_wls_se` / `ds_mnmr_se` / `ds_mce_se` |
 | Monte Carlo | `ds_monte_carlo` |
@@ -476,9 +487,11 @@ cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
 
 该参数也可写成 `--dss2rss`、`--dsstorss` 或 `--dss_to_rss`。
 
-转换器会先完成导入和一次实际求解；可能改变 OpenDSS 结果的导入 Warning 也会使转换失败，
-并逐项输出诊断码与源位置。Snapshot 和 ExecutionStudy 的映射范围遵循本节上述严格
-转换示例及第 9 节的分析模式边界。
+转换器会解析完整命令流，分类为 Snapshot、ExecutionPlan、Harmonic、AutoAdd 或 RelCalc，
+再通过对应 PSA 入口完成导入和一次实际计算。生成的 specialist RSS 还会通过 expr_df
+重新执行后才返回；可能改变 OpenDSS 结果的导入 Warning 会使转换失败，并逐项输出诊断码
+与源位置。ExecutionPlan 中已经被 typed study 消费的 `READ.DSS.RETAINED_SOURCE_ONLY`
+仍作为提示返回，不会被误判为丢失执行语义。
 
 `tensoreval` 命令行工具可以直接运行 RSS（RSDss）文件。脚本使用 `import_dss` 等自包含入口时
 不需要外部 DataFrame：
