@@ -50,6 +50,23 @@ cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
 显式覆盖选择。Newton 还要求构建包含可用的
 MUMPS 或 MKL 后端。
 
+需要把 DSS 文件树、数据资产和外部输入一起交付时，生成便携 bundle：
+
+```bash
+cargo run -p mems --features tensoreval-cli,with_dsa --bin dss2rss -- \
+  path/to/run.dss --mode bundle --output path/to/case.rssbundle
+
+cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
+  path/to/case.rssbundle
+```
+
+默认 `--mode linked` 仍生成单个 `.rss`。`--mode bundle` 生成一个目录，包含
+`manifest.json`、`main.rss`、`dss/`、`assets/` 以及可选的 `inputs/`。转换器会把依赖复制到
+临时目录，重写 bundle 内的数据资产路径，完成清单校验和一次自执行后再原子发布。
+`--source-root` 可显式指定依赖树边界；`--force` 只在新 bundle 完整验证后替换旧目录。
+清单字段、路径约束和验证顺序见
+[RSS bundle 合同](../../../mems/docs/dss_to_rss_bundle.md)。
+
 ## 2. 转换路径
 
 转换器根据 DSS 命令流选择一种执行路径：
@@ -88,7 +105,7 @@ Snapshot 投影当前只移除以下语句：
 每个 linked RSS 的头部记录 `mode=linked`、分类、规范化源入口、依赖树 SHA-256 和 PSA
 合同版本。依赖树来自 PSA 导入器实际读取的 `Redirect`/`Compile` 和数据资产清单；哈希按
 规范化相对路径排序并覆盖原始文件字节。头部哈希用于溯源，linked 运行时仍重新读取原文件；
-运行前强制验签属于后续 bundle 校验能力。
+bundle 则复制这些文件，并在解析或执行 RSS 前强制验证清单、路径、文件哈希和输入 schema。
 
 直接执行 `.dss` 不要求 Snapshot 入口和模型分文件；若直接计算成功，但入口无法安全归约
 成一个持久 RSS 可引用的静态模型，`dss2rss --output` 会用
@@ -125,6 +142,10 @@ OpenDSS 自己对 `switch=yes` 忽略的线路阻抗字段。
 | `MEMS.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 FaultStudy、Dynamic、M1/M2/M3/MonteFault 等尚无原生 adapter 的生命周期 |
 | `MEMS.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` | 一个命令流混合了没有 continuation 合同的研究类型 |
 | `MEMS.DSS.TRANSLATE.GENERATED_RSS_FAILED` | 生成文本已形成，但通过同一 expr_df/PSA 门面自校验失败 |
+| `MEMS.RSS.BUNDLE.PATH_INVALID` / `MEMS.RSS.BUNDLE.PATH_ESCAPE` | 清单路径不规范，或解析后越过 bundle 根目录 |
+| `MEMS.RSS.BUNDLE.HASH_MISMATCH` | bundle 内文件内容与清单中的 SHA-256 不一致 |
+| `MEMS.RSS.BUNDLE.INPUT_SCHEMA_MISMATCH` | 外部输入文件的列名或数据类型与清单不一致 |
+| `MEMS.RSS.BUNDLE.RESULT_MISMATCH` | 执行结果的名称或顺序与清单声明不一致 |
 
 另外还会原样返回 PSA 的 `PSA.DSS.*`、`READ.DSS.*` 和 `READINESS.*` 诊断。调用方应以
 退出码和诊断码判断结果，不能只搜索提示文本。

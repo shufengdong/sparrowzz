@@ -213,9 +213,36 @@
       "arguments": ["path_or_url", "para_or_result_selector?"],
       "behavior": "import and execute a DSS command plan containing one or more Solve epochs while preserving runtime state between epochs",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "bus_phase", "load_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary", "storage_state", "storage_controller_state", "switch_control_state", "fuse_state", "recloser_state", "relay_state", "fault_state", "monitor", "monitor_save", "energy_meter", "meter_loss_breakdown", "reliability", "meter_zone", "meter_save", "load_duration", "execution_trace", "diagnostics", "events"],
+      "results": ["bus_voltage", "bus_phase", "load_state", "generator_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary", "storage_state", "storage_controller_state", "switch_control_state", "fuse_state", "recloser_state", "relay_state", "fault_state", "monitor", "monitor_save", "energy_meter", "meter_loss_breakdown", "reliability", "meter_zone", "meter_phase_voltage", "meter_save", "load_duration", "execution_trace", "diagnostics", "events"],
       "appended_columns": ["epoch_index", "solve_event_sequence"],
       "restriction": "The optional second argument is either a parameter DataFrame or a comma-separated result string. The URL form downloads one source and cannot resolve remote relative includes."
+    },
+    {
+      "names": ["ds_dss_harmonic_plan"],
+      "arity": 2,
+      "arguments": ["local_dss_path", "para_or_result_selector"],
+      "behavior": "import and execute one bounded local DSS Harmonic or HarmonicT lifecycle",
+      "default_result": "bus_voltage",
+      "results": ["bus_voltage", "branch_flow", "conductor_flow", "bus_sequence", "branch_sequence", "monitor"],
+      "restriction": "The first argument is a local path. The second argument is a parameter DataFrame or a comma-separated result string. Mixed lifecycles and URL sources are rejected."
+    },
+    {
+      "names": ["ds_dss_auto_add"],
+      "arity": 2,
+      "arguments": ["local_dss_path", "para_or_result_selector"],
+      "behavior": "import and execute one bounded radial fixed-rating DSS AutoAdd search",
+      "default_result": "ranking",
+      "results": ["ranking", "selection", "final_voltage", "summary"],
+      "restriction": "The first argument is a local path. The second argument is a parameter DataFrame or a comma-separated result string. Mixed lifecycles and URL sources are rejected."
+    },
+    {
+      "names": ["ds_dss_relcalc"],
+      "arity": 2,
+      "arguments": ["local_dss_path", "para_or_result_selector"],
+      "behavior": "import and execute one bounded DSS RelCalc study after its Snapshot preparation",
+      "default_result": "meter",
+      "results": ["meter", "section", "branch", "bus"],
+      "restriction": "The first argument is a local path. The second argument is a parameter DataFrame or a comma-separated result string. Mixed lifecycles and URL sources are rejected."
     },
     {
       "names": ["ds_radial_pf", "ds_newton_raphson_pf"],
@@ -224,7 +251,7 @@
       "arguments": ["network[20]", "para"],
       "behavior": "solve a static power flow with the radial or Newton-Raphson solver",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "bus_phase", "load_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary"]
+      "results": ["bus_voltage", "bus_phase", "load_state", "generator_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary"]
     },
     {
       "names": ["ds_radial_qsts", "ds_newton_raphson_qsts"],
@@ -236,7 +263,7 @@
       ],
       "behavior": "run a quasi-static time-series study with schedules, controls, protection, monitoring, and metering",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "bus_phase", "load_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary", "storage_state", "storage_controller_state", "switch_control_state", "fuse_state", "recloser_state", "relay_state", "fault_state", "monitor", "monitor_save", "energy_meter", "meter_loss_breakdown", "reliability", "meter_zone", "meter_save", "load_duration", "execution_trace"],
+      "results": ["bus_voltage", "bus_phase", "load_state", "generator_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary", "storage_state", "storage_controller_state", "switch_control_state", "fuse_state", "recloser_state", "relay_state", "fault_state", "monitor", "monitor_save", "energy_meter", "meter_loss_breakdown", "reliability", "meter_zone", "meter_phase_voltage", "meter_save", "load_duration", "execution_trace"],
       "appended_columns": ["time", "load_multiplier", "generation_multiplier"]
     },
     {

@@ -1525,6 +1525,22 @@
       ],
       "schema_source": "psa/src/dsa/output/power_flow.rs"
     },
+    "generator_state": {
+      "columns": [
+        "generator",
+        "bus",
+        "phase",
+        "p",
+        "q",
+        "v_mag",
+        "i_mag",
+        "q_min",
+        "q_max",
+        "control_mode",
+        "q_limited"
+      ],
+      "schema_source": "psa/src/dsa/output/device_state.rs"
+    },
     "branch_flow": {
       "columns": [
         "branch",
@@ -1671,6 +1687,11 @@
         "states",
         "q_rated",
         "q_effective",
+        "i_normal",
+        "i_emergency",
+        "i_actual_max",
+        "normal_loading",
+        "emergency_loading",
         "on_setting",
         "off_setting",
         "ptratio",
@@ -1693,7 +1714,12 @@
         "kv",
         "r_ohm",
         "x_ohm",
-        "kvar"
+        "kvar",
+        "i_normal",
+        "i_emergency",
+        "i_actual_max",
+        "normal_loading",
+        "emergency_loading"
       ],
       "schema_source": "psa/src/dsa/output/device_state.rs"
     },
@@ -2367,6 +2393,19 @@
         "phases"
       ],
       "schema_source": "mems/src/ml/expr_df/frame_ops.rs"
+    },
+    "meter_phase_voltage": {
+      "columns": [
+        "meter",
+        "time",
+        "voltage_base_v",
+        "phase",
+        "sample_count",
+        "v_min_pu",
+        "v_max_pu",
+        "v_avg_pu"
+      ],
+      "schema_source": "psa/src/dsa/pf/metering.rs"
     },
     "execution_trace": {
       "columns": [
