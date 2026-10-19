@@ -250,11 +250,8 @@ joined = join(voltage, limits, bus, bus, "left");
 ## 10. 运行命令
 
 ```bash
-cargo run -p mems \
-  --features tensoreval-cli,with_dsa \
-  --bin tensoreval -- \
-  --df path/to/case.rss
+tensoreval --df path/to/case.rss
 ```
 
-Newton/状态估计把 `with_dsa` 替换为项目可用的 `with_dsa_mumps` 或 `with_dsa_mkl`。
-谐波和大模型使用 `cargo run --release`。
+Newton 和状态估计需要安装包含 MUMPS 或 MKL 后端的版本。谐波和大模型使用发布版
+`tensoreval`。

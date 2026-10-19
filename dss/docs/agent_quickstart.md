@@ -117,17 +117,8 @@ monitor, energy_meter, fault, para
 ## 6. 运行并检查
 
 ```bash
-target/debug/tensoreval --df path/to/case.rss
-target/debug/tensoreval --df --verbose path/to/case.rss
-```
-
-还未构建二进制时使用：
-
-```bash
-cargo run -p mems \
-  --features tensoreval-cli,with_dsa \
-  --bin tensoreval -- \
-  --df path/to/case.rss
+tensoreval --df path/to/case.rss
+tensoreval --df --verbose path/to/case.rss
 ```
 
 验收至少检查：

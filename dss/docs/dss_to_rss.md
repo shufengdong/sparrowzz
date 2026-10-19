@@ -1,51 +1,49 @@
 # DSS 到 RSS 严格转换
 
-`dss2rss` 把一个本地 OpenDSS `.dss` 入口文件转换成可由 `tensoreval --df` 执行的
+`tensoreval --dss-to-rss` 把一个本地 OpenDSS `.dss` 入口文件转换成可由
+`tensoreval --df` 执行的
 `.rss` 脚本。转换器在写文件前展开并审计本地 `Redirect`/`Compile` 文件树，按 PSA
 当前契约导入全部电气内容，并用所选 PSA 求解器实际求解一次。任一步失败都不会留下部分
 可执行脚本。
 
 ## 1. 命令
 
-从工作区根目录运行：
+直接计算 DSS：
 
 ```bash
-cargo run -p mems --features tensoreval-cli,with_dsa --bin dss2rss -- \
-  path/to/run.dss --output path/to/run.rss
+tensoreval path/to/run.dss
+```
+
+只转换为 linked RSS，不执行生成脚本：
+
+```bash
+tensoreval --dss-to-rss --output path/to/run.rss path/to/run.dss
 ```
 
 随后执行生成文件：
 
 ```bash
-cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
-  --df path/to/run.rss
+tensoreval --df path/to/run.rss
 ```
 
-也可以把 `.dss` 入口直接交给 `tensoreval`。后缀匹配不区分大小写，不要求 `--df`：
+省略 `--output` 时生成同目录同名的 `path/to/run.rss`：
 
 ```bash
-cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
-  path/to/run.dss
-```
-
-只转换为同目录同名的 `path/to/run.rss`，不执行生成脚本和输出潮流结果时使用：
-
-```bash
-cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
-  --dss-to-rss path/to/run.dss
+tensoreval --dss-to-rss path/to/run.dss
 ```
 
 `--dss2rss`、`--dsstorss` 和 `--dss_to_rss` 是 `--dss-to-rss` 的等价别名，输出和错误
 处理合同完全相同。
 
-该参数仍执行严格导入和求解校验。目标 RSS 已存在时会拒绝覆盖；需要选择输出路径或覆盖时，
-使用上面的独立 `dss2rss --output ... [--force]` 命令。
+该参数仍执行严格导入和求解校验。目标 RSS 已存在时会拒绝覆盖；使用 `--output` 选择路径，
+使用 `--force` 覆盖已有输出。
 
-此路径与独立 `dss2rss` 共用同一个分类、导入和求解实现。一个 `.dss` 必须单独运行，
-也不能同时使用 `--input`。直接执行会遵守 DSS 的显式 `Algorithm`；未指定时根据 PSA
+直接计算和转换共用同一个分类、导入和求解实现。一个 `.dss` 必须是唯一位置参数。
+直接计算不接受 `--input`；转换时 `--input NAME=FILE` 只与 `--mode bundle` 联用。
+直接执行会遵守 DSS 的显式 `Algorithm`；未指定时根据 PSA
 已验证的拓扑选择 Radial 或 Newton，不会在 Radial 失败后自动切换 Newton。
 
-只检查而不写文件时使用 `--check`。输出文件存在时转换器拒绝覆盖；显式使用 `--force`
+只检查而不写文件时使用 `tensoreval --dss-to-rss --check INPUT.dss`。输出文件存在时转换器拒绝覆盖；显式使用 `--force`
 才能替换。`--solver auto` 是默认值；`--solver radial` 和 `--solver newton-raphson` 可
 显式覆盖选择。Newton 还要求构建包含可用的
 MUMPS 或 MKL 后端。
@@ -53,19 +51,17 @@ MUMPS 或 MKL 后端。
 需要把 DSS 文件树、数据资产和外部输入一起交付时，生成便携 bundle：
 
 ```bash
-cargo run -p mems --features tensoreval-cli,with_dsa --bin dss2rss -- \
-  path/to/run.dss --mode bundle --output path/to/case.rssbundle
+tensoreval --dss-to-rss --mode bundle \
+  --output path/to/case.rssbundle path/to/run.dss
 
-cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
-  path/to/case.rssbundle
+tensoreval path/to/case.rssbundle
 ```
 
 默认 `--mode linked` 仍生成单个 `.rss`。`--mode bundle` 生成一个目录，包含
 `manifest.json`、`main.rss`、`dss/`、`assets/` 以及可选的 `inputs/`。转换器会把依赖复制到
 临时目录，重写 bundle 内的数据资产路径，完成清单校验和一次自执行后再原子发布。
 `--source-root` 可显式指定依赖树边界；`--force` 只在新 bundle 完整验证后替换旧目录。
-清单字段、路径约束和验证顺序见
-[RSS bundle 合同](../../../mems/docs/dss_to_rss_bundle.md)。
+本页后续章节定义清单字段、路径约束和验证顺序。
 
 ## 2. 转换路径
 
@@ -81,8 +77,8 @@ cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
 
 转换器先解析完整命令流再分类。专用生命周期优先于其准备阶段的 Snapshot；一个文件中
 混合 QSTS、Harmonic、AutoAdd 或 RelCalc 会以
-`MEMS.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` 失败。只有模型定义、没有研究命令的入口
-不会由 `dss2rss` 猜测研究类型。
+`TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` 失败。只有模型定义、没有研究命令的入口
+不会由转换器猜测研究类型。
 
 为保持已有生成脚本合同，Snapshot 和 ExecutionPlan 的 linked RSS 把所选 `bus_phase`
 结果绑定为终端变量 `voltage`；`tensoreval case.dss` 的直接执行结果名仍为 `bus_phase`。
@@ -108,8 +104,8 @@ Snapshot 投影当前只移除以下语句：
 bundle 则复制这些文件，并在解析或执行 RSS 前强制验证清单、路径、文件哈希和输入 schema。
 
 直接执行 `.dss` 不要求 Snapshot 入口和模型分文件；若直接计算成功，但入口无法安全归约
-成一个持久 RSS 可引用的静态模型，`dss2rss --output` 会用
-`MEMS.DSS.TRANSLATE.STATIC_ENTRY_UNAVAILABLE` 拒绝生成，并提示拆分模型文件和运行入口。
+成一个持久 RSS 可引用的静态模型，`tensoreval --dss-to-rss --output ...` 会用
+`TENSOREVAL.DSS.TRANSLATE.STATIC_ENTRY_UNAVAILABLE` 拒绝生成，并提示拆分模型文件和运行入口。
 
 ## 3. 失败诊断
 
@@ -123,7 +119,7 @@ DSS import produced findings that can change OpenDSS results
 - [READ.DSS.VALUE_UNSUPPORTED] IEEE13Nodeckt.dss:37 (regcontrol.Reg3): regcontrol Reg3: ...
 ```
 
-PSA 导入器的部分发现原本是 Warning。`dss2rss` 会把可能改变 OpenDSS 结果的 Warning
+PSA 导入器的部分发现原本是 Warning。严格转换会把可能改变 OpenDSS 结果的 Warning
 提升为转换失败。当前只放行已验证的源 `pu/angle` 默认值、`emergamps` 默认值，以及
 OpenDSS 自己对 `switch=yes` 忽略的线路阻抗字段。
 
@@ -131,21 +127,21 @@ OpenDSS 自己对 `switch=yes` 忽略的线路阻抗字段。
 
 | 诊断码 | 含义 |
 |---|---|
-| `MEMS.DSS.TRANSLATE.COMMAND_UNSUPPORTED` | 命令没有 RSS/PSA Snapshot 等价语义 |
-| `MEMS.DSS.TRANSLATE.SET_UNSUPPORTED` | `Set` 选项尚未映射 |
-| `MEMS.DSS.TRANSLATE.SOLVE_ARGUMENT_UNSUPPORTED` | Snapshot `Solve` 带有未映射参数 |
-| `MEMS.DSS.TRANSLATE.POST_SOLVE_MUTATION` | `Solve` 后仍修改模型，且不能进入 execution plan |
-| `MEMS.DSS.TRANSLATE.MULTIPLE_SNAPSHOT_SOLVES` | 多个 Snapshot barrier 尚无连续状态合同 |
-| `MEMS.DSS.TRANSLATE.SOLVE_FAILED` | 导入成功，但所选 PSA 求解器未能完成计算 |
-| `MEMS.DSS.TRANSLATE.STATIC_ENTRY_UNAVAILABLE` | 可直接计算，但没有可供生成 RSS 使用的单一静态模型入口 |
-| `MEMS.DSS.CLASSIFY.STUDY_REQUIRED` | 入口只定义模型，没有可分类的研究命令 |
-| `MEMS.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 FaultStudy、Dynamic、M1/M2/M3/MonteFault 等尚无原生 adapter 的生命周期 |
-| `MEMS.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` | 一个命令流混合了没有 continuation 合同的研究类型 |
-| `MEMS.DSS.TRANSLATE.GENERATED_RSS_FAILED` | 生成文本已形成，但通过同一 expr_df/PSA 门面自校验失败 |
-| `MEMS.RSS.BUNDLE.PATH_INVALID` / `MEMS.RSS.BUNDLE.PATH_ESCAPE` | 清单路径不规范，或解析后越过 bundle 根目录 |
-| `MEMS.RSS.BUNDLE.HASH_MISMATCH` | bundle 内文件内容与清单中的 SHA-256 不一致 |
-| `MEMS.RSS.BUNDLE.INPUT_SCHEMA_MISMATCH` | 外部输入文件的列名或数据类型与清单不一致 |
-| `MEMS.RSS.BUNDLE.RESULT_MISMATCH` | 执行结果的名称或顺序与清单声明不一致 |
+| `TENSOREVAL.DSS.TRANSLATE.COMMAND_UNSUPPORTED` | 命令没有 RSS/PSA Snapshot 等价语义 |
+| `TENSOREVAL.DSS.TRANSLATE.SET_UNSUPPORTED` | `Set` 选项尚未映射 |
+| `TENSOREVAL.DSS.TRANSLATE.SOLVE_ARGUMENT_UNSUPPORTED` | Snapshot `Solve` 带有未映射参数 |
+| `TENSOREVAL.DSS.TRANSLATE.POST_SOLVE_MUTATION` | `Solve` 后仍修改模型，且不能进入 execution plan |
+| `TENSOREVAL.DSS.TRANSLATE.MULTIPLE_SNAPSHOT_SOLVES` | 多个 Snapshot barrier 尚无连续状态合同 |
+| `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 导入成功，但所选 PSA 求解器未能完成计算 |
+| `TENSOREVAL.DSS.TRANSLATE.STATIC_ENTRY_UNAVAILABLE` | 可直接计算，但没有可供生成 RSS 使用的单一静态模型入口 |
+| `TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED` | 入口只定义模型，没有可分类的研究命令 |
+| `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 FaultStudy、Dynamic、M1/M2/M3/MonteFault 等尚无原生 adapter 的生命周期 |
+| `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` | 一个命令流混合了没有 continuation 合同的研究类型 |
+| `TENSOREVAL.DSS.TRANSLATE.GENERATED_RSS_FAILED` | 生成文本已形成，但通过同一 expr_df/PSA 门面自校验失败 |
+| `TENSOREVAL.RSS.BUNDLE.PATH_INVALID` / `TENSOREVAL.RSS.BUNDLE.PATH_ESCAPE` | 清单路径不规范，或解析后越过 bundle 根目录 |
+| `TENSOREVAL.RSS.BUNDLE.HASH_MISMATCH` | bundle 内文件内容与清单中的 SHA-256 不一致 |
+| `TENSOREVAL.RSS.BUNDLE.INPUT_SCHEMA_MISMATCH` | 外部输入文件的列名或数据类型与清单不一致 |
+| `TENSOREVAL.RSS.BUNDLE.RESULT_MISMATCH` | 执行结果的名称或顺序与清单声明不一致 |
 
 另外还会原样返回 PSA 的 `PSA.DSS.*`、`READ.DSS.*` 和 `READINESS.*` 诊断。调用方应以
 退出码和诊断码判断结果，不能只搜索提示文本。
@@ -172,11 +168,10 @@ AutoAdd 和 RelCalc 在返回脚本前还会实际解析并执行生成的 RSS�
 
 这些测试调用 `tensoreval` 实际使用的 `run_dss` 路径，按 `bus + phase` 比较 `v_re/v_im`，
 最大相对误差门限为 `5e-6`。输入和 CSV 都从 `psa/tests/bmopf` 原地读取，不维护第二份基准。
-运行命令：
+可直接用公开入口复核运行结果：
 
 ```bash
-cargo test -p mems --features tensoreval-cli,with_dsa --bin tensoreval psa_ -- \
-  --test-threads=1
+tensoreval path/to/reference-case.dss
 ```
 
 对应的独立基准保存在

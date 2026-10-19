@@ -5,7 +5,7 @@
     "psa/src/dsa/parse/dss_import.rs",
     "psa/src/dsa/parse/dss_import/controls.rs",
     "psa/src/dsa/parse/dss_import/metering.rs",
-    "mems/src/ml RSDss implementation"
+    "tensoreval RSDss implementation"
   ],
   "type_notation": [
     "str",
@@ -2258,7 +2258,7 @@
         "p_total",
         "q_total"
       ],
-      "schema_source": "mems/src/ml/expr_df/frame_ops.rs"
+      "schema_source": "tensoreval://expr_df/frame_ops.rs"
     },
     "storage_controller_state": {
       "columns_before_time_metadata": [
@@ -2273,7 +2273,7 @@
         "inhibited",
         "locked"
       ],
-      "schema_source": "mems/src/ml/expr_df/frame_ops.rs"
+      "schema_source": "tensoreval://expr_df/frame_ops.rs"
     },
     "switch_control_state": {
       "columns_before_time_metadata": [
@@ -2291,7 +2291,7 @@
         "phases",
         "phase_states"
       ],
-      "schema_source": "mems/src/ml/expr_df/frame_ops.rs"
+      "schema_source": "tensoreval://expr_df/frame_ops.rs"
     },
     "fuse_state": {
       "columns_before_time_metadata": [
@@ -2308,7 +2308,7 @@
         "phases",
         "phase_states"
       ],
-      "schema_source": "mems/src/ml/expr_df/frame_ops.rs"
+      "schema_source": "tensoreval://expr_df/frame_ops.rs"
     },
     "recloser_state": {
       "columns_before_time_metadata": [
@@ -2331,7 +2331,7 @@
         "phases",
         "phase_states"
       ],
-      "schema_source": "mems/src/ml/expr_df/frame_ops.rs"
+      "schema_source": "tensoreval://expr_df/frame_ops.rs"
     },
     "relay_state": {
       "columns_before_time_metadata": [
@@ -2376,7 +2376,7 @@
         "phases",
         "phase_states"
       ],
-      "schema_source": "mems/src/ml/expr_df/frame_ops.rs"
+      "schema_source": "tensoreval://expr_df/frame_ops.rs"
     },
     "fault_state": {
       "columns_before_time_metadata": [
@@ -2392,7 +2392,7 @@
         "current",
         "phases"
       ],
-      "schema_source": "mems/src/ml/expr_df/frame_ops.rs"
+      "schema_source": "tensoreval://expr_df/frame_ops.rs"
     },
     "meter_phase_voltage": {
       "columns": [
@@ -2440,7 +2440,7 @@
         "profile_causes",
         "controller_solve_causes"
       ],
-      "schema_source": "mems/src/ml/expr_df/frame_ops.rs",
+      "schema_source": "tensoreval://expr_df/frame_ops.rs",
       "json_string_columns": [
         "causes",
         "state_before",

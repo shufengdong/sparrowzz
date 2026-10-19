@@ -1,8 +1,8 @@
 # 从 OpenDSS Python 脚本迁移到 RSS
 
 本文面向已经使用 OpenDSS 或 OpenDSSDirect.py 的配电网仿真用户，说明如何保留现有
-`.dss` 模型文件，并把“载入模型、执行分析、读取结果和后处理”迁移到 `mems` 的
-RSS（RSDss）脚本。
+`.dss` 模型文件，并把“载入模型、执行分析、读取结果和后处理”迁移到 `tensoreval`
+执行的 RSS（RSDss）脚本。
 
 当前最成熟的迁移路径是静态辐射状配电网潮流、Newton 潮流、谐波和短路计算。仓库中的对照
 测试已经用同一批 IEEE 13、34 和 123 节点模型分别运行 OpenDSS 与 RSDss，并比较
@@ -48,34 +48,19 @@ flowchart LR
 `import_dss` 是转换器，不是 OpenDSS 命令解释器。它使用
 `DssImportProfile::StaticPowerFlow`，把声明式模型转换为 PSA 的 DataFrame 网络契约；
 求解由后续 `ds_*` 函数完成。执行型 `import_dss_execution` 和 `ds_*_dss_plan` 则使用
-PSA 的有界 ExecutionStudy 契约保留 `Solve`、控制、保护和计量状态。这个边界让脚本中的数据依赖和结果都能进入 mems 流程图，
+PSA 的有界 ExecutionStudy 契约保留 `Solve`、控制、保护和计量状态。这个边界让脚本中的数据依赖和结果都能进入宿主流程图，
 也防止无法等价表示的 OpenDSS 命令被静默忽略。
 
 Harmonic/HarmonicT、AutoAdd 和 RelCalc 使用各自的 PSA 原生 adapter，不先降为通用 QSTS。
 这些函数的第二参数可传 `para` DataFrame，也可直接传逗号分隔结果字符串；字符串形式使用
-默认求解参数，适合 `dss2rss` 生成的自包含 linked RSS。完整结果 schema 和限制见
+默认求解参数，适合 `tensoreval --dss-to-rss` 生成的自包含 linked RSS。完整结果 schema 和限制见
 [RSDss 函数参考](dsa_function_reference.md#dss-原生-harmonicautoadd-和-relcalc)。
 
-## 2. 构建要求
+## 2. 安装要求
 
-RSDss 的配电系统分析函数由 `with_dsa` feature 提供：
-
-```bash
-cargo check -p mems --features with_dsa
-```
-
-辐射状配电网潮流、谐波和短路入口可以使用这个组合。Newton 潮流、Newton QSTS 和状态估计
-需要稀疏线性代数后端，选择项目环境中可用的一种：
-
-```bash
-# MUMPS
-cargo check -p mems --features with_dsa_mumps
-
-# Intel MKL
-cargo check -p mems --features with_dsa_mkl
-```
-
-`static` 和 `dynamic` 构建不能同时启用，MUMPS 与 MKL 也不能同时启用。
+安装的 `tensoreval` 必须包含 DSA 能力。标准 DSA 版本支持辐射状潮流、谐波和短路。
+Newton 潮流、Newton QSTS 和状态估计需要包含 MUMPS 或 MKL 稀疏线性代数后端的版本；
+一个安装版本只使用其中一种后端。
 
 ## 3. 整理 DSS 输入
 
@@ -112,7 +97,7 @@ case/
 成功而删除一个不认识的对象或属性；导入器采用 fail-closed 策略，错误通常表示该语义
 还不能无损转换，应先确认兼容范围或把相应设备改为显式 DataFrame 输入。
 
-相对路径以运行 mems 的进程工作目录和 DSS 文件所在目录为基础解析。对于包含多个
+相对路径以运行 `tensoreval` 的进程工作目录和 DSS 文件所在目录为基础解析。对于包含多个
 `Redirect` 文件的模型，优先使用本地 `import_dss`。`import_dss_url` 适合单个、自包含
 的 `.dss` 文件；它不会自动把一个远程目录打包为可解析的文件树。
 
@@ -419,7 +404,7 @@ monitor, energy_meter, fault, para
 );
 ```
 
-这些表的 schema 和支持边界见 [README 的准静态时序仿真章节](../../../mems/README.md#准静态时序仿真)。
+这些表的 schema 和支持边界见 [DataFrame schema 参考](dataframe_schema_reference.md)。
 迁移顺序建议是先用一个静态时点验证网络和单位，再加入曲线与时间轴，最后逐个加入
 控制、保护和计量对象。这样每一步都能定位差异来源。
 
@@ -462,27 +447,24 @@ LoadShape 绑定，并请求逐母线逐相电压；测试将 36 行复电压与
 | 电机网络动态 | `ds_motor_dynamics` |
 | 保护配合审计 | `ds_protection_coordination` |
 
-## 10. 在 mems 中运行 RSS 脚本
+## 10. 使用 tensoreval 运行和转换
 
 已有完整 OpenDSS 执行主文件时，可以先用严格转换器生成 RSS：
 
 ```bash
-cargo run -p mems --features tensoreval-cli,with_dsa --bin dss2rss -- \
-  path/to/run.dss --output path/to/run.rss
+tensoreval --dss-to-rss --output path/to/run.rss path/to/run.dss
 ```
 
 也可以直接计算 DSS 入口：
 
 ```bash
-cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
-  path/to/run.dss
+tensoreval path/to/run.dss
 ```
 
 若只需生成同目录同名的 RSS 而不执行生成脚本，可使用：
 
 ```bash
-cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
-  --dss-to-rss path/to/run.dss
+tensoreval --dss-to-rss path/to/run.dss
 ```
 
 该参数也可写成 `--dss2rss`、`--dsstorss` 或 `--dss_to_rss`。
@@ -497,9 +479,7 @@ cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
 不需要外部 DataFrame：
 
 ```bash
-cargo run -p mems --bin tensoreval \
-  --features tensoreval-cli,with_dsa -- \
-  --dataframe sparrowzz/dss/ieee13_power_flow.rss
+tensoreval --dataframe sparrowzz/dss/ieee13_power_flow.rss
 ```
 
 脚本可以通过 `import_dss("path/to/network.dss")` 导入网络、执行潮流并生成具名结果。
@@ -509,15 +489,13 @@ DSS 路径相对于命令运行时的工作目录解析。仓库中已由 OpenDS
 普通 DataFrame 脚本可重复使用 `--input NAME=FILE` 注入 CSV、XLS/XLSX 或 Parquet：
 
 ```bash
-cargo run -p mems --features tensoreval-cli --bin tensoreval -- \
-  --dataframe \
+tensoreval --dataframe \
   --input input=path/to/input.csv \
   path/to/script.rss
 ```
 
 命令会按脚本声明顺序打印所有末层结果的变量名和 DataFrame；`--verbose` 还会打印
-schema。RSDss 错误会写入标准错误并返回非零退出码。使用
-`cargo run -p mems --features tensoreval-cli --bin tensoreval -- --help` 查看完整参数。
+schema。RSDss 错误会写入标准错误并返回非零退出码。使用 `tensoreval --help` 查看完整参数。
 
 在持久化流程中，把脚本放入 `TensorEval` 节点并设置 `TE_PARA_DF`。节点输入的别名会
 成为脚本中的 DataFrame 变量，末层变量成为节点输出。`import_dss` 自己可以作为零输入
@@ -563,7 +541,7 @@ IEEE 13、34、123 节点静态潮流当前使用 `1e-3` 最大相对误差门�
 
 关键文件：
 
-- `mems/tests/dff/dff_script.rs`：DSS 导入、RSDss 脚本执行及 OpenDSS 结果比较；
+- `sparrowzz/dss/*.rss`：可直接执行的 RSDss 案例；
 - `psa/tests/bmopf/generate_opendss_voltage.py`：独立 OpenDSSDirect 潮流基准生成器；
 - `psa/tests/bmopf/generate_opendss_ieee13_harmonics.py`、
   `generate_opendss_ieee34_harmonics.py`：独立谐波基准生成器；
@@ -571,27 +549,22 @@ IEEE 13、34、123 节点静态潮流当前使用 `1e-3` 最大相对误差门�
 - `psa/tests/bmopf/*_opendss_*.csv`：锁定的 OpenDSS 参考结果；
 - `psa/tests/bmopf/opendss_inputs/`：IEEE/CIGRE 原始 DSS 输入。
 
-运行迁移路径的聚焦回归测试：
+运行迁移路径案例：
 
 ```bash
-cargo test -p mems --test main --features with_dsa \
-  dff::dff_script::dsa_tests -- --test-threads=1
+tensoreval --df sparrowzz/dss/ieee13_power_flow.rss
 ```
 
-也可以只运行一个案例：
+运行 DSS 入口并直接查看结果：
 
 ```bash
-cargo test -p mems --test main --features with_dsa \
-  imports_ieee13_dss_and_matches_opendss \
-  -- --test-threads=1
+tensoreval path/to/ieee13_run.dss
 ```
 
-CIGRE-LV 谐波案例在 debug 构建中很慢，完整验证应使用 release：
+CIGRE-LV 谐波案例计算量较大，应使用发布版 `tensoreval`：
 
 ```bash
-cargo test --release -p psa --test network_harmonics --features mumps-static \
-  cigre_lv_network_voltage_and_branch_currents_match_opendss \
-  -- --exact --test-threads=1
+tensoreval --df path/to/cigre_lv_harmonic.rss
 ```
 
 日常文档和 IEEE 迁移测试不需要运行这个慢用例。
@@ -600,7 +573,7 @@ cargo test --release -p psa --test network_harmonics --features mumps-static \
 
 | 症状 | 原因 | 处理 |
 | --- | --- | --- |
-| `unsupported DataFrame function: import_dss` | 构建未启用 `with_dsa` | 启用 `with_dsa` 或对应后端 feature |
+| `unsupported DataFrame function: import_dss` | 安装版本不包含 DSA 能力 | 安装包含 DSA 或对应 Newton 后端的版本 |
 | `DSS command ... is outside the StaticPowerFlow...` | 模型文件混入 `Solve`、`Clear`、运行时命令 | 拆分模型文件和执行脚本 |
 | `Set ... has no StaticPowerFlow DataFrame semantic` | 静态导入只接受基频设置 | 把求解设置写入 `para` 或相应分析配置表 |
 | `expected a .dss file` | 路径/URL 后缀不正确 | 使用实际 `.dss` 入口文件 |
@@ -608,7 +581,7 @@ cargo test --release -p psa --test network_harmonics --features mumps-static \
 | `ResultCountMismatch` | `para.result` 数量与左值数量不同 | 按相同顺序逐个声明左值，可用 `_` 丢弃 |
 | `para.result ... unknown/duplicates` | 结果名错误或重复 | 使用对应 `ds_*` 入口支持的结果名 |
 | 辐射状配电网潮流失败 | 网络并非辐射状、拓扑无效或设备超出入口能力 | 检查诊断，必要时改用 Newton |
-| Newton 函数不可用或链接失败 | 没有选择 MUMPS/MKL | 启用一个 `with_dsa_*` 后端 |
+| Newton 函数不可用或链接失败 | 安装版本没有 MUMPS/MKL | 安装包含一种 Newton 后端的版本 |
 | 电压整体有固定偏差 | 电源阻抗、tap、负荷电压模型或线路模型不同 | 先对齐模型语义，再比较求解器 |
 | 相角差约 57.3 倍 | rad/deg 混用 | 静态详细结果用 rad，谐波结果用 deg |
 | 末端支路电流符号相反 | OpenDSS 与 `branch_flow.i_to` 方向不同 | 按端口方向约定转换符号 |
@@ -622,7 +595,7 @@ cargo test --release -p psa --test network_harmonics --features mumps-static \
 4. 增加 `branch_flow`、`source_flow` 和 `summary`，核对方向、单位和损耗。
 5. 逐项恢复 Generator、IBR、开关、调压、电容和其他对象，并保留每一步基准。
 6. 再迁移谐波、短路或 QSTS；每种分析建立独立 oracle 和容差。
-7. 把验证后的脚本放入带 `TE_PARA_DF` 的 mems 流程，并配置输入、输出和持久化。
+7. 需要嵌入宿主流程时，把验证后的脚本放入 `TE_PARA_DF` 节点并配置输入、输出和持久化。
 8. 在 CI 中运行聚焦对照测试；慢速 CIGRE-LV 谐波测试放到 release 测试任务。
 
 完成这些步骤后，OpenDSS 仍可作为独立基准生成器，而日常仿真、DataFrame 后处理和

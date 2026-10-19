@@ -1,15 +1,15 @@
 {
   "schema_version": 2,
   "source_of_truth": [
-    "mems/src/ml RSDss frame and DSA dispatch",
-    "mems/src/ml RSDss DataFrame-function dispatch",
-    "mems/src/ml RSDss expression translation"
+    "tensoreval RSDss frame and DSA dispatch",
+    "tensoreval RSDss DataFrame-function dispatch",
+    "tensoreval RSDss expression translation"
   ],
   "notes": [
     "Top-level function names are matched case-insensitively.",
     "For single-frame operations the final argument is the input DataFrame.",
     "The arity field on frame_functions is the canonical script arity. The single-frame dispatcher validates only the minimum expression count described by frame_function_arity_contract; script generators must emit the canonical signature and must not add ignored expressions.",
-    "DSA functions are available only when mems is built with the with_dsa feature or a backend feature that enables it.",
+    "DSA functions require a tensoreval installation that includes DSA support.",
     "New DSA scripts should use the complete network form instead of legacy compact arities."
   ],
   "frame_function_arity_contract": {

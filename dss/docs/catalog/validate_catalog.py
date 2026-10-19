@@ -12,9 +12,11 @@ ROOT = Path(__file__).resolve().parents[4]
 DOCS = ROOT / "sparrowzz/dss/docs"
 FUNCTIONS = DOCS / "catalog/functions.json"
 DATAFRAMES = DOCS / "catalog/dataframes.json"
-TRANSLATE = ROOT / "mems/src/ml/expr_df/translate.rs"
-FRAME_OPS = ROOT / "mems/src/ml/expr_df/frame_ops.rs"
-NATIVE_DSS = ROOT / "mems/src/ml/expr_df/frame_ops/dsa/native_dss.rs"
+TENSOREVAL = next(ROOT.glob("*/src/bin/tensoreval.rs"))
+RUNTIME_SRC = TENSOREVAL.parents[1]
+TRANSLATE = RUNTIME_SRC / "ml/expr_df/translate.rs"
+FRAME_OPS = RUNTIME_SRC / "ml/expr_df/frame_ops.rs"
+NATIVE_DSS = RUNTIME_SRC / "ml/expr_df/frame_ops/dsa/native_dss.rs"
 
 RESULT_CONSTANTS = {
     "MOTOR_DYNAMIC_RESULT_NAMES": {"ds_motor_dynamics"},
@@ -237,7 +239,7 @@ def main():
 
     for group in dataframes["result_frames"].values():
         source = group.get("schema_source")
-        if source and not (ROOT / source).exists():
+        if source and "://" not in source and not (ROOT / source).exists():
             fail(f"missing schema_source: {source}")
 
     validate_local_links()

@@ -1,6 +1,6 @@
 # DSA 函数参考
 
-本参考对应 `mems/src/ml` 中当前公开的 RSDss DSA 分派。所有函数都
+本参考对应 `tensoreval --dataframe` 当前公开的 RSDss DSA 分派。所有函数都
 需要 `with_dsa`；Newton 潮流、Newton QSTS 和状态估计还需要 MUMPS 或 Intel MKL 稀疏
 后端。
 
