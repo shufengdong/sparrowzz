@@ -1,0 +1,9 @@
+! Executable OpenDSS entry deck for the three-step Daily QSTS case.
+Redirect 4bus_dy.dss
+
+New LoadShape.daily_load npts=3 interval=1 mult=(0.5 1.0 1.5) qmult=(0.5 1.0 1.5)
+Edit Load.load1 daily=daily_load
+
+Set VoltageBases=[12.47, 4.16]
+CalcVoltageBases
+Solve Mode=Daily Number=3 Step=1h ControlMode=Off

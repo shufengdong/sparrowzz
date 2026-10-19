@@ -1,0 +1,5 @@
+! Executable OpenDSS entry deck for the PSA-compatible IEEE 123 projection.
+Redirect IEEE123Master.dss
+Set VoltageBases=[4.16, 0.48]
+CalcVoltageBases
+Solve Mode=Snapshot ControlMode=Off

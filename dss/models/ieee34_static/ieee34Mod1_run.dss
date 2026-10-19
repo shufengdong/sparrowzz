@@ -1,0 +1,5 @@
+! Executable OpenDSS entry deck for the PSA-compatible IEEE 34 projection.
+Redirect ieee34Mod1.dss
+Set VoltageBases=[69, 24.9, 4.16, 0.48]
+CalcVoltageBases
+Solve Mode=Snapshot ControlMode=Off
