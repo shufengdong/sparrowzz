@@ -8,47 +8,41 @@ RSS 脚本的验证分三层：语法和依赖图、DataFrame/分析契约、与
 先运行脚本：
 
 ```bash
-cargo run -p mems \
-  --features tensoreval-cli,with_dsa \
-  --bin tensoreval -- \
-  --df sparrowzz/dss/ieee13_power_flow.rss
+tensoreval --df sparrowzz/dss/ieee13_power_flow.rss
 ```
 
-再运行仓库中的 OpenDSS 对照测试：
+再运行使用相同网络和分析类型的对照脚本：
 
 ```bash
-cargo test -p mems --features with_dsa --test main \
-  dff::dff_script::dsa_tests
+tensoreval --df sparrowzz/dss/ieee13_daily_qsts.rss
 ```
 
-谐波整网测试在 debug 下可能很慢。包含 IEEE/CIGRE 谐波基准的整组检查应使用：
+谐波整网计算应使用发布版 `tensoreval`：
 
 ```bash
-cargo test --release -p mems --features with_dsa --test main \
-  imports_ieee13_dss_and_runs_harmonics
+tensoreval --df sparrowzz/dss/ieee13_harmonic.rss
 ```
 
-Newton QSTS、Newton PF 和状态估计改用项目可用的 `with_dsa_mumps` 或
-`with_dsa_mkl`。不要同时启用两个后端。
+Newton QSTS、Newton PF 和状态估计需要包含 MUMPS 或 MKL 后端的安装版本。
 
 ### Bundle 验证
 
 便携 `.rssbundle` 直接作为 `tensoreval` 的唯一输入：
 
 ```bash
-cargo run -p mems --features tensoreval-cli,with_dsa --bin tensoreval -- \
-  path/to/case.rssbundle
+tensoreval path/to/case.rssbundle
 ```
 
 运行器依次校验 manifest schema、规范化相对路径与文件存在性、文件哈希、外部输入 schema，
 然后才解析和执行 `main.rss`，最后核对结果名称与顺序。因此被修改的脚本或 DSS 文件会以
-`MEMS.RSS.BUNDLE.HASH_MISMATCH` 失败，不会先进入解析器。不要手工修改已发布 bundle；应从
+`TENSOREVAL.RSS.BUNDLE.HASH_MISMATCH` 失败，不会先进入解析器。不要手工修改已发布 bundle；应从
 源 DSS 重新构建。移动整个 bundle 不影响运行；删除原始 DSS 文件树也不影响运行。若转换时
-依赖根目录推断不符合项目布局，应显式传入 `dss2rss --source-root ... --mode bundle`。
+依赖根目录推断不符合项目布局，应使用
+`tensoreval --dss-to-rss --mode bundle --source-root DIR INPUT.dss` 重新生成。
 
 ## 2. 当前案例的对照规则
 
-`mems/tests/dff/dff_script.rs` 直接执行 `sparrowzz/dss/*.rss`，并复用
+发布前集成测试直接执行 `sparrowzz/dss/*.rss`，并复用
 `psa/tests/bmopf` 的 OpenDSS CSV 基准。当前规则为：
 
 | 案例 | 比较量 | 误差定义 | 容差 |
@@ -179,6 +173,6 @@ debug 下 CIGRE-LV 整网谐波可能需要约 30 分钟，不应据此判断死
 - 基准按稳定键覆盖全部预期行；
 - 容差来自同类 PSA 测试或有明确的数值依据；
 - 直接 `tensoreval --df` 运行通过；
-- 对应 `mems` 集成测试通过；
+- 对应发布前集成测试通过；
 - 大型谐波测试在 release 下运行；
 - 文档、案例和机器可读 catalog 同步更新。

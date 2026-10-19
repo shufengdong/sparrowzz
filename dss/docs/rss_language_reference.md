@@ -18,7 +18,7 @@ RSDss 是面向 DataFrame 和配电系统分析的 RustScript 方言。`.rss` �
 |---|---|---|---|
 | `tensoreval --df FILE...` | RSDss DataFrame 声明图，可含 `{...}` 数值程序 | `--input NAME=FILE`、脚本内导入函数 | 最深依赖层产生的具名 DataFrame |
 | `tensoreval FILE...` | 普通 Tensor 表达式图或整段 RustScript VM 程序 | 脚本字面量；VM 程序还可调用 `read_tensor*` | Tensor/标量的调试文本，不形成 RSDss DataFrame 输出 |
-| mems 流程中的 `TensorEval` 节点 | 由 `para` 参数位选择 DataFrame 图、Tensor 图或整段 VM 程序 | 入边别名对应的 DataFrame，以及流程变量和量测上下文 | 一张或多张 DataFrame，交给后续流程边 |
+| 宿主流程中的 `TensorEval` 节点 | 由 `para` 参数位选择 DataFrame 图、Tensor 图或整段 VM 程序 | 入边别名对应的 DataFrame，以及流程变量和量测上下文 | 一张或多张 DataFrame，交给后续流程边 |
 
 本文把第一个入口和 `TensorEval` 节点设置 `TE_PARA_DF` 后使用的 DataFrame 语言称为
 RSDss。第二个入口的完整数值语法见[《RustScript 手册》](../../rustscript/RustScript手册.md)。
@@ -431,12 +431,13 @@ tensoreval --df declarations.rss study.rss
 
 位置参数后缀为 `.dss` 时，`tensoreval` 不把文件当作 RSS 文本解析，而是直接调用严格
 DSS 转换器并计算；后缀匹配不区分大小写，也不要求 `--df`。该模式只接受一个位置参数，
-不接受 `--input`，固定使用径向求解器，并要求构建启用 `with_dsa`。转换边界见
-[DSS 到 RSS 严格转换](opendss_to_rss.md#10-在-mems-中运行-rss-脚本)。
+不接受 `--input`，根据显式 `Algorithm` 和网络拓扑选择求解器。转换边界见
+[DSS 到 RSS 严格转换](dss_to_rss.md)。
 
-增加 `--dss-to-rss` 时，命令只生成输入文件同目录、同名的 `.rss` 文件，不执行生成脚本，
-也不输出潮流结果。`--dss2rss`、`--dsstorss`、`--dss_to_rss` 是等价别名。严格转换仍会
-进行导入和求解校验；目标文件已存在时拒绝覆盖。
+增加 `--dss-to-rss` 时，命令只生成输出，不执行生成脚本，也不输出潮流结果。默认生成
+输入文件同目录、同名的 `.rss`；`--mode bundle` 生成 `.rssbundle`。`--output`、
+`--source-root`、`--input NAME=FILE`、`--solver`、`--check` 和 `--force` 的完整合同见转换
+参考。`--dss2rss`、`--dsstorss`、`--dss_to_rss` 是 `--dss-to-rss` 的等价别名。
 
 ### 7.2 命令行 DataFrame 输入
 
@@ -484,7 +485,7 @@ DataFrame；DSS 文件内部的 `Redirect`/`Compile` 只由相应 DSS 导入入�
 
 1. 脚本中任意位置声明的变量；
 2. `--input` 注入的同名 DataFrame；
-3. 在 mems 流程中，入边 `DfActionEdge.name` 对应的 DataFrame；
+3. 在宿主流程中，入边 `DfActionEdge.name` 对应的 DataFrame；
 4. 内嵌数值程序还可以在运行时从流程变量或量测上下文解析未由图内变量满足的自由变量。
 
 声明图允许前向引用，但不允许重复声明或环。DataFrame 函数只接收明确出现在参数位置的表；
@@ -501,7 +502,7 @@ DataFrame；DSS 文件内部的 `Redirect`/`Compile` 只由相应 DSS 导入入�
 
 这条规则不等价于“输出所有没有消费者的变量”。一个与主链无关、但层数较浅的叶节点不会
 返回。智能体应生成一张连通依赖图，并把所有需要返回的表放在同一个最终声明中，或保证它们
-处于相同的最大层。mems 流程中的 `TE_PARA_DF` 计划校验更严格：整张图必须只有一个连通
+处于相同的最大层。宿主流程中的 `TE_PARA_DF` 计划校验更严格：整张图必须只有一个连通
 分量，并且最大层只能有一个声明节点；该节点仍可通过多结果左值返回多张表。
 
 终端结果必须是 DataFrame。`height`、`width` 等标量可以作为中间变量，但终端标量会产生
@@ -526,8 +527,8 @@ result = select(cols(bus, v_mag), voltage);
 
 成功时先打印 `Run expr_df successfully`，随后对每张结果打印 `result NAME:` 和 Polars
 表格文本。`--verbose` 在每张表后再打印 `schema NAME:`。该标准输出是供人查看的文本，
-不是 CSV、JSON 或稳定的机器交换格式；业务程序需要结构化结果时应调用 Rust API，或把
-脚本放入 mems 流程并由后续节点持久化。
+不是 CSV、JSON 或稳定的机器交换格式；业务程序需要结构化结果时应把脚本放入宿主流程，
+由后续节点持久化。
 
 自动化必须以退出码判断成功：`0` 表示全部输入、编译和求值成功，非零表示失败。诊断可能
 写到标准错误、标准输出或日志，不能把某段提示文本当作成功条件。`--df` 当前没有输出文件
@@ -604,7 +605,7 @@ result = {
 - DataFrame 转成实数或复数的稠密 Tensor 或稀疏 Tensor；一行一列仍是形状 `[1,1]` 的 Tensor；
 - RSDss 表达式产生的数值或布尔标量转成 VM 实数标量；
 - 字符串、null 或其他不能转成 `f64` 的 RSDss 标量产生 `LiteralToTensor`；
-- 只在 mems 流程中，仍未满足的自由变量可继续由流程变量和量测上下文解析。
+- 只在宿主流程中，仍未满足的自由变量可继续由流程变量和量测上下文解析。
 
 DataFrame 转换遵循下表。转换会丢弃普通表的列名和 dtype，脚本不能按列名访问 Tensor：
 
@@ -658,7 +659,7 @@ VM，返回值再转换回 DataFrame。内嵌代码块可以使用：
 - 不访问外部状态的数值、布尔、复数和 Tensor 表达式；
 - 《RustScript 手册》中相应的控制流、局部变量和局部函数语法；
 - `println`、`debug`、`info`、`warn`、`error` 和 `monotonic_ms`；
-- 启用 `with_allsolvers` feature 且相应 eig-aoe backend 注册后提供的 `sp_linsolve`、
+- 安装版本包含相应数值求解器后提供的 `sp_linsolve`、
   `fsolve`、`fmincon` 和 `intlinprog`。
 
 内嵌代码块不提供文件读写、目录访问、URL 下载、网络请求、数据库或其他运行时外部 I/O
@@ -673,11 +674,11 @@ VM，返回值再转换回 DataFrame。内嵌代码块可以使用：
 
 ### 9.5 运行入口和 I/O 限制
 
-内嵌代码块可由独立 `tensoreval --df` 和 mems 的 `TE_PARA_DF` 节点执行。两者都只注册
+内嵌代码块可由独立 `tensoreval --df` 和宿主流程的 `TE_PARA_DF` 节点执行。两者都只注册
 日志函数和构建中启用的求解器函数，不注册 `read_tensor`、`read_tensor_url`、
 `write_tensor` 或断言函数。数据和文件 I/O 必须放在代码块外部的 RSDss 节点或流程节点。
 
-## 10. mems `TensorEval` 节点契约
+## 10. 嵌入式 `TensorEval` 节点契约
 
 ### 10.1 参数位和执行分派
 
