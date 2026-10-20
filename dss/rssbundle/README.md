@@ -62,15 +62,16 @@ RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。�
 
 2026-10-20 已用 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 直接运行每个 bundle 中保留的
 原始 DSS 入口，并与 `tensoreval` 执行同一 bundle 后返回的最终 `voltage` 表比较。OpenDSS 和
-PSA 的 10 个计算都收敛。修正三相 Δ→Y 变压器的 RegControl、次级 tap，以及嵌套 RPN 变量的
-负荷额定电压后，8 个案例通过既有 PSA 算例门限，另有 2 个 J1 案例仍存在待修正的数值差异。
+PSA 的 10 个计算都收敛。修正三相 Δ→Y 变压器的 RegControl、次级 tap、嵌套 RPN 变量的
+负荷额定电压，以及 J1 的 STATIC 队列、开关阻抗、单相调压器漏阻抗和径向暖启动后，10 个
+案例全部通过既有 PSA 算例门限。
 “已发布”表示严格转换和自执行成功；
 各案例是否达到 OpenDSS 数值门限以本表为准。
 
 | 官方入口 | 比较口径 | 最大相对误差 | 门限 | 结果 |
 |---|---|---:|---:|---|
-| `EPRITestCircuits/epri_dpv/J1/Master_noPV.dss` | 原始复电压 | 1.4486% | 1% | 不通过 |
-| `EPRITestCircuits/epri_dpv/J1/Master_withPV.dss` | 原始复电压 | 1.3676% | 1% | 不通过 |
+| `EPRITestCircuits/epri_dpv/J1/Master_noPV.dss` | 原始复电压 | 0.007131% | 1% | 通过 |
+| `EPRITestCircuits/epri_dpv/J1/Master_withPV.dss` | 原始复电压 | 0.006013% | 1% | 通过 |
 | `Examples/VSConverter/SG2012.dss` | 原始复电压 | 0.03344% | 1% | 通过 |
 | `Examples/WampServer/testcommandline.dss` | 原始复电压 | 3.38×10⁻⁸% | 1% | 通过 |
 | `IEEETestCases/13Bus/IEEE13Nodeckt.dss` | 原始复电压 | 0.007772% | 0.01% | 通过 |
@@ -93,11 +94,10 @@ J1 案例的 4,245 个 OpenDSS 节点全部存在，另外 2,791 个 PSA 行全�
 
 复核结果为：
 
-- J1 有/无 PV 案例的共同节点仍有 1.3676%/1.4486% 的实际电压差，需继续核对
-  调压器模型、对象状态和控制后的求解终态。三相 Δ→Y 的修正没有扩展到 J1 的单相调压器
-  和三相 Y→Y 变压器。试验将 Y→Y 二次 tap 计入匝比后，静态无 PV 误差降至 0.666%，
-  有 PV 误差降至 1.057%；但 P58 三时段 QSTS 在第三时段的调压动作后无法收敛，
-  因此未保留该改动。修复需同时处理径向潮流的迭代稳定性与单相调压器的终态差异。
+- J1 有/无 PV 案例的 4,245 个 OpenDSS 节点全部匹配，2,791 个 PSA 额外节点均为失电零电压。
+  修正 STATIC 队列时间基准、Y/Y 次级 tap、开关默认闭合阻抗、单相调压器漏阻抗 tap 基准、
+  径向控制循环暖启动和粗档距最小一档规则后，最大复电压相对误差分别为 0.007131% 和
+  0.006013%，9 个 RegControl 终态也与 OpenDSS 一致。
 - SG2012 原先缺失三相 RegControl 的 DataFrame 回读及运行支持，次级 tap 也未进入匝比和
   漏阻抗折算。修正后两个调压变压器与 OpenDSS 一样停在 1.08125，129 个节点的最大误差
   为 0.03344%。
