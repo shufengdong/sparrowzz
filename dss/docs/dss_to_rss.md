@@ -178,10 +178,10 @@ IEEE13、IEEE37、四个 IEEE4 balanced 入口，以及 VSConverter/WampServer �
 
 纯模型 `IEEE123Master.dss` 另用 `--study snapshot` 完成定向检查和 bundle 自执行，但因原文件
 没有研究命令，不计入无 `--study` 扫描的 10 个可运行入口。实时清单、全部剩余诊断和 IEEE8500
-EnergyMeter 自动分区边界见[官方发行文件转换清单](../../rss/rssbundle/README.md)。
+EnergyMeter 自动分区边界见[官方发行文件转换清单](../rssbundle/README.md)。
 
-[官方发行文件转换清单](../../rss/rssbundle/README.md)汇总各诊断码；
-[`conversion_report.csv`](../../rss/rssbundle/conversion_report.csv)逐一列出 848 个文件、状态、
+[官方发行文件转换清单](../rssbundle/README.md)汇总各诊断码；
+[`conversion_report.csv`](../rssbundle/conversion_report.csv)逐一列出 848 个文件、状态、
 全部诊断码和带源位置的首要原因。以后升级转换能力时，应使用同一固定输入重新扫描；只有
 检查、生成和 bundle 自执行都成功的案例才能改为 `converted`。
 
@@ -204,11 +204,11 @@ AutoAdd 和 RelCalc 在返回脚本前还会实际解析并执行生成的 RSS�
 tensoreval --result-dir /tmp/case-psa path/to/case.rssbundle
 ```
 
-官方发行扫描的 10 个成功 bundle 已完成最终母线复电压对照：7 个通过已有 PSA 案例
-门限，EPRI J1 有/无 PV 案例和 WampServer 共 3 个仍有超过门限的差异。SG2012 的两个三相
+官方发行扫描的 10 个成功 bundle 已完成最终母线复电压对照：8 个通过已有 PSA 案例
+门限，EPRI J1 有/无 PV 案例仍有超过门限的差异。SG2012 的两个三相
 RegControl 最终 tap 均与 OpenDSS 一致，129 个节点最大相对误差为 0.03344%。完整节点集合、
-比较口径和误差见[官方发行文件转换清单](../../rss/rssbundle/README.md)及
-[`numerical_comparison.csv`](../../rss/rssbundle/numerical_comparison.csv)。在这 3 个差异关闭前，
+比较口径和误差见[官方发行文件转换清单](../rssbundle/README.md)及
+[`numerical_comparison.csv`](../rssbundle/numerical_comparison.csv)。在这 2 个差异关闭前，
 转换和 bundle 自执行成功不能表述为 OpenDSS 数值等价。
 
 `tensoreval` 的直接 `.dss` 入口还原地使用 PSA 仓库中的三个输入及其 OpenDSS 基准：

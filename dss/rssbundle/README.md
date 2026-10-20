@@ -111,7 +111,7 @@ J1 案例的 4,245 个 OpenDSS 节点全部存在，另外 2,791 个 PSA 行全�
 
 ```bash
 tensoreval --result-dir /tmp/ieee13-psa \
-  sparrowzz/rss/rssbundle/IEEETestCases/13Bus/IEEE13Nodeckt.rssbundle
+  sparrowzz/dss/rssbundle/IEEETestCases/13Bus/IEEE13Nodeckt.rssbundle
 ```
 
 纯模型 `IEEETestCases/123Bus/IEEE123Master.dss` 另用 `--study snapshot` 完成了 364 条语句的
@@ -265,6 +265,6 @@ tensoreval --dss-to-rss --check \
 ```bash
 tensoreval --dss-to-rss --mode bundle \
   --source-root /path/to/electricdss-tst/Version8/Distrib \
-  --output sparrowzz/rss/rssbundle/path/to/case.rssbundle \
+  --output sparrowzz/dss/rssbundle/path/to/case.rssbundle \
   /path/to/electricdss-tst/Version8/Distrib/path/to/case.dss
 ```
