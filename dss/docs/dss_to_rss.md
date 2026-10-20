@@ -48,6 +48,15 @@ tensoreval --dss-to-rss path/to/run.dss
 显式覆盖选择。Newton 还要求构建包含可用的
 MUMPS 或 MKL 后端。
 
+只有模型定义、没有 `Solve` 或专用研究命令的文件必须显式指定研究类型。例如：
+
+```bash
+tensoreval --dss-to-rss --check --study snapshot path/to/model.dss
+```
+
+`--study` 支持 `snapshot`、`execution`、`harmonic`、`auto-add` 和 `relcalc`。该参数选择
+PSA adapter，不跳过对应 adapter 的严格语义检查。
+
 需要把 DSS 文件树、数据资产和外部输入一起交付时，生成便携 bundle：
 
 ```bash
@@ -70,21 +79,23 @@ tensoreval path/to/case.rssbundle
 | DSS 输入 | 生成的 RSS | 条件 |
 |---|---|---|
 | Daily/Yearly/Duty/PeakDay/LD1/LD2 单个或多个 `Solve` | `ds_radial_dss_plan` 或 Newton 版本 | 整个命令流满足 PSA ExecutionStudy 合同；LD1/LD2 必须显式设置 `LDCurve` |
-| 一个普通 Snapshot `Solve` | `import_dss` 静态模型后调用 `ds_radial_pf` 或 Newton 版本 | 入口本身可由 `import_dss` 读取，或只包装一个可读取的 `Redirect/Compile` 静态模型 |
+| 一个普通 Snapshot `Solve` | `ds_radial_dss_plan` 或 Newton 版本 | 使用 PSA 的单 epoch Snapshot 执行计划，保留控制和有序命令语义 |
+| 没有研究命令的纯模型 + `--study snapshot` | `import_dss` 后调用 `ds_radial_pf` 或 Newton 版本 | 原始模型入口必须满足 StaticPowerFlow 导入合同 |
 | `Mode=Harmonic/HarmonicT` | `ds_dss_harmonic_plan` | 满足 PSA 原生谐波执行合同 |
 | `Mode=AutoAdd` | `ds_dss_auto_add` | 满足 PSA 有界单次 AutoAdd 合同 |
 | Snapshot 后执行 `RelCalc` | `ds_dss_relcalc` | 满足 PSA 径向分区可靠性合同 |
 
-转换器先解析完整命令流再分类。专用生命周期优先于其准备阶段的 Snapshot；一个文件中
-混合 QSTS、Harmonic、AutoAdd 或 RelCalc 会以
-`TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` 失败。只有模型定义、没有研究命令的入口
-不会由转换器猜测研究类型。
+转换器先解析完整命令流再分类。专用生命周期优先于其准备阶段的 Snapshot；Snapshot 初始化
+后继续 Daily/Yearly/Duty 等 QSTS 由同一个 execution plan 表达。一个文件中混合 QSTS、
+Harmonic、AutoAdd 或 RelCalc 仍会以 `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED`
+失败。只有模型定义、没有研究命令的入口不会由转换器猜测研究类型，必须使用 `--study`。
 
 为保持已有生成脚本合同，Snapshot 和 ExecutionPlan 的 linked RSS 把所选 `bus_phase`
 结果绑定为终端变量 `voltage`；`tensoreval case.dss` 的直接执行结果名仍为 `bus_phase`。
 Harmonic、AutoAdd 和 RelCalc 的终端变量名与各自结果名完全相同。
 
-Snapshot 投影当前只移除以下语句：
+静态 Snapshot 投影只用于没有原生 `Solve` 的显式静态路径或兼容性处理。原生 `Solve` 不再
+进入该投影，而是统一交给 execution plan。投影可移除以下语句：
 
 - `Set VoltageBases=...`：PSA 从已导入网络得到电压基准；
 - `CalcV` / `CalcVoltageBases`：对应工作已包含在网络构造和潮流入口中；
@@ -98,14 +109,19 @@ Snapshot 投影当前只移除以下语句：
 原执行入口；Snapshot 指向经过验证、可由现有 `import_dss` 读取的静态模型入口。移动或
 删除相关 DSS 文件树后，生成脚本不能运行。它不是把所有 DataFrame 内联进单个文本文件。
 
+ExecutionPlan 会按源码顺序保留 `Set` 和最终 `Solve` 上的执行设置。
+`MaxIter/MaxIterations`、`MaxControlIter/MaxControlI` 和 `Tolerance` 会覆盖对应 epoch 的 PSA
+潮流参数；`Algorithm` 决定 Radial 或 Newton adapter，`EarthModel` 由 PSA 统一校验。
+`MinIterations` 当前没有 PSA 等价参数，因此仍返回明确的不支持诊断，不会被静默忽略。
+
 每个 linked RSS 的头部记录 `mode=linked`、分类、规范化源入口、依赖树 SHA-256 和 PSA
 合同版本。依赖树来自 PSA 导入器实际读取的 `Redirect`/`Compile` 和数据资产清单；哈希按
 规范化相对路径排序并覆盖原始文件字节。头部哈希用于溯源，linked 运行时仍重新读取原文件；
 bundle 则复制这些文件，并在解析或执行 RSS 前强制验证清单、路径、文件哈希和输入 schema。
 
-直接执行 `.dss` 不要求 Snapshot 入口和模型分文件；若直接计算成功，但入口无法安全归约
-成一个持久 RSS 可引用的静态模型，`tensoreval --dss-to-rss --output ...` 会用
-`TENSOREVAL.DSS.TRANSLATE.STATIC_ENTRY_UNAVAILABLE` 拒绝生成，并提示拆分模型文件和运行入口。
+纯模型使用 `--study snapshot` 时保留原始 `Source` 和依赖目录，不为删除
+`Set VoltageBases`/`CalcVoltageBases` 重建扁平内存源。带原生 `Solve` 的入口则由 linked RSS
+直接引用 execution plan 入口。
 
 ## 3. 失败诊断
 
@@ -119,9 +135,9 @@ DSS import produced findings that can change OpenDSS results
 - [READ.DSS.VALUE_UNSUPPORTED] IEEE13Nodeckt.dss:37 (regcontrol.Reg3): regcontrol Reg3: ...
 ```
 
-PSA 导入器的部分发现原本是 Warning。严格转换会把可能改变 OpenDSS 结果的 Warning
-提升为转换失败。当前只放行已验证的源 `pu/angle` 默认值、`emergamps` 默认值，以及
-OpenDSS 自己对 `switch=yes` 忽略的线路阻抗字段。
+转换器以 PSA 在所选 import profile 下给出的机器可读 `severity` 为唯一边界：Warning 保留并
+输出，Error 阻断转换。转换器不再根据诊断码或英文消息维护第二套白名单；若某项 Warning
+实际会改变所选研究结果，应在 PSA 修正严重性合同。
 
 常见失败码：
 
@@ -146,7 +162,30 @@ OpenDSS 自己对 `switch=yes` 忽略的线路阻抗字段。
 另外还会原样返回 PSA 的 `PSA.DSS.*`、`READ.DSS.*` 和 `READINESS.*` 诊断。调用方应以
 退出码和诊断码判断结果，不能只搜索提示文本。
 
-## 4. 数值一致性
+## 4. OpenDSS 官方发行文件扫描
+
+仓库使用 OpenDSS 官方 SVN 公开发行内容的 `electricdss-tst` 镜像，对固定提交
+`3b208397160213cae4a9e2d0a7d1aa3528ce26e1` 的 `Version8/Distrib` 做了完整扫描。
+扫描覆盖 848 个 `.dss` 文件：`Examples` 642 个、`IEEETestCases` 116 个、
+`EPRITestCircuits` 90 个。每个文件都实际执行严格 `--check`；依赖越过当前案例目录时，
+以整个 `Version8/Distrib` 作为 `--source-root` 重试。
+
+当前代码重扫后的结果是：10 个官方原始入口通过严格检查、生成 bundle 并完成构建期自执行；
+589 个文件是没有独立研究命令的模型或公共依赖片段；其他 249 个文件因未映射生命周期、对象
+属性、路径、执行顺序或求解问题失败；没有文件超时。成功入口包括 EPRI J1 的有/无 PV 入口、
+IEEE13、IEEE37、四个 IEEE4 balanced 入口，以及 VSConverter/WampServer 各一个入口。该结果
+不包含对官方文件的删改或静态化包装。
+
+纯模型 `IEEE123Master.dss` 另用 `--study snapshot` 完成定向检查和 bundle 自执行，但因原文件
+没有研究命令，不计入无 `--study` 扫描的 10 个可运行入口。实时清单、全部剩余诊断和 IEEE8500
+EnergyMeter 自动分区边界见[官方发行文件转换清单](../rssbundle/README.md)。
+
+[官方发行文件转换清单](../rssbundle/README.md)汇总各诊断码；
+[`conversion_report.csv`](../rssbundle/conversion_report.csv)逐一列出 848 个文件、状态、
+全部诊断码和带源位置的首要原因。以后升级转换能力时，应使用同一固定输入重新扫描；只有
+检查、生成和 bundle 自执行都成功的案例才能改为 `converted`。
+
+## 5. 数值一致性
 
 转换成功表示同一个 DSS 文件已经通过生成脚本所引用的 PSA 路径导入并求解。HarmonicT、
 AutoAdd 和 RelCalc 在返回脚本前还会实际解析并执行生成的 RSS，结果表顺序分别固定为
@@ -157,6 +196,20 @@ AutoAdd 和 RelCalc 在返回脚本前还会实际解析并执行生成的 RSS�
 2. 从同一个入口文件生成 IEEE13 Snapshot RSS；
 3. 重新解析并执行生成文本；
 4. 按 `bus + phase` 与锁定结果连接，检查全部节点覆盖和 `1e-3` 最大相对误差。
+
+需要完整导出命名结果表时，使用 `--result-dir`。每个结果写入 `DIR/结果名.csv`，bundle 的
+`voltage` 因而写入 `DIR/voltage.csv`：
+
+```bash
+tensoreval --result-dir /tmp/case-psa path/to/case.rssbundle
+```
+
+官方发行扫描的 10 个成功 bundle 已完成最终母线复电压对照：8 个通过已有 PSA 案例
+门限，EPRI J1 有/无 PV 案例仍有超过门限的差异。SG2012 的两个三相
+RegControl 最终 tap 均与 OpenDSS 一致，129 个节点最大相对误差为 0.03344%。完整节点集合、
+比较口径和误差见[官方发行文件转换清单](../rssbundle/README.md)及
+[`numerical_comparison.csv`](../rssbundle/numerical_comparison.csv)。在这 2 个差异关闭前，
+转换和 bundle 自执行成功不能表述为 OpenDSS 数值等价。
 
 `tensoreval` 的直接 `.dss` 入口还原地使用 PSA 仓库中的三个输入及其 OpenDSS 基准：
 

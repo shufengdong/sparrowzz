@@ -56,6 +56,9 @@ DataFrame，便于查看和修改每张输入表。
 回归测试会重新转换静态入口，并将静态潮流、Daily QSTS 和谐波结果逐节点、逐相、
 逐时点或逐谐波与 OpenDSS 复电压基准比较，最大允许相对误差为 `1e-3`。
 
+官方 OpenDSS 发行文件的便携转换结果集中在 [`rssbundle`](rssbundle/README.md)，
+其中列出已转换入口、未支持文件的原因和与 OpenDSS 的数值对照。
+
 ## 运行
 
 完整 OpenDSS 执行文件可先严格转换为 RSS；详细边界见
