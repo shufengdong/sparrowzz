@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/4Bus-DY-Bal.DSS",
+    "root": "dss",
+    "tree_sha256": "e810658d86ccfd4ef93edc1d5248ee5d06ed989fe8f0fa36ecf96de834e52a20"
+  },
+  "files": [
+    {
+      "path": "dss/4Bus-DY-Bal.DSS",
+      "role": "dss-entry",
+      "sha256": "437fa40a1257571ee29328d876d412afcb7d2aa61992c92e44331cfc45db4820"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "6822b55349cad5ee36b1bf566b2ec82fe14886c27c22e1ed56d99b4be271acd6"
+    }
+  ],
+  "inputs": []
+}

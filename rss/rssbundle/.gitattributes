@@ -1,0 +1,4 @@
+# Bundle manifests hash the original OpenDSS and data-asset bytes.
+*.dss -text
+*.DSS -text
+*.csv -text
