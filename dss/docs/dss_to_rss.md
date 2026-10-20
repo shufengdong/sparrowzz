@@ -204,12 +204,11 @@ AutoAdd 和 RelCalc 在返回脚本前还会实际解析并执行生成的 RSS�
 tensoreval --result-dir /tmp/case-psa path/to/case.rssbundle
 ```
 
-官方发行扫描的 10 个成功 bundle 已完成最终母线复电压对照：8 个通过已有 PSA 案例
-门限，EPRI J1 有/无 PV 案例仍有超过门限的差异。SG2012 的两个三相
-RegControl 最终 tap 均与 OpenDSS 一致，129 个节点最大相对误差为 0.03344%。完整节点集合、
-比较口径和误差见[官方发行文件转换清单](../rssbundle/README.md)及
-[`numerical_comparison.csv`](../rssbundle/numerical_comparison.csv)。在这 2 个差异关闭前，
-转换和 bundle 自执行成功不能表述为 OpenDSS 数值等价。
+官方发行扫描的 10 个成功 bundle 已完成最终母线复电压对照，并全部通过已有 PSA 案例门限。
+EPRI J1 无/有 PV 案例的最大复电压相对误差分别为 0.007131% 和 0.006013%；SG2012 的两个
+三相 RegControl 最终 tap 均与 OpenDSS 一致，129 个节点最大相对误差为 0.03344%。完整节点
+集合、比较口径和误差见[官方发行文件转换清单](../rssbundle/README.md)及
+[`numerical_comparison.csv`](../rssbundle/numerical_comparison.csv)。
 
 `tensoreval` 的直接 `.dss` 入口还原地使用 PSA 仓库中的三个输入及其 OpenDSS 基准：
 
