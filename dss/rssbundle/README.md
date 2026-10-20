@@ -1,8 +1,8 @@
 # OpenDSS 官方发行文件转换清单
 
-本目录记录 `tensoreval` 对 OpenDSS 官方公开发行树中全部 `.dss` 文件的严格 DSS→RSS
-bundle 扫描结果。扫描不会删除命令、补写模型参数或放宽诊断；只有转换、生成脚本验证和
-bundle 自执行全部成功的案例才会生成 `.rssbundle`。
+本目录记录 `tensoreval` 对 OpenDSS 官方公开发行树中独立入口的严格 DSS→RSS bundle
+扫描结果。扫描不会删除命令、补写模型参数或放宽诊断；只有转换、生成脚本验证和 bundle
+自执行全部成功的案例才会生成 `.rssbundle`。模型定义、公共依赖和其他非独立文件不在本文讨论。
 
 ## 来源和范围
 
@@ -11,7 +11,6 @@ bundle 自执行全部成功的案例才会生成 `.rssbundle`。
   [`dss-extensions/electricdss-tst`](https://github.com/dss-extensions/electricdss-tst) 轻量镜像。
 - 固定提交：`3b208397160213cae4a9e2d0a7d1aa3528ce26e1`；2026-10-19 核对时仍为镜像 `master`。
 - 扫描根：`Version8/Distrib`。
-- 文件总数：848，其中 `Examples` 642 个、`IEEETestCases` 116 个、`EPRITestCircuits` 90 个。
 - 单文件检查超时：30 秒；本次没有超时。
 - 对依赖越过案例目录的入口，使用整个 `Version8/Distrib` 作为 `--source-root` 重试。
 
@@ -20,8 +19,7 @@ bundle 自执行全部成功的案例才会生成 `.rssbundle`。
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
 | 已转换并发布 bundle | 10 | 严格转换、求解和 bundle 自执行全部通过 |
-| 非独立入口 | 589 | 模型定义或公共依赖片段，没有独立研究；它们不是可直接运行的入口脚本 |
-| 不支持 | 249 | 严格检查遇到当前转换合同不能无损保持的内容 |
+| 基线不支持的独立入口 | 249 | 严格检查遇到当时转换合同不能无损保持的内容；本轮定向修复状态见下文 |
 | 超时 | 0 | 无 |
 
 10 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
@@ -114,13 +112,24 @@ tensoreval --result-dir /tmp/ieee13-psa \
   sparrowzz/dss/rssbundle/IEEETestCases/13Bus/IEEE13Nodeckt.rssbundle
 ```
 
-纯模型 `IEEETestCases/123Bus/IEEE123Master.dss` 另用 `--study snapshot` 完成了 364 条语句的
-定向检查和 bundle 自执行；它没有原生研究命令，因此在无 `--study` 的全量入口扫描中仍归为
-非独立入口。IEEE8500 的 EnergyMeter 自动分区仍会影响电表区域结果，继续失败关闭。
+IEEE8500 自动 EnergyMeter 区域现在保留电气求解并产生稳定的
+`PSA.DSS.ENERGY_METER.AUTO_ZONE_APPROXIMATION` Warning；该路径不声明 meter-zone 寄存器与
+OpenDSS 完全等价。
+
+2026-10-21 对能力审计选出的 12 个优先入口做了定向复测：全部完成严格转换，11 个完成实际
+求解检查。`P174_Run_360kW_PV.DSS` 的 7,616 条语句已生成 5-epoch Newton RSS，官方最终 epoch
+与锁定 2,900 步数值投影的网络表、LoadShape 和分配表逐表等价；完整 2,900 步 `--check` 在
+release 构建运行 90 分钟后仍未结束并人工停止，因此不计为本轮完整求解通过。`--check` 已改用
+Newton 流式执行，避免累计每个时刻的全网结果；完整潮流、控制和计量计算成本仍然存在。
 
 ## 与 PSA 当前能力的交叉评估
 
-基线扫描的 `0/848` 不能解释为 PSA 没有覆盖这些网络和算法。当时的转换链在 PSA 前后又维护了
+对基线失败的 249 个独立入口所做的二次诊断和 PSA 能力证据交叉审计见
+[`capability_coverage_audit.md`](capability_coverage_audit.md)。该审计不再把首诊断等同于根因：
+它列出 12 个优先入口的最新定向复测状态、8 个需要继续闭合完整脚本语义的候选，并记录对
+路径类失败做最小修正后暴露出的第二层诊断。
+
+基线失败不能解释为 PSA 没有覆盖这些网络和算法。当时的转换链在 PSA 前后又维护了
 命令分类、Snapshot `Set` 白名单和诊断白名单；这些规则已经落后于 PSA 的 DSS importer 与执行计划。
 按“同一网络/算法或 PSA execution projection 已有数值证据、改造前首要失败点位于转换/编排层”
 这一口径，基线扫描中的下面 19 个入口曾被确定为**底层功能有覆盖，但基线转换没有成功**。
@@ -139,23 +148,11 @@ tensoreval --result-dir /tmp/ieee13-psa \
 | IEEE 8500 两工作点与 2,900 步 duty | `IEEETestCases/8500-Node/P174_Run_Voltage_Profile.DSS`、`IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | retained reliability warning 被当成错误；Snapshot→Duty 被分类器一概判成 mixed study | 前者是诊断严重性使用错误，后者已由 PSA 多 epoch/continuation 合同覆盖。 |
 | IEEE 118 Generator 网络 | `IEEETestCases/IEEE118Bus/master_file.dss` | `Mode=Snap` 未归一化为 Snapshot | `snap` 是解析别名缺口。PSA 已覆盖模型和独立 PYPOWER 数值链；原生 OpenDSS 53-Generator deck 本身仍是不收敛边界，不能据此声明原脚本结果一致。 |
 
-基线扫描中另有 3 个模型入口不是执行失败，而是当时的转换器要求一个尚未暴露给用户的
-`--study`：
-
-- `IEEETestCases/123Bus/IEEE123Master.dss`；
-- `IEEETestCases/8500-Node/Master.dss`；
-- `IEEETestCases/8500-Node/Master-unbal.dss`。
-
-这三个文件本来就是模型定义。当前 `tensoreval` 已暴露 `--study`，其中
-`IEEE123Master.dss` 已通过 `--study snapshot` 定向验证；两个 IEEE8500 master 仍需在后续
-全量复测中确认其完整对象与拓扑边界。
-
 下面几组只能判定为“底层原语存在、入口尚未闭环”，不能计入上述 19 个确定案例：
 
-- 3 个 `Mode=FaultStudy` 入口使用 OpenDSS 的全网隐式故障枚举。PSA 已有 FaultStudy 数值核心，
-  但要求显式 typed fault rows；必须先定义确定性的枚举和结果身份，不能只改模式名。
-- 2 个 IEEE 519 入口已经生成 RSS，最后被 harmonic command contract 拒绝。谐波求解已覆盖，
-  仍需逐条核对脚本中的命令和输出语义。
+- 第三个 `Mode=FaultStudy` 入口仍需单独的网络和全量短路参考；IEEE123/IEEE34 两个优先入口
+  已由确定性故障枚举和 typed 结果主键接入。
+- IEEE 519 两个优先入口已经通过；其他谐波入口仍需逐条核对脚本命令、频率集合和输出语义。
 - 26 个 mixed-study 入口多数是 Snapshot 初始化后转 Daily/Duty。PSA 支持多 epoch 和跨时点状态，
   但其中还包含 GFM、Storage、UPFC 等不同对象，取消分类器的统一拒绝后仍需逐文件复测。
 - 27 个 `REQUEST.SOURCE.ESCAPES_ROOT` 入口的首要问题是 epoch/内存 `Source` 没有保留声明文件的
@@ -177,15 +174,16 @@ tensoreval --result-dir /tmp/ieee13-psa \
 4. **已完成：以 PSA 的机器可读诊断合同为准。** `dss2rss` 以 import profile 返回的 `severity`
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
-   会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需用
-   全量扫描逐项验证。
+   会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
+   249 个独立入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
-   Warning。`Plot/Show/Export/CaseName/CPU/Parallel` 的 calculation/exact 模式和 bundle manifest
-   清单尚未实现。`Open/Close/Enable/Disable/BatchEdit` 仍按电气状态修改处理。
-8. **待完成：FaultStudy 适配器。** 需要先规定母线/故障类型的确定性枚举、故障电阻默认值和结果
-   长表主键，再调用现有 `ds_fault_study`；完成前保持 fail closed。
+   Warning，`Plot/Show` 已作为不改变电气状态的输出副作用处理。`Export/CaseName/CPU/Parallel`
+   的 calculation/exact 模式和 bundle manifest 清单仍待补齐。`Open/Close/Enable/Disable/BatchEdit`
+   继续按电气状态修改处理。
+8. **已完成优先入口的 FaultStudy 适配。** 已规定母线、故障类型、相别、0.1 Ω 默认故障电阻和结果
+   长表主键，并通过 IEEE123/IEEE34 官方入口；其他网络仍需各自的数值参考。
 
 对应代码落点如下：
 
@@ -198,9 +196,9 @@ tensoreval --result-dir /tmp/ieee13-psa \
 | `psa/src/dsa/parse/dss_import.rs` | 统一区分网络全局设置、求解参数和研究调度；`execution_epoch_source` 保留 referrer directory；需要时增加稳定的诊断 disposition。 |
 | `mems/src/bin/dss2rss/bundle.rs` | 在 calculation 模式的 manifest 中记录被省略的非电气命令及源位置，bundle 复跑时校验同一清单。 |
 
-第一批回归门禁应直接使用上述 19 个官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
+后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫全部 848 个文件，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫 249 个独立失败入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -209,14 +207,13 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 | 数量 | 分类 | 诊断码 | 原因 |
 |---:|---|---|---|
-| 589 | `not_standalone_entry` | `TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED` | 模型或公共定义片段，没有可独立执行的研究/Solve；应由入口脚本通过 Redirect/Compile 使用。 |
 | 36 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | 对象属性超出当前 PSA DataFrame/执行合同，无法无损表达。 |
 | 27 | `unsupported` | `REQUEST.SOURCE.ESCAPES_ROOT` | 数据资产引用被转换器判定为越过允许的获取根。 |
-| 25 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 FaultStudy、Dynamic、MonteCarlo 等尚无转换适配器的生命周期。 |
+| 25 | `unsupported` | `READ.IO.OPEN` | 官方快照缺少引用文件，或路径、引号、括号和行尾注释没有正确归一化。 |
 | 23 | `unsupported` | `READ.DSS.VALUE_DEFAULTED` | 导入需要补默认值，所选严格 profile 不能证明与 OpenDSS 等价。 |
-| 18 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性虽保留在源信息中，但当前计算合同不会消费它。 |
-| 16 | `unsupported` | `READ.IO.OPEN` | 官方快照缺少引用文件、路径大小写不匹配或文件无法打开。 |
-| 12 | `unsupported` | `PSA.DSS.LOADSHAPE.PROPERTY_UNSUPPORTED` | LoadShape 属性尚无被当前时序合同消费的无损映射。 |
+| 18 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 FaultStudy、Dynamic、Direct 等尚无转换适配器的生命周期。 |
+| 17 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性虽保留在源信息中，但当前计算合同不会消费它。 |
+| 11 | `unsupported` | `PSA.DSS.LOADSHAPE.PROPERTY_UNSUPPORTED` | LoadShape 属性尚无被当前时序合同消费的无损映射。 |
 | 11 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
 | 11 | `unsupported` | `PSA.DSS.PVSYSTEM.PROPERTY_UNSUPPORTED` | PVSystem 属性尚无无损映射。 |
 | 9 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage 属性尚无无损映射。 |
@@ -242,10 +239,11 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 ## 逐文件结果
 
-[`conversion_report.csv`](conversion_report.csv) 对 848 个文件逐一记录：
+[`conversion_report.csv`](conversion_report.csv) 保留原始扫描数据；本报告只使用其中基线失败的
+249 个独立入口记录：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
-- `status`：`converted`、`not_standalone_entry`、`unsupported` 或 `timeout`；
+- `status`：`unsupported` 或 `timeout`；
 - `primary_diagnostic`：阻止转换的首个稳定诊断码；
 - `all_diagnostic_codes` 和 `diagnostic_count`：该文件返回的诊断集合及数量；
 - `source_root`：检查使用的依赖根，`.` 表示整个 `Version8/Distrib`；
