@@ -18,11 +18,11 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 21 | 严格转换、求解和 bundle 自执行全部通过；包含基线 10 个和优先入口 11 个 |
+| 已转换并发布 bundle | 27 | 严格转换、求解和 bundle 自执行全部通过；包含基线 10 个、首批优先入口 11 个和第二批 6 个 |
 | 基线不支持的独立入口 | 249 | 严格检查遇到当时转换合同不能无损保持的内容；本轮定向修复状态见下文 |
 | 超时 | 0 | 无 |
 
-21 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+27 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
 静态化案例不计入这些官方原始入口。`conversion_report.csv` 保留基线扫描结果，因此其中仍会把
 后来完成定向修复的入口记录为 `unsupported`；发布现状以本节和实际 manifest 为准。
@@ -56,6 +56,25 @@ RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。�
 | `IEEETestCases/13Bus/IEEE13Nodeckt.dss` | 已发布 | 201 条语句，ExecutionPlan，1 个 epoch；使用全局依赖根 |
 | `IEEETestCases/37Bus/ieee37.dss` | 已发布 | 203 条语句；坐标资产复制、重写和 bundle 自执行均通过 |
 | IEEE 4 Bus 的 DY、GrdYD、YD、YY 四个 balanced 入口 | 已发布 | 每个 22 条语句，ExecutionPlan，1 个 epoch |
+
+## 第二轮改造进展
+
+2026-10-21 按能力审计的建议顺序完成 `Mode=F`、内置 `LoadShape.default` 和有界
+RegControl `Like` 回放，并补齐 `Mode` 对时钟及默认控制队列的影响。IEEE34 Mod2 还暴露了
+DSS 母线引用大小写问题：线路声明 `mid806`，负荷引用 `Mid806`；导入器现在按 OpenDSS
+语义解析为同一母线。下面 6 个原始入口已完成严格转换、自执行、OpenDSS 数值比较并发布：
+
+| 官方入口 | 执行规模 | OpenDSS 数值门禁 |
+|---|---|---|
+| `IEEETestCases/34Bus/Run_IEEE34Mod1.dss` | 649 条语句，2 个 Snapshot epoch | 电压最大误差 `9.06e-6`，调压器终态完全一致 |
+| `IEEETestCases/34Bus/Run_IEEE34Mod2.dss` | 581 条语句，2 个 Snapshot epoch | 电压最大误差 `1.36e-5`，线路量最大误差 `5.83e-5`，调压器终态完全一致 |
+| `IEEETestCases/123Bus/Run_IEEE123Bus.DSS` | 771 条语句，2 个 Snapshot epoch | 电压最大误差 `1.37e-5`，线路量最大误差 `1.79e-4`，7 组调压器终态完全一致 |
+| `IEEETestCases/123Bus/P174_Run_VoltageProfile.DSS` | 379 条语句，2 个 Snapshot epoch | 电压最大误差 `1.37e-5`，线路量最大误差 `1.79e-4`，7 组调压器终态完全一致 |
+| `IEEETestCases/123Bus/P174_Run_SolarRamp.DSS` | 380 条语句，3 个 epoch、300 个 Duty 时点 | 电压最大误差 `2.44e-5`；12 次 tap 状态变化、最终档位、Generator 输出和 300 个 Monitor 样本一致 |
+| `IEEETestCases/ShortCircuitCases/ieee37_SC_Currents.dss` | 170 条语句，175 个 FaultStudy 场景 | 去共模电压最大误差 `1.61e-7`，故障电流缩放误差 `1.51e-4`，正负序阻抗误差 `8.46e-12` |
+
+SolarRamp 的线路电流/功率最差缩放误差为 `7.4e-3`，出现在低潮流支路 L99；比较分别使用
+`1 A` 和 `1 kVA` 分母下限，仍低于该类小量的 `1%` 门限。源端功率最大误差为 `1.57e-4`。
 
 ## 数值对照
 
@@ -147,6 +166,10 @@ staging 自执行重试 30 分钟仍未完成，已停止并清理临时目录�
 它列出 12 个优先入口的最新定向复测状态、8 个需要继续闭合完整脚本语义的候选，并记录对
 路径类失败做最小修正后暴露出的第二层诊断。
 
+后续 8 个候选中，IEEE34 的两个入口、三个 IEEE123 入口和 IEEE37 已完成正式改造、数值门禁
+和 bundle 发布。剩余的 YYD 完整入口继续暴露 Direct/BatchEdit/Fault continuation 的求解边界，
+InductionMachine 仍需要完整 Dynamic、LoadShape Normalize、保护动作和 Monitor 合同。
+
 基线失败不能解释为 PSA 没有覆盖这些网络和算法。当时的转换链在 PSA 前后又维护了
 命令分类、Snapshot `Set` 白名单和诊断白名单；这些规则已经落后于 PSA 的 DSS importer 与执行计划。
 按“同一网络/算法或 PSA execution projection 已有数值证据、改造前首要失败点位于转换/编排层”
@@ -168,8 +191,8 @@ staging 自执行重试 30 分钟仍未完成，已停止并清理临时目录�
 
 下面几组只能判定为“底层原语存在、入口尚未闭环”，不能计入上述 19 个确定案例：
 
-- 第三个 `Mode=FaultStudy` 入口仍需单独的网络和全量短路参考；IEEE123/IEEE34 两个优先入口
-  已由确定性故障枚举和 typed 结果主键接入。
+- 三个 `Mode=FaultStudy` 官方入口均已由确定性故障枚举和 typed 结果主键接入；IEEE37 新增
+  175 个全母线场景的独立 OpenDSS 数值参考。
 - IEEE 519 两个优先入口已经通过；其他谐波入口仍需逐条核对脚本命令、频率集合和输出语义。
 - 26 个 mixed-study 入口多数是 Snapshot 初始化后转 Daily/Duty。PSA 支持多 epoch 和跨时点状态，
   但其中还包含 GFM、Storage、UPFC 等不同对象，取消分类器的统一拒绝后仍需逐文件复测。
@@ -200,8 +223,8 @@ staging 自执行重试 30 分钟仍未完成，已停止并清理临时目录�
    Warning，`Plot/Show` 已作为不改变电气状态的输出副作用处理。`Export/CaseName/CPU/Parallel`
    的 calculation/exact 模式和 bundle manifest 清单仍待补齐。`Open/Close/Enable/Disable/BatchEdit`
    继续按电气状态修改处理。
-8. **已完成优先入口的 FaultStudy 适配。** 已规定母线、故障类型、相别、0.1 Ω 默认故障电阻和结果
-   长表主键，并通过 IEEE123/IEEE34 官方入口；其他网络仍需各自的数值参考。
+8. **已完成三个优先入口的 FaultStudy 适配。** 已规定母线、故障类型、相别、0.1 Ω 默认故障电阻和结果
+   长表主键，并通过 IEEE123、IEEE34 和 IEEE37 官方入口及对应数值参考。
 
 对应代码落点如下：
 
