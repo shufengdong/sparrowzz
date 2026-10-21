@@ -21,24 +21,26 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
 
 下面 12 个入口已有直接或同入口等价投影的数值证据。基线失败点位于转换编排、研究适配、
 求解后端选择或严格导入门面，不需要先新增一种电气元件方程。2026-10-21 的定向复测已让
-12 个入口全部通过严格转换；其中 11 个完成实际求解检查，2,900 步 P174 入口完成转换和
-官方输入到锁定数值投影的逐表等价检查。该入口的完整 `--check` 在 release 构建运行 90 分钟
-后仍未结束，人工停止，因此不把本次运行记为完整求解通过。
+12 个入口全部通过严格转换；其中 11 个完成 bundle 自执行并按官方相对路径发布，2,900 步
+P174 入口完成转换和官方输入到锁定数值投影的逐表等价检查。该入口的完整 `--check` 在 release
+构建运行 90 分钟后仍未结束，人工停止，因此不把本次运行记为完整求解通过，也不发布半成品
+bundle。消除 bundle 编译与 staging 自执行的重复求解后，又对唯一一次 staging 自执行重试
+30 分钟；执行仍未完成，临时目录已清理。
 
 | 入口 | 已有能力证据 | 定向复测结果 |
 |---|---|---|
-| `IEEETestCases/4Bus-OYOD-Bal/4Bus-OYOD-Bal.DSS` | 两个 OYOD 工作点均有官方入口到 PSA 投影的逐输出证据；IEEE4 连接矩阵参考测试通过 | 严格转换和两项独立 study 求解通过 |
-| `IEEETestCases/4Bus-YYD/YYD-Master-step1.DSS` | `yyd_step1` 的 V/I/P/Q/loss/control 锁定参考已存在 | Newton 构建中转换和求解通过 |
-| `IEEETestCases/IEEE 30 Bus/Run_IEEE30.DSS` | 官方入口的 Model 3 静态 Newton 投影与 OpenDSS 输出逐文件一致 | 静态 Newton 路由转换和求解通过 |
-| `IEEETestCases/8500-Node/Run_8500Node.dss` | 原始 balanced deck 的 execution profile、控制终态和电气量已有测试 | Newton 转换和求解通过；自动 EnergyMeter 区域以显式 approximation Warning 保留 |
-| `IEEETestCases/8500-Node/Run_8500Node_Unbal.dss` | 原始 unbalanced deck 的 execution profile、控制终态和电气量已有测试 | Newton 转换和求解通过；Monitor 标准位置参数已规范化 |
-| `IEEETestCases/8500-Node/P174_Run_Voltage_Profile.DSS` | 两个有序 epoch 和 100%/40% 工作点已有数值参考 | 7,598 条语句、2 个 epoch 的完整 Newton `--check` 通过 |
-| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 2,900 步 Duty、曲线长度、调压器/电容状态及采样数值均有参考 | 7,616 条语句、5 个 epoch 严格转换通过；官方最终 epoch 与锁定 2,900 步投影的网络表、曲线和分配表等价；本轮完整长时序执行未完成 |
-| `Examples/Microgrid/GridFormingInverter/GFM_IEEE8500/Run_8500Node_Unbal.dss` | 文件 SHA-256 与上面的官方 unbalanced 入口完全相同 | 与同内容 unbalanced 入口使用同一路径，转换和求解通过 |
-| `IEEETestCases/ShortCircuitCases/IEEE123Master-SC.dss` | IEEE123 全母线 414 个故障参考测试通过 | FaultStudy adapter 转换和求解通过 |
-| `IEEETestCases/ShortCircuitCases/ieee34Mod2_SC_Case_II.dss` | IEEE34 全母线 148 个故障参考测试通过 | FaultStudy adapter 转换和求解通过 |
-| `Examples/HarmonicsTMode/IEEE_519.DSS` | HarmonicT 的时间×频率、LoadShape/Storage/Fault 状态物化已有 OpenDSS 参考 | `Open Line` 跨 Solve 快照物化后转换和求解通过 |
-| `Examples/HarmonicsVariableLoad/IEEE_519.DSS` | 同一 HarmonicT 运行时已覆盖逐快照状态变化 | Load 属性跨 Solve 快照物化后转换和求解通过 |
+| `IEEETestCases/4Bus-OYOD-Bal/4Bus-OYOD-Bal.DSS` | 两个 OYOD 工作点均有官方入口到 PSA 投影的逐输出证据；IEEE4 连接矩阵参考测试通过 | 严格转换和两项独立 study 自执行通过，bundle 已发布 |
+| `IEEETestCases/4Bus-YYD/YYD-Master-step1.DSS` | `yyd_step1` 的 V/I/P/Q/loss/control 锁定参考已存在 | Newton 自执行通过，bundle 已发布 |
+| `IEEETestCases/IEEE 30 Bus/Run_IEEE30.DSS` | 官方入口的 Model 3 静态 Newton 投影与 OpenDSS 输出逐文件一致 | 静态 Newton 自执行通过，bundle 已发布 |
+| `IEEETestCases/8500-Node/Run_8500Node.dss` | 原始 balanced deck 的 execution profile、控制终态和电气量已有测试 | Newton 自执行通过，bundle 已发布；自动 EnergyMeter 区域以显式 approximation Warning 保留 |
+| `IEEETestCases/8500-Node/Run_8500Node_Unbal.dss` | 原始 unbalanced deck 的 execution profile、控制终态和电气量已有测试 | Newton 自执行通过，bundle 已发布；Monitor 标准位置参数已规范化 |
+| `IEEETestCases/8500-Node/P174_Run_Voltage_Profile.DSS` | 两个有序 epoch 和 100%/40% 工作点已有数值参考 | 7,598 条语句、2 个 epoch 自执行通过，bundle 已发布 |
+| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 2,900 步 Duty、曲线长度、调压器/电容状态及采样数值均有参考 | 7,616 条语句、5 个 epoch 严格转换通过；投影逐表等价；完整长时序未完成，bundle 未发布 |
+| `Examples/Microgrid/GridFormingInverter/GFM_IEEE8500/Run_8500Node_Unbal.dss` | 文件 SHA-256 与上面的官方 unbalanced 入口完全相同 | 与同内容 unbalanced 入口使用同一路径，自执行通过，bundle 已发布 |
+| `IEEETestCases/ShortCircuitCases/IEEE123Master-SC.dss` | IEEE123 全母线 414 个故障参考测试通过 | FaultStudy adapter 自执行通过，bundle 已发布 |
+| `IEEETestCases/ShortCircuitCases/ieee34Mod2_SC_Case_II.dss` | IEEE34 全母线 148 个故障参考测试通过 | FaultStudy adapter 自执行通过，bundle 已发布 |
+| `Examples/HarmonicsTMode/IEEE_519.DSS` | HarmonicT 的时间×频率、LoadShape/Storage/Fault 状态物化已有 OpenDSS 参考 | `Open Line` 跨 Solve 快照物化后自执行通过，bundle 已发布 |
+| `Examples/HarmonicsVariableLoad/IEEE_519.DSS` | 同一 HarmonicT 运行时已覆盖逐快照状态变化 | Load 属性跨 Solve 快照物化后自执行通过，bundle 已发布 |
 
 这些入口的转换改造已经按 IEEE4 后端/多 study、IEEE30 静态 Newton 路由、FaultStudy
 adapter、IEEE519 快照物化和 IEEE8500 严格门面的顺序完成。IEEE8500 仍是性能和完整性
@@ -110,8 +112,8 @@ adapter、IEEE519 快照物化和 IEEE8500 严格门面的顺序完成。IEEE850
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
    避免只维护诊断码白名单。
-2. 上述 12 个入口已通过严格转换；下一步逐个补齐 OpenDSS 的 V/I/P/Q/loss、控制终态或
-   Fault/Harmonic 专用结果比较，并为 2,900 步 Duty 配置独立长任务预算。
+2. 上述 12 个入口已通过严格转换，11 个已发布 bundle；下一步逐个补齐 OpenDSS 的
+   V/I/P/Q/loss、控制终态或 Fault/Harmonic 专用结果比较，并为 2,900 步 Duty 配置独立长任务预算。
 3. 每消除一个首诊断都重扫 249 个独立失败入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
@@ -128,4 +130,5 @@ adapter、IEEE519 快照物化和 IEEE8500 严格门面的顺序完成。IEEE850
 - `cargo test -p psa --features mumps-static --test dss_post_solve_actions -- --nocapture`：
   9 项通过，包含 Newton 执行计划、流式结果和求解后动作。
 - `cargo test -p mems --features with_dsa,tensoreval-cli --bin tensoreval -- --nocapture`：
-  45 项通过，包含 DSS→RSS 分类、生成、bundle 自执行和 Newton 后端缺失时的明确拒绝。
+  48 项通过，包含 DSS→RSS 分类、生成、bundle 单次自执行、Redirect 后的数据资产读取和
+  Newton 后端缺失时的明确拒绝。

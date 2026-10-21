@@ -2,7 +2,7 @@
 // 该模型使用谐波计算所需的高短路容量电源参数。
 [bus, line, linecode, load_raw, transformer, voltage_source_raw, motor, transformer_winding, transformer_impedance, current_source, generator, ibr, switch, shunt, capacitor, reactor, _, control_profile, xy_curve, storage, para] = import_dss("sparrowzz/dss/models/ieee13_harmonic/IEEE13Nodeckt.dss");
 
-// 在 expr_df 中建立电源频谱：h 为谐波次数，mag_pct 为基波百分比。
+// 用 RSDss 建立电源频谱：h 为谐波次数，mag_pct 为基波百分比。
 source_h1 = select(alias("source_shape", name), alias(1, h), alias(100, mag_pct), alias(0, angle_deg), para);
 source_h3 = select(alias("source_shape", name), alias(3, h), alias(5, mag_pct), alias(30, angle_deg), para);
 source_h5 = select(alias("source_shape", name), alias(5, h), alias(3, mag_pct), alias(-20, angle_deg), para);

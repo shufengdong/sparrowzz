@@ -166,7 +166,7 @@ tensoreval 在解析 RustScript 前处理以下行：
 64 MiB，其返回内容不继续扫描 include。DSS 文件中的 `Redirect`/`Compile` 由 DSS 导入器
 处理，与 RSDss include 是两套机制。
 
-expr_df 中每个 `{ ... }` 都会编译为独立 Prog。某个代码块调用的函数必须在该代码块内
+RSDss 中每个 `{ ... }` 都会编译为独立 Prog。某个代码块调用的函数必须在该代码块内
 定义或包含，不能依赖另一个代码块已经加载的函数。多个代码块使用同一组依赖时，可把
 包含清单放在独立文件中：
 

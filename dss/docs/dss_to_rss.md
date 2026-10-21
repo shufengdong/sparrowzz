@@ -67,8 +67,10 @@ tensoreval path/to/case.rssbundle
 ```
 
 默认 `--mode linked` 仍生成单个 `.rss`。`--mode bundle` 生成一个目录，包含
-`manifest.json`、`main.rss`、`dss/`、`assets/` 以及可选的 `inputs/`。转换器会把依赖复制到
-临时目录，重写 bundle 内的数据资产路径，完成清单校验和一次自执行后再原子发布。
+`manifest.json`、`main.rss`、`dss/` 以及可选的 `inputs/`。DSS 源文件和文件型数据资产都按
+原始 source-root 相对路径复制到 `dss/`；manifest 使用 `dss-source` 和 `data-asset` 角色区分二者。
+这种布局让 Redirect 引入的 DSS 仍能在 acquisition root 内读取 CSV。转换器在临时目录中完成
+路径重写、清单校验和一次自执行后再原子发布。早期 schema v1 bundle 的顶层 `assets/` 仍可读取。
 `--source-root` 可显式指定依赖树边界；`--force` 只在新 bundle 完整验证后替换旧目录。
 本页后续章节定义清单字段、路径约束和验证顺序。
 
@@ -153,7 +155,7 @@ DSS import produced findings that can change OpenDSS results
 | `TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED` | 入口只定义模型，没有可分类的研究命令 |
 | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 FaultStudy、Dynamic、M1/M2/M3/MonteFault 等尚无原生 adapter 的生命周期 |
 | `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` | 一个命令流混合了没有 continuation 合同的研究类型 |
-| `TENSOREVAL.DSS.TRANSLATE.GENERATED_RSS_FAILED` | 生成文本已形成，但通过同一 expr_df/PSA 门面自校验失败 |
+| `TENSOREVAL.DSS.TRANSLATE.GENERATED_RSS_FAILED` | 生成文本已形成，但通过同一 RSDss/PSA 门面自校验失败 |
 | `TENSOREVAL.RSS.BUNDLE.PATH_INVALID` / `TENSOREVAL.RSS.BUNDLE.PATH_ESCAPE` | 清单路径不规范，或解析后越过 bundle 根目录 |
 | `TENSOREVAL.RSS.BUNDLE.HASH_MISMATCH` | bundle 内文件内容与清单中的 SHA-256 不一致 |
 | `TENSOREVAL.RSS.BUNDLE.INPUT_SCHEMA_MISMATCH` | 外部输入文件的列名或数据类型与清单不一致 |

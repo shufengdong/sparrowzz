@@ -71,7 +71,7 @@ OpenDSS 语言兼容。状态含义如下：
 `tensoreval --dss-to-rss` 另提供严格 Snapshot 投影：`VoltageBases`、`CalcV/CalcVoltageBases`、一个
 Snapshot `Solve` 和 `BusCoords` 可分别降低为网络基准、潮流调用或非电气布局提示；
 其余运行时语句仍 fail-closed。`tensoreval` 收到 `.dss` 文件时直接执行该转换和计算，
-增加 `--dss-to-rss` 时只生成同目录同名的 RSS，不执行生成脚本；两种模式都不向 expr_df
+增加 `--dss-to-rss` 时只生成同目录同名的 RSS，不执行生成脚本；两种模式都不向 RSDss
 增加专用导入函数。
 
 ## 3. 分析模式

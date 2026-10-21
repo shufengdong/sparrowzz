@@ -1,13 +1,59 @@
-# tensoreval DSS scripts
+# 配电网仿真工具 TensorEval
 
-本目录保存经过回归测试验证的 expr_df DSS 脚本，统一使用 `.rss` 扩展名表示
-RustScript 文件。
+本目录保存经过回归测试验证的 RustScriptSimulation（RSS）脚本（以下简称为 RSS 脚本），
+统一使用 `.rss` 扩展名。
 请在 eig-rs 工作区根目录运行命令，因为脚本中的 DSS 路径相对于进程工作目录解析。
 
 从现有 OpenDSS 模型和 Python 仿真脚本迁移时，请参阅
 [从 OpenDSS Python 脚本迁移到 RSS](docs/opendss_to_rss.md)。
 完整语法、函数、schema、兼容范围和智能体编写指南见
 [`docs/README.md`](docs/README.md)。
+
+## 定位
+
+`tensoreval` 不是 OpenDSS 的替代求解器，而是把 OpenDSS 工作流编译进 Rust 原生运行时
+的编译器与运行时：`import_dss` 把声明式 `.dss` 模型转成 21 张类型化网络表，`ds_*`
+函数执行分析，`--dss-to-rss` 产出可移植的 RSS 脚本或 `.rssbundle`。数值上它以
+OpenDSS 为 oracle 复现结果（复电压相对误差门限 `1e-3`），而不是宣称超越它；日常
+仿真、DataFrame 后处理和流程编排由 RSDss 承担，OpenDSS 保留为独立基准生成器。
+
+## 相比 Python + OpenDSS 的优势
+
+- **执行模型分离**：声明式模型（`import_dss`）与命令式执行（`ds_*`）拆开，同一份
+  `model.dss` 可同时喂给 OpenDSS 作 oracle、喂给 tensoreval 作日常仿真。
+- **原生执行，无 Python / OpenDSS 运行时**：单一 Rust 二进制，无需 `opendssdirect`、
+  DSS C-API 的版本管理；核心计算是原生 Rust + MUMPS/MKL，拼接与索引等内核快于解释型
+  循环（见 [`../rspower/bench/PF_PERFORMANCE.md`](../rspower/bench/PF_PERFORMANCE.md)）。
+- **失败关闭 + 有界**：`import_dss` 是转换器而非解释器，无法无损表达的 OpenDSS 命令或
+  对象会被拒绝并返回诊断码，而不是静默忽略；URL 下载、ExecutionStudy 子集均有边界。
+- **类型化 DataFrame 契约**：20 张网络表固定顺序、`para.result` 契约、每张结果表的
+  列/类型/单位由 schema 与机器可读 catalog 固定，可被一致性检查校验。
+- **可打包部署**：`--dss-to-rss --mode bundle` 把模型、脚本与外部数据冻结为自包含的
+  `.rssbundle`。
+- **超出 OpenDSS 的分析面**：状态估计、故障定位、恢复重构、保护配合审计、Monte
+  Carlo、电机网络动态等入口在 OpenDSS/Python 生态中不原生提供。
+
+边界：纯潮流求解速度与编译型 OpenDSS 内核大致相当，优势集中在后处理、流程编排与
+工程化；兼容面有界，未覆盖对象会 fail-closed 拒绝，迁移需先拆分模型与 `Solve`。
+
+## 与 mems DataFrame 流程引擎（DFF）结合
+
+[`mems`](../../mems/README.md) 的 DFF 是 eig-rs 工作区的 DataFrame 流程引擎：
+`DffModel` 定义可持久化流程（节点、边、触发方式、保存策略），编译为 `DfFlow` 运行时
+计划，由调度器触发、执行器执行，结果落库或走 Web 服务。RSS/RSDss 脚本通过
+`DfNodeType::TensorEval` 节点 + `TE_PARA_DF` 参数位作为流程中的一个节点嵌入：节点输入
+边的别名成为脚本变量，脚本末层变量成为节点输出。由此获得：
+
+- **配网分析成为流程编排的一等节点**：DSA 脚本与 `Source`/`Transform`/`Sql`/`Solve`/
+  `NLP`/`MILP`/`Wasm` 节点混编成一条流水线，而不是孤立的命令行计算。
+- **类型化 DataFrame 在节点间显式流动**：潮流输出的 `bus_phase` 等结果直接沿边进入
+  下游变换、优化或持久化，无需 CSV/pickle 中转。
+- **同源零拷贝运行时**：DSA、DataFrame 变换与优化共享 polars 与 `eig_expr`/`eig_aoe`，
+  结果不跨 Python 序列化边界。
+- **触发与持久化**：`DfTriggerType`（定时/手动/依赖）让 QSTS/时序潮流成为可周期性重跑
+  的持续仿真任务，结果按 `DfSaveMode` 落库。
+- **与优化/求解混编闭环**：潮流或状态估计结果可作为 `NLP`/`MILP` 节点的初值与约束
+  输入，形成"分析 → 优化"闭环。
 
 ## 脚本
 

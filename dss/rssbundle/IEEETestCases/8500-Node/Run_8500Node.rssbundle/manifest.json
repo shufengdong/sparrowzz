@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/8500-Node/Run_8500Node.dss",
+    "root": "dss",
+    "tree_sha256": "7c1ad9c0971f800957c6067908abb85659f1118abe820b9e879f462976915d39"
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/8500-Node/Buscoords.dss",
+      "role": "data-asset",
+      "sha256": "aa3d71873e595578f8c952dffd16b8cf74d5d811da40e16db8a4f0c72abe8c32"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/CapControls.DSS",
+      "role": "dss-source",
+      "sha256": "562818b4d905f391e88ed58efcd54150d4296d6cfb355f8abac32c969a290348"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Capacitors.dss",
+      "role": "dss-source",
+      "sha256": "cc05836176a6715b121619079eb6cef96e77468a3368c8ed44815f2e9d684dcf"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/LineCodes2.DSS",
+      "role": "dss-source",
+      "sha256": "3fec9199a41696a758eaff7065f86a89477f70898b1bee3295de9c74f154121a"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Lines.dss",
+      "role": "dss-source",
+      "sha256": "460eb5e8179bda1926d0d70cf4fc9d8bdd29ab4dd9a101941730749f8a4a663a"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/LoadXfmrCodes.dss",
+      "role": "dss-source",
+      "sha256": "422122863efd0268cb125694b0830673baa6ce466157ceea223cb64bcbe0a533"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Loads.dss",
+      "role": "dss-source",
+      "sha256": "4d5b68a8095bbee59a95ba08255f34b74fcf3d89c0e413df2fc669648fb2d18f"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Master.dss",
+      "role": "dss-source",
+      "sha256": "8b7205cb5a3cecc47791d1a589f3848994f42402822d0b4af68c75bd01d38be8"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Regulators.dss",
+      "role": "dss-source",
+      "sha256": "041f353f55076feaaf751bbb20551226f8727ddfbdfc5101cf1b1f222da38617"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Run_8500Node.dss",
+      "role": "dss-entry",
+      "sha256": "6f7049134ab22835173d0b1a5be6f0f8d270be55643c594afcf9e458d6fe1b52"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Transformers.dss",
+      "role": "dss-source",
+      "sha256": "cab397f65f5de08c4d82cf794c03c432b404cd5db7db37ff827869db8344b708"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Triplex_Linecodes.dss",
+      "role": "dss-source",
+      "sha256": "7dfbfc23e19d8930c9e5ac3302bd9e8e9d52aee9c333e3fc80422f15752a886d"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Triplex_Lines.DSS",
+      "role": "dss-source",
+      "sha256": "abf45521bc05a7f9d5c3fa4c94c4f24f7ea9bc984e7086b303ae4a143d77971d"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "ac1893b9cef2b1d7e6e0b2a23fa947b965f96f92a0f0994e522a3ea5501b9da9"
+    }
+  ],
+  "inputs": []
+}
