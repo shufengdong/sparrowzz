@@ -1,0 +1,47 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "fault_study",
+    "compatibility": "opendss-native",
+    "results": [
+      "fault"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/ShortCircuitCases/IEEE123Master-SC.dss",
+    "root": "dss",
+    "tree_sha256": "85910bfdbfd49d58323e29e32bd76f63b5e9583de40acc35f7aa8feace6f5471"
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
+    },
+    {
+      "path": "dss/IEEETestCases/ShortCircuitCases/IEEE123Master-SC.dss",
+      "role": "dss-entry",
+      "sha256": "0649f9100bc781410553f7aa73d1f8f4f1965911869954186dc5b7f701378e4d"
+    },
+    {
+      "path": "dss/IEEETestCases/ShortCircuitCases/IEEE123Regulators.DSS",
+      "role": "dss-source",
+      "sha256": "f5a720f310bc060d653d72b831f429351e1f76a1a78952e6065e4d0f8147aeac"
+    },
+    {
+      "path": "dss/IEEETestCases/ShortCircuitCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "50c2cd9d63aa4f99a27d55de2060e5a18a3ae0294e5b1a294d3e30ccc26f6cbd"
+    }
+  ],
+  "inputs": []
+}

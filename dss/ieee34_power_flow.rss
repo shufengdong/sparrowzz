@@ -9,7 +9,7 @@ pf_para = with_columns(
     para
 );
 
-// voltage 是可继续用于 expr_df 处理的 DataFrame。
+// voltage 是可继续用于 RSDss 处理的 DataFrame。
 [voltage] = ds_radial_pf(
     bus, line, linecode, load, transformer, voltage_source,
     motor, transformer_winding, transformer_impedance, current_source,

@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "fault_study",
+    "compatibility": "opendss-native",
+    "results": [
+      "fault"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/ShortCircuitCases/ieee34Mod2_SC_Case_II.dss",
+    "root": "dss",
+    "tree_sha256": "4b1eaef5df638d2c806085344c9ad56ee9d86f06aa20c0105df528854d7edf75"
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
+    },
+    {
+      "path": "dss/IEEETestCases/ShortCircuitCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
+    },
+    {
+      "path": "dss/IEEETestCases/ShortCircuitCases/ieee34Mod2_SC_Case_II.dss",
+      "role": "dss-entry",
+      "sha256": "e01b6ded8025b9ec09e482d97adbb7a3db418902e9b158e6d37da91678634a8b"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "a942ff658f601f8e58640a7ab939589623eea34f75b5714f474dbb4646391f33"
+    }
+  ],
+  "inputs": []
+}

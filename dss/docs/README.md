@@ -1,6 +1,6 @@
 # tensoreval RSS 文档索引
 
-本目录描述 `tensoreval --dataframe` 执行的 RSS（RustScript/RSDss）脚本，以及
+本目录描述 `tensoreval --dataframe` 执行的 RustScriptSimulation（RSS）脚本，以及
 `with_dsa` 提供的配电系统分析函数。文档以当前仓库生产代码为准，目标是让用户和
 代码智能体能够从仿真需求生成可运行、可检查的 `.rss` 脚本。
 

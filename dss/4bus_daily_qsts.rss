@@ -1,5 +1,5 @@
 // 4Bus-DY-Bal 三时点 Daily QSTS 示例。
-// import_dss 只导入静态网络，时间轴和负荷曲线在 RustScript 中显式定义。
+// import_dss 只导入静态网络，时间轴和负荷曲线在 RSS 脚本中显式定义。
 [bus, line, linecode, load, transformer, voltage_source, motor, transformer_winding, transformer_impedance, current_source, generator, ibr, switch, shunt, capacitor, reactor, spectrum, control_profile, xy_curve, storage, para] = import_dss("sparrowzz/dss/models/4bus_daily_qsts/4bus_dy.dss");
 
 // Daily 模式计算 3 个时点，步长为 3600 s，并禁用自动控制动作。

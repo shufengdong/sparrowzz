@@ -18,13 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 10 | 严格转换、求解和 bundle 自执行全部通过 |
+| 已转换并发布 bundle | 21 | 严格转换、求解和 bundle 自执行全部通过；包含基线 10 个和优先入口 11 个 |
 | 基线不支持的独立入口 | 249 | 严格检查遇到当时转换合同不能无损保持的内容；本轮定向修复状态见下文 |
 | 超时 | 0 | 无 |
 
-10 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+21 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这 10 个官方原始入口。
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 保留基线扫描结果，因此其中仍会把
+后来完成定向修复的入口记录为 `unsupported`；发布现状以本节和实际 manifest 为准。
 
 ## 首轮改造进展
 
@@ -116,11 +117,28 @@ IEEE8500 自动 EnergyMeter 区域现在保留电气求解并产生稳定的
 `PSA.DSS.ENERGY_METER.AUTO_ZONE_APPROXIMATION` Warning；该路径不声明 meter-zone 寄存器与
 OpenDSS 完全等价。
 
-2026-10-21 对能力审计选出的 12 个优先入口做了定向复测：全部完成严格转换，11 个完成实际
-求解检查。`P174_Run_360kW_PV.DSS` 的 7,616 条语句已生成 5-epoch Newton RSS，官方最终 epoch
-与锁定 2,900 步数值投影的网络表、LoadShape 和分配表逐表等价；完整 2,900 步 `--check` 在
-release 构建运行 90 分钟后仍未结束并人工停止，因此不计为本轮完整求解通过。`--check` 已改用
-Newton 流式执行，避免累计每个时刻的全网结果；完整潮流、控制和计量计算成本仍然存在。
+2026-10-21 对能力审计选出的 12 个优先入口做了定向复测：全部完成严格转换，其中 11 个完成
+bundle 自执行并按官方相对路径发布。`P174_Run_360kW_PV.DSS` 的 7,616 条语句已生成 5-epoch
+Newton RSS，官方最终 epoch 与锁定 2,900 步数值投影的网络表、LoadShape 和分配表逐表等价；
+完整 2,900 步 `--check` 在 release 构建运行 90 分钟后仍未结束并人工停止，因此尚未发布 bundle。
+`--check` 已改用 Newton 流式执行，避免累计每个时刻的全网结果；完整潮流、控制和计量计算成本
+仍然存在。随后修正了 bundle 编译与 staging 自执行重复运行同一研究的问题；修正后的唯一一次
+staging 自执行重试 30 分钟仍未完成，已停止并清理临时目录，发布状态不变。
+
+| 优先入口 | bundle 发布状态 | 验证状态 |
+|---|---|---|
+| `IEEETestCases/4Bus-OYOD-Bal/4Bus-OYOD-Bal.DSS` | 已发布 | 两项独立 study 自执行通过 |
+| `IEEETestCases/4Bus-YYD/YYD-Master-step1.DSS` | 已发布 | Newton 自执行通过 |
+| `IEEETestCases/IEEE 30 Bus/Run_IEEE30.DSS` | 已发布 | 静态 Newton 自执行通过 |
+| `IEEETestCases/8500-Node/Run_8500Node.dss` | 已发布 | Newton 自执行通过 |
+| `IEEETestCases/8500-Node/Run_8500Node_Unbal.dss` | 已发布 | Newton 自执行通过 |
+| `IEEETestCases/8500-Node/P174_Run_Voltage_Profile.DSS` | 已发布 | 7,598 条语句、2 个 epoch 自执行通过 |
+| `Examples/Microgrid/GridFormingInverter/GFM_IEEE8500/Run_8500Node_Unbal.dss` | 已发布 | 与官方 unbalanced 入口同内容，自执行通过 |
+| `IEEETestCases/ShortCircuitCases/IEEE123Master-SC.dss` | 已发布 | FaultStudy 414 个故障，自执行通过 |
+| `IEEETestCases/ShortCircuitCases/ieee34Mod2_SC_Case_II.dss` | 已发布 | FaultStudy 148 个故障，自执行通过 |
+| `Examples/HarmonicsTMode/IEEE_519.DSS` | 已发布 | HarmonicT 与跨 Solve 开关状态自执行通过 |
+| `Examples/HarmonicsVariableLoad/IEEE_519.DSS` | 已发布 | HarmonicT 与跨 Solve Load 状态自执行通过 |
+| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 未发布 | 严格转换和投影等价通过；完整 2,900 步自执行未完成 |
 
 ## 与 PSA 当前能力的交叉评估
 

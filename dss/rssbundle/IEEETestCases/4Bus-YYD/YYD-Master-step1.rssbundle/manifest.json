@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/4Bus-YYD/YYD-Master-step1.DSS",
+    "root": "dss",
+    "tree_sha256": "f4a7238712a7deaa1063bddafa2e7e591631917e2867e969780a837eac12cbfb"
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/4Bus-YYD/YYD-Master-step1.DSS",
+      "role": "dss-entry",
+      "sha256": "8b7f8f805c7952cc195d4f1eab4aec01eb6fb4d24096aba4fbe5c2e5dc6053bc"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "df408cef69e410f5e3b1c15928b1955a054b984e5fe6abbcd061c2c710ef730c"
+    }
+  ],
+  "inputs": []
+}

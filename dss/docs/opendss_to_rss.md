@@ -2,7 +2,7 @@
 
 本文面向已经使用 OpenDSS 或 OpenDSSDirect.py 的配电网仿真用户，说明如何保留现有
 `.dss` 模型文件，并把“载入模型、执行分析、读取结果和后处理”迁移到 `tensoreval`
-执行的 RSS（RSDss）脚本。
+执行的 RustScriptSimulation（RSS）脚本。
 
 当前最成熟的迁移路径是静态辐射状配电网潮流、Newton 潮流、谐波和短路计算。仓库中的对照
 测试已经用同一批 IEEE 13、34 和 123 节点模型分别运行 OpenDSS 与 RSDss，并比较
@@ -90,7 +90,7 @@ case/
 ├── lines.dss       # model.dss 可以 Redirect 这个文件
 ├── loads.dss
 ├── run_opendss.dss # 保留给 OpenDSS：Compile model.dss、Set、Solve、Export
-└── run.rss         # RustScript：import_dss、ds_*、结果处理
+└── run.rss         # RSS 脚本：import_dss、ds_*、结果处理
 ```
 
 这样同一份 `model.dss` 可以同时作为 OpenDSS 基准输入和 RSDss 输入。不要为了让导入
@@ -470,12 +470,12 @@ tensoreval --dss-to-rss path/to/run.dss
 该参数也可写成 `--dss2rss`、`--dsstorss` 或 `--dss_to_rss`。
 
 转换器会解析完整命令流，分类为 Snapshot、ExecutionPlan、Harmonic、AutoAdd 或 RelCalc，
-再通过对应 PSA 入口完成导入和一次实际计算。生成的 specialist RSS 还会通过 expr_df
+再通过对应 PSA 入口完成导入和一次实际计算。生成的 specialist RSS 还会通过 RSDss
 重新执行后才返回；可能改变 OpenDSS 结果的导入 Warning 会使转换失败，并逐项输出诊断码
 与源位置。ExecutionPlan 中已经被 typed study 消费的 `READ.DSS.RETAINED_SOURCE_ONLY`
 仍作为提示返回，不会被误判为丢失执行语义。
 
-`tensoreval` 命令行工具可以直接运行 RSS（RSDss）文件。脚本使用 `import_dss` 等自包含入口时
+`tensoreval` 命令行工具可以直接运行 RSS 文件。脚本使用 `import_dss` 等自包含入口时
 不需要外部 DataFrame：
 
 ```bash

@@ -1,0 +1,63 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "static_power_flow",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/IEEE 30 Bus/Run_IEEE30.DSS",
+    "root": "dss",
+    "tree_sha256": "5a3d0e24ce1cea3d29919742859300d3dc484619782ebf7d561fb2553f24a646"
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/IEEE 30 Bus/Capacitors.DSS",
+      "role": "dss-source",
+      "sha256": "7c975e94620637a0a45fabb9004c67be41119707b32c3aa9f67f583fc6b182a0"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEE 30 Bus/Generators.DSS",
+      "role": "dss-source",
+      "sha256": "9a7c590c4c4d8f0790eafbd0352a3417bcb3d2460e845c726b467ae5eb03470f"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEE 30 Bus/Lines.DSS",
+      "role": "dss-source",
+      "sha256": "01035f06fee6f1ff78493a8c383f025997b111eea7ff4bddeb6f284db5f6f7fb"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEE 30 Bus/Loads.DSS",
+      "role": "dss-source",
+      "sha256": "34916553ab1d5a8ca0679165532ba697ba8991eb95df737192d250efbb9240fe"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEE 30 Bus/Master.dss",
+      "role": "dss-source",
+      "sha256": "bb0b864c3e63955cad3c6f289832421c24cc0d4dccaf9f66c3be51e8c22d1aba"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEE 30 Bus/Run_IEEE30.DSS",
+      "role": "dss-entry",
+      "sha256": "8e51b42250caeeb63d31a38ace6ced18066f728e50c46aa03899bb10e1698d61"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEE 30 Bus/Transformers.DSS",
+      "role": "dss-source",
+      "sha256": "2f526e15ac13c8543f9ad6f3c53f6d38e0d901e370ec84a3cb6ce273df05b2ec"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "86044d503b9ac8b8bf9b29b629fdfddef63b3bc32d80db4e5a6d727e4fc5df4f"
+    }
+  ],
+  "inputs": []
+}

@@ -1,0 +1,57 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "harmonic",
+    "compatibility": "opendss-native",
+    "results": [
+      "bus_voltage",
+      "branch_flow",
+      "conductor_flow",
+      "bus_sequence",
+      "branch_sequence",
+      "monitor"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/HarmonicsVariableLoad/IEEE_519.DSS",
+    "root": "dss",
+    "tree_sha256": "3a2be64c4ca45052aa4b02b180e6e96b86e4a0b56e5189acf9d9576253042c19"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/HarmonicsVariableLoad/Default_Spectrum.DSS",
+      "role": "dss-source",
+      "sha256": "729a453b7fd1c3cd144a85b736dcbd35c9afc05563d001d4c3de99bf9adf8728"
+    },
+    {
+      "path": "dss/Examples/HarmonicsVariableLoad/IEEE_519.DSS",
+      "role": "dss-entry",
+      "sha256": "65babbe3ea0bd7ef187a06a56026d8a60d7f8b0148a1d83608d2ea4e27dafb30"
+    },
+    {
+      "path": "dss/Examples/HarmonicsVariableLoad/Spectrum_Load_1.csv",
+      "role": "data-asset",
+      "sha256": "0fb56ed688d54e24bd2384415935ec65aa3803e5a68977e18ccaade6f963d7e0"
+    },
+    {
+      "path": "dss/Examples/HarmonicsVariableLoad/Spectrum_Load_2.csv",
+      "role": "data-asset",
+      "sha256": "4e41691881a3fa25dcb870dbdb9799b1c9ff4760baf9805d11d11c86cf65ffaf"
+    },
+    {
+      "path": "dss/Examples/HarmonicsVariableLoad/Spectrum_Load_3.csv",
+      "role": "data-asset",
+      "sha256": "83e0d73f1441a89d3ed7a93a590323fd3007378f406ea225ecb2002d902aec66"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "aea9395f4cb1809061eefc804dc45816ea18850f209e4e2eb936a04219544886"
+    }
+  ],
+  "inputs": []
+}
