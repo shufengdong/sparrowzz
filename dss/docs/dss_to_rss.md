@@ -172,11 +172,12 @@ DSS import produced findings that can change OpenDSS results
 `EPRITestCircuits` 90 个。每个文件都实际执行严格 `--check`；依赖越过当前案例目录时，
 以整个 `Version8/Distrib` 作为 `--source-root` 重试。
 
-当前代码重扫后的结果是：10 个官方原始入口通过严格检查、生成 bundle 并完成构建期自执行；
-589 个文件是没有独立研究命令的模型或公共依赖片段；其他 249 个文件因未映射生命周期、对象
-属性、路径、执行顺序或求解问题失败；没有文件超时。成功入口包括 EPRI J1 的有/无 PV 入口、
-IEEE13、IEEE37、四个 IEEE4 balanced 入口，以及 VSConverter/WampServer 各一个入口。该结果
-不包含对官方文件的删改或静态化包装。
+基线重扫结果是：10 个官方原始入口通过严格检查、生成 bundle 并完成构建期自执行；589 个文件
+是没有独立研究命令的模型或公共依赖片段；另有 249 个独立入口因当时未映射的生命周期、对象
+属性、路径、执行顺序或求解问题失败，没有文件超时。后续只在这 249 个独立入口中做定向改造，
+目前另有 18 个入口通过并发布，总计 28 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
+HarmonicT，以及 `Examples/FreqScan/Run_Scan.dss` 的 188 点非整数频率扫描；不包含对官方文件的
+删改或静态化包装。
 
 纯模型 `IEEE123Master.dss` 另用 `--study snapshot` 完成定向检查和 bundle 自执行，但因原文件
 没有研究命令，不计入无 `--study` 扫描的 10 个可运行入口。实时清单、全部剩余诊断和 IEEE8500
@@ -206,11 +207,16 @@ AutoAdd 和 RelCalc 在返回脚本前还会实际解析并执行生成的 RSS�
 tensoreval --result-dir /tmp/case-psa path/to/case.rssbundle
 ```
 
-官方发行扫描的 10 个成功 bundle 已完成最终母线复电压对照，并全部通过已有 PSA 案例门限。
+官方发行扫描的基线 10 个成功 bundle 已完成最终母线复电压对照，并全部通过已有 PSA 案例门限。
 EPRI J1 无/有 PV 案例的最大复电压相对误差分别为 0.007131% 和 0.006013%；SG2012 的两个
 三相 RegControl 最终 tap 均与 OpenDSS 一致，129 个节点最大相对误差为 0.03344%。完整节点
 集合、比较口径和误差见[官方发行文件转换清单](../rssbundle/README.md)及
 [`numerical_comparison.csv`](../rssbundle/numerical_comparison.csv)。
+
+FreqScan bundle 另以 Monitor 结果对照：188 个频点、3 相、564 行均有唯一稳定键；电压幅值最大
+缩放误差 `9.3144e-6`，电压相角最大误差 `0.000555966°`，不小于 1 A 的电流相角最大误差
+`0.000199377°`。复制整个 bundle 后仍可用 `tensoreval --result-dir DIR INPUT.rssbundle` 运行，
+证明脚本不依赖生成机绝对路径。
 
 `tensoreval` 的直接 `.dss` 入口还原地使用 PSA 仓库中的三个输入及其 OpenDSS 基准：
 
