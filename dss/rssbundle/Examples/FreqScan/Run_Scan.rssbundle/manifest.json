@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "harmonic",
+    "compatibility": "opendss-native",
+    "results": [
+      "bus_voltage",
+      "branch_flow",
+      "conductor_flow",
+      "bus_sequence",
+      "branch_sequence",
+      "monitor",
+      "monitor_save"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/FreqScan/Run_Scan.dss",
+    "root": "dss",
+    "tree_sha256": "ff311a2b978f30099b63fb4209dbd91107407a2d2fe15223d4fb3471e5f1ea22"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/FreqScan/BusCoords.dat",
+      "role": "data-asset",
+      "sha256": "0b409c0e5d99f365c0140bf38280c1d64932032f1ecb8ef83ae54d4ed0d2716f"
+    },
+    {
+      "path": "dss/Examples/FreqScan/Run_Scan.dss",
+      "role": "dss-entry",
+      "sha256": "7c4e8e269b4729ce3086033e2d7f45e63b13531631b3b4b25fe40f205e66c993"
+    },
+    {
+      "path": "dss/Examples/FreqScan/ScanSpectrum.csv",
+      "role": "data-asset",
+      "sha256": "10a6789e21bd36a3530e000b5f85716fdeb1b9260e0de9f94331afe0ced55096"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
+      "role": "dss-source",
+      "sha256": "fd28f52836205506a1980b52c5a7e12ca585aa626c52a6249502c1c3b2fc2255"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Master.dss",
+      "role": "dss-source",
+      "sha256": "c92a69d9b218b1b2646ec7911783826229309038e72f16b848304c0457c0a54d"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
+      "role": "dss-source",
+      "sha256": "cd6ad77980dc018631ce39faab528afce40b0b9a50a6bc1c9ac8049ffb8207d7"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "4dae960b23ffaab480e5cee613ea0de1039615523c4d0dc12c5694cfb89cc199"
+    }
+  ],
+  "inputs": []
+}

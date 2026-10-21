@@ -18,14 +18,15 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 27 | 严格转换、求解和 bundle 自执行全部通过；包含基线 10 个、首批优先入口 11 个和第二批 6 个 |
+| 已转换并发布 bundle | 28 | 严格转换、求解和 bundle 自执行全部通过；包含基线 10 个、首批优先入口 11 个、第二批 6 个和 FreqScan 频率扫描入口 |
 | 基线不支持的独立入口 | 249 | 严格检查遇到当时转换合同不能无损保持的内容；本轮定向修复状态见下文 |
 | 超时 | 0 | 无 |
 
-27 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+28 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
 静态化案例不计入这些官方原始入口。`conversion_report.csv` 保留基线扫描结果，因此其中仍会把
-后来完成定向修复的入口记录为 `unsupported`；发布现状以本节和实际 manifest 为准。
+多数后来完成定向修复的入口记录为 `unsupported`；FreqScan 行已随本轮验证更新，发布现状以本节
+和实际 manifest 为准。
 
 ## 首轮改造进展
 
@@ -75,6 +76,25 @@ DSS 母线引用大小写问题：线路声明 `mid806`，负荷引用 `Mid806`�
 
 SolarRamp 的线路电流/功率最差缩放误差为 `7.4e-3`，出现在低潮流支路 L99；比较分别使用
 `1 A` 和 `1 kVA` 分母下限，仍低于该类小量的 `1%` 门限。源端功率最大误差为 `1.57e-4`。
+
+## 非整数频率扫描
+
+`Examples/FreqScan/Run_Scan.dss` 已按官方入口原样发布为
+`Examples/FreqScan/Run_Scan.rssbundle`。它先以 Static 控制模式完成 IEEE 123 节点基波初始化，
+再读取 `ScanSpectrum.csv`，执行 65–1000 Hz 的 188 个非整数频点，并输出 Line.l84 端子 1
+三相 Monitor.Mscan，共 564 行。bundle 携带完整 DSS 依赖和数据资产，从原目录复制到独立临时目录后，
+使用下列公开命令仍可运行并生成 7 张结果表：
+
+```bash
+tensoreval --result-dir /tmp/freqscan-results \
+  sparrowzz/dss/rssbundle/Examples/FreqScan/Run_Scan.rssbundle
+```
+
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 的锁定参考覆盖全部 188×3 个键。电压幅值最大缩放误差
+为 `9.3144e-6`，电流幅值在 1 A 分母下限下最大缩放误差为 `4.4922e-6`；电压相角最大误差
+`0.000555966°`，电流不小于 1 A 时最大相角误差 `0.000199377°`。频率按 OpenDSS Monitor 的
+Float32 发布表示比较。完整数据见 `numerical_comparison.csv`，逐点参考和哈希门禁位于 PSA
+测试资产中。
 
 ## 数值对照
 

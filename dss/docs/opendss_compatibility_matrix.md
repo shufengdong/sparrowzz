@@ -61,7 +61,8 @@ OpenDSS 语言兼容。状态含义如下：
 | `Solve` | fail-closed | 单 Solve profile 和多 Solve execution plan 均有 PSA API | 单 Solve 可用 `import_dss_execution` 展开；多 Solve 用 `ds_radial_dss_plan` / `ds_newton_raphson_dss_plan` |
 | `Open`, `Close` | 静态最终状态必须可表示 | 显式开关的整设备动作及 epoch mutation 有界支持 | 修改显式开关表或使用 QSTS 控制表 |
 | `Enable`, `Disable` | 已支持对象的最终静态状态必须可表示 | 当前 execution profile 明确为 unsupported，遇到即 fail-closed | 在 RSS 中显式构造所需设备表 |
-| `CalcVoltageBases`, `Export`, `Show` | fail-closed | 不作为网络 DataFrame 语义 | 求解后用 RSDss 选择和导出结果 |
+| `CalcVoltageBases` | fail-closed | 在已声明执行契约中有界支持 | 降低为网络基准计算，不产生独立结果表 |
+| `Show`, `Export`, `Plot`, bus-marker 命令 | fail-closed | 仅经审计的非电气副作用命令可作为 Warning 忽略 | 求解结果由 `tensoreval --result-dir` 导出 |
 | 未知命令/属性/对象 | fail-closed | fail-closed | 查看稳定 diagnostic code 后改写或补充 adapter |
 
 静态导入器会把留存在上游 typed model 中的运行命令视为错误，不会静默跳过。`Clear` 可作为
@@ -81,7 +82,7 @@ Snapshot `Solve` 和 `BusCoords` 可分别降低为网络基准、潮流调用�
 | Snapshot 潮流 | `ds_radial_pf` | 直接 | 适合辐射状/弱网状配电网，支持完整 20 表 |
 | Snapshot Newton 潮流 | `ds_newton_raphson_pf` | 直接 | 需要 MUMPS 或 MKL feature |
 | Daily/Yearly/Duty/PeakDay/LD1/LD2 | `ds_radial_qsts`, `ds_newton_raphson_qsts` | 显式表 | 固定 33 参数；时间、曲线、控制和计量独立成表 |
-| Harmonic | `ds_harmonic_study` | 直接/有界 | 频谱和 `h_max` 显式；大型案例用 release |
+| Harmonic / HarmonicT | `ds_harmonic_study`, `ds_dss_harmonic_plan` | 直接/有界 | 支持显式频谱、整数谐波和 Spectrum 驱动的非整数频率集合；执行计划保留基波初始化、控制终态、跨 Solve mutation 和 Monitor |
 | FaultStudy / 单故障求解 | `ds_fault_study` | 显式表 | 故障位置、类型和阻抗放在 `fault` |
 | 状态估计 | `ds_wls_se`, `ds_mnmr_se`, `ds_mce_se` | 显式表 | 需要 measurement；需要稀疏后端 |
 | Monte Carlo | `ds_monte_carlo` | 显式表 | 随机或 replay；当前拒绝非空独立 storage |
