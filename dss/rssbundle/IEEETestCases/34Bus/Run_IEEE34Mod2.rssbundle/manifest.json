@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/34Bus/Run_IEEE34Mod2.dss",
+    "root": "dss",
+    "tree_sha256": "957b177a8cc4d083c2a7f8e6019d1405e91a49052d6ea9939d63fcd15e889874"
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/34Bus/IEEE34_BusXY.csv",
+      "role": "data-asset",
+      "sha256": "6e022bbb3adb3c7f29ccb7bbdee2013517ae55e19ad25cda815616c5d4a37958"
+    },
+    {
+      "path": "dss/IEEETestCases/34Bus/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
+    },
+    {
+      "path": "dss/IEEETestCases/34Bus/Run_IEEE34Mod2.dss",
+      "role": "dss-entry",
+      "sha256": "091c1641f7a946aa2237adec921a6310a540a57d3258abd23f2a11c6c85d25b0"
+    },
+    {
+      "path": "dss/IEEETestCases/34Bus/ieee34Mod2.dss",
+      "role": "dss-source",
+      "sha256": "89de24062fb1999b73a9ae2a57d35edb14bf9568535cdeea293595d500da4f83"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "341a82564471b84d9cf4634dcb6375623066e72aed965157889e7fc6f57330af"
+    }
+  ],
+  "inputs": []
+}

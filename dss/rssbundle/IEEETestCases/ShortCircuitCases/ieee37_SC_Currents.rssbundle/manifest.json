@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "fault_study",
+    "compatibility": "opendss-native",
+    "results": [
+      "fault"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/ShortCircuitCases/ieee37_SC_Currents.dss",
+    "root": "dss",
+    "tree_sha256": "a3712ba6cb10f14ea63708b7eefb70e2ad1fbb2a7b9c910c79148bb10bec83d2"
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
+    },
+    {
+      "path": "dss/IEEETestCases/ShortCircuitCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
+    },
+    {
+      "path": "dss/IEEETestCases/ShortCircuitCases/ieee37_SC_Currents.dss",
+      "role": "dss-entry",
+      "sha256": "f0d869a382736240eef95f388b4d2649680fae29901af83cb49e267141c1d8ef"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "e6bf6480957e4ccb7e6a9ecad2aa39ee45948f0fa4666e1f3e2927f9da668105"
+    }
+  ],
+  "inputs": []
+}

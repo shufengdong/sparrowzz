@@ -104,6 +104,11 @@ DataFrame，便于查看和修改每张输入表。
 
 官方 OpenDSS 发行文件的便携转换结果集中在 [`rssbundle`](rssbundle/README.md)，
 其中列出已转换入口、未支持文件的原因和与 OpenDSS 的数值对照。
+针对 249 个独立入口中后续 8 个候选的定向分析见
+[`rssbundle/capability_coverage_audit.md`](rssbundle/capability_coverage_audit.md)：IEEE34 的两个入口、
+三个 IEEE123 入口和 IEEE37 已补齐 `LoadShape.default`、RegControl `Like` 有序回放、`Mode=F`
+规范化、Mode 时钟/控制队列和 DSS 母线名大小写语义，完成 OpenDSS 数值门禁并发布 bundle。
+YYD 完整入口和 InductionMachine 仍需要跨研究 Direct 或 Dynamic 专用合同，不能按简单语法兼容处理。
 
 ## 运行
 

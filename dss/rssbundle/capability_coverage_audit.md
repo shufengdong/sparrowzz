@@ -46,21 +46,50 @@ bundle。消除 bundle 编译与 staging 自执行的重复求解后，又对唯
 adapter、IEEE519 快照物化和 IEEE8500 严格门面的顺序完成。IEEE8500 仍是性能和完整性
 长门禁；尤其 2,900 步 Duty 不进入普通快速测试。
 
-## 核心能力已有，但不能直接承诺完整转换的 8 个入口
+## 后续 8 个候选入口的定向分析
 
-下面 8 个入口的主要网络或算法已经覆盖，但官方脚本还包含没有完成无损映射的命令、对象
-或输出。它们是下一层候选，不应与上面的 12 个混为“修一个首诊断即可通过”。
+2026-10-21 使用当前 `tensoreval` 重新执行这 8 个官方入口，并按建议顺序实现分类、导入与
+执行语义。IEEE34、IEEE123 和 IEEE37 共 6 个入口现已使用未修改的官方源文件通过严格转换、
+bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另两个入口仍有明确能力边界。
 
-| 入口 | 已覆盖部分 | 仍需闭合的部分 |
-|---|---|---|
-| `IEEETestCases/34Bus/Run_IEEE34Mod1.dss` | IEEE34 潮流、调压器、QSTS、谐波和 FaultStudy | 原始 execution import 仍把 RegControl 当作静态忽略；EnergyMeter 自动区域需明确输出合同 |
-| `IEEETestCases/34Bus/Run_IEEE34Mod2.dss` | 同上 | 除 RegControl 外还有 LoadShape 引用未解析，需修复后再探测 |
-| `IEEETestCases/123Bus/Run_IEEE123Bus.DSS` | IEEE123 网络、RegControl/CapControl 和多工况 QSTS 有 OpenDSS 参考 | `BusCoords` 行尾注释解析错误修正后，仍有 RegControl `Like` 位置合同和同文件两次 `Compile`/两项研究 |
-| `IEEETestCases/123Bus/P174_Run_VoltageProfile.DSS` | 100%/40% 负荷工作点和连续控制能力已覆盖 | 继承 master 中的 RegControl `Like` 与 EnergyMeter/Plot 输出边界 |
-| `IEEETestCases/123Bus/P174_Run_SolarRamp.DSS` | Generator Duty、300 点曲线和 IEEE123 控制能力已覆盖 | 同一 master 的 `Like`、运行后 Monitor/Plot，以及原始入口的完整数值门禁尚未建立 |
-| `IEEETestCases/4Bus-YYD/YYD-Master.DSS` | YYD 潮流和显式短路数值核心均存在 | 一个脚本先做潮流，再创建 Fault、批量禁用负荷并进入 Direct；需要跨研究状态 lowering |
-| `IEEETestCases/ShortCircuitCases/ieee37_SC_Currents.dss` | IEEE37 网络和一般 FaultStudy 核心存在 | 尚无这个 IEEE37 `Mode=F` 入口的全量短路参考，不能用 IEEE37 潮流证据代替 |
-| `Examples/InductionMachine/Run.dss` | `IndMach012`、有限动态电机和有界故障/过流保护运行时已有参考 | PSA 明确不声明完整 OpenDSS Dynamic Mode 等价；需先核对该入口的 Relay、5001 步时钟和 Monitor 通道 |
+结论分成三层：
+
+- IEEE34 Mod1/Mod2、三个 IEEE123 入口和 IEEE37 均已完成改造及发布。
+- YYD 完整入口和 InductionMachine 入口仍有跨研究或动态能力缺口，不能按转换器别名修复处理。
+
+| 入口 | 当前原文件结果 | 最小探测及结果 | 判断 |
+|---|---|---|---|
+| `IEEETestCases/34Bus/Run_IEEE34Mod1.dss` | 通过；649 条语句，ExecutionPlan，2 个 epoch | 两个工作点的 V/I/P/Q/loss 已比较，电压最大误差 `9.06e-6`，6 组 tap 一致 | 已发布 |
+| `IEEETestCases/34Bus/Run_IEEE34Mod2.dss` | 通过；581 条语句，ExecutionPlan，2 个 epoch | 已物化原生 `LoadShape.default`，并修复 `mid806`/`Mid806` 大小写解析；电压最大误差 `1.36e-5`，线路量最大误差 `5.83e-5`，6 组 tap 一致 | 已发布 |
+| `IEEETestCases/123Bus/Run_IEEE123Bus.DSS` | 通过；771 条语句，ExecutionPlan，2 个 epoch | 有界回放 RegControl `Like` 后续 Edit 并按 Clear 隔离历史；电压最大误差 `1.37e-5`，7 组 tap 一致 | 已发布 |
+| `IEEETestCases/123Bus/P174_Run_VoltageProfile.DSS` | 通过；379 条语句，ExecutionPlan，2 个 epoch | 100%/40% 工作点电压最大误差 `1.37e-5`，7 组 tap 一致 | 已发布 |
+| `IEEETestCases/123Bus/P174_Run_SolarRamp.DSS` | 通过；380 条语句，3 个 epoch、300 点 Duty | `Mode` 重置时钟并恢复 Duty 的 Time 控制队列；12 次 tap 变化、最终档位、Generator 和 300 个 Monitor 样本一致 | 已发布 |
+| `IEEETestCases/ShortCircuitCases/ieee37_SC_Currents.dss` | 通过；170 条语句，FaultStudy，175 个场景 | `F` 与 `FaultStudy` 统一规范化；全母线去共模电压误差 `1.61e-7`、故障电流缩放误差 `1.51e-4`、正负序阻抗误差 `8.46e-12` | 已发布 |
+| `IEEETestCases/4Bus-YYD/YYD-Master.DSS` | `Mode=Direct` 无适配器 | 临时改成 Snapshot 后依次暴露 `Show/Export/FileEdit`、`BatchEdit`、Fault 原生默认值；继续等价展开后，epoch 1 在 fault-study protection measurement 求解失败 | 中到大改造；需要有序副作用策略、BatchEdit 展开、Fault 默认值和 Direct/显式故障专用执行合同，不能把 Direct 简单改名为 Snapshot 或 FaultStudy |
+| `Examples/InductionMachine/Run.dss` | 两次 Dynamic solve 均被生命周期分类器拒绝 | 临时改为 Duty 只为探测，立即暴露 `LoadShape Action=Normalize` 及 `Mean/StdDev`；原脚本还含 5001 步、IndMach012、临时故障、Fuse/Recloser、Voltage/46/47 Relay 和 Monitor mode 3 | 大改造；需要专用 Dynamic adapter、曲线预处理、保护动作时序和 Monitor 通道合同，现阶段不能承诺完整等价转换 |
+
+### 近期 6 个入口的已完成改造
+
+1. IEEE37 的 `F`/`FaultStudy` 已在分类器和 PSA FaultStudy 扫描中统一规范化，并增加 175 个
+   全母线故障场景的 OpenDSS 锁定参考。
+2. `LoadShape.default` 已按 DSS C-API 0.14.5 的 24 点、1 小时固定间隔曲线物化；仅在活动
+   `Clear` 之后存在引用且用户没有显式声明同名曲线时注入。
+3. RegControl `Like` 已支持单一非 Like 源、一次 named `New` 以及后续受支持的 `Edit`、`More`
+   和属性引用，并按最后一个 `Clear` 隔离对象历史。
+4. `Mode` 赋值现在重置执行时钟，并按 OpenDSS 默认令 Duty 使用 Time 队列、其他已接入模式
+   使用 Static 队列；同一语句后写的 `ControlMode` 仍可覆盖。
+5. DSS 母线引用在生成 NetworkTables 时按已声明母线名做大小写无关归一化，避免径向求解器
+   把 `Mid806` 负荷漏出 `mid806` 母线。
+6. 六个入口完成 V/I/P/Q/loss/control 或 FaultStudy 专用数值门禁后才正式发布 bundle。
+
+### 两个较远入口的前置条件
+
+- YYD 需要定义 `Direct` 的结果表和 continuation 语义。第一段普通潮流的 Show/Export 是输出
+  副作用，第二段 Fault、负荷禁用和 Direct solve 是电气状态变化；两者必须保持顺序。当前把
+  Direct 改成 Snapshot 后出现的 fault-study protection measurement 失败说明求解路径也尚未闭合。
+- InductionMachine 不能复用普通 QSTS 名称来绕过 Dynamic。验收至少要覆盖 0.3 s 故障投入、
+  约 0.4 s 保护隔离、5001 个动态步、转差率/电机状态、Fuse/Recloser/三类 Relay 动作和原脚本
+  请求的 Monitor 通道。`Action=Normalize` 必须按 OpenDSS 处理曲线数据后再进入运行时。
 
 ## 首诊断不能直接判定能力覆盖
 
@@ -112,8 +141,10 @@ adapter、IEEE519 快照物化和 IEEE8500 严格门面的顺序完成。IEEE850
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
    避免只维护诊断码白名单。
-2. 上述 12 个入口已通过严格转换，11 个已发布 bundle；下一步逐个补齐 OpenDSS 的
-   V/I/P/Q/loss、控制终态或 Fault/Harmonic 专用结果比较，并为 2,900 步 Duty 配置独立长任务预算。
+2. 首批 12 个入口已通过严格转换，11 个已发布 bundle；第二批 8 个候选中有 6 个完成
+   V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
+   需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
+   与 Dynamic/保护动作执行合同，不能降低门禁后发布。
 3. 每消除一个首诊断都重扫 249 个独立失败入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
@@ -123,6 +154,26 @@ adapter、IEEE519 快照物化和 IEEE8500 严格门面的顺序完成。IEEE850
 
 ## 本次验证
 
+- 后续 6 个入口均由未修改的官方入口生成 bundle，并分别完成仓库内 bundle 自执行：
+  IEEE34 Mod1/Mod2 各 2 个 epoch，IEEE123 Run/VoltageProfile 各 2 个 epoch，SolarRamp
+  3 个 epoch、300 个 Duty 时刻，IEEE37 FaultStudy 175 个场景。
+- IEEE34、IEEE123 和 SolarRamp 已逐工作点比较 OpenDSS 的电压、线路电流/功率、源端功率、
+  loss、调压器终态或 Monitor；IEEE37 已比较全母线故障的去共模电压、故障电流和正负序阻抗。
+- `cargo test -p psa --features dsa --test regcontrol_property_boundaries`：5 项通过，包含
+  RegControl `Like` 后续属性回放和 `Clear` 历史隔离。
+- `cargo test -p psa --features dsa --test short_circuit native_ieee37_faultstudy_alias_matches_opendss_all_buses`：
+  1 项通过。
+- `cargo test -p mems --features with_dsa,tensoreval-cli --bin tensoreval -- --nocapture`：
+  49 项通过，包含 `Mode=F` 分类和 DSS→RSS 生成、自执行回归。
+- `LoadShape.default`、Mode 时钟/控制队列重置和母线名大小写归一化的定向导入测试分别通过。
+- IEEE37 官方输入、OpenDSS 锁定参考和 PSA 证据的 SHA-256 清单校验通过；所有新增 manifest
+  通过 JSON 解析，根仓库和 `sparrowzz` 的 `git diff --check` 通过。
+- 完整 `dss_import` 集成测试套件尚不能记为全套通过：既有测试
+  `dynamic_profile_rejects_incomplete_or_non_gfl_pv_contract` 的拒绝预期与当前 PSA Dynamic
+  导入行为不一致；其余长测试运行到 J1 三时刻案例时人工停止。本次涉及的定向测试均已单独通过。
+
+以下是首批 12 个入口改造时保留的验证记录：
+
 - `cargo test -p psa --features dsa --test dss_import ieee4_transformer_connection_matrix_matches_locked_native_references`：1 项通过。
 - `cargo test -p psa --features dsa --test dss_import ieee8500_original_decks_lower_to_single_step_static_control_execution_profiles`：1 项通过，157.19 秒。
 - `cargo test -p psa --features dsa --test short_circuit fault_study_matches_opendss_ieee`：IEEE13/34/123 共 3 项通过。
@@ -130,5 +181,5 @@ adapter、IEEE519 快照物化和 IEEE8500 严格门面的顺序完成。IEEE850
 - `cargo test -p psa --features mumps-static --test dss_post_solve_actions -- --nocapture`：
   9 项通过，包含 Newton 执行计划、流式结果和求解后动作。
 - `cargo test -p mems --features with_dsa,tensoreval-cli --bin tensoreval -- --nocapture`：
-  48 项通过，包含 DSS→RSS 分类、生成、bundle 单次自执行、Redirect 后的数据资产读取和
+  当时 48 项通过，包含 DSS→RSS 分类、生成、bundle 单次自执行、Redirect 后的数据资产读取和
   Newton 后端缺失时的明确拒绝。
