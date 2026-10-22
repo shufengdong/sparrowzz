@@ -1,0 +1,73 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/123Bus/SolarRamp.DSS",
+    "root": "dss",
+    "tree_sha256": "93e53206cda6c332066223d5b5f4a5aaaf7281f8eeedcf0ab4b413cb5209e619"
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/123Bus/BusCoords.dat",
+      "role": "data-asset",
+      "sha256": "0b409c0e5d99f365c0140bf38280c1d64932032f1ecb8ef83ae54d4ed0d2716f"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
+      "role": "dss-source",
+      "sha256": "fd28f52836205506a1980b52c5a7e12ca585aa626c52a6249502c1c3b2fc2255"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Master.dss",
+      "role": "dss-source",
+      "sha256": "c92a69d9b218b1b2646ec7911783826229309038e72f16b848304c0457c0a54d"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
+      "role": "dss-source",
+      "sha256": "cd6ad77980dc018631ce39faab528afce40b0b9a50a6bc1c9ac8049ffb8207d7"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/SolarRamp.DSS",
+      "role": "dss-entry",
+      "sha256": "fb49819cf179093f41039b5f8bb6be0749fecab7852755400f9c009aa570343e"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/SolarRamp.csv",
+      "role": "data-asset",
+      "sha256": "59da0ea251c694886715541bcafe6d96996a086de22f5e0b36cd7f403f1d802e"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/StorageRamp.CSV",
+      "role": "data-asset",
+      "sha256": "7d33b86cb9459821fbb6e03866812edc5261fa643f1d73e971f4c73a0679feca"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "8761a29fea4d1b50beb5a9789e10845479e216138bb8565302ff7dfcd2af2540"
+    }
+  ],
+  "inputs": []
+}
