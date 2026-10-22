@@ -30,7 +30,7 @@ OpenDSS 语言兼容。状态含义如下：
 | `Spectrum` | `spectrum` | 直接/有界 | `h`, `mag_pct`, `angle_deg` 及设备引用 |
 | `XYCurve` | `xy_curve` | 直接 | 每曲线多行点表 |
 | `RegControl`, `CapControl` | 设备表、`control_profile` | 有界 | 仅运行时已有等价状态和控制律的组合 |
-| `InvControl`, `ExpControl` | `control_profile`, `ibr` 扩展列 | 有界 | Volt-Var、Volt-Watt、DRC、AVR、Watt-PF/Watt-Var 等受控子集 |
+| `InvControl`, `ExpControl` | `control_profile`, `ibr` 扩展列 | 有界 | Volt-Watt 支持四种 Y 轴基准、有限正 `DeltaP_factor`、单 PV 隐式成员和固定 PF 联动；Volt-Var、DRC、AVR、Watt-PF/Watt-Var 等仍按各自受控子集 |
 | `StorageController` | QSTS `storage_controller` | 显式表/有界 | PSA 执行型导入可生成；RSDss 静态导入不返回该表 |
 | `GenDispatcher` | `generator` 扩展列 | 有界 | 监视线路、成员和功率约束必须能保持身份及顺序 |
 | `SwtControl` | QSTS `switch_control` | 显式表/有界 | 支持动作、延时、锁定、复位和稳定源顺序 |
@@ -57,7 +57,7 @@ OpenDSS 语言兼容。状态含义如下：
 | 属性引用赋值 | 支持可解析形式 | 支持且记录顺序 | 保留在 `.dss` |
 | `Redirect`, `Compile` | 本地入口支持相对 include 树 | 支持保留的 include | 使用本地 `import_dss` |
 | `Set DefaultBaseFrequency` | 支持 | 支持 | 导入为 `para.base_frequency_hz` |
-| 其他运行时 `Set` | fail-closed | 在执行契约内有界支持 | 在 `solution`/`para` 中显式设置 |
+| 其他运行时 `Set` | fail-closed | 在执行契约内有界支持；`CaseName` 作为输出命名省略，`Maxi`/`MaxControli` 归一化为求解迭代参数 | 在 `solution`/`para` 中显式设置 |
 | `Solve` | fail-closed | 单 Solve profile 和多 Solve execution plan 均有 PSA API | 单 Solve 可用 `import_dss_execution` 展开；多 Solve 用 `ds_radial_dss_plan` / `ds_newton_raphson_dss_plan` |
 | `Open`, `Close` | 静态最终状态必须可表示 | 显式开关的整设备动作及 epoch mutation 有界支持 | 修改显式开关表或使用 QSTS 控制表 |
 | `Enable`, `Disable` | 已支持对象的最终静态状态必须可表示 | 当前 execution profile 明确为 unsupported，遇到即 fail-closed | 在 RSS 中显式构造所需设备表 |

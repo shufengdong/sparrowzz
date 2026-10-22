@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/volt-watt/SnapShot_voltwatt_PAVAILABLEPU_PF-2.dss",
+    "root": "dss",
+    "tree_sha256": "31cf8b047635c5d137ed8860fbad91187457a87ce0bb8df2a778f3ddd243b0f3"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/volt-watt/SnapShot_voltwatt_PAVAILABLEPU_PF-2.dss",
+      "role": "dss-entry",
+      "sha256": "5cae2397b70b958206fd880ac4b0738251195a638d0be6452d175d663b46da93"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "0def1335d5331c3aaabae9646312acdfe41da0c67feb8e8e2802102dd077dc74"
+    }
+  ],
+  "inputs": []
+}
