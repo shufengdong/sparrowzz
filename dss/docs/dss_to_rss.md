@@ -102,10 +102,13 @@ Harmonic、AutoAdd 和 RelCalc 的终端变量名与各自结果名完全相同�
 - `Set VoltageBases=...`：PSA 从已导入网络得到电压基准；
 - `CalcV` / `CalcVoltageBases`：对应工作已包含在网络构造和潮流入口中；
 - 一个无参数 `Solve`，或只带 `Mode=Snapshot`、`ControlMode=Static/Off` 的 `Solve`；
-- `BusCoords`：只影响 OpenDSS 图形布局，不影响生成脚本返回的 `bus_phase` 电气结果。
+- `BusCoords` / `LatLongCoords`：只影响 OpenDSS 图形布局，不影响生成脚本返回的 `bus_phase`
+  电气结果；文件参数可使用引号、括号及行尾注释，转换器按 DSS 词法取得规范化路径；
+- `Plot`、`Show` 和 `Dump`：只读取模型或已求解状态生成图形/报告，不改变电气状态；转换诊断和
+  执行计划诊断会以 Warning 保留省略原因及源位置。
 
 `Set DefaultBaseFrequency`、对象声明、`Edit`、`More`、属性引用、变量以及本地 include
-继续留在模型中。多个 Snapshot `Solve`、求解后的模型修改和其他运行时命令不会被忽略。
+继续留在模型中。多个 Snapshot `Solve`、求解后的模型修改和其他未列出的运行时命令不会被忽略。
 
 生成的 RSS 保留 `.dss` 文件作为权威输入，路径写成规范化绝对路径。ExecutionPlan 指向
 原执行入口；Snapshot 指向经过验证、可由现有 `import_dss` 读取的静态模型入口。移动或
@@ -115,6 +118,16 @@ ExecutionPlan 会按源码顺序保留 `Set` 和最终 `Solve` 上的执行设�
 `MaxIter/MaxIterations`、`MaxControlIter/MaxControlI` 和 `Tolerance` 会覆盖对应 epoch 的 PSA
 潮流参数；`Algorithm` 决定 Radial 或 Newton adapter，`EarthModel` 由 PSA 统一校验。
 `MinIterations` 当前没有 PSA 等价参数，因此仍返回明确的不支持诊断，不会被静默忽略。
+
+整个执行计划都由单步 Snapshot 构成时，PSA 还会在可证明的窄边界省略
+`BatchEdit Load..* Daily=default`，以及只监测仍处于 GFL/PQ 状态 DER 的
+`InvControl mode=GFM`。两者分别返回
+`PSA.DSS.EXECUTION.SNAPSHOT_BATCH_EDIT_IGNORED` 和
+`PSA.DSS.EXECUTION.INERT_GFM_MONITOR_IGNORED` Warning。非 Snapshot、多步求解、额外
+InvControl 属性、控制器后续修改或任一成员切换为 `ControlMode=GFM` 都不适用该规则。
+
+`LoadShape Action=Normalize` 在导入期把 P、Q 序列分别除以各自最大绝对值。该 Action 必须是
+该 LoadShape 的最后一次修改；其他 Action 或 Normalize 后继续修改曲线会返回明确诊断。
 
 每个 linked RSS 的头部记录 `mode=linked`、分类、规范化源入口、依赖树 SHA-256 和 PSA
 合同版本。依赖树来自 PSA 导入器实际读取的 `Redirect`/`Compile` 和数据资产清单；哈希按
@@ -175,7 +188,7 @@ DSS import produced findings that can change OpenDSS results
 基线重扫结果是：10 个官方原始入口通过严格检查、生成 bundle 并完成构建期自执行；589 个文件
 是没有独立研究命令的模型或公共依赖片段；另有 249 个独立入口因当时未映射的生命周期、对象
 属性、路径、执行顺序或求解问题失败，没有文件超时。后续只在这 249 个独立入口中做定向改造，
-目前另有 18 个入口通过并发布，总计 28 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
+目前另有 27 个入口通过并发布，总计 37 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
 HarmonicT，以及 `Examples/FreqScan/Run_Scan.dss` 的 188 点非整数频率扫描；不包含对官方文件的
 删改或静态化包装。
 

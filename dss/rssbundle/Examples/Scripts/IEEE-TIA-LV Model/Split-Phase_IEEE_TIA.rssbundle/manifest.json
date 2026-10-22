@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/Scripts/IEEE-TIA-LV Model/Split-Phase_IEEE_TIA.dss",
+    "root": "dss",
+    "tree_sha256": "46568828afa19622476401ddd701adbf882ef131ae0a6156d5c0c9b4a974e2d6"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/Scripts/IEEE-TIA-LV Model/Split-Phase_IEEE_TIA.dss",
+      "role": "dss-entry",
+      "sha256": "a0af936fe9e07a70aecb4a3a4d37d66dc7d5326d9742b81eaa558ba0e83ea89d"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "876f28ab913889f1dfe7b35e0eeec4edf1279a74b8483789070cb290a8442f0d"
+    }
+  ],
+  "inputs": []
+}

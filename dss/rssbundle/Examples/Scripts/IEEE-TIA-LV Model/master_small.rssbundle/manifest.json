@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/Scripts/IEEE-TIA-LV Model/master_small.dss",
+    "root": "dss",
+    "tree_sha256": "28be1a3980298c1bb644db278f6996afb289395485602e091911f195c5193bbb"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/Scripts/IEEE-TIA-LV Model/master_small.dss",
+      "role": "dss-entry",
+      "sha256": "279ef9f25ce65f9a53f16bd6b6ac9b6fe460ca9bd38fc79d9d70e043bc0fc829"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "5da902b7154d506fabb5cee911b59a94430ccc48fac1c718544313cf96e09fa0"
+    }
+  ],
+  "inputs": []
+}
