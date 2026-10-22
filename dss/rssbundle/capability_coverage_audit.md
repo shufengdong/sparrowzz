@@ -12,8 +12,9 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：35 个入口已经发布 bundle，224 个独立入口尚未转换；`conversion_report.csv`
-  的 `status` 已同步当前发布状态，未发布入口的诊断保留基线扫描或最近一次定向复测结果。
+- 当前结果：36 个入口已经发布 bundle，223 个独立入口尚未转换；`conversion_report.csv`
+  的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫；2,900 步 P174 保留已验证的
+  未发布记录。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
 - 能力覆盖必须至少有 PSA 运行时 consumer 和测试；“参考覆盖”还要求锁定 OpenDSS 输出
@@ -68,7 +69,7 @@ bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另�
 | `IEEETestCases/123Bus/P174_Run_SolarRamp.DSS` | 通过；380 条语句，3 个 epoch、300 点 Duty | `Mode` 重置时钟并恢复 Duty 的 Time 控制队列；12 次 tap 变化、最终档位、Generator 和 300 个 Monitor 样本一致 | 已发布 |
 | `IEEETestCases/ShortCircuitCases/ieee37_SC_Currents.dss` | 通过；170 条语句，FaultStudy，175 个场景 | `F` 与 `FaultStudy` 统一规范化；全母线去共模电压误差 `1.61e-7`、故障电流缩放误差 `1.51e-4`、正负序阻抗误差 `8.46e-12` | 已发布 |
 | `IEEETestCases/4Bus-YYD/YYD-Master.DSS` | `Mode=Direct` 无适配器 | 临时改成 Snapshot 后依次暴露 `Show/Export/FileEdit`、`BatchEdit`、Fault 原生默认值；继续等价展开后，epoch 1 在 fault-study protection measurement 求解失败 | 中到大改造；需要有序副作用策略、BatchEdit 展开、Fault 默认值和 Direct/显式故障专用执行合同，不能把 Direct 简单改名为 Snapshot 或 FaultStudy |
-| `Examples/InductionMachine/Run.dss` | 两次 Dynamic solve 均被生命周期分类器拒绝 | 临时改为 Duty 只为探测，立即暴露 `LoadShape Action=Normalize` 及 `Mean/StdDev`；原脚本还含 5001 步、IndMach012、临时故障、Fuse/Recloser、Voltage/46/47 Relay 和 Monitor mode 3 | 大改造；需要专用 Dynamic adapter、曲线预处理、保护动作时序和 Monitor 通道合同，现阶段不能承诺完整等价转换 |
+| `Examples/InductionMachine/Run.dss` | 两次 Dynamic solve 均被生命周期分类器拒绝 | `LoadShape Action=Normalize` 已在导入期物化；原脚本仍含两次 Dynamic solve、5001 步、IndMach012、临时故障、Fuse/Recloser、Voltage/46/47 Relay 和 Monitor mode 3 | 大改造；需要专用 Dynamic adapter、曲线预处理、保护动作时序和 Monitor 通道合同，现阶段不能承诺完整等价转换 |
 
 ### 近期 6 个入口的已完成改造
 
@@ -91,7 +92,7 @@ bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另�
   Direct 改成 Snapshot 后出现的 fault-study protection measurement 失败说明求解路径也尚未闭合。
 - InductionMachine 不能复用普通 QSTS 名称来绕过 Dynamic。验收至少要覆盖 0.3 s 故障投入、
   约 0.4 s 保护隔离、5001 个动态步、转差率/电机状态、Fuse/Recloser/三类 Relay 动作和原脚本
-  请求的 Monitor 通道。`Action=Normalize` 必须按 OpenDSS 处理曲线数据后再进入运行时。
+  请求的 Monitor 通道。`Action=Normalize` 已按 OpenDSS 在导入期处理曲线数据；剩余门禁集中在 Dynamic 和保护时序。
 
 ## 第三轮实施结果
 
@@ -132,6 +133,18 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
 
 ## 首诊断不能直接判定能力覆盖
 
+### 当前重扫新增入口
+
+修复坐标路径扫描及 `LoadShape Action=Normalize` 后，对 224 个未发布入口重新执行严格检查。
+`Examples/Microgrid/GridFormingInverter/GFM_IEEE8500/Run_RecloserSiting.DSS` 新增为第 36 个
+发布 bundle。它与已发布 IEEE8500 RecloserSiting 的主入口哈希相同，只多载入未被 Snapshot
+引用的归一化 `pvshape`；两个 bundle 的 11,038 行结果中全部物理字段逐值一致，事件序号固定
+相差 3。其余 223 个入口的当前首诊断已写入 `conversion_report.csv`。
+
+坐标路径修复后，`READ.IO.OPEN` 从历史 25 个降至 6 个；这 6 个均是官方快照实际缺少
+`LoadShape1.CSV`、`solarramp.csv` 或 `Windoutput.txt`。`Action=Normalize` 现支持 P/Q 分别按
+最大绝对值归一化，并要求它是该 LoadShape 的最后一次修改；其他 Action 仍明确拒绝。
+
 ### 27 个跨目录资产失败
 
 所有被拒绝的 `../` 资产都能在官方 `Version8/Distrib` 树中找到，因此
@@ -158,9 +171,9 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
 
 ### 25 个 `READ.IO.OPEN`
 
-- 19 个是 `BusCoords` 引号、括号或行尾注释被并入文件名。只修正词法后，除 IEEE123
-  `Run_IEEE123Bus.DSS` 进入上面的候选层外，其余立即暴露 Dynamic lifecycle、LoadShape
-  `Action`、Storage `AmpLimit`、WindGen 对象或 BatchEdit 等真实边界。
+- 历史 19 个由 `BusCoords` 引号、括号或行尾注释并入文件名导致的失败已经修复。重扫后这些
+  入口继续暴露 Dynamic lifecycle、Storage `AmpLimit`、WindGen 对象、InvControl 或 BatchEdit
+  等真实边界；其中 GFM IEEE8500 RecloserSiting 已完成发布。
 - 6 个引用的 `LoadShape1.CSV`、`solarramp.csv` 或 `Windoutput.txt` 在相应官方案例目录中确实
   缺失，不能由转换器猜测或从同名文件静默替代。
 
@@ -170,7 +183,8 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
   InvControl `deltaP/deltaQ`、超出有界曲线基准或成员关系。
 - 11 个 PVSystem 入口使用 `PFPriority` 等没有无损映射的属性。
 - 9 个 Storage 入口使用 `%kWrated`、`EffCurve` 或 `DebugTrace`；前两项会改变电气结果。
-- 11 个 LoadShape 入口使用 `Action`；它不是普通 Daily/Yearly/Duty 曲线采样的别名。
+- `LoadShape Action=Normalize` 已实现有界导入；其他 Action 以及 Normalize 后继续修改曲线仍没有
+  可证明等价的执行合同。
 - GFM、DynEq、VCCS、用户 DLL、Distance/TD21/59N Relay、AutoTrans 未支持接法和特殊节点
   编号仍属于明确边界。
 - IEEE118 原始 53 Generator deck 虽有静态替代投影，但原生 generator 版本自身没有完成
@@ -184,7 +198,7 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 224 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 223 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
