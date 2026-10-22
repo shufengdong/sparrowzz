@@ -12,6 +12,8 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
+- 当前结果：28 个入口已经发布 bundle，231 个独立入口尚未转换；`conversion_report.csv`
+  的 `status` 已同步当前发布状态，未发布入口的诊断保留基线扫描或最近一次定向复测结果。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
 - 能力覆盖必须至少有 PSA 运行时 consumer 和测试；“参考覆盖”还要求锁定 OpenDSS 输出
@@ -91,6 +93,23 @@ bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另�
   约 0.4 s 保护隔离、5001 个动态步、转差率/电机状态、Fuse/Recloser/三类 Relay 动作和原脚本
   请求的 Monitor 通道。`Action=Normalize` 必须按 OpenDSS 处理曲线数据后再进入运行时。
 
+## 下一批实施范围调整
+
+后续优先级改为以下三个可独立运行的范围：
+
+1. `IEEETestCases/123Bus/SolarRamp.DSS`：先按 OpenDSS 原生证据物化省略的
+   `Storage.kvar=0`，再完整比较两个 300 点 Duty 段、调压器终态、Storage SOC、Monitor 和电气量。
+2. `Examples/Scripts/IEEE-TIA-LV Model/master_small_1phase.dss` 与
+   `master_large_1phase.dss`：先细化首步 EnergyMeter 失败诊断，再闭合单相两节点变压器的端口功率、
+   损耗与区域负荷；计量结果未通过 OpenDSS 数值门禁时不发布。
+3. `IEEETestCases/8500-Node/Run_RecloserSiting.DSS`：现有转换已经进入 Newton 求解，先在标准
+   `tensoreval` 发布配置中验证 MUMPS 后端；普通发布构建不能自执行时不生成 bundle。
+
+`Examples/Matlab/HarmonicT_MATLAB/IEEE_519.DSS` 从优先范围移除。它与已经发布的
+`Examples/HarmonicsTMode/IEEE_519.DSS`、`Examples/HarmonicsVariableLoad/IEEE_519.DSS` 哈希不同，
+但 `.dss` 文件只完成初始化 `Solve`；实际 HarmonicT 循环位于同目录 `Main_Script.m`，由 Matlab
+COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声明完整 Matlab 工作流等价。
+
 ## 首诊断不能直接判定能力覆盖
 
 ### 27 个跨目录资产失败
@@ -145,7 +164,7 @@ bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另�
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫 249 个独立失败入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 231 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

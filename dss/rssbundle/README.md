@@ -19,14 +19,14 @@
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
 | 已转换并发布 bundle | 28 | 严格转换、求解和 bundle 自执行全部通过；包含基线 10 个、首批优先入口 11 个、第二批 6 个和 FreqScan 频率扫描入口 |
-| 基线不支持的独立入口 | 249 | 严格检查遇到当时转换合同不能无损保持的内容；本轮定向修复状态见下文 |
+| 当前尚未转换的独立入口 | 231 | 259 个独立入口扣除 28 个已发布入口；阻断原因仍按严格、无损转换合同统计 |
 | 超时 | 0 | 无 |
 
 28 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 保留基线扫描结果，因此其中仍会把
-多数后来完成定向修复的入口记录为 `unsupported`；FreqScan 行已随本轮验证更新，发布现状以本节
-和实际 manifest 为准。
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 28 个发布入口；
+其余 231 个入口的诊断字段保留基线扫描或最近一次定向复测结果。历史首诊断用于说明改造来源，
+当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
 
@@ -190,6 +190,30 @@ staging 自执行重试 30 分钟仍未完成，已停止并清理临时目录�
 和 bundle 发布。剩余的 YYD 完整入口继续暴露 Direct/BatchEdit/Fault continuation 的求解边界，
 InductionMachine 仍需要完整 Dynamic、LoadShape Normalize、保护动作和 Monitor 合同。
 
+### 下一批实施范围
+
+下一批只选择可以由独立 `.dss` 入口完整描述、且主要能力已经存在的案例：
+
+| 顺序 | 官方入口 | 当前阻断 | 实施与发布门禁 |
+|---:|---|---|---|
+| 1 | `IEEETestCases/123Bus/SolarRamp.DSS` | 省略 `Storage.kvar`，严格导入器尚未物化 OpenDSS 的 `0 kvar` 默认值 | 锁定默认值与后写 `PF/kvar` 顺序，完整比较 600 个 Generator/Storage 时点、调压器、SOC、Monitor 和电气量 |
+| 2 | `Examples/Scripts/IEEE-TIA-LV Model/master_small_1phase.dss`、`master_large_1phase.dss` | 潮流已完成，EnergyMeter 在首步采样失败 | 先让诊断定位到具体计量阶段，再闭合单相两节点变压器端口功率、损耗和区域负荷；禁止通过关闭计量发布 |
+| 3 | `IEEETestCases/8500-Node/Run_RecloserSiting.DSS` | 导入和 RSS 生成已进入 Newton 校验，但当前普通构建缺少 MUMPS 后端 | 使用发布配置验证；只有标准 `tensoreval` 可自执行并完成数值门禁时才生成 bundle |
+
+#### 三个同名 `IEEE_519.DSS` 的边界
+
+三个文件名称相同，但入口合同和发布结论不同：
+
+| 官方入口 | `.dss` 自身执行内容 | 当前结论 |
+|---|---|---|
+| `Examples/HarmonicsTMode/IEEE_519.DSS` | 进入 HarmonicT，跨多次 `Solve` 依次打开两个开关 | 完整 HarmonicT 入口，bundle 已发布 |
+| `Examples/HarmonicsVariableLoad/IEEE_519.DSS` | 进入 HarmonicT，跨 `Solve` 修改负荷状态 | 完整 HarmonicT 入口，bundle 已发布 |
+| `Examples/Matlab/HarmonicT_MATLAB/IEEE_519.DSS` | 只构造网络并执行初始化 `Solve` | 不列入下一批；时间循环由同目录 `Main_Script.m` 通过 COM API 驱动，单独转换只能声明 Snapshot 初始化一致 |
+
+因此不能用 Matlab 目录下文件的转换结果声明完整 Matlab HarmonicT 工作流等价，也不应把它作为
+第三个 HarmonicT bundle 增加已覆盖案例数。若以后接入该工作流，需要先定义 Matlab 外部命令序列
+到 RSS study 的独立转换合同和数值门禁。
+
 基线失败不能解释为 PSA 没有覆盖这些网络和算法。当时的转换链在 PSA 前后又维护了
 命令分类、Snapshot `Set` 白名单和诊断白名单；这些规则已经落后于 PSA 的 DSS importer 与执行计划。
 按“同一网络/算法或 PSA execution projection 已有数值证据、改造前首要失败点位于转换/编排层”
@@ -236,7 +260,7 @@ InductionMachine 仍需要完整 Dynamic、LoadShape Normalize、保护动作和
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   249 个独立入口中逐项验证。
+   当前 231 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -259,7 +283,7 @@ InductionMachine 仍需要完整 Dynamic、LoadShape Normalize、保护动作和
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫 249 个独立失败入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 231 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -270,41 +294,43 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 |---:|---|---|---|
 | 36 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | 对象属性超出当前 PSA DataFrame/执行合同，无法无损表达。 |
 | 27 | `unsupported` | `REQUEST.SOURCE.ESCAPES_ROOT` | 数据资产引用被转换器判定为越过允许的获取根。 |
-| 25 | `unsupported` | `READ.IO.OPEN` | 官方快照缺少引用文件，或路径、引号、括号和行尾注释没有正确归一化。 |
+| 23 | `unsupported` | `READ.IO.OPEN` | 官方快照缺少引用文件，或路径、引号、括号和行尾注释没有正确归一化。 |
 | 23 | `unsupported` | `READ.DSS.VALUE_DEFAULTED` | 导入需要补默认值，所选严格 profile 不能证明与 OpenDSS 等价。 |
-| 18 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 FaultStudy、Dynamic、Direct 等尚无转换适配器的生命周期。 |
-| 17 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性虽保留在源信息中，但当前计算合同不会消费它。 |
+| 15 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 Dynamic、Direct 等尚无转换适配器的生命周期。 |
+| 14 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性虽保留在源信息中，但当前计算合同不会消费它。 |
 | 11 | `unsupported` | `PSA.DSS.LOADSHAPE.PROPERTY_UNSUPPORTED` | LoadShape 属性尚无被当前时序合同消费的无损映射。 |
 | 11 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
 | 11 | `unsupported` | `PSA.DSS.PVSYSTEM.PROPERTY_UNSUPPORTED` | PVSystem 属性尚无无损映射。 |
 | 9 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage 属性尚无无损映射。 |
-| 7 | `unsupported` | `PSA.DSS.GENERATOR.MODEL3.EXECUTION_UNSUPPORTED` | Generator Model 3 尚无 execution plan 等价运行语义。 |
 | 7 | `unsupported` | `PSA.DSS.NODE.PHASE_LABEL_UNSUPPORTED` | 节点/相导体编号超出当前网络表约束。 |
-| 7 | `unsupported` | `PSA.DSS.LINECODE.RELIABILITY_RETAINED` | LineCode 可靠性字段尚未进入所选计算合同。 |
-| 6 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 模型可导入，但所选 PSA 求解器不支持该拓扑或未收敛。 |
+| 6 | `unsupported` | `PSA.DSS.GENERATOR.MODEL3.EXECUTION_UNSUPPORTED` | Generator Model 3 尚无 execution plan 等价运行语义。 |
+| 6 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 模型可导入，但所选 PSA 求解器不支持该拓扑、后端不可用或未收敛。 |
 | 5 | `unsupported` | `PSA.DSS.EXECUTION.POST_SOLVE_ACTION_MIXED_MUTATION` | Solve 后动作与模型修改混合，执行顺序无法无歧义保持。 |
 | 4 | `unsupported` | `PSA.DSS.SET.UNSUPPORTED` | Set 选项没有无损的 ExecutionStudy DataFrame 语义。 |
 | 4 | `unsupported` | `PSA.DSS.LINE.GEOMETRY_INVALID` | LineGeometry 引用或导体位置不能形成有效线路参数。 |
-| 4 | `unsupported` | `READ.DSS.VALUE_UNSUPPORTED` | 对象值或控制行为被识别，但当前计算合同不能保持。 |
-| 4 | `unsupported` | `PSA.DSS.EXECUTION.ORDER_UNREPRESENTABLE` | 构造、设置和运行命令顺序不能降为当前不可变 epoch。 |
+| 3 | `unsupported` | `PSA.DSS.EXECUTION.ORDER_UNREPRESENTABLE` | 构造、设置和运行命令顺序不能降为当前不可变 epoch。 |
 | 3 | `unsupported` | `PSA.TRANSFORMER_MATRIX.DIMENSION_MISMATCH` | 变压器矩阵维数与绕组或相数不一致。 |
-| 2 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.GENERATED_RSS_FAILED` | RSS 已生成，但验证执行失败，因此不发布 bundle。 |
+| 2 | `unsupported` | `PSA.DSS.LINECODE.RELIABILITY_RETAINED` | LineCode 可靠性字段尚未进入所选计算合同。 |
+| 2 | `unsupported` | `READ.DSS.VALUE_UNSUPPORTED` | 对象值或控制行为被识别，但当前计算合同不能保持。 |
 | 1 | `unsupported` | `PSA.DSS.CONSTRUCTION.PROPERTY_UNKNOWN` | 构造对象包含 PSA 尚未知的属性。 |
 | 1 | `unsupported` | `PSA.DSS.AUTOTRANS.CONNECTION_UNSUPPORTED` | AutoTrans 绕组接法超出当前受支持组合。 |
 | 1 | `unsupported` | `READ.DSS.PROPERTY_UNKNOWN` | 包含导入器未知的对象属性。 |
 | 1 | `unsupported` | `PSA.DSS.INVCONTROL.MON_VOLTAGE_CALC_INVALID` | InvControl 监测电压聚合设置不满足当前合同。 |
-| 1 | `unsupported` | `PSA.DSS.SPECTRUM.PROPERTY_UNSUPPORTED` | Spectrum 属性尚无谐波合同映射。 |
 | 1 | `unsupported` | `PSA.DSS.OBJECT.UNSUPPORTED` | 使用了当前 importer 未覆盖的 DSS 对象。 |
 | 1 | `unsupported` | `READINESS.SOURCE.DEFAULTED` | 关键源参数需要默认值，严格 profile 不能证明等价。 |
+| 1 | `unsupported` | `PSA.DSS.CONTROL.REQUIRED_PROPERTY_MISSING` | 控制对象省略的 OpenDSS 默认状态尚未由严格导入器物化。 |
+| 1 | `unsupported` | `PSA.DSS.STATEFUL.REQUIRED_PROPERTY_MISSING` | 有状态设备省略的 OpenDSS 默认参数尚未由严格导入器物化。 |
 | 1 | `unsupported` | `PSA.DSS.GENERATOR.USER_MODEL_UNSUPPORTED` | Generator 用户模型依赖外部实现，PSA 无法无损执行。 |
 
 ## 逐文件结果
 
-[`conversion_report.csv`](conversion_report.csv) 保留原始扫描数据；本报告只使用其中基线失败的
-249 个独立入口记录：
+[`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
+其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
+28 个 `converted` 和 231 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
-- `status`：`unsupported` 或 `timeout`；
+- `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
+  `not_standalone_entry`；当前没有超时记录；
 - `primary_diagnostic`：阻止转换的首个稳定诊断码；
 - `all_diagnostic_codes` 和 `diagnostic_count`：该文件返回的诊断集合及数量；
 - `source_root`：检查使用的依赖根，`.` 表示整个 `Version8/Distrib`；
