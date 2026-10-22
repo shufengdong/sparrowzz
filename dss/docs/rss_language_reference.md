@@ -531,8 +531,11 @@ result = select(cols(bus, v_mag), voltage);
 由后续节点持久化。
 
 自动化必须以退出码判断成功：`0` 表示全部输入、编译和求值成功，非零表示失败。诊断可能
-写到标准错误、标准输出或日志，不能把某段提示文本当作成功条件。`--df` 当前没有输出文件
-参数，也不向终端输出中间 DataFrame。
+写到标准错误、标准输出或日志，不能把某段提示文本当作成功条件。需要把结果落盘时，用
+`--result-dir DIR` 把每张具名 DataFrame 写到 `DIR/NAME.csv`（或 `DIR/NAME.parquet`）；
+格式由 `--output-format csv|parquet` 指定，缺省为 `csv`。`--output-format` 仅在同时给出
+`--result-dir` 时有效；`--result-dir` 不能与 `--dss-to-rss` 同时使用。不带 `--result-dir`
+时，`--df` 不向终端输出中间 DataFrame，只打印供人查看的表格文本。
 
 ### 8.4 完整的命令行输入输出示例
 
