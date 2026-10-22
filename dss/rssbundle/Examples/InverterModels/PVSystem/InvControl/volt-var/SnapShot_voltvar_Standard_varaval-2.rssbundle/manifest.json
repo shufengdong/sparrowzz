@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/volt-var/SnapShot_voltvar_Standard_varaval-2.dss",
+    "root": "dss",
+    "tree_sha256": "d560ed0a5b258613f005802c4d4d1f45b229a415cdb3f154e753953f4ba78250"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/volt-var/SnapShot_voltvar_Standard_varaval-2.dss",
+      "role": "dss-entry",
+      "sha256": "a0c79d271ed43e05c3d000627d5f80f21d27c7903c61ecd91efa639f0d521b26"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "9cefd7e61581773810f069728f5b2b434238096496f1b0079ff8ad221462228a"
+    }
+  ],
+  "inputs": []
+}
