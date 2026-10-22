@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：36 个入口已经发布 bundle，223 个独立入口尚未转换；`conversion_report.csv`
+- 当前结果：37 个入口已经发布 bundle，222 个独立入口尚未转换；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫；2,900 步 P174 保留已验证的
   未发布记录。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
@@ -145,6 +145,16 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
 `LoadShape1.CSV`、`solarramp.csv` 或 `Windoutput.txt`。`Action=Normalize` 现支持 P/Q 分别按
 最大绝对值归一化，并要求它是该 LoadShape 的最后一次修改；其他 Action 仍明确拒绝。
 
+### GFM IEEE123 Snapshot 分层结果
+
+`Run_IEEE123Bus_GFMSnap-A.DSS` 中的默认 Daily 曲线绑定和未激活 GFM 的 InvControl 对单步
+Snapshot 无电气作用。导入器只在可证明的单步边界省略这两条命令；修正低压 Delta 绕组 1 的
+ANSI 相位方向后，386 条语句严格转换、自执行和 284 节点 OpenDSS 比较均通过，已作为第 37 个
+bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压相对误差为 `9.09e-7`。
+
+同目录 B/C 没有被一并放行：B 断开 SW5 后的第二个 epoch 是无电压参考孤岛；C 又把 Storage
+切为真正的 GFM 电压源。前者当前求解器拒绝该拓扑，后者仍缺少 Storage GFM 稳态合同。
+
 ### 27 个跨目录资产失败
 
 所有被拒绝的 `../` 资产都能在官方 `Version8/Distrib` 树中找到，因此
@@ -198,7 +208,7 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 223 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 222 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

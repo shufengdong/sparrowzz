@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 36 | 严格转换、求解和 bundle 自执行全部通过；最新新增 GFM IEEE8500 的 RecloserSiting 官方入口 |
-| 当前尚未转换的独立入口 | 223 | 259 个独立入口扣除 36 个已发布入口；阻断原因仍按严格、无损转换合同统计 |
+| 已转换并发布 bundle | 37 | 严格转换、求解和 bundle 自执行全部通过；最新新增 GFM IEEE123 的 GFMSnap-A 官方入口 |
+| 当前尚未转换的独立入口 | 222 | 259 个独立入口扣除 37 个已发布入口；阻断原因仍按严格、无损转换合同统计 |
 | 超时 | 0 | 无 |
 
-36 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+37 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 36 个发布入口；
-其余 223 个入口的诊断字段来自当前程序重扫；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 37 个发布入口；
+其余 222 个入口的诊断字段来自当前程序重扫；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -238,6 +238,23 @@ SolarRamp 的修复覆盖 Storage 省略值、默认触发回滞、终端功率�
 OpenDSS 节点门禁：电压最大相对误差 `0.6052%`、源端功率误差 `0.387%`、复损耗误差
 `1.49%`。
 
+### 第六轮实施结果
+
+2026-10-22 为单步 Snapshot 增加两项有证据边界：`BatchEdit Load..* Daily=default` 在单步
+Snapshot 中不改变负荷倍率；`InvControl mode=GFM` 在列出的 DER 都未进入 GFM 时只监测电流。
+两项仅在整个执行计划均为单步 Snapshot、对象集合和属性均满足限定条件时省略，并返回稳定 Warning；
+超出边界仍明确失败。另修正了低压侧作为绕组 1 的 Delta-Wye 升压变压器相位关系，ANSI/Euro
+现在按额定高低压侧解释，不再依赖 DSS 绕组声明顺序。
+
+| 官方入口 | 执行规模 | OpenDSS 数值门禁 |
+|---|---|---|
+| `Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-A.DSS` | 386 条语句，1 个 Newton Snapshot epoch | 284 个节点身份全部一致；浮置 Delta 母线按相间可观测量去共模后，复电压最大相对误差 `9.09e-7`、RMS `2.97e-7` |
+
+`Run_IEEE123Bus_GFMSnap-B.DSS` 在第二次求解前断开 `Line.SW5`，形成没有电压参考的孤岛，当前
+返回 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED`；`Run_IEEE123Bus_GFMSnap-C.DSS` 随后把
+`Storage.mystorage` 切换为真正的 `ControlMode=GFM`，仍由 `PSA.DSS.OBJECT.UNSUPPORTED` 阻断。
+因此本轮只发布 A，未通过删除控制语句或静态化 B/C 来扩大成功数。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -362,7 +379,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-36 个 `converted` 和 223 个 `unsupported`：
+37 个 `converted` 和 222 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

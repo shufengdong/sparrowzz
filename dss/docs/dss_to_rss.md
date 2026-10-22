@@ -119,6 +119,13 @@ ExecutionPlan 会按源码顺序保留 `Set` 和最终 `Solve` 上的执行设�
 潮流参数；`Algorithm` 决定 Radial 或 Newton adapter，`EarthModel` 由 PSA 统一校验。
 `MinIterations` 当前没有 PSA 等价参数，因此仍返回明确的不支持诊断，不会被静默忽略。
 
+整个执行计划都由单步 Snapshot 构成时，PSA 还会在可证明的窄边界省略
+`BatchEdit Load..* Daily=default`，以及只监测仍处于 GFL/PQ 状态 DER 的
+`InvControl mode=GFM`。两者分别返回
+`PSA.DSS.EXECUTION.SNAPSHOT_BATCH_EDIT_IGNORED` 和
+`PSA.DSS.EXECUTION.INERT_GFM_MONITOR_IGNORED` Warning。非 Snapshot、多步求解、额外
+InvControl 属性、控制器后续修改或任一成员切换为 `ControlMode=GFM` 都不适用该规则。
+
 `LoadShape Action=Normalize` 在导入期把 P、Q 序列分别除以各自最大绝对值。该 Action 必须是
 该 LoadShape 的最后一次修改；其他 Action 或 Normalize 后继续修改曲线会返回明确诊断。
 
@@ -181,7 +188,7 @@ DSS import produced findings that can change OpenDSS results
 基线重扫结果是：10 个官方原始入口通过严格检查、生成 bundle 并完成构建期自执行；589 个文件
 是没有独立研究命令的模型或公共依赖片段；另有 249 个独立入口因当时未映射的生命周期、对象
 属性、路径、执行顺序或求解问题失败，没有文件超时。后续只在这 249 个独立入口中做定向改造，
-目前另有 26 个入口通过并发布，总计 36 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
+目前另有 27 个入口通过并发布，总计 37 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
 HarmonicT，以及 `Examples/FreqScan/Run_Scan.dss` 的 188 点非整数频率扫描；不包含对官方文件的
 删改或静态化包装。
 

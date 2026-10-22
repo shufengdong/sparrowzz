@@ -1,0 +1,68 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-A.DSS",
+    "root": "dss",
+    "tree_sha256": "6b4495d0ee6f2c674893bb5d474c46eb035738ddcfc90e0621db0f82ae69f8e5"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/Microgrid/GridFormingInverter/GFM_IEEE123/BusCoords.dat",
+      "role": "data-asset",
+      "sha256": "0b409c0e5d99f365c0140bf38280c1d64932032f1ecb8ef83ae54d4ed0d2716f"
+    },
+    {
+      "path": "dss/Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-A.DSS",
+      "role": "dss-entry",
+      "sha256": "215cac2f0d718ecb61a6f9a0463f1cc758f243959b8ede4d9c7ffd01a83331e8"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
+      "role": "dss-source",
+      "sha256": "fd28f52836205506a1980b52c5a7e12ca585aa626c52a6249502c1c3b2fc2255"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Master.dss",
+      "role": "dss-source",
+      "sha256": "c92a69d9b218b1b2646ec7911783826229309038e72f16b848304c0457c0a54d"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
+      "role": "dss-source",
+      "sha256": "cd6ad77980dc018631ce39faab528afce40b0b9a50a6bc1c9ac8049ffb8207d7"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/PVShape.dss",
+      "role": "dss-source",
+      "sha256": "12fb209be619df89709877591ffdc630096836b0c12ad314c4e32de626ab26fb"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "684e3657cb270edd2bc195f14c49147752e234c56ef5fe33daca83041cc6658f"
+    }
+  ],
+  "inputs": []
+}
