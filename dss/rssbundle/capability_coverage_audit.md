@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：28 个入口已经发布 bundle，231 个独立入口尚未转换；`conversion_report.csv`
+- 当前结果：32 个入口已经发布 bundle，227 个独立入口尚未转换；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口的诊断保留基线扫描或最近一次定向复测结果。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
@@ -93,17 +93,23 @@ bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另�
   约 0.4 s 保护隔离、5001 个动态步、转差率/电机状态、Fuse/Recloser/三类 Relay 动作和原脚本
   请求的 Monitor 通道。`Action=Normalize` 必须按 OpenDSS 处理曲线数据后再进入运行时。
 
-## 下一批实施范围调整
+## 第三轮实施结果
 
-后续优先级改为以下三个可独立运行的范围：
+2026-10-22 完成原定三个范围，新增 4 个按官方相对路径发布的 bundle：
 
-1. `IEEETestCases/123Bus/SolarRamp.DSS`：先按 OpenDSS 原生证据物化省略的
-   `Storage.kvar=0`，再完整比较两个 300 点 Duty 段、调压器终态、Storage SOC、Monitor 和电气量。
+1. `IEEETestCases/123Bus/SolarRamp.DSS` 已物化 Storage 的 OpenDSS 省略值，并闭合默认触发回滞、
+   有功端口损耗、SOC 和 `Mode` 重置 Monitor 样本。两个 300 点 Duty 段的电压、Generator、
+   Storage、SOC、tap 和 Monitor 数值门禁通过。
 2. `Examples/Scripts/IEEE-TIA-LV Model/master_small_1phase.dss` 与
-   `master_large_1phase.dss`：先细化首步 EnergyMeter 失败诊断，再闭合单相两节点变压器的端口功率、
-   损耗与区域负荷；计量结果未通过 OpenDSS 数值门禁时不发布。
-3. `IEEETestCases/8500-Node/Run_RecloserSiting.DSS`：现有转换已经进入 Newton 求解，先在标准
-   `tensoreval` 发布配置中验证 MUMPS 后端；普通发布构建不能自执行时不生成 bundle。
+   `master_large_1phase.dss` 已闭合单相两线 Delta/Wye 服务变压器的多端口拓扑、线圈 V/I、损耗和
+   EnergyMeter。两者分别以 21/47 条语句生成单 epoch bundle；最大电压相对误差为
+   `2.41e-6`/`2.85e-6`，变压器绕组功率最大相对误差为 `9.05e-5`/`2.62e-5`。
+3. `IEEETestCases/8500-Node/Run_RecloserSiting.DSS` 使用 MUMPS 发布配置完成 7,628 条语句的 Newton
+   转换、自执行和 OpenDSS 对比。8,531 个 OpenDSS 节点全部匹配，最大电压误差 `0.6052%`、
+   源端功率误差 `0.387%`、复损耗误差 `1.49%`，均满足既有 IEEE8500 门限。
+
+这 4 个入口不再属于待实现范围。RecloserSiting 的自动网状 EnergyMeter 区域仍返回明确的
+approximation Warning，电气结果已比较，但不据此声明 meter-zone 寄存器与 OpenDSS 完全等价。
 
 `Examples/Matlab/HarmonicT_MATLAB/IEEE_519.DSS` 从优先范围移除。它与已经发布的
 `Examples/HarmonicsTMode/IEEE_519.DSS`、`Examples/HarmonicsVariableLoad/IEEE_519.DSS` 哈希不同，
@@ -164,7 +170,7 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 231 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 227 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
@@ -173,6 +179,17 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
 
 ## 本次验证
 
+- `IEEETestCases/123Bus/SolarRamp.DSS` 从未修改的官方入口生成 387 条语句、4 个 epoch 的 bundle，
+  在独立临时目录自执行通过；两个 300 点 Duty 段的电压、Generator/Storage、SOC、tap 和 Monitor
+  已与 OpenDSSDirect.py 逐项比较。
+- IEEE-TIA 两个单相入口分别以 21/47 条语句生成单 epoch bundle，并在独立临时目录自执行；
+  OpenDSS 的 6/17 个节点全部匹配，变压器绕组功率和复损耗通过数值门禁。
+- `IEEETestCases/8500-Node/Run_RecloserSiting.DSS` 使用含 MUMPS 的 release `tensoreval` 完成
+  7,628 条语句的严格检查和 bundle 自执行；OpenDSS 的 8,531 个节点全部匹配，电压、源端功率和
+  复损耗误差分别为 `0.6052%`、`0.387%` 和 `1.49%`。
+- `cargo test -p psa --features dsa --lib
+  dsa::output::power_flow::tests::single_phase_two_wire_winding_flow_reports_coil_voltage_and_current`：
+  1 项通过，锁定单相两线变压器绕组的线圈电压和电流输出语义。
 - 后续 6 个入口均由未修改的官方入口生成 bundle，并分别完成仓库内 bundle 自执行：
   IEEE34 Mod1/Mod2 各 2 个 epoch，IEEE123 Run/VoltageProfile 各 2 个 epoch，SolarRamp
   3 个 epoch、300 个 Duty 时刻，IEEE37 FaultStudy 175 个场景。
