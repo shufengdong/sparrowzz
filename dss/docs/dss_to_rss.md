@@ -102,10 +102,12 @@ Harmonic、AutoAdd 和 RelCalc 的终端变量名与各自结果名完全相同�
 - `Set VoltageBases=...`：PSA 从已导入网络得到电压基准；
 - `CalcV` / `CalcVoltageBases`：对应工作已包含在网络构造和潮流入口中；
 - 一个无参数 `Solve`，或只带 `Mode=Snapshot`、`ControlMode=Static/Off` 的 `Solve`；
-- `BusCoords`：只影响 OpenDSS 图形布局，不影响生成脚本返回的 `bus_phase` 电气结果。
+- `BusCoords`：只影响 OpenDSS 图形布局，不影响生成脚本返回的 `bus_phase` 电气结果；
+- `Plot`、`Show` 和 `Dump`：只读取模型或已求解状态生成图形/报告，不改变电气状态；转换诊断和
+  执行计划诊断会以 Warning 保留省略原因及源位置。
 
 `Set DefaultBaseFrequency`、对象声明、`Edit`、`More`、属性引用、变量以及本地 include
-继续留在模型中。多个 Snapshot `Solve`、求解后的模型修改和其他运行时命令不会被忽略。
+继续留在模型中。多个 Snapshot `Solve`、求解后的模型修改和其他未列出的运行时命令不会被忽略。
 
 生成的 RSS 保留 `.dss` 文件作为权威输入，路径写成规范化绝对路径。ExecutionPlan 指向
 原执行入口；Snapshot 指向经过验证、可由现有 `import_dss` 读取的静态模型入口。移动或

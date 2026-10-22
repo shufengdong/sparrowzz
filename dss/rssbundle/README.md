@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 32 | 严格转换、求解和 bundle 自执行全部通过；本批新增 SolarRamp、两个 IEEE-TIA 单相入口和 RecloserSiting |
-| 当前尚未转换的独立入口 | 227 | 259 个独立入口扣除 32 个已发布入口；阻断原因仍按严格、无损转换合同统计 |
+| 已转换并发布 bundle | 35 | 严格转换、求解和 bundle 自执行全部通过；最新一批新增三个 IEEE-TIA 完整分相入口 |
+| 当前尚未转换的独立入口 | 224 | 259 个独立入口扣除 35 个已发布入口；阻断原因仍按严格、无损转换合同统计 |
 | 超时 | 0 | 无 |
 
-32 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+35 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 32 个发布入口；
-其余 227 个入口的诊断字段保留基线扫描或最近一次定向复测结果。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 35 个发布入口；
+其余 224 个入口的诊断字段保留基线扫描或最近一次定向复测结果。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -208,6 +208,18 @@ SolarRamp 的修复覆盖 Storage 省略值、默认触发回滞、终端功率�
 损耗和 EnergyMeter 区域。RecloserSiting 要求安装包含 MUMPS 或 MKL 后端的 `tensoreval`；其
 自动 EnergyMeter 区域继续按既有 approximation Warning 合同处理，不声明寄存器完全等价。
 
+### 第四轮实施结果
+
+2026-10-22 又发布三个 IEEE-TIA 完整分相入口。多绕组归一化现在把单相 Delta 一次侧的两个正相
+端子识别为同一线圈端口，并保留两个次级半绕组在单相铁芯轴上的互阻抗；`Dump` 作为只读报告命令
+记录为省略副作用。
+
+| 官方入口 | 执行规模 | OpenDSS 数值门禁 |
+|---|---|---|
+| `Examples/Scripts/IEEE-TIA-LV Model/master_small.dss` | 23 条语句，1 个 Snapshot epoch | 9 个节点全部匹配；电压最大相对误差 `2.41e-6`，绕组功率最大相对误差 `9.05e-5`，复损耗相对误差 `1.82e-4` |
+| `Examples/Scripts/IEEE-TIA-LV Model/master_large.dss` | 56 条语句，1 个 Snapshot epoch | 31 个节点全部匹配；电压最大相对误差 `2.85e-6`，绕组功率最大相对误差 `2.62e-5`，复损耗相对误差 `5.71e-5` |
+| `Examples/Scripts/IEEE-TIA-LV Model/Split-Phase_IEEE_TIA.dss` | 22 条语句，1 个 Snapshot epoch | 7 个节点全部匹配；电压最大相对误差 `2.13e-6`，绕组功率最大相对误差 `3.96e-5`，复损耗相对误差 `7.34e-5` |
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -268,7 +280,7 @@ SolarRamp 的修复覆盖 Storage 省略值、默认触发回滞、终端功率�
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 227 个尚未发布入口中逐项验证。
+   当前 224 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -291,7 +303,7 @@ SolarRamp 的修复覆盖 Storage 省略值、默认触发回滞、终端功率�
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 227 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 224 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -317,7 +329,6 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 4 | `unsupported` | `PSA.DSS.SET.UNSUPPORTED` | Set 选项没有无损的 ExecutionStudy DataFrame 语义。 |
 | 4 | `unsupported` | `PSA.DSS.LINE.GEOMETRY_INVALID` | LineGeometry 引用或导体位置不能形成有效线路参数。 |
 | 3 | `unsupported` | `PSA.DSS.EXECUTION.ORDER_UNREPRESENTABLE` | 构造、设置和运行命令顺序不能降为当前不可变 epoch。 |
-| 3 | `unsupported` | `PSA.TRANSFORMER_MATRIX.DIMENSION_MISMATCH` | 变压器矩阵维数与绕组或相数不一致。 |
 | 2 | `unsupported` | `PSA.DSS.LINECODE.RELIABILITY_RETAINED` | LineCode 可靠性字段尚未进入所选计算合同。 |
 | 2 | `unsupported` | `READ.DSS.VALUE_UNSUPPORTED` | 对象值或控制行为被识别，但当前计算合同不能保持。 |
 | 1 | `unsupported` | `PSA.DSS.CONSTRUCTION.PROPERTY_UNKNOWN` | 构造对象包含 PSA 尚未知的属性。 |
@@ -333,7 +344,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-32 个 `converted` 和 227 个 `unsupported`：
+35 个 `converted` 和 224 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

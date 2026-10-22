@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：32 个入口已经发布 bundle，227 个独立入口尚未转换；`conversion_report.csv`
+- 当前结果：35 个入口已经发布 bundle，224 个独立入口尚未转换；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口的诊断保留基线扫描或最近一次定向复测结果。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
@@ -111,6 +111,20 @@ bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另�
 这 4 个入口不再属于待实现范围。RecloserSiting 的自动网状 EnergyMeter 区域仍返回明确的
 approximation Warning，电气结果已比较，但不据此声明 meter-zone 寄存器与 OpenDSS 完全等价。
 
+## 第四轮实施结果
+
+三个 IEEE-TIA 完整分相入口已经发布：
+
+- `master_small.dss` 和 `master_large.dss` 分别以 23/56 条语句完成单 epoch 自执行；OpenDSS 的
+  9/31 个节点全部匹配，最大电压相对误差为 `2.41e-6`/`2.85e-6`。
+- `Split-Phase_IEEE_TIA.dss` 以 22 条语句完成单 epoch 自执行；7 个节点全部匹配，最大电压
+  相对误差为 `2.13e-6`。
+- 三个入口的绕组功率最大相对误差不超过 `9.05e-5`，复损耗相对误差不超过 `1.82e-4`。
+
+改造补齐了单相 Delta 两线一次侧在多绕组校验和归一化中的合法映射，并修复了两个次级半绕组
+因外部端子标签不同而丢失互阻抗的问题。`Dump` 被识别为只读报告副作用，转换时保留稳定 Warning，
+不参与 PSA 电气状态。
+
 `Examples/Matlab/HarmonicT_MATLAB/IEEE_519.DSS` 从优先范围移除。它与已经发布的
 `Examples/HarmonicsTMode/IEEE_519.DSS`、`Examples/HarmonicsVariableLoad/IEEE_519.DSS` 哈希不同，
 但 `.dss` 文件只完成初始化 `Solve`；实际 HarmonicT 循环位于同目录 `Main_Script.m`，由 Matlab
@@ -170,7 +184,7 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 227 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 224 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
@@ -179,6 +193,12 @@ COM API 发起。转换单个 `.dss` 只能证明 Snapshot 初始化，不能声
 
 ## 本次验证
 
+- IEEE-TIA 三个完整分相入口均由未修改的官方文件生成 bundle，并复制到独立临时目录自执行；
+  OpenDSS 数值比较覆盖全部节点、源端功率、三个绕组功率和全网复损耗。
+- `cargo test -p psa --features dsa --lib dsa::parse::transformer_impedance::tests::`：10 项通过，
+  包含单相 Delta 两线一次侧、次级半绕组互阻抗和既有多绕组矩阵边界。
+- `cargo test -p psa --features dsa --test dss_import execution_plan_ignores_plot_between_solve_epochs`：
+  1 项通过，锁定 `Plot`、`Show`、`Dump` 的只读报告副作用语义。
 - `IEEETestCases/123Bus/SolarRamp.DSS` 从未修改的官方入口生成 387 条语句、4 个 epoch 的 bundle，
   在独立临时目录自执行通过；两个 300 点 Duty 段的电压、Generator/Storage、SOC、tap 和 Monitor
   已与 OpenDSSDirect.py 逐项比较。
