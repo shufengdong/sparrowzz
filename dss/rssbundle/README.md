@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 37 | 严格转换、求解和 bundle 自执行全部通过；最新新增 GFM IEEE123 的 GFMSnap-A 官方入口 |
-| 当前尚未转换的独立入口 | 222 | 259 个独立入口扣除 37 个已发布入口；阻断原因仍按严格、无损转换合同统计 |
+| 已转换并发布 bundle | 57 | 严格转换、求解和 bundle 自执行全部通过；最新新增 6 个官方 Volt-Var Snapshot 入口 |
+| 当前尚未转换的独立入口 | 202 | 259 个独立入口扣除 57 个已发布入口；阻断原因仍按严格、无损转换合同统计 |
 | 超时 | 0 | 无 |
 
-37 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+57 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 37 个发布入口；
-其余 222 个入口的诊断字段来自当前程序重扫；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 57 个发布入口；
+其余 202 个入口的诊断字段来自当前程序重扫；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -255,6 +255,55 @@ Snapshot 中不改变负荷倍率；`InvControl mode=GFM` 在列出的 DER 都�
 `Storage.mystorage` 切换为真正的 `ControlMode=GFM`，仍由 `PSA.DSS.OBJECT.UNSUPPORTED` 阻断。
 因此本轮只发布 A，未通过删除控制语句或静态化 B/C 来扩大成功数。
 
+### 第七轮实施结果
+
+2026-10-22 接入官方 `Examples/InverterModels/PVSystem/InvControl/volt-watt` 下 14 个
+Snapshot 入口。转换器把 `CaseName` 作为仅影响输出文件名的选项处理，并接受官方使用的
+`Maxi`/`MaxControli` 迭代参数缩写；PSA 导入器在“一个启用的纯 Volt-Watt InvControl、
+一个 PVSystem、没有 Storage”时按 OpenDSS 规则补全省略的 `DERList`，并保留三点 XYCurve、
+`0 < DeltaP_factor <= 1`、`PAVAILABLEPU`/`PMPPPU`/`PCTPMPPPU`/`KVARATINGPU` 基准、
+`%Pmpp` 限幅和 PV 固定功率因数。
+
+| 官方入口组 | 数量 | OpenDSS 数值门禁 |
+|---|---:|---|
+| `SnapShot_voltwatt_KVARATINGPU-2.dss` | 1 | 通过 |
+| `SnapShot_voltwatt_noOperation*-2.dss` | 2 | 通过 |
+| `SnapShot_voltwatt_PAVAILABLEPU*-2.dss` | 3 | 通过 |
+| `SnapShot_voltwatt_PCTPMPPPU*-2.dss` | 2 | 通过 |
+| `SnapShot_voltwatt_pf-2.dss` | 1 | 通过 |
+| `SnapShot_voltwatt_PMPPPU*-2.dss`（不含 `PFPriority`/`WattPriority` 限值变体） | 5 | 通过 |
+
+14 个 bundle 均由未修改的官方入口生成，复制到独立临时目录后使用 `tensoreval` 自执行成功。
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 比较覆盖全部 3 个节点的复电压和 PVSystem 终端
+复功率；最大复电压相对误差为 `2.09e-5`，最大 PV 复功率相对误差为 `3.49e-4`，均低于
+`1e-3` 门限。逐入口数据见 [`numerical_comparison.csv`](numerical_comparison.csv)。
+
+仍未发布的 Daily Volt-Watt 入口需要 QSTS 曲线和多时点控制门禁；带 `PFPriority`、
+`WattPriority` 或 kvar/kVA 限值组合的入口仍由 PVSystem 属性边界明确拒绝，不能从本批
+Snapshot 结果推断为已支持。
+
+### 第八轮实施结果
+
+2026-10-22 接入官方 `Examples/InverterModels/PVSystem/InvControl/volt-var` 下 6 个单 PV
+Snapshot 入口。转换器只在“一个启用的纯 Volt-Var InvControl、一个 PVSystem、没有 Storage”
+时按 OpenDSS 规则补全省略的 `DERList`，并保留五点 `VVC_Curve1`、`VARMAX`/`VARAVAL`、
+`0 < DeltaQ_Factor <= 1`、`%Pmpp`、kvar 限值及 P/Q 优先级。DSS 未显式设置控制容差时，
+导入结果会写入 OpenDSS 默认的 `VoltageChangeTolerance=1e-4`、
+`VarChangeTolerance=0.025` 和 `ActivePChangeTolerance=0.01`，避免使用 PSA 通用容差改变终态。
+
+| 官方入口组 | 数量 | OpenDSS 数值门禁 |
+|---|---:|---|
+| `SnapShot_voltvar_Standard*-2.dss` | 3 | 通过 |
+| `SnapShot_voltvar_greater_kvA_*-2.dss` | 2 | 通过 |
+| `SnapShot_voltvar_pctPmpp60-2.dss` | 1 | 通过 |
+
+6 个 bundle 均由未修改的官方入口生成，复制到独立临时目录后使用 `tensoreval` 自执行成功。
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 比较覆盖全部 3 个节点的复电压和 PVSystem 终端
+复功率；最大复电压相对误差为 `1.58135e-5`，最大 PV 复功率相对误差为
+`2.15969e-4`，均低于 `1e-3` 门限。逐入口数据见
+[`numerical_comparison.csv`](numerical_comparison.csv)。带远端/相别监测、Daily、多个 DER、
+Storage 或组合控制的 Volt-Var 入口仍需各自执行合同和数值门禁。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -315,7 +364,7 @@ Snapshot 中不改变负荷倍率；`InvControl mode=GFM` 在列出的 DER 都�
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 223 个尚未发布入口中逐项验证。
+   当前 202 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -338,7 +387,7 @@ Snapshot 中不改变负荷倍率；`InvControl mode=GFM` 在列出的 DER 都�
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 223 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 202 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -347,8 +396,8 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 | 数量 | 分类 | 诊断码 | 原因 |
 |---:|---|---|---|
-| 44 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SET_UNSUPPORTED` | `Set` 选项尚无可验证的 RSS 执行语义。 |
-| 28 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
+| 24 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SET_UNSUPPORTED` | `Set` 选项尚无可验证的 RSS 执行语义。 |
+| 26 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
 | 27 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | 对象属性超出当前 PSA DataFrame/执行合同，无法无损表达。 |
 | 20 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 Dynamic、Direct 等尚无转换适配器的生命周期。 |
 | 18 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage 属性尚无无损映射。 |
@@ -363,7 +412,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 5 | `unsupported` | `PSA.DSS.LINECODE.RELIABILITY_RETAINED` | LineCode 可靠性字段尚未进入所选计算合同；含保留的 P174 长任务记录。 |
 | 4 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.COMMAND_UNSUPPORTED` | 运行命令尚无可验证的 RSS 映射。 |
 | 3 | `unsupported` | `PSA.DSS.SET.UNSUPPORTED` | PSA execution plan 不支持该 Set 选项。 |
-| 3 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 模型可导入，但所选求解器不支持该拓扑、后端不可用或未收敛。 |
+| 4 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 模型可导入，但所选求解器不支持该拓扑、后端不可用或未收敛。 |
 | 3 | `unsupported` | `PSA.DSS.PVSYSTEM.PROPERTY_UNSUPPORTED` | PVSystem 属性尚无无损映射。 |
 | 2 | `unsupported` | `PSA.DSS.GENERATOR.MODEL3.EXECUTION_UNSUPPORTED` | Generator Model 3 尚无 execution plan 等价运行语义。 |
 | 1 | `unsupported` | `PSA.DSS.AUTOTRANS.CONNECTION_UNSUPPORTED` | AutoTrans 绕组接法超出当前受支持组合。 |
@@ -379,7 +428,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-37 个 `converted` 和 222 个 `unsupported`：
+57 个 `converted` 和 202 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

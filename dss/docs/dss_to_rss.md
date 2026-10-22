@@ -188,7 +188,7 @@ DSS import produced findings that can change OpenDSS results
 基线重扫结果是：10 个官方原始入口通过严格检查、生成 bundle 并完成构建期自执行；589 个文件
 是没有独立研究命令的模型或公共依赖片段；另有 249 个独立入口因当时未映射的生命周期、对象
 属性、路径、执行顺序或求解问题失败，没有文件超时。后续只在这 249 个独立入口中做定向改造，
-目前另有 27 个入口通过并发布，总计 37 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
+目前另有 47 个入口通过并发布，总计 57 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
 HarmonicT，以及 `Examples/FreqScan/Run_Scan.dss` 的 188 点非整数频率扫描；不包含对官方文件的
 删改或静态化包装。
 

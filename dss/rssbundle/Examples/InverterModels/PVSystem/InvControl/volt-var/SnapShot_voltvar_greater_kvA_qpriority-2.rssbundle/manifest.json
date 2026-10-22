@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/volt-var/SnapShot_voltvar_greater_kvA_qpriority-2.dss",
+    "root": "dss",
+    "tree_sha256": "8dcb4018a94e7e0c80a6629a1e00af321601d8b83940d32b5fbe2a5d059acf82"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/volt-var/SnapShot_voltvar_greater_kvA_qpriority-2.dss",
+      "role": "dss-entry",
+      "sha256": "a114d589167c8b6a0d335d29f3e60a183ffb515b59de65600303896d4e961bde"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "a0231964b1015703aabc3527a8fa37c22a6fcf3ce4d9a29f20c21accb9ac87a7"
+    }
+  ],
+  "inputs": []
+}
