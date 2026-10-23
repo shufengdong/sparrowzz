@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：57 个入口已经发布 bundle，202 个独立入口尚未转换；`conversion_report.csv`
+- 当前结果：68 个入口已经发布 bundle，191 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫；2,900 步 P174 保留已验证的
   未发布记录。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
@@ -161,6 +161,24 @@ OpenDSS 默认 `VarChangeTolerance=0.025`，运行时会退回 PSA 通用默认 
 相对误差 `2.15969e-4`，均通过 `1e-3` 门限。远端或相别监测、Daily、多 DER、Storage 和
 组合模式不在本轮结论内。
 
+## 第九轮：10 个 Daily InvControl 和 1 个本地监测入口
+
+本轮先修正 PVSystem 的 OpenDSS 默认逆变器阈值：省略 `%CutIn/%CutOut` 时，执行型导入明确
+写入 `0.20/0.20`，不再由 PSA 通用 IBR 默认值代替。Monitor 目标解析和 QSTS 采样也扩展到
+PVSystem terminal 1 的 mode 0、1、3，使官方 Daily 文件中的电流、功率和状态 Monitor 能够
+保留在执行计划中。
+
+17 个 Daily 候选均使用未修改的官方入口完成严格转换和 24 时点比较，其中 10 个通过：3 个
+Volt-Var、6 个 Volt-Watt 和 1 个 VV_VW。所有时点的节点身份一致；最大复电压相对误差
+`6.68761e-5`，最大 PV 复功率/额定容量误差 `9.61056e-4`。`Local_voltage_min-2.dss` 也通过
+单工作点门禁，两个误差为 `2.13958e-4` 和 `9.84486e-4`。这 11 个入口均已按官方路径发布。
+
+未发布的 13 个可转换入口保留真实门禁结果：4 个 Daily Volt-Var 的 average、rolling-average
+或额定容量优先级终态不一致；3 个固定 PF Daily Volt-Watt 的 P/Q 联动不一致；3 个本地
+监测入口的功率/额定容量误差略高于 `1e-3`；3 个远端监测入口还缺少完整 `MonBus` 相别、
+线电压和多母线选择语义。另有 3 个 `Mon_voltage_MAX_Mix*` 入口引用官方发行树中缺失的
+`PV_irrad.csv`，尚不能建立原始输入门禁。
+
 ## 首诊断不能直接判定能力覆盖
 
 ### 当前重扫新增入口
@@ -202,11 +220,11 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
 
 所以这 27 个都是“路径层有 bug”，但不是“能力已经完整覆盖”的案例。
 
-### 11 个 `READ.DSS.VALUE_DEFAULTED`
+### 3 个 `READ.DSS.VALUE_DEFAULTED`
 
-当前剩余 11 个来自 3 个多 DER 监测电压入口、7 个 Daily Volt-Var 入口和 1 个 Daily VV_VW
-入口。它们仍需分别闭合监测选择、QSTS 曲线及组合控制合同；第八轮单 PV Snapshot 结果不能直接
-作为这些入口的门禁。`CaseName`、`Maxi` 和 `MaxControli` 已不再构成阻断。
+当前剩余 3 个都是 `Mon_voltage_MAX_Mix*` 入口。它们引用官方发行树中缺失的 `PV_irrad.csv`，
+同时使用多 DER 混合监测；转换器不能补造辐照度序列后声明与 OpenDSS 一致。`CaseName`、
+`Maxi` 和 `MaxControli` 已不再构成阻断。
 
 ### 25 个 `READ.IO.OPEN`
 
@@ -238,7 +256,7 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 202 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 191 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
