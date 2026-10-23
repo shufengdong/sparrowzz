@@ -30,7 +30,7 @@ OpenDSS 语言兼容。状态含义如下：
 | `Spectrum` | `spectrum` | 直接/有界 | `h`, `mag_pct`, `angle_deg` 及设备引用 |
 | `XYCurve` | `xy_curve` | 直接 | 每曲线多行点表 |
 | `RegControl`, `CapControl` | 设备表、`control_profile` | 有界 | 仅运行时已有等价状态和控制律的组合 |
-| `InvControl`, `ExpControl` | `control_profile`, `ibr` 扩展列 | 有界 | Volt-Watt 支持四种 Y 轴基准、有限正 `DeltaP_factor`、单 PV 隐式成员和固定 PF 联动；纯 Volt-Var 支持单 PV 隐式成员、原始 VVC 曲线、有限正 `DeltaQ_factor`、`VARMAX`/`VARAVAL` 和 OpenDSS 默认控制容差；远端监测、多 DER、Storage、DRC、AVR、Watt-PF/Watt-Var 等仍按各自受控子集 |
+| `InvControl`, `ExpControl` | `control_profile`, `ibr` 扩展列 | 有界 | Volt-Watt 支持四种 Y 轴基准、有限正 `DeltaP_factor`、单 PV 隐式成员、固定 PF 联动及停机归零；纯 Volt-Var 支持单 PV 隐式成员、原始 VVC 曲线、有限正 `DeltaQ_factor`、`VARMAX`/`VARAVAL`、OpenDSS 默认控制容差和视在功率受限后的 QSTS 控制记忆；远端监测、多 DER、Storage、DRC、AVR、Watt-PF/Watt-Var 等仍按各自受控子集 |
 | `StorageController` | QSTS `storage_controller` | 显式表/有界 | PSA 执行型导入可生成；RSDss 静态导入不返回该表 |
 | `GenDispatcher` | `generator` 扩展列 | 有界 | 监视线路、成员和功率约束必须能保持身份及顺序 |
 | `SwtControl` | QSTS `switch_control` | 显式表/有界 | 支持动作、延时、锁定、复位和稳定源顺序 |

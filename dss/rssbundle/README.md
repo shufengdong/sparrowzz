@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 68 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 11 个官方 InvControl 入口 |
-| 当前尚未发布的独立入口 | 191 | 259 个独立入口扣除 68 个已发布入口；其中 13 个已能严格转换，但尚未通过 OpenDSS 数值门禁 |
+| 已转换并发布 bundle | 81 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 8 个 AVG/RAVG 或监测电压 InvControl 入口 |
+| 当前尚未发布的独立入口 | 178 | 259 个独立入口扣除 81 个已发布入口 |
 | 超时 | 0 | 无 |
 
-68 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+81 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 68 个发布入口；
-其余 191 个入口记录当前转换诊断或数值门禁结果；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 81 个发布入口；
+其余 178 个入口记录当前转换诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -278,9 +278,9 @@ OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 比较覆盖全部 3 个节点的复�
 复功率；最大复电压相对误差为 `2.09e-5`，最大 PV 复功率相对误差为 `3.49e-4`，均低于
 `1e-3` 门限。逐入口数据见 [`numerical_comparison.csv`](numerical_comparison.csv)。
 
-Daily Volt-Watt 已在第九轮按完整 24 时点门禁发布其中 6 个入口；3 个固定 PF 变体和带
-`PFPriority`、`WattPriority` 或 kvar/kVA 限值组合的入口仍未通过，不能从本批 Snapshot
-结果推断为已支持。
+Daily Volt-Watt 在第九轮按完整 24 时点门禁发布其中 6 个入口；当时未通过的 3 个固定 PF
+变体已在第十轮闭合停机状态 P/Q 联动并发布。带 `PFPriority`、`WattPriority` 或 kvar/kVA
+限值组合的其他入口仍不能从本批 Snapshot 结果推断为已支持。
 
 ### 第八轮实施结果
 
@@ -325,10 +325,46 @@ Daily 案例逐时点比较全部节点复电压和 PVSystem 复功率；由于�
 功率/额定容量误差为 `9.61056e-4`；`Local_voltage_min` 两项误差分别为 `2.13958e-4` 和
 `9.84486e-4`，均通过 `1e-3` 门限。
 
-另外 13 个入口已能严格转换和自执行，但没有发布：4 个 Daily Volt-Var、3 个固定 PF Daily
-Volt-Watt 以及 6 个监测电压入口未通过数值门禁。远端监测入口仍需补齐 `MonBus` 的相别、
-线电压和多母线选择；Volt-Var average/rolling-average、额定容量优先级和固定 PF 联动需要继续
-校准控制终态。三个 `Mon_voltage_MAX_Mix*` 入口还引用官方发行树中缺失的 `PV_irrad.csv`。
+当时另有 13 个入口已能严格转换和自执行但没有发布；其中 5 个已在第十轮通过。第九轮结束时剩余
+8 个数值门禁失败入口：2 个 Daily Volt-Var average/rolling-average、3 个本地监测电压和
+3 个远端监测电压。远端监测入口仍需补齐 `MonBus` 的相别、线电压和多母线选择。三个
+`Mon_voltage_MAX_Mix*` 入口还引用官方发行树中缺失的 `PV_irrad.csv`，不计入上述 8 个。
+
+### 第十轮实施结果
+
+2026-10-23 新增 5 个完整 Daily InvControl bundle。Volt-Var QSTS 现在只在设备曾触发视在功率
+圆限制时保留该控制记忆；逆变器停机后的首个动作和同一时刻后续容差判断按 OpenDSS 顺序执行。
+固定 PF Volt-Watt 在逆变器停机时将 Q 请求归零，避免低日照时继续输出固定功率因数无功。
+
+| 官方入口组 | 数量 | OpenDSS 数值门禁 |
+|---|---:|---|
+| `volt-var/Daily_voltvar_greater_kVA_{ppriority,qpriority}-2.dss` | 2 | 24/24 时点通过；最大电压误差 `3.96518e-5`，最大 PV 复功率/额定容量误差 `5.28637e-4` |
+| `volt-watt/Daily_voltwatt_noOperation_PF-2.dss` | 1 | 24/24 时点通过；最大电压误差 `1.73422e-8`，最大功率误差 `2.36657e-7` |
+| `volt-watt/Daily_voltwatt_PMPPPU{,_pctPmpp60}_PF-2.dss` | 2 | 24/24 时点通过；最大电压误差 `1.45313e-5`，最大功率误差 `1.87305e-4` |
+
+5 个 bundle 均由未修改的官方入口生成，复制到独立临时目录后使用发布版 `tensoreval`
+自执行成功，每个输出 72 行逐时节点电压。17 个 Daily 候选重跑后，既有 10 个 Daily
+通过项全部保持通过；`avg` 和 `ravg` 两个入口仍因平均/滚动监测电压语义偏差未发布。
+
+### 第十一轮实施结果
+
+2026-10-23 继续处理上一轮遗留的 8 个严格转换成功入口。PSA 现在保留
+`Voltage_CurveX_Ref`、`AvgWindowLen`、`MonBus` 和 `MonBusesVBase`，远端监测列表可逐项选择
+相地或相间电压及各自的额定电压。AVG/RAVG 滚动窗口只在下一 QSTS 时点开始时提交上一时点的
+最终收敛电压，不再把同一时点的控制迭代重复计为样本；无功收敛判断使用 OpenDSS 的未松弛目标和
+无功幅值差。
+
+| 官方入口组 | 数量 | OpenDSS 数值门禁 |
+|---|---:|---|
+| `volt-var/Daily_voltvar_{avg,ravg}-2.dss` | 2 | 24/24 时点通过；最大电压误差 `3.81697e-5`，最大 PV 复功率/额定容量误差 `4.28307e-4` |
+| `MonitoredVoltage/Local_voltage_2-2.dss`、`Local_voltage_average-2.dss`、`Local_voltage_max-2.dss` | 3 | 单工作点通过；最大电压误差 `5.93426e-7`，最大功率误差 `2.93004e-6` |
+| `MonitoredVoltage/Mon_voltage_average-2.dss`、`Mon_voltage_average_LL-2.dss`、`Mon_voltage_average_Mix-2.dss` | 3 | 单工作点通过；最大电压误差 `4.62023e-6`，最大功率误差 `1.47363e-5` |
+
+上述 8 个 bundle 均由未修改的官方入口生成，完成独立自执行并按官方相对路径发布。
+`Local_voltage_max-2.dss` 的初次门禁暴露了 `WireData.GMR` 别名未进入 geometry bridge：PSA 当时按
+`0.7788 × radius` 推导 GMR，使线路自电抗从 OpenDSS 的 `0.8781366 Ω/km` 变为
+`0.8813033 Ω/km`。补齐别名并增加导入层 R/X/C 矩阵回归后，该入口的最大电压相对误差为
+`5.93426e-7`，PV 复功率/额定容量误差为 `2.93004e-6`，在未放宽 `1e-3` 门限的情况下通过。
 
 #### 三个同名 `IEEE_519.DSS` 的边界
 
@@ -390,7 +426,7 @@ Volt-Watt 以及 6 个监测电压入口未通过数值门禁。远端监测入�
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 191 个尚未发布入口中逐项验证。
+   当前 178 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -413,7 +449,7 @@ Volt-Watt 以及 6 个监测电压入口未通过数值门禁。远端监测入�
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 191 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 178 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -427,7 +463,6 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 18 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | 对象属性超出当前 PSA DataFrame/执行合同，无法无损表达。 |
 | 20 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 Dynamic、Direct 等尚无转换适配器的生命周期。 |
 | 18 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage 属性尚无无损映射。 |
-| 13 | `unsupported` | 数值门禁未通过 | 严格转换和 bundle 自执行成功，但 OpenDSS 电压或 PV 复功率误差超过 `1e-3`。 |
 | 11 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
 | 3 | `unsupported` | `READ.DSS.VALUE_DEFAULTED` | 导入需要补默认值，严格 profile 不能证明与 OpenDSS 等价。 |
 | 8 | `unsupported` | `REQUEST.SOURCE.ESCAPES_ROOT` | 数据资产引用越过本次允许的获取根。 |
@@ -455,7 +490,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-68 个 `converted` 和 191 个 `unsupported`：
+81 个 `converted` 和 178 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

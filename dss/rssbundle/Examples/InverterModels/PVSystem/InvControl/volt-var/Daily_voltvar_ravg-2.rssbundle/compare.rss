@@ -1,0 +1,1 @@
+[voltage, ibr, summary] = ds_radial_dss_plan("/private/tmp/invcontrol-eight-compare/Examples/InverterModels/PVSystem/InvControl/volt-var/Daily_voltvar_ravg-2.rssbundle/dss/Examples/InverterModels/PVSystem/InvControl/volt-var/Daily_voltvar_ravg-2.dss", "bus_phase,ibr_state,summary");

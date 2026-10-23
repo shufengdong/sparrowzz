@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/MonitoredVoltage/Local_voltage_max-2.dss",
+    "root": "dss",
+    "tree_sha256": "1611962c3d276f2d5495cf0b17ab7accbb7450355f83cf0aa866516df5bd54ad"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/MonitoredVoltage/Local_voltage_max-2.dss",
+      "role": "dss-entry",
+      "sha256": "3bd634d29a5d3ca70267f0c2bceaa46f8e7a73f0a4caffb117de2e73cdc9320f"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "4b0940c6856679b5d53184256eb2206d07195423c8a24498f34fb97c9e3a251d"
+    }
+  ],
+  "inputs": []
+}

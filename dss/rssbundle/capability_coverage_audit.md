@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：68 个入口已经发布 bundle，191 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：73 个入口已经发布 bundle，186 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫；2,900 步 P174 保留已验证的
   未发布记录。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
@@ -173,11 +173,22 @@ Volt-Var、6 个 Volt-Watt 和 1 个 VV_VW。所有时点的节点身份一致�
 `6.68761e-5`，最大 PV 复功率/额定容量误差 `9.61056e-4`。`Local_voltage_min-2.dss` 也通过
 单工作点门禁，两个误差为 `2.13958e-4` 和 `9.84486e-4`。这 11 个入口均已按官方路径发布。
 
-未发布的 13 个可转换入口保留真实门禁结果：4 个 Daily Volt-Var 的 average、rolling-average
+第九轮结束时未发布的 13 个可转换入口保留真实门禁结果：4 个 Daily Volt-Var 的 average、rolling-average
 或额定容量优先级终态不一致；3 个固定 PF Daily Volt-Watt 的 P/Q 联动不一致；3 个本地
 监测入口的功率/额定容量误差略高于 `1e-3`；3 个远端监测入口还缺少完整 `MonBus` 相别、
 线电压和多母线选择语义。另有 3 个 `Mon_voltage_MAX_Mix*` 入口引用官方发行树中缺失的
 `PV_irrad.csv`，尚不能建立原始输入门禁。
+
+## 第十轮：视在功率受限 Volt-Var 与固定 PF Volt-Watt
+
+2026-10-23 对第九轮的 5 个控制终态失败入口完成闭合。两个 1010 kVA Volt-Var 案例在日间
+触发视在功率圆限制；运行时现在保留该控制记忆，并在停机后的每个 QSTS 时刻先执行一次动作，
+再按 OpenDSS 电压/无功双容差决定是否继续。三个固定 PF Volt-Watt 案例在逆变器停机时将
+无功请求归零。5 个入口均完成 24/24 时点 OpenDSS 数值比较、独立 bundle 自执行并按官方路径发布。
+
+本轮最大电压相对误差 `3.96518e-5`，最大 PV 复功率/额定容量误差 `5.28637e-4`；第九轮
+已经发布的 10 个 Daily 入口全部复测通过。当前可严格转换但未通过数值门禁的入口降为 8 个：
+2 个 Daily average/rolling-average、3 个本地监测电压和 3 个远端监测电压。
 
 ## 首诊断不能直接判定能力覆盖
 
@@ -256,7 +267,7 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 191 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 186 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
