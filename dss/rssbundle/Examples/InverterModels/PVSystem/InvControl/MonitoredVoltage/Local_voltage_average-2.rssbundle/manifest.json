@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/MonitoredVoltage/Local_voltage_average-2.dss",
+    "root": "dss",
+    "tree_sha256": "dcaa1080102020cbf62550b07ac7bd09a155f43a575bca4b20fa2e21ecb93b7a"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/MonitoredVoltage/Local_voltage_average-2.dss",
+      "role": "dss-entry",
+      "sha256": "106c0a1ef012eb297e2f1685442dbc73b0fc4ec9c897a9d63b21c815f27c4e73"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "bf563ed9643ca25398af7d881ed2dc78ee46e0771739ec4c392e0d3ccc8d1155"
+    }
+  ],
+  "inputs": []
+}

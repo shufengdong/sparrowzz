@@ -141,7 +141,9 @@ ExpControl 时，分别用从 0 连续递增的 `invcontrol_member_order` 或
 `voltage_reference`, `voltage_curve_x_ref`, `reactive_power_reference`,
 `delta_p_factor/delta_q_factor`, 三个 change tolerance、`rate_of_change_mode`,
 `lpf_tau`, `rise_fall_limit`, `control_model`, `mon_voltage_calc`，以及远方量测的
-`monitored_bus/monitored_phases/monitored_v_base`。
+`monitored_bus/monitored_phases/monitored_v_base`。OpenDSS 多节点 `MonBus` 使用
+`monitored_nodes/monitored_v_bases` 两个等长列表；节点写作 `bus.1`（相地）或
+`bus.1.2`（相间），额定电压单位为 kV。
 
 AVR 使用 `v_setpoint/avr_gain`。ExpControl 使用 `exp_vreg`, `exp_slope`,
 `exp_vreg_tau`, `exp_q_bias`, `exp_vreg_min/max`, `exp_q_max_lead/lag`,

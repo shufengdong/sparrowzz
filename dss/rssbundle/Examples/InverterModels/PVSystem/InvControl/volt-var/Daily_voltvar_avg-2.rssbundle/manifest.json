@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/volt-var/Daily_voltvar_avg-2.dss",
+    "root": "dss",
+    "tree_sha256": "9d887f9973ed4122ab35e15402b5b7edba3826fd0fa149654693a89dae64b08b"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/volt-var/Daily_voltvar_avg-2.dss",
+      "role": "dss-entry",
+      "sha256": "cc0fef10058c0411aba26ec6e99dbda9800a45ee5deb407fe9399ce2652f0b8e"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "80b62d9852eae6dd4b5e265ed5975bbaf6af8545b72b2ee7d66bb6ab4c6968a6"
+    }
+  ],
+  "inputs": []
+}
