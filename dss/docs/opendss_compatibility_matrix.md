@@ -22,7 +22,7 @@ OpenDSS 语言兼容。状态含义如下：
 | `Transformer` | `transformer`, `transformer_winding`, `transformer_impedance` | 有界 | DSS 两绕组和受支持的多绕组约束；PSA owned DataFrame 另支持完整三相主绕组加 grounded-Wye 非空相子集，DSS 没有逐绕组相数语义 |
 | `Load` | `load` | 有界 | 支持已实现的负荷模型、电压边界、曲线和 spectrum 绑定 |
 | `Generator` | `generator` | 有界 | 已实现 operating model、Model 3 和 GenDispatcher 子集；组合限制会显式报错 |
-| `PVSystem` | `ibr`, `control_profile`, `xy_curve` | 有界 | DC operating point、曲线和 InvControl/ExpControl 的已声明子集 |
+| `PVSystem` | `ibr`, `control_profile`, `xy_curve` | 有界 | DC operating point、曲线和 InvControl/ExpControl 的已声明子集；省略 `%CutIn/%CutOut` 时按 OpenDSS `20%/20%` 导入 |
 | `Storage` | `storage` | 显式表 | PSA/QSTS 有储能契约；RSDss `import_dss` 的静态 21 返回值中该表当前固定为空 |
 | `IndMach012` | `motor` | 有界 | 稳态和动态所需的已支持参数 |
 | `Capacitor` | `capacitor` | 有界 | 固定/分级状态和已支持控制字段 |
@@ -38,7 +38,7 @@ OpenDSS 语言兼容。状态含义如下：
 | `Fuse` | QSTS `fuse` | 显式表/有界 | 曲线、额定电流、开断状态和 reset |
 | `Recloser` | QSTS `recloser` | 显式表/有界 | fast/delayed 曲线和 multi-shot 延续状态 |
 | `Relay` | QSTS `relay` | 显式表/有界 | Current、Voltage、ReversePower、46、47、Generic、DOC、Distance、TD21 按各自 schema 校验 |
-| `Monitor` | QSTS/harmonic `monitor` | 显式表/有界 | 目标类型必须与 mode 匹配 |
+| `Monitor` | QSTS/harmonic `monitor` | 显式表/有界 | 目标类型必须与 mode 匹配；PVSystem terminal 1 支持 mode 0、1、3，远端 `MonBus` 仍按 InvControl 受控子集 |
 | `EnergyMeter` | QSTS `energy_meter` | 显式表/有界 | 区域、累计量和可靠性输出使用 PSA 的计量契约 |
 | `Fault` | `fault` | 显式表/有界 | 静态短路或带起止时间的 QSTS 故障；ExecutionStudy 支持接地故障及同母线不同非零节点的 `Phases=1` 相间故障 |
 
