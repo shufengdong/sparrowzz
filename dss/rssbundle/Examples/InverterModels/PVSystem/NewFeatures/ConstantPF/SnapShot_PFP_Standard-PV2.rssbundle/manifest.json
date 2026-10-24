@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/NewFeatures/ConstantPF/SnapShot_PFP_Standard-PV2.dss",
+    "root": "dss",
+    "tree_sha256": "83da7d6664d476613ff23f7c29c318162becfa06b190db0549fbcbfa6eacdb58"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/NewFeatures/ConstantPF/SnapShot_PFP_Standard-PV2.dss",
+      "role": "dss-entry",
+      "sha256": "2623da843f9ec03cd6b12baf0d9b2eb5eefce40195b49e7e773f31b4efc2d7d3"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "41c1bc0a76e4575092f082963baf8b668693c4003443beb2231eef7448eebd2c"
+    }
+  ],
+  "inputs": []
+}

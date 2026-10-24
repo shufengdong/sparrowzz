@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/MonitoredVoltage/Mon_voltage_MAX_Mix_ravg-2.dss",
+    "root": "dss",
+    "tree_sha256": "ca1bd5d5e297fab098b7c16c1d4282e9031f4b8095b48d596cd80516a7215fe3"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/MonitoredVoltage/Mon_voltage_MAX_Mix_ravg-2.dss",
+      "role": "dss-entry",
+      "sha256": "d768fc5a7afc77d059a00e436f62372851a0dc2bd6166bebd389731c12198801"
+    },
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/MonitoredVoltage/PV_irrad.csv",
+      "role": "data-asset",
+      "sha256": "92d661ae859a84a506c78ccb6b725ad1a58121faf81b59cdc4d840c8ad07a769"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "55b0e8b2460881415278e3bce3cef10714f23ddf345e7f36eb3b6fb9123e0cb1"
+    }
+  ],
+  "inputs": []
+}
