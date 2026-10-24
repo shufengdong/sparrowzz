@@ -2,3 +2,5 @@
 *.dss -text
 *.DSS -text
 *.csv -text
+*.txt -text
+*.TXT -text

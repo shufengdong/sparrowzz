@@ -1,0 +1,343 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/LVTestCase/Master.dss",
+    "root": "dss",
+    "tree_sha256": "be2c13cf93509c94836c95a7bd883a1f1ef0fa2be56062db16b29cec57ee0789"
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Buscoords.txt",
+      "role": "data-asset",
+      "sha256": "b9fff83078dc6905962a5659ed76a13677b70251c142c3d34e76efcfe727570d"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_1.txt",
+      "role": "data-asset",
+      "sha256": "547d5035e9eb4f092d4e7e8e10f665ab50d5fc4657dca91b0b5f51d5196102ed"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_10.txt",
+      "role": "data-asset",
+      "sha256": "a59b7ab3030cd2648f7e5f26532230ac22cd9f74927dc69cdb3a9609c4443537"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_11.txt",
+      "role": "data-asset",
+      "sha256": "7f11b57e41c53e3b35f163ee88eae780b7fc5d97d1f8ecd067d5f949c35563da"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_12.txt",
+      "role": "data-asset",
+      "sha256": "94b3e44063bc7da5281ecbca5af4327adfd453c6ab88674e691060d22182459a"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_13.txt",
+      "role": "data-asset",
+      "sha256": "e5669006bcfd868e0e54eb4b2985770b1d84bdefefe6c887b7c1fbea14ab81fe"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_14.txt",
+      "role": "data-asset",
+      "sha256": "ab3f6d481711335512597bb0c91113d35452197e39a34cb31a5fcd1e8b15902a"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_15.txt",
+      "role": "data-asset",
+      "sha256": "a95d9d084e36a4bd0e84373f0a784011963b63ac9a51514e80a507a286258c2d"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_16.txt",
+      "role": "data-asset",
+      "sha256": "7120f35cf0e7a39dca86f54d3d4e5fcfc9aa174a68f654f8462071216072df02"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_17.txt",
+      "role": "data-asset",
+      "sha256": "808d375f06eaefc6846e0547d33bd1666aa3663bf309b48098701d53bba5e790"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_18.txt",
+      "role": "data-asset",
+      "sha256": "ba1b67fcfdec49ed5d82a517aa54b26f8ff2253b7c1bde51030fec585a77b08a"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_19.txt",
+      "role": "data-asset",
+      "sha256": "4c3f640e6621a48d1c1b211f70c02ecad79c8da6256d4785ffad5259fd038371"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_2.txt",
+      "role": "data-asset",
+      "sha256": "e1f9ab2cb17acc0413f91154d3bd1b7ef3e95930c875c99e90901eaaf68f2309"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_20.txt",
+      "role": "data-asset",
+      "sha256": "4285c26f32342fb06a8475b5fdddfb9ec78757344e204a96a6e7fc54b297942c"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_21.txt",
+      "role": "data-asset",
+      "sha256": "cd8212cbf7fd89bbf996d8d1911b5aed763120f468cdf896293eeb81a41a6253"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_22.txt",
+      "role": "data-asset",
+      "sha256": "121adf18f852df59b4408862aa08e976602992d4191b7d2dcc80e2d0b8eae855"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_23.txt",
+      "role": "data-asset",
+      "sha256": "34e81e9797dd50b1f07d08b03726ffc633e399ceb7f451f09395ea887b846eb6"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_24.txt",
+      "role": "data-asset",
+      "sha256": "1e267e319fb21953e7be20b772a158b105c49962d6696db7f6137615c5c33620"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_25.txt",
+      "role": "data-asset",
+      "sha256": "ea2d4ccf91061df21afde0433050b212ef12947fc91884e6570252ee3df35a95"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_26.txt",
+      "role": "data-asset",
+      "sha256": "63a2fee4b87eee09bba8be91a6f787031cffbd9a8cac68b829972569dd933e39"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_27.txt",
+      "role": "data-asset",
+      "sha256": "0ff33bc5588e1f655a8380cd5a4df21f03d67e3cfcd86eacfc659c32b6c5eb86"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_28.txt",
+      "role": "data-asset",
+      "sha256": "7119012582e5adf0683f812859ebce04d020a5995a255ae7562f70f809d79849"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_29.txt",
+      "role": "data-asset",
+      "sha256": "658bb417acd0174b107446fc996daf5718de82bda5eba19270688a32f775ee8c"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_3.txt",
+      "role": "data-asset",
+      "sha256": "8798103000ed57c5c2a28a84c76c609997016c9da73e6e3c25e3296bbd0e6890"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_30.txt",
+      "role": "data-asset",
+      "sha256": "6c3ed9672ed0a88e1b47ab22af6663299ac8144bcba749a2a9902b091b946852"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_31.txt",
+      "role": "data-asset",
+      "sha256": "106eda0e4d05470aab7181f9078b9d1cc3525020ef8db2e9c50496d0a7efcc4c"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_32.txt",
+      "role": "data-asset",
+      "sha256": "5aee30495e9f6988d935082553ed8618641eff61981d5d979315f653635cc68f"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_33.txt",
+      "role": "data-asset",
+      "sha256": "83302e3fffa79d07f4f829eb3a903ef0fafb95a1e5a8d0ed55fd9a475dbc45af"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_34.txt",
+      "role": "data-asset",
+      "sha256": "b6120d72a945ab8ebf17fbba69c49a298a4bcd6e11dbd73a19d82b7998bc5b66"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_35.txt",
+      "role": "data-asset",
+      "sha256": "5d3198eef10ba60b3207d2aa55c31f61f8856a6e3ec823062f9b775ec0581342"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_36.txt",
+      "role": "data-asset",
+      "sha256": "d293dda3e4a7016f76b7f0bfca7dfac8de5f4fa4ca6302a6dccf6a66225b4ab2"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_37.txt",
+      "role": "data-asset",
+      "sha256": "68d48d23b3c8c87d0c09df7e64bf97438c91ea21373c01dbbcef9109987436bc"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_38.txt",
+      "role": "data-asset",
+      "sha256": "52a6e235bb7203db26c8aa8486d94459fad15a6d5117cbb256a8ec03c79eaa43"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_39.txt",
+      "role": "data-asset",
+      "sha256": "6b1789e86124e9f8ac2eb9745fc72b7c5a0f707fb16c848e17e840339ede3012"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_4.txt",
+      "role": "data-asset",
+      "sha256": "32b417d6cbe0845ceb1879485a64c00303092fc52f0f5e6cd9c9d22621c819f1"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_40.txt",
+      "role": "data-asset",
+      "sha256": "e9d50cd098654dadddfe3bb58d64556f9f722bd170463496a7c6bc9de6badf1f"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_41.txt",
+      "role": "data-asset",
+      "sha256": "961f5f9afab0026f038620b8ce04d08d0f698a0ac131ea2752f76dc032995e75"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_42.txt",
+      "role": "data-asset",
+      "sha256": "03e7c8c1ea6c6c4a7011e30ba137b5585da73b945ef50d979ba1f1c3fc22df60"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_43.txt",
+      "role": "data-asset",
+      "sha256": "c86ad3d665da7c8dafb65023573cdf21209721dac8df3c447faf76e7539d125b"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_44.txt",
+      "role": "data-asset",
+      "sha256": "16a41d2978d3735f2608ce250019172fee9cc8882540978fdb5e519a2f4ef2aa"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_45.txt",
+      "role": "data-asset",
+      "sha256": "056586fd77a2c687751f47d3ad841c6735bca87d49e335a387d5ba935a97b485"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_46.txt",
+      "role": "data-asset",
+      "sha256": "546461cd60119fb1ba8272c3f4425bdbd81d5c2551c4d307cdaf31ab63334b78"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_47.txt",
+      "role": "data-asset",
+      "sha256": "eb1debffef58a6459b77ada7ce99ec2883d8342a4e0816884b0d8fb0e8022ad4"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_48.txt",
+      "role": "data-asset",
+      "sha256": "f377e29608afef6e0e10866a5aa1f7f6d36cc056d40ec7e944a0f4649781f5e5"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_49.txt",
+      "role": "data-asset",
+      "sha256": "d0aa5974b254f61577bd2e91c48d15b88fc38402ce98456c44581e0095734eb2"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_5.txt",
+      "role": "data-asset",
+      "sha256": "091378a3c8ee5119e582dfdd3307cbe33432294abfa85b741730fc851fd6a420"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_50.txt",
+      "role": "data-asset",
+      "sha256": "66ad66e5f748aca525b0570983a05476b7ae80309deb0f3085e0979eaa01cc8b"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_51.txt",
+      "role": "data-asset",
+      "sha256": "5d9d686c26c12166b3c4e862337647e3f90bac18f1373a2c52c967e7b7826dd9"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_52.txt",
+      "role": "data-asset",
+      "sha256": "b6d25fda030866d747a9dede949ac47532279c3640b0033adf2d4254fe08e5d8"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_53.txt",
+      "role": "data-asset",
+      "sha256": "f8c77edda304a43822b4452572881e920fc6d848a8247f7c5f35f65650f615af"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_54.txt",
+      "role": "data-asset",
+      "sha256": "6b67d3a168da6c20f20757f22eacbed246c83c3080b6c887a642779a32d5b8e9"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_55.txt",
+      "role": "data-asset",
+      "sha256": "b976edc252fb9f4eef38d30efa958bed2b618b572e5167a72fcf771ff0ed9b37"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_6.txt",
+      "role": "data-asset",
+      "sha256": "9a2fddb2b7ce4ae7fdfb05a5f2c23c93b3480552bbbd038851f36b56becc9007"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_7.txt",
+      "role": "data-asset",
+      "sha256": "0eccdcea5d4d33ae108d57099d430ccaa6cd108c19c5ce24768633a90dadb68b"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_8.txt",
+      "role": "data-asset",
+      "sha256": "78ec50ff94c7c55744056000643a356b573e873638a092764894a88eb4542a3c"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Daily_1min_100profiles/load_profile_9.txt",
+      "role": "data-asset",
+      "sha256": "9647a75e4128bbf90d611e3f360dbe71564ad5eeb13695d6528a83d5a82aa440"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/LineCode.txt",
+      "role": "dss-source",
+      "sha256": "0702d4a8a0b7f31adabe9a58e576c641614e59d1e181f96ad9589345071e4da4"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Lines.txt",
+      "role": "dss-source",
+      "sha256": "adc097cf570a32d9190c977dbcca1a66ceb7d8d2517d39b0690e319c67e3311d"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/LoadShapes.txt",
+      "role": "dss-source",
+      "sha256": "816b2baf9764bd88aaeba3edc52813b96470097e4da710733c0d12fa754f5dea"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Loads.txt",
+      "role": "dss-source",
+      "sha256": "c07b99a8b8ebd4ed5339689c7d43637443a09fac4334b1c427e9e4be484b7f6e"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Master.dss",
+      "role": "dss-entry",
+      "sha256": "79e5d939ba9ad44018473cec302c94e1624f551183df60f5fe358b7ebcb45c0c"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Monitors.txt",
+      "role": "dss-source",
+      "sha256": "9a45aa669decb7b3f8b07818fedc71659d488cf3501a78d329ce80f4983184c3"
+    },
+    {
+      "path": "dss/IEEETestCases/LVTestCase/Transformers.txt",
+      "role": "dss-source",
+      "sha256": "d951d5bd01b13eb6a1e92abc6b90d45c9c546b13c87237025e0eb0a5026dd1d1"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "e88f076990b6c898093cbc80697603aa2472021279675a01c7b19d49a98bbfb0"
+    }
+  ],
+  "inputs": []
+}
