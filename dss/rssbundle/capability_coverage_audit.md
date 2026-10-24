@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：90 个入口已经发布 bundle，169 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：103 个入口已经发布 bundle，156 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫；2,900 步 P174 保留已验证的
   未发布记录。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
@@ -247,9 +247,9 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
 
 ### 其他明确能力缺口
 
-- 当前 27 个以 `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` 为首诊断的入口主要使用
-  组合 VV_VW 的非 1 `deltaP`、非 1 `deltaQ`、超出有界曲线基准或成员关系。纯 Volt-Watt
-  已支持有限的 `0 < DeltaP_factor <= 1`。
+- 当前 12 个以 `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` 为首诊断的入口主要使用
+  多成员组合 VV_VW 的非 1 `deltaP`/`deltaQ`、超出有界曲线基准或成员关系。纯 Volt-Watt 和
+  单 PV VV_VW 已支持有限的 `0 < DeltaP_factor, DeltaQ_factor <= 1`；多成员合同继续要求因子为 1。
 - 11 个 PVSystem 入口使用 `PFPriority` 等没有无损映射的属性。
 - 9 个 Storage 入口使用 `%kWrated`、`EffCurve` 或 `DebugTrace`；前两项会改变电气结果。
 - `LoadShape Action=Normalize` 已实现有界导入；其他 Action 以及 Normalize 后继续修改曲线仍没有
@@ -267,7 +267,7 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 169 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 156 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

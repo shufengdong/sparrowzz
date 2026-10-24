@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/VV_VW/Daily_VVVW_VWnooperation-2.dss",
+    "root": "dss",
+    "tree_sha256": "0f5150b634ecbb9a34115e2cfd7465e03d86cab999fd7e72924a89a1c8030f48"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/VV_VW/Daily_VVVW_VWnooperation-2.dss",
+      "role": "dss-entry",
+      "sha256": "df02cfa21bdc4923da85790b0328fcab408616bca5729494b7d754722dfba6ef"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "9373e51409a92a0c8aca35679caeeb1cc6cb17efe88fe82b4995cdcc1805804c"
+    }
+  ],
+  "inputs": []
+}
