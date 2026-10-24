@@ -126,6 +126,15 @@ ExecutionPlan 会按源码顺序保留 `Set` 和最终 `Solve` 上的执行设�
 `PSA.DSS.EXECUTION.INERT_GFM_MONITOR_IGNORED` Warning。非 Snapshot、多步求解、额外
 InvControl 属性、控制器后续修改或任一成员切换为 `ControlMode=GFM` 都不适用该规则。
 
+`BatchEdit LoadShape..* UseActual=no` 只有在整个入口是单步 Snapshot、命令位于首次 `Solve`
+之前、其后所有 Load 都以 `New` 声明，且每个 Load 都显式给出 `kW` 及 `PF` 或 `kvar` 时，
+才能降为 `PSA.DSS.EXECUTION.SNAPSHOT_LOADSHAPE_USEACTUAL_BATCH_EDIT_LOWERED` Warning。
+这样可以证明负荷基值不依赖 LoadShape 的 `UseActual` 推导；缺少任一基值或出现后续修改都会失败。
+
+旧脚本中的 Windows 绝对 `Redirect`/`Compile` 需要显式 `--source-root`。转换器在该根内按
+不区分大小写的最长路径后缀寻找唯一依赖，至少要求父目录和文件名同时匹配；未找到或存在多个
+同样具体的候选时返回明确诊断。bundle 会复制选中的依赖并把绝对路径改写为内部相对路径。
+
 `LoadShape Action=Normalize` 在导入期把 P、Q 序列分别除以各自最大绝对值。该 Action 必须是
 该 LoadShape 的最后一次修改；其他 Action 或 Normalize 后继续修改曲线会返回明确诊断。
 
@@ -188,7 +197,7 @@ DSS import produced findings that can change OpenDSS results
 基线重扫结果是：10 个官方原始入口通过严格检查、生成 bundle 并完成构建期自执行；589 个文件
 是没有独立研究命令的模型或公共依赖片段；另有 249 个独立入口因当时未映射的生命周期、对象
 属性、路径、执行顺序或求解问题失败，没有文件超时。后续只在这 249 个独立入口中做定向改造，
-目前另有 79 个入口通过并发布，总计 89 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
+目前另有 80 个入口通过并发布，总计 90 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
 HarmonicT，以及 `Examples/FreqScan/Run_Scan.dss` 的 188 点非整数频率扫描；不包含对官方文件的
 删改或静态化包装。
 

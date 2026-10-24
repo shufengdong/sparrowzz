@@ -103,7 +103,7 @@ DataFrame，便于查看和修改每张输入表。
 逐时点或逐谐波与 OpenDSS 复电压基准比较，最大允许相对误差为 `1e-3`。
 
 官方 OpenDSS 发行文件的便携转换结果集中在 [`rssbundle`](rssbundle/README.md)，
-其中列出 89 个已发布入口、基线未支持文件的原因和与 OpenDSS 的数值对照。官方
+其中列出 90 个已发布入口、基线未支持文件的原因和与 OpenDSS 的数值对照。官方
 `Examples/FreqScan/Run_Scan.dss` 已转换为可搬移 bundle，完整重放 188 个非整数频点并以
 564 行 Monitor 数据与 OpenDSS 逐点比较。
 针对 249 个独立入口中后续 8 个候选的定向分析见
