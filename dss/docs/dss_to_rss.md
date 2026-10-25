@@ -54,7 +54,7 @@ MUMPS 或 MKL 后端。
 tensoreval --dss-to-rss --check --study snapshot path/to/model.dss
 ```
 
-`--study` 支持 `snapshot`、`execution`、`harmonic`、`auto-add` 和 `relcalc`。该参数选择
+`--study` 支持 `snapshot`、`execution`、`harmonic`、`auto-add`、`relcalc` 和 `dynamic`。该参数选择
 PSA adapter，不跳过对应 adapter 的严格语义检查。
 
 需要把 DSS 文件树、数据资产和外部输入一起交付时，生成便携 bundle：
@@ -86,15 +86,21 @@ tensoreval path/to/case.rssbundle
 | `Mode=Harmonic/HarmonicT` | `ds_dss_harmonic_plan` | 满足 PSA 原生谐波执行合同 |
 | `Mode=AutoAdd` | `ds_dss_auto_add` | 满足 PSA 有界单次 AutoAdd 合同 |
 | Snapshot 后执行 `RelCalc` | `ds_dss_relcalc` | 满足 PSA 径向分区可靠性合同 |
+| 可选 Snapshot 初始化后执行 `Dynamic/Dynamics` | `ds_dss_dynamic_plan` | 固定正步长、连续时钟，且所有对象与命令满足 PSA protected Dynamic V12 合同 |
 
 转换器先解析完整命令流再分类。专用生命周期优先于其准备阶段的 Snapshot；Snapshot 初始化
 后继续 Daily/Yearly/Duty 等 QSTS 由同一个 execution plan 表达。一个文件中混合 QSTS、
-Harmonic、AutoAdd 或 RelCalc 仍会以 `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED`
+Harmonic、AutoAdd、RelCalc 或 Dynamic 仍会以 `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED`
 失败。只有模型定义、没有研究命令的入口不会由转换器猜测研究类型，必须使用 `--study`。
 
 为保持已有生成脚本合同，Snapshot 和 ExecutionPlan 的 linked RSS 把所选 `bus_phase`
 结果绑定为终端变量 `voltage`；`tensoreval case.dss` 的直接执行结果名仍为 `bus_phase`。
-Harmonic、AutoAdd 和 RelCalc 的终端变量名与各自结果名完全相同。
+Harmonic、AutoAdd、RelCalc 和 Dynamic 的终端变量名与各自结果名完全相同。
+
+Dynamic 转换把 `h/step/stepsize`、`number`、`hour`、`sec/seconds` 降为严格等间隔 timeline，
+并输出 V12 的 15 张可选长表。多个 Dynamic `Solve` 可累计，但步长不能改变、时钟不能回拨；
+运行期对象修改、未映射命令和设置、DynamicEq/DynOut、VCCS、用户 DLL 或 EMT 内容会
+fail closed。该适配器表示 PSA 已覆盖的 RMS/phasor 子集，不表示兼容 OpenDSS 全部暂态扩展。
 
 静态 Snapshot 投影只用于没有原生 `Solve` 的显式静态路径或兼容性处理。原生 `Solve` 不再
 进入该投影，而是统一交给 execution plan。投影可移除以下语句：
@@ -175,7 +181,9 @@ DSS import produced findings that can change OpenDSS results
 | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 导入成功，但所选 PSA 求解器未能完成计算 |
 | `TENSOREVAL.DSS.TRANSLATE.STATIC_ENTRY_UNAVAILABLE` | 可直接计算，但没有可供生成 RSS 使用的单一静态模型入口 |
 | `TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED` | 入口只定义模型，没有可分类的研究命令 |
-| `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 FaultStudy、Dynamic、M1/M2/M3/MonteFault 等尚无原生 adapter 的生命周期 |
+| `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 M1/M2/M3/MonteFault 等尚无原生 adapter 的生命周期 |
+| `PSA.DSS.DYNAMIC.COMMAND_UNSUPPORTED` / `PSA.DSS.DYNAMIC.SET_UNSUPPORTED` / `PSA.DSS.DYNAMIC.SET_GROUP_UNREPRESENTABLE` | Dynamic 命令或设置不能无损降低到 V12 执行合同；声明设置与运行设置需分开书写 |
+| `PSA.DSS.DYNAMIC.STEP_CHANGE_UNSUPPORTED` / `PSA.DSS.DYNAMIC.CLOCK_RESET_UNSUPPORTED` | Dynamic 生命周期改变步长或重置时钟 |
 | `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` | 一个命令流混合了没有 continuation 合同的研究类型 |
 | `TENSOREVAL.DSS.TRANSLATE.GENERATED_RSS_FAILED` | 生成文本已形成，但通过同一 RSDss/PSA 门面自校验失败 |
 | `TENSOREVAL.RSS.BUNDLE.PATH_INVALID` / `TENSOREVAL.RSS.BUNDLE.PATH_ESCAPE` | 清单路径不规范，或解析后越过 bundle 根目录 |

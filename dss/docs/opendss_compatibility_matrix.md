@@ -90,6 +90,8 @@ Snapshot `Solve` 和 `BusCoords` 可分别降低为网络基准、潮流调用�
 | 保护配合审计 | `ds_protection_coordination` | 显式表 | 消费故障电流和动作证据，不执行网络故障求解 |
 | 故障定位 | `ds_fault_location` | 显式表 | measurement 与候选表；当前拒绝非空 storage |
 | 电机网络动态 | `ds_motor_dynamics` | 显式表 | timeline/event/保护/spec；当前拒绝非空 storage |
+| 完整网络动态 V12 | `ds_network_dynamics` | 显式表 | timeline/event/故障/保护/spec；支持 Storage、PVSystem、Generator、电机、FRT、普通控制和设备保护连接审计 |
+| Dynamic/Dynamics 命令流 | `ds_dss_dynamic_plan` | 直接/有界 | 可选 Snapshot 初始化、固定正步长和连续时钟；运行期模型修改、未映射设置、DynamicEq/DynOut、VCCS、用户 DLL 与 EMT fail closed |
 | 多个 `Solve` 连续命令流 | `ds_radial_dss_plan`, `ds_newton_raphson_dss_plan` | 有界 | 保留 typed continuation state；结果按 epoch 合并并携带全局 trace |
 
 QSTS 可直接选择 PSA 当前的 typed continuation state：`storage_state`,

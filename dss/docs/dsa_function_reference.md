@@ -21,7 +21,8 @@
 |---|---:|---|---|
 | `import_dss/import_dss_url/import_bmopf/import_bmopf_url` | 1 | 不适用 | 固定 21 |
 | `import_dss_execution/import_dss_execution_url` | 1 | 不适用 | 固定 35 |
-| `ds_*_dss_plan*` | 1 或 2 | `bus_voltage` | 由结果字符串或 `para.result` 决定 |
+| `ds_radial_dss_plan* / ds_newton_raphson_dss_plan*` | 1 或 2 | `bus_voltage` | 由结果字符串或 `para.result` 决定 |
+| `ds_dss_dynamic_plan` | 2 或 3 | `bus_voltage` | 由结果字符串或 `para.result` 决定 |
 | `ds_radial_pf/ds_newton_raphson_pf` | 21；兼容 6–11 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_radial_qsts/ds_newton_raphson_qsts` | 33 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_harmonic_study` | 22；兼容 8/14 | `bus_voltage` | 由 `para.result` 决定 |
@@ -31,6 +32,7 @@
 | `ds_restore` | 22；兼容 9 | `switches` | 由 `para.result` 决定 |
 | `ds_protection_coordination` | 9 | `operations` | 由 `para.result` 决定 |
 | `ds_fault_location` | 24 | 不适用 | 固定 1 |
+| `ds_network_dynamics` | 29 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_motor_dynamics` | 28 | `motor_state` | 由 `para.result` 决定 |
 
 ## 1. 完整网络参数顺序
@@ -208,14 +210,17 @@ URL 形式为 `ds_radial_dss_plan_url` 和 `ds_newton_raphson_dss_plan_url`。�
 计划入口的诊断表也带 epoch 标识；全局事件表把每条事件映射到对应 epoch，最后一个
 `Solve` 之后尚未执行的 trailing events 的 epoch 列为空。
 
-### DSS 原生 Harmonic、AutoAdd 和 RelCalc
+### DSS 原生 FaultStudy、Harmonic、AutoAdd、RelCalc 和 Dynamic
 
-三个入口都固定接收两个参数：本地 `.dss` 路径，以及参数 DataFrame 或结果选择字符串。
+这些入口接收本地 `.dss` 路径和参数 DataFrame 或结果选择字符串；bundle 生成脚本可在两者
+之间增加 `source_root`。
 字符串形式使用 `PfParams` 默认值；DataFrame 形式由 `para.result` 选择结果，并允许设置
 通用潮流参数。结果名按逗号顺序与左侧解构位置一一对应；未知名、重复名、错误参数数目
 或无法执行的 DSS 生命周期都会失败，不返回部分表。
 
 ```text
+fault_result = ds_dss_fault_study("run.dss", "fault_result");
+
 [bus_voltage, branch_flow, conductor_flow, bus_sequence, branch_sequence, monitor]
     = ds_dss_harmonic_plan("run.dss", "bus_voltage,branch_flow,conductor_flow,bus_sequence,branch_sequence,monitor");
 
@@ -224,13 +229,26 @@ URL 形式为 `ds_radial_dss_plan_url` 和 `ds_newton_raphson_dss_plan_url`。�
 
 [meter, section, branch, bus]
     = ds_dss_relcalc("run.dss", "meter,section,branch,bus");
+
+[bus_voltage, event, solver_trace, device_state]
+    = ds_dss_dynamic_plan("run.dss", "bus_voltage,event,solver_trace,device_state");
 ```
 
 | 函数 | DSS 生命周期 | 默认结果 | 全部可选结果 |
 |---|---|---|---|
-| `ds_dss_harmonic_plan` | `Harmonic` / `HarmonicT` | `bus_voltage` | `bus_voltage,branch_flow,conductor_flow,bus_sequence,branch_sequence,monitor` |
+| `ds_dss_fault_study` | 有界 `FaultStudy` | `fault_result` | `fault_result` |
+| `ds_dss_harmonic_plan` | `Harmonic` / `HarmonicT` | `bus_voltage` | `bus_voltage,branch_flow,conductor_flow,bus_sequence,branch_sequence,monitor,monitor_save` |
 | `ds_dss_auto_add` | 有界 `AutoAdd` | `ranking` | `ranking,selection,final_voltage,summary` |
 | `ds_dss_relcalc` | Snapshot 后的有界 `RelCalc` | `meter` | `meter,section,branch,bus` |
+| `ds_dss_dynamic_plan` | 可选 Snapshot 初始化后的有界 `Dynamic/Dynamics` | `bus_voltage` | `bus_voltage,branch_current,source_flow,pvsystem_state,storage_state,motor_state,event,solver_trace,fault_state,protection_state,frt_state,control_state,device_state,generator_state,device_protection_connection` |
+
+`ds_dss_dynamic_plan(path, para_or_results)` 读取本地入口；三参数形式
+`ds_dss_dynamic_plan(path, source_root, para_or_results)` 为 bundle 限定依赖根。它把继承的
+`h/step/stepsize`、`number`、`hour` 和 `sec/seconds` 降为一条严格等间隔 timeline，多个
+Dynamic `Solve` 必须使用同一步长且时钟连续。`MaxIterations`、`MaxControlIter` 和
+`Tolerance` 进入 PSA 求解参数；省略 `para` 时固定使用 `line_model=exact`。运行期对象修改、
+Open/Close/Enable/Disable、未映射 `Set`、DynamicEq/DynOut、VCCS、用户 DLL 和 EMT 内容会
+以稳定诊断失败，不能被静默忽略。
 
 Harmonic/HarmonicT 的每张非空结果表都含 `step_index:UInt32,time_s:Float64`；含
 `harmonic` 的表还含 `frequency_hz:Float64`。角度单位为度，电压为 V，电流为 A，功率
@@ -413,7 +431,24 @@ result = ds_fault_location(
 顺序、假设表约束及输出列见[故障定位输入](dataframe_schema_reference.md#故障定位输入)与
 [故障定位结果](dataframe_schema_reference.md#故障定位)。
 
-## 12. 电机网络动态
+## 12. 网络动态与兼容入口
+
+完整 V12 DataFrame 门面为：
+
+```text
+[results...] = ds_network_dynamics(
+    network_1, ..., network_20,
+    timeline, event, tcc_curve, fuse, recloser, relay, fault, spec, para
+);
+```
+
+固定 29 个参数。`timeline` 必需；`event`、四张保护表、`fault`、`spec` 和 `para` 可使用
+对应 schema 的零行表。第 20 位 `storage` 可非空。默认返回 `bus_voltage`，完整结果集合与
+`ds_dss_dynamic_plan` 相同，统一采用 PSA V12 的 `time_s,sequence,...` 长表契约。输入列、
+事件种类、默认值和 15 张结果表见
+[网络动态输入与 V12 结果](dataframe_schema_reference.md#网络动态输入与-v12-结果)。
+
+原有电机兼容入口继续可用：
 
 ```text
 [results...] = ds_motor_dynamics(
@@ -423,7 +458,8 @@ result = ds_fault_location(
 ```
 
 固定 28 个参数，当前不接受非空独立 `storage` 表。默认结果为 `motor_state`；支持
-`bus_voltage, motor_state, event`。
+`bus_voltage, motor_state, event`。新脚本需要 Storage、Generator、PV、保护连接审计或
+完整动态结果时应使用 `ds_network_dynamics`。
 
 `timeline/event/spec` 的条件列和默认值见
 [电机网络动态输入](dataframe_schema_reference.md#电机网络动态输入)。三张结果的固定列见

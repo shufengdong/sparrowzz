@@ -1393,7 +1393,8 @@
     },
     "dynamic_timeline": {
       "context": [
-        "ds_motor_dynamics"
+        "ds_motor_dynamics",
+        "ds_network_dynamics"
       ],
       "required": {
         "time_s": "f64"
@@ -1413,7 +1414,8 @@
     },
     "dynamic_event": {
       "context": [
-        "ds_motor_dynamics"
+        "ds_motor_dynamics",
+        "ds_network_dynamics"
       ],
       "required": {
         "time_s": "f64",
@@ -1428,8 +1430,11 @@
         "percent": "f64",
         "zf_re": "f64",
         "zf_im": "f64",
+        "g_matrix": "list<f64>",
         "element": "str",
         "device": "str",
+        "device_class": "str",
+        "enabled": "bool",
         "terminal": "u32",
         "conductor": "u64",
         "action": "str"
@@ -1441,20 +1446,26 @@
           "topology",
           "conductor_topology",
           "protection",
-          "conductor_protection"
+          "conductor_protection",
+          "storage_state",
+          "device_availability"
         ],
         "action": [
           "open",
           "trip",
           "close",
-          "reclose"
+          "reclose",
+          "IDLING",
+          "CHARGING",
+          "DISCHARGING"
         ]
       },
       "constraint": "Required optional columns depend on kind; see dataframe_schema_reference.md."
     },
     "dynamic_spec": {
       "context": [
-        "ds_motor_dynamics"
+        "ds_motor_dynamics",
+        "ds_network_dynamics"
       ],
       "row_count": "0_or_1",
       "optional": {
@@ -1471,7 +1482,8 @@
         "tolerance": "f64",
         "max_network_iterations": "u64",
         "voltage_tolerance": "f64",
-        "relaxation": "f64"
+        "relaxation": "f64",
+        "max_same_time_action_rounds": "u64"
       },
       "enums": {
         "mechanical_load": [
@@ -2225,6 +2237,81 @@
         "bus2",
         "percent"
       ]
+    },
+    "network_dynamic_v12_bus_voltage": {
+      "result_name": "bus_voltage",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "bus", "phase", "v_re", "v_im", "v_mag", "v_angle_deg"]
+    },
+    "network_dynamic_v12_branch_current": {
+      "result_name": "branch_current",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "element", "kind", "terminal", "bus", "phase", "i_re", "i_im", "i_mag", "i_angle_deg"]
+    },
+    "network_dynamic_v12_source_flow": {
+      "result_name": "source_flow",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "source", "terminal", "bus", "phase", "v_re", "v_im", "i_re", "i_im", "p_w", "q_var"]
+    },
+    "network_dynamic_v12_pvsystem_state": {
+      "result_name": "pvsystem_state",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "pvsystem", "bus", "phase", "voltage_re", "voltage_im", "current_re", "current_im", "p_w", "q_var", "modulation", "control_error", "safe_mode"]
+    },
+    "network_dynamic_v12_storage_state": {
+      "result_name": "storage_state",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "storage", "bus", "phase", "voltage_re", "voltage_im", "current_re", "current_im", "p_w", "q_var", "modulation", "control_error", "command_state", "safe_mode", "stored_kwh", "soc_pu"]
+    },
+    "network_dynamic_v12_motor_state": {
+      "result_name": "motor_state",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "motor", "phase", "voltage_re", "voltage_im", "current_re", "current_im", "current_mag", "current_angle_deg", "slip", "speed_pu", "relative_speed_rad_s", "rotor_angle_deg", "p_w", "q_var", "electromagnetic_torque_nm", "shaft_power_w", "stalled"]
+    },
+    "network_dynamic_v12_event": {
+      "result_name": "event",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "event_id", "kind", "target", "action", "applied", "sequence", "source", "reason"]
+    },
+    "network_dynamic_v12_solver_trace": {
+      "result_name": "solver_trace",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "predictor_iterations", "corrector_iterations", "voltage_residual", "current_residual", "kcl_residual", "converged"]
+    },
+    "network_dynamic_v12_fault_state": {
+      "result_name": "fault_state",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "name", "bus", "kind", "enabled", "active", "cleared", "current_a", "transition_reason"]
+    },
+    "network_dynamic_v12_protection_state": {
+      "result_name": "protection_state",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "name", "device_type", "monitored_obj", "monitored_term", "channel", "current_a", "pickup", "timer_s", "operation", "state", "pending_action", "next_due_s", "relay_type", "measurement_kind", "min_voltage_pu", "max_voltage_pu", "trip_source", "locked_out", "doc_control_power_w", "doc_current_a", "doc_current_angle_deg", "directional_blocked", "doc_region", "negative_sequence_current_a", "negative_sequence_voltage_v", "reverse_power_w", "monitored_conductor", "pickup_phase", "switched_obj", "switched_term", "switched_conductor"]
+    },
+    "network_dynamic_v12_frt_state": {
+      "result_name": "frt_state",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "name", "bus", "voltage_pu", "frequency_hz", "voltage_zone", "frequency_zone", "violation_time_s", "connection_state", "recovery_fraction", "p_w", "q_var", "stored_kwh", "min_voltage_pu", "max_voltage_pu", "governing_voltage_side", "operating_mode", "zone_response", "policy", "connection_kind", "measurement_phase_from", "measurement_phase_to", "device_voltage_pu", "port_available"]
+    },
+    "network_dynamic_v12_control_state": {
+      "result_name": "control_state",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "name", "control_type", "monitored_obj", "monitored_term", "controlled_obj", "mode", "measurement_kind", "measurement_value", "setpoint_value", "deadband_value", "state", "pending_action", "next_due_s", "source_ordinal", "tap_position", "tap_ratio", "regulator_direction", "capacitor_step", "capacitor_steps", "last_open_s"]
+    },
+    "network_dynamic_v12_device_state": {
+      "result_name": "device_state",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "class", "name", "bus", "enabled", "p_w", "q_var", "protection_connected", "protection_owner", "frt_connected", "effective_connected", "disconnect_reason", "protection_owner_count", "protection_connected_phase_count", "protection_required_phase_count"]
+    },
+    "network_dynamic_v12_generator_state": {
+      "result_name": "generator_state",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "generator", "bus", "phase", "enabled", "energized", "voltage_re", "voltage_im", "current_re", "current_im", "current_mag", "current_angle_deg", "p_w", "q_var", "e1_mag_v", "rotor_angle_deg", "relative_speed_rad_s", "speed_pu", "shaft_power_w", "electrical_power_w"]
+    },
+    "network_dynamic_v12_device_protection_connection": {
+      "result_name": "device_protection_connection",
+      "context": ["ds_network_dynamics", "ds_dss_dynamic_plan"],
+      "columns": ["time_s", "sequence", "class", "name", "terminal", "conductor", "phase", "owner_type", "owner", "owner_connected", "effective_conductor_connected", "aggregate_device_connected"]
     },
     "execution_diagnostics": {
       "result_name": "diagnostics",

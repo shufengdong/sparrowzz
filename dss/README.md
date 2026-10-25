@@ -110,7 +110,8 @@ DataFrame，便于查看和修改每张输入表。
 [`rssbundle/capability_coverage_audit.md`](rssbundle/capability_coverage_audit.md)：IEEE34 的两个入口、
 三个 IEEE123 入口和 IEEE37 已补齐 `LoadShape.default`、RegControl `Like` 有序回放、`Mode=F`
 规范化、Mode 时钟/控制队列和 DSS 母线名大小写语义，完成 OpenDSS 数值门禁并发布 bundle。
-YYD 完整入口和 InductionMachine 仍需要跨研究 Direct 或 Dynamic 专用合同，不能按简单语法兼容处理。
+YYD 完整入口仍需要跨研究 Direct 专用合同。InductionMachine 可进入新增的有界
+Dynamic/Dynamics V12 adapter，但仍须通过该入口的保护、Monitor 和数值门禁，不能只按语法成功计入。
 
 ## 运行
 

@@ -34,7 +34,7 @@ RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。�
 
 - 所有原生 `Solve`（包括单次 Snapshot）统一进入 PSA execution plan；`Snap` 已归一化，
   Snapshot 初始化后继续 Daily/Duty 不再被分类器预先拒绝。
-- `tensoreval --study snapshot|execution|harmonic|auto-add|relcalc` 已对外开放；纯模型入口可用
+- `tensoreval --study snapshot|execution|harmonic|auto-add|relcalc|dynamic` 已对外开放；纯模型入口可用
   `--study snapshot` 明确要求单次静态研究。
 - `EarthModel`、`Algorithm`、`MaxIter/MaxIterations`、`MaxControlIter/MaxControlI` 和
   `Tolerance` 由 PSA 统一校验。后三项按 epoch 写入实际潮流参数，生成 RSS 和转换期校验
@@ -190,8 +190,8 @@ staging 自执行分别运行 90 分钟和 30 分钟仍未完成，因此没有�
 
 后续 8 个候选中，IEEE34 的两个入口、三个 IEEE123 入口和 IEEE37 已完成正式改造、数值门禁
 和 bundle 发布。剩余的 YYD 完整入口继续暴露 Direct/BatchEdit/Fault continuation 的求解边界，
-InductionMachine 的 `LoadShape Action=Normalize` 已能在导入期物化；该入口仍需要完整 Dynamic、
-保护动作和 Monitor 合同。
+InductionMachine 的 `LoadShape Action=Normalize` 已能在导入期物化；转换器现已接入固定步长、
+连续时钟的 Dynamic/Dynamics V12 子集，该入口仍需按其保护动作、Monitor 及对象内容重新验证。
 
 ### 第三轮实施结果
 
@@ -541,8 +541,9 @@ Solve 后计量动作。5 个 DOCTechNote 入口随后稳定暴露
 - 27 个 `REQUEST.SOURCE.ESCAPES_ROOT` 入口的首要问题是 epoch/内存 `Source` 没有保留声明文件的
   目录身份。路径修复只消除第一个阻断；MemoryMapping、二进制 Sng/Dbl 和部分 Storage 行为仍可能
   落在 PSA 的明确边界外。
-- Dynamic/Dynamics、VCCS、DynEq、完整 IBR 暂态、AutoTrans 未支持接法、特殊节点编号和两个求解器
-  都拒绝的拓扑属于当前真实能力边界。
+- DynamicEq/DynOut、VCCS、用户 DLL、EMT、V12 未覆盖的 IBR 暂态、AutoTrans 未支持接法、
+  特殊节点编号和两个求解器都拒绝的拓扑属于当前真实能力边界。普通 Dynamic/Dynamics 已有
+  有界 adapter，仍须逐入口通过转换、自执行和数值门禁后才能列为已发布案例。
 
 ## 改造路线和状态
 
@@ -552,8 +553,8 @@ Solve 后计量动作。5 个 DOCTechNote 入口随后稳定暴露
    `maxiter/maxiterations`、`maxcontroliter/maxcontroli` 和 `tolerance` 已纳入执行合同；写在 `Set`
    或最终 `Solve` 上的迭代参数都会进入实际潮流参数。`miniterations` 尚无 PSA 等价语义，继续明确失败。
    旧 `snapshot_set` 代码只保留给静态投影兼容测试，原生 `Solve` 不再经过该白名单。
-3. **已完成：暴露 `tensoreval --study`。** 支持 `snapshot`、`execution`、`harmonic`、`auto-add` 和
-   `relcalc`；`--study snapshot` 可为纯模型入口指定单次静态研究。
+3. **已完成：暴露 `tensoreval --study`。** 支持 `snapshot`、`execution`、`harmonic`、`auto-add`、
+   `relcalc` 和 `dynamic`；`--study snapshot` 可为纯模型入口指定单次静态研究。
 4. **已完成：以 PSA 的机器可读诊断合同为准。** `dss2rss` 以 import profile 返回的 `severity`
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
@@ -591,7 +592,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 数量 | 分类 | 诊断码 | 原因 |
 |---:|---|---|---|
 | 24 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
-| 20 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 Dynamic、Direct 等尚无转换适配器的生命周期。 |
+| 20 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 基线扫描时请求 Dynamic、Direct 等当时尚无转换适配器的生命周期；Dynamic 现需重扫，Direct 仍未支持。 |
 | 12 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | 对象属性超出当前 PSA DataFrame/执行合同，无法无损表达。 |
 | 18 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage 属性尚无无损映射。 |
 | 9 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
