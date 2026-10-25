@@ -20,7 +20,9 @@
 | 供电恢复重构 | `ds_restore` | 需要显式 switch 和 fault 表 |
 | 保护配合审计 | `ds_protection_coordination` | 消费故障和量测样本，不自行求故障电流 |
 | 故障定位 | `ds_fault_location` | 需要量测和候选开关/线路表 |
-| 电机网络动态 | `ds_motor_dynamics` | 需要 timeline、event 和动态 spec |
+| 完整 RMS/phasor 网络动态 | `ds_network_dynamics` | 29 参数；需要 timeline，可接 Storage、Generator、故障和保护表 |
+| 保留受支持的 DSS Dynamic 命令流 | `ds_dss_dynamic_plan` | 本地 `.dss`，固定步长且满足 PSA V12 有界合同 |
+| 兼容电机网络动态 | `ds_motor_dynamics` | 28 参数；只返回三种旧结果且拒绝非空 Storage |
 
 不确定网络是否满足 Radial 边界时，先检查电源数量、连通性和环路。已明确存在环网、并联
 支路或多个固定电压源时直接选择 Newton。

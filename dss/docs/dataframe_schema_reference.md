@@ -423,28 +423,59 @@ resistance_min_ohm,resistance_max_ohm,reactance_min_ohm,reactance_max_ohm,loss,
 loss_parameter`，以及公共潮流列 `max_iter,max_control_iter,tol,line_model`。`loss` 仅接受
 `least_squares,huber,cauchy`。
 
-### 电机网络动态输入
+### 网络动态输入与 V12 结果
 
 `timeline` 必需 `time_s:f64`，可选 `source_scale_re=1,source_scale_im=0`。所有值必须
-有限，时刻必须严格递增。
+有限，时刻必须严格递增。该表同时用于 `ds_network_dynamics` 和兼容入口
+`ds_motor_dynamics`。
 
 `event` 每行必需 `time_s,kind`，`kind` 决定其他列：
 
 | `kind` | 必需列 | 可选列 |
 |---|---|---|
-| `fault_on` | `event_id,bus,phases,fault_kind` | `bus2,percent,zf_re=0,zf_im=0` |
+| `fault_on` | `event_id,bus,phases,fault_kind` | `bus2,percent,zf_re=0,zf_im=0,g_matrix` |
 | `fault_off` | `event_id` | 无 |
 | `topology` | `element,action` | 无 |
 | `conductor_topology` | `element,terminal,conductor,action` | 无 |
 | `protection` | `device,element,action` | 无 |
 | `conductor_protection` | `device,element,terminal,conductor,action` | 无 |
+| `storage_state` | `device,action` | `action=IDLING/CHARGING/DISCHARGING` |
+| `device_availability` | `device_class,device,enabled` | `device_class=Load/PVSystem/Generator` |
 
-`action` 接受 `open/trip` 或 `close/reclose`。`spec` 可为零行或一行；支持
+拓扑/保护 `action` 接受 `open/trip` 或 `close/reclose`。`fault_on.g_matrix` 若非空，
+必须是按行展平、有限、对称的 `len(phases) × len(phases)` 电导矩阵。`spec` 可为零行或一行；支持
 `frequency_hz,initial_slip,shaft_power_w,mechanical_load,torque_exponent,
 voltage_exponent,speed_exponent,locked_rotor,stall_slip_threshold,
-max_corrector_iterations,tolerance,max_network_iterations,voltage_tolerance,relaxation`。
+max_corrector_iterations,tolerance,max_network_iterations,voltage_tolerance,relaxation,
+max_same_time_action_rounds=16`。
 `mechanical_load` 接受 `constant_power/constant`、`speed_dependent_torque/torque` 或
 `power_law`；省略的数值取 PSA `MotorNetworkDynamicSpec` 默认值。
+
+`ds_network_dynamics` 在上述输入之后还接收 `fault`。它使用保护型动态 fault schema：
+声明中至少提供故障名称、母线、故障类型和相别，并可用 `on_time/off_time` 定义生命周期；
+精确列与 DSS `Fault` 导入表一致。`tcc_curve/fuse/recloser/relay` 使用 QSTS 同名输入
+schema。四张表和 `fault` 都可为零行表。
+
+V12 固定返回以下 15 种可选结果。逐采样电气表均以 `time_s,sequence` 开头；空设备族仍
+返回带固定列的零行表。
+
+| 结果 | 固定列（省略换行） |
+|---|---|
+| `bus_voltage` | `time_s,sequence,bus,phase,v_re,v_im,v_mag,v_angle_deg` |
+| `branch_current` | `time_s,sequence,element,kind,terminal,bus,phase,i_re,i_im,i_mag,i_angle_deg` |
+| `source_flow` | `time_s,sequence,source,terminal,bus,phase,v_re,v_im,i_re,i_im,p_w,q_var` |
+| `pvsystem_state` | `time_s,sequence,pvsystem,bus,phase,voltage_re,voltage_im,current_re,current_im,p_w,q_var,modulation,control_error,safe_mode` |
+| `storage_state` | `time_s,sequence,storage,bus,phase,voltage_re,voltage_im,current_re,current_im,p_w,q_var,modulation,control_error,command_state,safe_mode,stored_kwh,soc_pu` |
+| `motor_state` | `time_s,sequence,motor,phase,voltage_re,voltage_im,current_re,current_im,current_mag,current_angle_deg,slip,speed_pu,relative_speed_rad_s,rotor_angle_deg,p_w,q_var,electromagnetic_torque_nm,shaft_power_w,stalled` |
+| `event` | `time_s,event_id,kind,target,action,applied,sequence,source,reason` |
+| `solver_trace` | `time_s,sequence,predictor_iterations,corrector_iterations,voltage_residual,current_residual,kcl_residual,converged` |
+| `fault_state` | `time_s,sequence,name,bus,kind,enabled,active,cleared,current_a,transition_reason` |
+| `protection_state` | `time_s,sequence,name,device_type,monitored_obj,monitored_term,channel,current_a,pickup,timer_s,operation,state,pending_action,next_due_s,relay_type,measurement_kind,min_voltage_pu,max_voltage_pu,trip_source,locked_out,doc_control_power_w,doc_current_a,doc_current_angle_deg,directional_blocked,doc_region,negative_sequence_current_a,negative_sequence_voltage_v,reverse_power_w,monitored_conductor,pickup_phase,switched_obj,switched_term,switched_conductor` |
+| `frt_state` | `time_s,sequence,name,bus,voltage_pu,frequency_hz,voltage_zone,frequency_zone,violation_time_s,connection_state,recovery_fraction,p_w,q_var,stored_kwh,min_voltage_pu,max_voltage_pu,governing_voltage_side,operating_mode,zone_response,policy,connection_kind,measurement_phase_from,measurement_phase_to,device_voltage_pu,port_available` |
+| `control_state` | `time_s,sequence,name,control_type,monitored_obj,monitored_term,controlled_obj,mode,measurement_kind,measurement_value,setpoint_value,deadband_value,state,pending_action,next_due_s,source_ordinal,tap_position,tap_ratio,regulator_direction,capacitor_step,capacitor_steps,last_open_s` |
+| `device_state` | `time_s,sequence,class,name,bus,enabled,p_w,q_var,protection_connected,protection_owner,frt_connected,effective_connected,disconnect_reason,protection_owner_count,protection_connected_phase_count,protection_required_phase_count` |
+| `generator_state` | `time_s,sequence,generator,bus,phase,enabled,energized,voltage_re,voltage_im,current_re,current_im,current_mag,current_angle_deg,p_w,q_var,e1_mag_v,rotor_angle_deg,relative_speed_rad_s,speed_pu,shaft_power_w,electrical_power_w` |
+| `device_protection_connection` | `time_s,sequence,class,name,terminal,conductor,phase,owner_type,owner,owner_connected,effective_conductor_connected,aggregate_device_connected` |
 
 ## 9. 固定结果 schema
 

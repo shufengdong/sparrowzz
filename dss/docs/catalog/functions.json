@@ -218,12 +218,21 @@
       "restriction": "The optional second argument is either a parameter DataFrame or a comma-separated result string. The URL form downloads one source and cannot resolve remote relative includes."
     },
     {
+      "names": ["ds_dss_fault_study"],
+      "allowed_arities": [2, 3],
+      "arguments": ["local_dss_path", "source_root?", "para_or_result_selector"],
+      "behavior": "import and execute one bounded local DSS FaultStudy lifecycle",
+      "default_result": "fault_result",
+      "results": ["fault_result"],
+      "restriction": "The first argument is a local path. The optional source root confines dependencies. Mixed lifecycles and URL sources are rejected."
+    },
+    {
       "names": ["ds_dss_harmonic_plan"],
       "arity": 2,
       "arguments": ["local_dss_path", "para_or_result_selector"],
       "behavior": "import and execute one bounded local DSS Harmonic or HarmonicT lifecycle",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "branch_flow", "conductor_flow", "bus_sequence", "branch_sequence", "monitor"],
+      "results": ["bus_voltage", "branch_flow", "conductor_flow", "bus_sequence", "branch_sequence", "monitor", "monitor_save"],
       "restriction": "The first argument is a local path. The second argument is a parameter DataFrame or a comma-separated result string. Mixed lifecycles and URL sources are rejected."
     },
     {
@@ -243,6 +252,15 @@
       "default_result": "meter",
       "results": ["meter", "section", "branch", "bus"],
       "restriction": "The first argument is a local path. The second argument is a parameter DataFrame or a comma-separated result string. Mixed lifecycles and URL sources are rejected."
+    },
+    {
+      "names": ["ds_dss_dynamic_plan"],
+      "allowed_arities": [2, 3],
+      "arguments": ["local_dss_path", "source_root?", "para_or_result_selector"],
+      "behavior": "import and execute one bounded fixed-step local DSS Dynamic or Dynamics lifecycle through the protected V12 runtime",
+      "default_result": "bus_voltage",
+      "results": ["bus_voltage", "branch_current", "source_flow", "pvsystem_state", "storage_state", "motor_state", "event", "solver_trace", "fault_state", "protection_state", "frt_state", "control_state", "device_state", "generator_state", "device_protection_connection"],
+      "restriction": "Snapshot initialization may precede Dynamic. Dynamic solves must keep one positive step and a continuous clock. Runtime model mutations, unsupported Set options, DynamicEq/DynOut, VCCS, user DLLs and EMT content are rejected."
     },
     {
       "names": ["ds_radial_pf", "ds_newton_raphson_pf"],
@@ -325,6 +343,14 @@
       "behavior": "rank candidate fault locations from measurements and topology hypotheses",
       "returns": ["result"],
       "restriction": "non-empty storage is rejected"
+    },
+    {
+      "names": ["ds_network_dynamics"],
+      "arity": 29,
+      "arguments": ["network[20]", "timeline", "event", "tcc_curve", "fuse", "recloser", "relay", "fault", "spec", "para"],
+      "behavior": "run the protected RMS/phasor network dynamic V12 study from DataFrames",
+      "default_result": "bus_voltage",
+      "results": ["bus_voltage", "branch_current", "source_flow", "pvsystem_state", "storage_state", "motor_state", "event", "solver_trace", "fault_state", "protection_state", "frt_state", "control_state", "device_state", "generator_state", "device_protection_connection"]
     },
     {
       "names": ["ds_motor_dynamics"],

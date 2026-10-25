@@ -40,6 +40,7 @@ flowchart LR
 | 已显式准备网络与频谱表的谐波研究 | `ds_harmonic_study(...)` |
 | 原生 `Solve mode=autoadd` | `ds_dss_auto_add(path, para_or_results)` |
 | 原生 Snapshot 后 `RelCalc` | `ds_dss_relcalc(path, para_or_results)` |
+| 原生有界 `Dynamic/Dynamics` | `ds_dss_dynamic_plan(path, para_or_results)` |
 | 创建 `Fault` 后求解或 `mode=faultstudy` | 构造 `fault` 表后调用 `ds_fault_study(...)` |
 | `Circuit.AllBusNames`、`Bus.Voltages` | 请求 `bus_phase` 结果 |
 | `CktElement.Currents/Powers/Losses` | 请求 `branch_flow`、`source_flow` 等结果 |
@@ -51,7 +52,7 @@ flowchart LR
 PSA 的有界 ExecutionStudy 契约保留 `Solve`、控制、保护和计量状态。这个边界让脚本中的数据依赖和结果都能进入宿主流程图，
 也防止无法等价表示的 OpenDSS 命令被静默忽略。
 
-Harmonic/HarmonicT、AutoAdd 和 RelCalc 使用各自的 PSA 原生 adapter，不先降为通用 QSTS。
+Harmonic/HarmonicT、AutoAdd、RelCalc 和有界 Dynamic/Dynamics 使用各自的 PSA 原生 adapter，不先降为通用 QSTS。
 这些函数的第二参数可传 `para` DataFrame，也可直接传逗号分隔结果字符串；字符串形式使用
 默认求解参数，适合 `tensoreval --dss-to-rss` 生成的自包含 linked RSS。完整结果 schema 和限制见
 [RSDss 函数参考](dsa_function_reference.md#dss-原生-harmonicautoadd-和-relcalc)。
@@ -439,12 +440,14 @@ LoadShape 绑定，并请求逐母线逐相电压；测试将 36 行复电压与
 | 谐波扫描 | `ds_harmonic_study` |
 | 保留原 DSS Harmonic/HarmonicT 命令流 | `ds_dss_harmonic_plan` |
 | 原生 AutoAdd / RelCalc | `ds_dss_auto_add` / `ds_dss_relcalc` |
+| 保留有界 DSS Dynamic/Dynamics 命令流 | `ds_dss_dynamic_plan` |
 | 短路 | `ds_fault_study` |
 | WLS/鲁棒状态估计 | `ds_wls_se` / `ds_mnmr_se` / `ds_mce_se` |
 | Monte Carlo | `ds_monte_carlo` |
 | 故障恢复重构 | `ds_restore` |
 | 故障定位 | `ds_fault_location` |
-| 电机网络动态 | `ds_motor_dynamics` |
+| 完整 RMS/phasor 网络动态 | `ds_network_dynamics` |
+| 兼容电机网络动态 | `ds_motor_dynamics` |
 | 保护配合审计 | `ds_protection_coordination` |
 
 ## 10. 使用 tensoreval 运行和转换
