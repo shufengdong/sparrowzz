@@ -13,8 +13,8 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
 - 当前结果：103 个入口已经发布 bundle，156 个独立入口尚未发布；`conversion_report.csv`
-  的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫；2,900 步 P174 保留已验证的
-  未发布记录。
+  的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫。2,900 步 P174 的导入和投影
+  等价测试仍通过，但当前完整 `--check` 在 epoch 0 首次潮流求解失败。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
 - 能力覆盖必须至少有 PSA 运行时 consumer 和测试；“参考覆盖”还要求锁定 OpenDSS 输出
@@ -23,12 +23,14 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
 ## 优先接入的 12 个入口及定向复测
 
 下面 12 个入口已有直接或同入口等价投影的数值证据。基线失败点位于转换编排、研究适配、
-求解后端选择或严格导入门面，不需要先新增一种电气元件方程。2026-10-21 的定向复测已让
-12 个入口全部通过严格转换；其中 11 个完成 bundle 自执行并按官方相对路径发布，2,900 步
-P174 入口完成转换和官方输入到锁定数值投影的逐表等价检查。该入口的完整 `--check` 在 release
-构建运行 90 分钟后仍未结束，人工停止，因此不把本次运行记为完整求解通过，也不发布半成品
-bundle。消除 bundle 编译与 staging 自执行的重复求解后，又对唯一一次 staging 自执行重试
-30 分钟；执行仍未完成，临时目录已清理。
+求解后端选择或严格导入门面，不需要先新增一种电气元件方程。2026-10-21 的定向复测中，
+11 个入口完成 bundle 自执行并按官方相对路径发布；2,900 步 P174 入口完成导入和官方输入到
+锁定数值投影的逐表等价检查。当时完整 `--check` 在 release 构建运行 90 分钟后仍未结束，
+消除重复求解后再次运行 30 分钟仍未完成。
+
+2026-10-24 当前 release 复测时，P174 的两项导入/投影测试继续通过，但完整 `--check` 已稳定
+在 epoch 0、`1 s` 的首次潮流求解失败。该入口因此仍不发布，并从性能长门禁转为执行求解回退
+排查对象。
 
 | 入口 | 已有能力证据 | 定向复测结果 |
 |---|---|---|
@@ -38,7 +40,7 @@ bundle。消除 bundle 编译与 staging 自执行的重复求解后，又对唯
 | `IEEETestCases/8500-Node/Run_8500Node.dss` | 原始 balanced deck 的 execution profile、控制终态和电气量已有测试 | Newton 自执行通过，bundle 已发布；自动 EnergyMeter 区域以显式 approximation Warning 保留 |
 | `IEEETestCases/8500-Node/Run_8500Node_Unbal.dss` | 原始 unbalanced deck 的 execution profile、控制终态和电气量已有测试 | Newton 自执行通过，bundle 已发布；Monitor 标准位置参数已规范化 |
 | `IEEETestCases/8500-Node/P174_Run_Voltage_Profile.DSS` | 两个有序 epoch 和 100%/40% 工作点已有数值参考 | 7,598 条语句、2 个 epoch 自执行通过，bundle 已发布 |
-| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 2,900 步 Duty、曲线长度、调压器/电容状态及采样数值均有参考 | 7,616 条语句、5 个 epoch 严格转换通过；投影逐表等价；完整长时序未完成，bundle 未发布 |
+| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 2,900 步 Duty、曲线长度、调压器/电容状态及采样数值均有参考 | 7,616 条语句、5 个 epoch 导入和投影逐表等价通过；当前完整 `--check` 在 epoch 0 首次潮流求解失败，bundle 未发布 |
 | `Examples/Microgrid/GridFormingInverter/GFM_IEEE8500/Run_8500Node_Unbal.dss` | 文件 SHA-256 与上面的官方 unbalanced 入口完全相同 | 与同内容 unbalanced 入口使用同一路径，自执行通过，bundle 已发布 |
 | `IEEETestCases/ShortCircuitCases/IEEE123Master-SC.dss` | IEEE123 全母线 414 个故障参考测试通过 | FaultStudy adapter 自执行通过，bundle 已发布 |
 | `IEEETestCases/ShortCircuitCases/ieee34Mod2_SC_Case_II.dss` | IEEE34 全母线 148 个故障参考测试通过 | FaultStudy adapter 自执行通过，bundle 已发布 |

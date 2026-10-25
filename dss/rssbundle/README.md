@@ -157,13 +157,14 @@ IEEE8500 自动 EnergyMeter 区域现在保留电气求解并产生稳定的
 `PSA.DSS.ENERGY_METER.AUTO_ZONE_APPROXIMATION` Warning；该路径不声明 meter-zone 寄存器与
 OpenDSS 完全等价。
 
-2026-10-21 对能力审计选出的 12 个优先入口做了定向复测：全部完成严格转换，其中 11 个完成
-bundle 自执行并按官方相对路径发布。`P174_Run_360kW_PV.DSS` 的 7,616 条语句已生成 5-epoch
-Newton RSS，官方最终 epoch 与锁定 2,900 步数值投影的网络表、LoadShape 和分配表逐表等价；
-完整 2,900 步 `--check` 在 release 构建运行 90 分钟后仍未结束并人工停止，因此尚未发布 bundle。
-`--check` 已改用 Newton 流式执行，避免累计每个时刻的全网结果；完整潮流、控制和计量计算成本
-仍然存在。随后修正了 bundle 编译与 staging 自执行重复运行同一研究的问题；修正后的唯一一次
-staging 自执行重试 30 分钟仍未完成，已停止并清理临时目录，发布状态不变。
+2026-10-21 对能力审计选出的 12 个优先入口做了定向复测：11 个完成 bundle 自执行并按官方
+相对路径发布。`P174_Run_360kW_PV.DSS` 的 7,616 条语句可导入为 5 个 epoch，官方最终 epoch
+与锁定 2,900 步数值投影的网络表、LoadShape 和分配表逐表等价；当时 release `--check` 和
+staging 自执行分别运行 90 分钟和 30 分钟仍未完成，因此没有发布 bundle。
+
+2026-10-24 使用当前 release 重新检查时，导入及上述两项投影回归测试仍通过，但完整 `--check`
+现在稳定在 epoch 0、`1 s` 的首次潮流求解失败，不再记录为长任务超时。该变化把下一步范围收敛为
+执行求解回退排查；在恢复首个 Snapshot/QSTS 时刻并完成 2,900 步门禁前，发布状态保持不变。
 
 | 优先入口 | bundle 发布状态 | 验证状态 |
 |---|---|---|
@@ -178,7 +179,7 @@ staging 自执行重试 30 分钟仍未完成，已停止并清理临时目录�
 | `IEEETestCases/ShortCircuitCases/ieee34Mod2_SC_Case_II.dss` | 已发布 | FaultStudy 148 个故障，自执行通过 |
 | `Examples/HarmonicsTMode/IEEE_519.DSS` | 已发布 | HarmonicT 与跨 Solve 开关状态自执行通过 |
 | `Examples/HarmonicsVariableLoad/IEEE_519.DSS` | 已发布 | HarmonicT 与跨 Solve Load 状态自执行通过 |
-| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 未发布 | 严格转换和投影等价通过；完整 2,900 步自执行未完成 |
+| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 未发布 | 导入和投影等价通过；当前完整 `--check` 在 epoch 0 首次潮流求解失败 |
 
 ## 与 PSA 当前能力的交叉评估
 
@@ -478,6 +479,25 @@ Solve 后计量动作。5 个 DOCTechNote 入口随后稳定暴露
 `PSA.DSS.EXECUTION.ORDER_UNREPRESENTABLE`：它们在首次 `Solve` 后新增约 80 个 EnergyMeter
 及其他网络对象，当前不可降为一个不可变 NetworkTables epoch，因此没有发布 bundle。
 
+### 第十八轮复扫结果
+
+2026-10-24 使用当前代码构建的 `tensoreval`，按 `conversion_report.csv` 保存的 `source_root`
+重新检查全部 156 个未发布独立入口，没有新增通过数值门禁的案例。严格转换层只有
+`Mon_voltage_MAX_Mix_avg-2.dss` 返回成功，但它原本就是“转换和自执行成功、数值门禁失败”：
+重新完整比较 20 个时刻后，最大复电压相对误差仍为 `6.33624e-4`，PV 复功率/额定容量误差仍为
+`1.272597e-3`，与上轮完全相同并继续超过 `1e-3` 门限。
+
+`SolarRamp-Mack.DSS` 也用当前程序重建并执行全部 4,602 个时刻。主 Duty 段的最大复电压相对误差
+仍为 `0.06133667`，Generator 功率/额定容量误差仍为 `0.72335763`，首次调压器档位差仍出现在
+`9475 s`，因此保持未发布。三个 `AnnualSimulation.dss` 的 `CaseName` 已不再构成阻断，每个剩余
+`Set` 诊断从 5 条降到 4 条，当前首要缺口是 `overloadreport`；GFM IEEE123 入口减少一条
+`COMMAND_UNSUPPORTED`，但仍有对象、属性和执行能力边界。
+
+`P174_Run_360kW_PV.DSS` 的当前状态发生了反向变化：导入和官方入口到锁定投影的两项测试仍通过，
+但 debug 与新构建的 release 都在 epoch 0、`1 s` 的首次潮流求解失败；10 月 23 日旧 release
+在同一输入上不会立即失败。报告现以 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` 记录当前可复现结果，
+后续应单独定位执行求解回退。发布总数保持 103，未发布数保持 156。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -582,8 +602,8 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 5 | `unsupported` | `READ.DSS.VALUE_UNSUPPORTED` | 对象值或控制行为被识别，但当前计算合同不能保持。 |
 | 6 | `unsupported` | `PSA.DSS.LINE.GEOMETRY_INVALID` | LineGeometry 引用或导体位置不能形成有效线路参数。 |
 | 6 | `unsupported` | `PSA.DSS.EXECUTION.ORDER_UNREPRESENTABLE` | 首次 Solve 后新增网络对象，不能降为一个不可变 NetworkTables epoch；含 5 个 DOCTechNote 入口。 |
-| 5 | `unsupported` | `PSA.DSS.LINECODE.RELIABILITY_RETAINED` | LineCode 可靠性字段尚未进入所选计算合同；含保留的 P174 长任务记录。 |
-| 4 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 模型可导入，但所选求解器不支持该拓扑、后端不可用或未收敛。 |
+| 4 | `unsupported` | `PSA.DSS.LINECODE.RELIABILITY_RETAINED` | LineCode 可靠性字段尚未进入所选计算合同。 |
+| 5 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 模型可导入，但所选求解器不支持该拓扑、后端不可用或未收敛。 |
 | 4 | `unsupported` | `PSA.DSS.PVSYSTEM.PF_PRIORITY_INVCONTROL_UNSUPPORTED` | `PFPriority=yes` 与 InvControl 的组合尚无无损执行语义。 |
 | 4 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.COMMAND_UNSUPPORTED` | 运行命令尚无可验证的 RSS 映射。 |
 | 3 | `unsupported` | `PSA.DSS.SET.UNSUPPORTED` | PSA execution plan 不支持该 Set 选项。 |
