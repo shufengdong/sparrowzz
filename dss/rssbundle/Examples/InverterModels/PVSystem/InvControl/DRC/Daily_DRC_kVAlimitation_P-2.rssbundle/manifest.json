@@ -1,0 +1,38 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/DRC/Daily_DRC_kVAlimitation_P-2.dss",
+    "root": "dss",
+    "tree_sha256": "c47d64a797ecc6bfaa75a799408a3af48517d29a4d5ffb9499c73f89e028d728"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/DRC/Daily_DRC_kVAlimitation_P-2.dss",
+      "role": "dss-entry",
+      "sha256": "727b9b7e7f922135e9ffb063a2c451640080800b826431dd87534f3f6079f196"
+    },
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/MonitoredVoltage/PV_irrad.csv",
+      "role": "data-asset",
+      "sha256": "92d661ae859a84a506c78ccb6b725ad1a58121faf81b59cdc4d840c8ad07a769"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "bfe18c74ed0ac4c06503d4faa4b33c393815ee0e4fd625d6f72103937bbaefc6"
+    }
+  ],
+  "inputs": []
+}
