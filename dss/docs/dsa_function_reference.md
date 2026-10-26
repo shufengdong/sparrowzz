@@ -473,7 +473,7 @@ timeline、事件和保护表时用 `ds_network_dynamics`；`ds_motor_dynamics` 
 完整动态结果时应使用 `ds_network_dynamics`。
 
 `timeline/event/spec` 的条件列和默认值见
-[电机网络动态输入](dataframe_schema_reference.md#电机网络动态输入)。三张结果的固定列见
+[电机网络动态输入](dataframe_schema_reference.md#电机网络动态)。三张结果的固定列见
 [电机网络动态结果](dataframe_schema_reference.md#电机网络动态)。`event` 输入可为空；
 `timeline` 必须至少能形成有效且严格递增的求解时间序列。
 

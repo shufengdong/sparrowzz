@@ -55,7 +55,7 @@ PSA 的有界 ExecutionStudy 契约保留 `Solve`、控制、保护和计量状�
 Harmonic/HarmonicT、AutoAdd、RelCalc 和有界 Dynamic/Dynamics 使用各自的 PSA 原生 adapter，不先降为通用 QSTS。
 这些函数的第二参数可传 `para` DataFrame，也可直接传逗号分隔结果字符串；字符串形式使用
 默认求解参数，适合 `tensoreval --dss-to-rss` 生成的自包含 linked RSS。完整结果 schema 和限制见
-[RSDss 函数参考](dsa_function_reference.md#dss-原生-harmonicautoadd-和-relcalc)。
+[RSDss 函数参考](dsa_function_reference.md#dss-原生-faultstudyharmonicautoaddrelcalc-和-dynamic)。
 
 ## 2. 安装要求
 
@@ -489,7 +489,7 @@ tensoreval --dataframe sparrowzz/dss/ieee13_power_flow.rss
 DSS 路径相对于命令运行时的工作目录解析。仓库中已由 OpenDSS 参考结果验证的潮流、
 谐波、短路和 QSTS 脚本见 [`sparrowzz/dss`](../README.md)。
 
-普通 DataFrame 脚本可重复使用 `--input NAME=FILE` 注入 CSV、XLS/XLSX 或 Parquet：
+宿主也可重复使用 `--input NAME=FILE` 注入 CSV、XLS/XLSX 或 Parquet：
 
 ```bash
 tensoreval --dataframe \
@@ -497,15 +497,20 @@ tensoreval --dataframe \
   path/to/script.rss
 ```
 
-命令会按脚本声明顺序打印所有末层结果的变量名和 DataFrame；`--verbose` 还会打印
-schema。RSDss 错误会写入标准错误并返回非零退出码。完整结果应使用 `--result-dir` 写为 CSV
+这是与脚本内 `import_dss` 不同的模型来源：被注入的每个 `NAME` 已经是 DataFrame，脚本直接
+引用它，禁止再次调用 `import_dss` 读取同一模型；一个 `--input` 也不会自动展开 DSS 网络表。
+独立、自包含 RSS 脚本仍可正常使用 `import_dss`。
+
+命令会按声明顺序打印最大依赖层产生的具名 DataFrame；声明左侧绑定本身就是输出，禁止追加
+裸变量表达式。`--verbose` 还会打印 schema。RSDss 错误会写入标准错误并返回非零退出码。
+完整结果应使用 `--result-dir` 写为 CSV
 或 Parquet。参数组合、文件命名和暂态输出见
 [tensoreval 命令行与暂态仿真参考](tensoreval_cli_reference.md)，实际参数可用
 `tensoreval --help` 查看。
 
 在持久化流程中，把脚本放入 `TensorEval` 节点并设置 `TE_PARA_DF`。节点输入的别名会
-成为脚本中的 DataFrame 变量，末层变量成为节点输出。`import_dss` 自己可以作为零输入
-节点读取本地模型。
+成为脚本中的 DataFrame 变量，最大依赖层声明产生节点输出。已有入边模型表时直接引用这些
+变量；`import_dss` 只在节点需要自行读取本地模型时作为零输入声明使用。
 
 对外执行入口是 `tensoreval --dataframe`（或 `--df`）。Rust 内部模块接口不作为
 RSDss 对外兼容契约；应用集成应通过脚本文件、命令行退出码和具名结果 DataFrame
