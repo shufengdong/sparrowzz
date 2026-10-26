@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 107 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 4 个 Distance/TD21 Dynamic 入口 |
-| 当前尚未发布的独立入口 | 152 | 259 个独立入口扣除 107 个已发布入口 |
+| 已转换并发布 bundle | 118 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 11 个 DRC/VV_DRC Daily 入口 |
+| 当前尚未发布的独立入口 | 141 | 259 个独立入口扣除 118 个已发布入口 |
 | 超时 | 0 | 无 |
 
-107 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+118 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 107 个发布入口；
-其余 152 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 118 个发布入口；
+其余 141 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -518,6 +518,28 @@ timeline 配置 TD21 外部采样时钟；TD21 在开断期间继续记录零电
 外部步长、TD21 在任一事件前后 5 ms 不进入稳态数值统计；其余分别比较 66/120 和 935/1,200 个
 时点。四个 bundle 都从仓库复制到独立临时目录后完成自执行。
 
+### 第二十轮实施结果
+
+2026-10-26 接入官方 `Examples/InverterModels/PVSystem/InvControl/DRC` 和 `VV_DRC` 下 11 个
+单 PV、20 时点 Daily 入口。OpenDSS 在这些入口中省略 `DERList`；导入器现在只在恰有一个
+启用的 InvControl、一个 PVSystem 且没有 Storage 时推断唯一成员，多设备或多控制器场景仍要求
+显式成员关系。DRC/VV_DRC 同时保留 `VARMAX`/`VARAVAL` 和运行时支持的
+`0 < DeltaQ_Factor <= 1`。执行计划在展平 epoch 时会按声明文件取得父目录中的 CSV 资产，使用
+稳定的内部名称重新附加，避免把 `../MonitoredVoltage/PV_irrad.csv` 错误解释为逃逸 bundle 根。
+
+| 官方入口组 | 数量 | OpenDSS 数值门禁 |
+|---|---:|---|
+| `DRC/Daily_DRC{,_avg}-2.dss`、`Daily_DRC_kVAlimitation_{P,Q}-2.dss`、`Daily_DRC_kvarlimitation-2.dss` | 5 | 20/20 时点通过；最大复电压相对误差 `1.13169e-6`，最大 PV 复功率/额定容量误差 `1.58591e-5` |
+| `VV_DRC/Daily_VVDRC{,_avg,_ravg}-2.dss`、`Daily_VVDRC_kVAlimitation_{P,Q}-2.dss`、`Daily_VVDRC_kvarlimitation-2.dss` | 6 | 20/20 时点通过；最大复电压相对误差 `5.91863e-6`，最大 PV 复功率/额定容量误差 `8.08173e-5` |
+
+11 个 bundle 均由未修改的官方入口生成，包含跨目录引用的 `PV_irrad.csv`，复制到独立临时目录后
+使用发布构建的 `tensoreval` 自执行成功；每个输出 20 个时点、60 行三相电压。数值比较使用
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5，覆盖全部节点复电压和 PVSystem 终端复功率，节点及
+时点身份全部一致，均通过 `1e-3` 门限。逐入口数据见
+[`numerical_comparison.csv`](numerical_comparison.csv)。其中 AVG/RAVG 入口复用既有的
+`Voltage_CurveX_Ref` 和 `AvgWindowLen` 运行合同，DRC 的动态无功电流窗口仍独立使用
+`DynReacAvgWindowLen`。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -579,7 +601,7 @@ timeline 配置 TD21 外部采样时钟；TD21 在开断期间继续记录零电
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 152 个尚未发布入口中逐项验证。
+   当前 141 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -602,7 +624,7 @@ timeline 配置 TD21 外部采样时钟；TD21 在开断期间继续记录零电
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 152 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 141 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -612,8 +634,8 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 数量 | 分类 | 诊断码 | 原因 |
 |---:|---|---|---|
 | 24 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
-| 20 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 基线扫描时请求 Dynamic、Direct 等当时尚无转换适配器的生命周期；Dynamic 现需重扫，Direct 仍未支持。 |
-| 12 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | 对象属性超出当前 PSA DataFrame/执行合同，无法无损表达。 |
+| 16 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 基线扫描时请求 Dynamic、Direct 等当时尚无转换适配器的生命周期；Dynamic 现需重扫，Direct 仍未支持。 |
+| 1 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | 对象属性超出当前 PSA DataFrame/执行合同，无法无损表达。 |
 | 18 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage 属性尚无无损映射。 |
 | 9 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
 | 3 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SET_UNSUPPORTED` | `Set` 选项尚无可验证的 RSS 执行语义。 |
@@ -643,7 +665,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-107 个 `converted` 和 152 个 `unsupported`：
+118 个 `converted` 和 141 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
