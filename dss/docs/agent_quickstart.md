@@ -47,6 +47,11 @@
 及 `diagnostics/events`；需要直接连续执行多个 `Solve` 时，使用 `ds_*_dss_plan`，不要先走
 静态 `import_dss`。
 
+暂态不要走静态 `import_dss` 后再猜测 DSS 命令语义。已有 Dynamic/Dynamics 命令流时使用
+`ds_dss_dynamic_plan`，或直接执行 `.dss/.rssbundle`；上游已经提供 20 张网络表、timeline 和
+保护表时才使用 `ds_network_dynamics`。三种命令行路径和落盘规则见
+[tensoreval 命令行与暂态仿真参考](tensoreval_cli_reference.md)。
+
 ## 3. 显式构造分析配置
 
 静态潮流的最小参数表：
@@ -111,16 +116,41 @@ monitor, energy_meter, fault, para
 | DSS 执行计划证据 | `execution_trace`、`diagnostics`、`events` |
 | 谐波母线结果 | `bus_voltage` |
 | 故障和故障支路电流 | `fault,branch_flow` |
+| 暂态电压和收敛 | `bus_voltage,solver_trace` |
+| 暂态故障与保护动作 | `branch_current,event,fault_state,protection_state,device_protection_connection` |
+| 暂态 DER/电机/Generator | `pvsystem_state,storage_state,motor_state,generator_state,frt_state,device_state` |
 
 输出变量名不能与随后仍作为裸标识符使用的枚举值同名。例如参数中使用
 `alias(bus_phase, result)` 时，把输出命名为 `voltage` 或 `qsts_voltage`，避免形成意外
 依赖或循环。
 
-## 6. 运行并检查
+## 6. 暂态输入和输出检查
+
+显式 V12 门面固定为 29 个参数：20 张网络表，随后依次是
+`timeline,event,tcc_curve,fuse,recloser,relay,fault,spec,para`。`timeline` 必须非空且
+`time_s` 严格递增；其他研究表没有配置时仍传零行 DataFrame。不要交换 `event` 与 `fault`：
+前者描述明确时刻的操作，后者描述带 on/off 生命周期的保护故障对象。
+
+所有暂态结果都是带 `time_s,sequence` 的长表；内部故障、保护、控制和 FRT 边界可能在外部
+时间轴之间插入行。同一时间的动作前后状态靠 `sequence` 区分。验收至少同时检查
+`solver_trace.converged`、`event.applied/reason`、保护终态和 `device_protection_connection`，
+不能只看最终母线电压。
+
+已有 DSS Dynamic 入口时优先运行已验证 bundle：
+
+```bash
+tensoreval --result-dir /tmp/dynamic-results \
+  sparrowzz/dss/rssbundle/Examples/DistanceRelays/DistanceRelayTest.rssbundle
+```
+
+完整输入、15 张输出和 fail-closed 条件见
+[tensoreval 暂态参考](tensoreval_cli_reference.md#5-暂态仿真的三种入口)。
+
+## 7. 运行并检查
 
 ```bash
 tensoreval --df path/to/case.rss
-tensoreval --df --verbose path/to/case.rss
+tensoreval --df --verbose --result-dir results path/to/case.rss
 ```
 
 验收至少检查：
@@ -133,7 +163,7 @@ tensoreval --df --verbose path/to/case.rss
 6. 与 OpenDSS 对照时按稳定键连接，不依赖行顺序；
 7. 比较复数实部/虚部，并记录每类量的容差。
 
-## 7. 生成脚本时的禁止推断
+## 8. 生成脚本时的禁止推断
 
 - 不从 OpenDSS 属性名直接猜测 DataFrame 列名；查 schema 参考。
 - 不交换 `import_dss` 返回位置或完整网络参数位置。
@@ -143,3 +173,5 @@ tensoreval --df --verbose path/to/case.rss
 - 不假设角度单位统一；静态 `bus_phase.v_ang` 为 rad，谐波角度为 degree。
 - 不使用结果表的当前行顺序作为业务身份。
 - 不把测试的 `1e-3` 容差推广为所有网络的通用验收标准。
+- 不把 RMS/phasor V12 暂态称为 EMT 或完整 OpenDSS Dynamic Mode。
+- 不按 `time_s` 单列去重暂态输出；同刻的不同 `sequence` 表示确定的动作前后边界。

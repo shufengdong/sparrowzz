@@ -472,7 +472,7 @@ tensoreval --dss-to-rss path/to/run.dss
 
 该参数也可写成 `--dss2rss`、`--dsstorss` 或 `--dss_to_rss`。
 
-转换器会解析完整命令流，分类为 Snapshot、ExecutionPlan、Harmonic、AutoAdd 或 RelCalc，
+转换器会解析完整命令流，分类为 Snapshot、ExecutionPlan、FaultStudy、Harmonic、AutoAdd、RelCalc 或 Dynamic，
 再通过对应 PSA 入口完成导入和一次实际计算。生成的 specialist RSS 还会通过 RSDss
 重新执行后才返回；可能改变 OpenDSS 结果的导入 Warning 会使转换失败，并逐项输出诊断码
 与源位置。ExecutionPlan 中已经被 typed study 消费的 `READ.DSS.RETAINED_SOURCE_ONLY`
@@ -498,7 +498,10 @@ tensoreval --dataframe \
 ```
 
 命令会按脚本声明顺序打印所有末层结果的变量名和 DataFrame；`--verbose` 还会打印
-schema。RSDss 错误会写入标准错误并返回非零退出码。使用 `tensoreval --help` 查看完整参数。
+schema。RSDss 错误会写入标准错误并返回非零退出码。完整结果应使用 `--result-dir` 写为 CSV
+或 Parquet。参数组合、文件命名和暂态输出见
+[tensoreval 命令行与暂态仿真参考](tensoreval_cli_reference.md)，实际参数可用
+`tensoreval --help` 查看。
 
 在持久化流程中，把脚本放入 `TensorEval` 节点并设置 `TE_PARA_DF`。节点输入的别名会
 成为脚本中的 DataFrame 变量，末层变量成为节点输出。`import_dss` 自己可以作为零输入

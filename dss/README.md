@@ -6,8 +6,8 @@
 
 从现有 OpenDSS 模型和 Python 仿真脚本迁移时，请参阅
 [从 OpenDSS Python 脚本迁移到 RSS](docs/opendss_to_rss.md)。
-完整语法、函数、schema、兼容范围和智能体编写指南见
-[`docs/README.md`](docs/README.md)。
+完整命令行模式和暂态入口见 [tensoreval 命令行与暂态仿真参考](docs/tensoreval_cli_reference.md)；
+语法、函数、schema、兼容范围和智能体编写指南见 [`docs/README.md`](docs/README.md)。
 
 ## 定位
 
@@ -35,6 +35,39 @@ OpenDSS 为 oracle 复现结果（复电压相对误差门限 `1e-3`），而不
 
 边界：纯潮流求解速度与编译型 OpenDSS 内核大致相当，优势集中在后处理、流程编排与
 工程化；兼容面有界，未覆盖对象会 fail-closed 拒绝，迁移需先拆分模型与 `Solve`。
+
+## tensoreval 功能入口
+
+对外工具只有 `tensoreval`，按输入类型选择功能：
+
+| 输入与参数 | 功能 | 主要输出 |
+|---|---|---|
+| `tensoreval --df FILE.rss` | 执行 RSDss DataFrame 图；可调用全部 `ds_*` 分析 | 脚本最深依赖层的具名 DataFrame |
+| `tensoreval FILE.dss` | 自动分类并直接执行受支持的 DSS 研究 | 研究对应的规范结果表 |
+| `tensoreval FILE.rssbundle` | 校验并执行便携 bundle | bundle `main.rss` 声明的结果表 |
+| `tensoreval --dss-to-rss FILE.dss` | 只转换为 linked RSS 或 bundle | `.rss` 文件或 `.rssbundle` 目录 |
+| `tensoreval FILE.rss` | 普通 Tensor 表达式图或 RustScript VM | Tensor/标量调试文本 |
+
+`--result-dir DIR --output-format csv|parquet` 将每张具名 DataFrame 完整落盘；终端表格仅供查看，
+可能截断。输入组合、参数约束、退出码和结果文件命名见
+[tensoreval 命令行参考](docs/tensoreval_cli_reference.md)。
+
+## 暂态仿真
+
+新增暂态能力是有界 RMS/phasor 网络动态 V12，共有两条主要使用路径：
+
+- 已有 OpenDSS Dynamic/Dynamics 入口时，直接运行 `.dss`，或先用
+  `tensoreval --dss-to-rss --study dynamic` 生成可审查的 RSS/bundle；
+- 已有类型化网络和事件表时，在 `--df` 脚本中调用固定 29 参数的 `ds_network_dynamics`。
+
+DSS 命令流必须保持固定正步长和连续时钟。显式表入口必须提供严格递增的 `timeline.time_s`，
+并按固定位置传入网络、事件、保护、故障、spec 和 para 表。两条路径统一输出可选的 15 张 V12
+长表，覆盖电压、支路电流、电源功率、PV/Storage/电机/Generator 状态、事件、求解轨迹、故障、
+保护、FRT、普通控制、设备汇总和逐 owner 连接审计。同一 `time_s` 可出现多个 `sequence`，
+动作前后状态不能只按时间去重。
+
+这是 PSA 已取证的有界暂态子集，不是 EMT，也不代表完整 OpenDSS Dynamic Mode。逐项输入、输出、
+单位和失败条件见 [暂态仿真参考](docs/tensoreval_cli_reference.md#5-暂态仿真的三种入口)。
 
 ## 与 mems DataFrame 流程引擎（DFF）结合
 
@@ -145,6 +178,17 @@ tensoreval --df sparrowzz/dss/4bus_daily_qsts.rss
 
 该脚本用 0、3600 和 7200 秒的负荷曲线样本求解三个一小时时步；结果时间是每个时步
 的结束时刻，即 3600、7200 和 10800 秒。
+
+已发布的 Distance 暂态保护 bundle 可直接运行并完整落盘：
+
+```bash
+tensoreval --result-dir /tmp/distance-dynamic \
+  sparrowzz/dss/rssbundle/Examples/DistanceRelays/DistanceRelayTest.rssbundle
+```
+
+输出目录包含 `bus_voltage.csv`、`branch_current.csv`、`event.csv`、`protection_state.csv`、
+`device_protection_connection.csv` 等 15 张 V12 结果表。直接运行受支持的 Dynamic `.dss` 使用相同
+结果合同。
 
 联合潮流案例需要主网数值求解器和配网后端：
 

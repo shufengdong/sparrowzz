@@ -6,16 +6,17 @@
 
 ## 推荐阅读顺序
 
-1. [智能体快速指南](agent_quickstart.md)：从需求选择求解器、输入和输出。
-2. [RSS 语言参考](rss_language_reference.md)：语法、求值图和多结果规则。
-3. [RSDss 函数参考](rsdss_function_reference.md)：DataFrame 变换函数。
-4. [DSA 函数参考](dsa_function_reference.md)：`import_*` 与全部 `ds_*` 入口。
-5. [DataFrame schema 参考](dataframe_schema_reference.md)：输入表的列、类型和单位。
-6. [OpenDSS 兼容矩阵](opendss_compatibility_matrix.md)：对象、命令和分析模式的对应关系。
-7. [仿真配方](simulation_recipes.md)：按任务组织的可执行脚本模板。
-8. [验证与故障排查](validation_and_troubleshooting.md)：结果核验、容差和错误处理。
-9. [从 OpenDSS 迁移到 RSS](opendss_to_rss.md)：完整迁移流程和数值对照方法。
-10. [DSS 到 RSS 严格转换](dss_to_rss.md)：`tensoreval --dss-to-rss`、bundle、成功条件和不支持诊断。
+1. [tensoreval 命令行与暂态仿真参考](tensoreval_cli_reference.md)：选择执行模式、准备输入、落盘输出并运行 V12 暂态。
+2. [智能体快速指南](agent_quickstart.md)：从需求选择求解器、输入和输出。
+3. [RSS 语言参考](rss_language_reference.md)：语法、求值图和多结果规则。
+4. [RSDss 函数参考](rsdss_function_reference.md)：DataFrame 变换函数。
+5. [DSA 函数参考](dsa_function_reference.md)：`import_*` 与全部 `ds_*` 入口。
+6. [DataFrame schema 参考](dataframe_schema_reference.md)：输入表的列、类型和单位。
+7. [OpenDSS 兼容矩阵](opendss_compatibility_matrix.md)：对象、命令和分析模式的对应关系。
+8. [仿真配方](simulation_recipes.md)：按任务组织的可执行脚本模板。
+9. [验证与故障排查](validation_and_troubleshooting.md)：结果核验、容差和错误处理。
+10. [从 OpenDSS 迁移到 RSS](opendss_to_rss.md)：完整迁移流程和数值对照方法。
+11. [DSS 到 RSS 严格转换](dss_to_rss.md)：`tensoreval --dss-to-rss`、bundle、成功条件和不支持诊断。
 
 机器可读索引位于 [`catalog/functions.json`](catalog/functions.json) 和
 [`catalog/dataframes.json`](catalog/dataframes.json)。Markdown 解释语义，JSON 固定名称、
@@ -57,11 +58,20 @@ RSDss 已公开相同入口。
 | [`../4bus_daily_qsts.rss`](../4bus_daily_qsts.rss) | 三时点 Daily QSTS | `bus_phase` | 36 行 OpenDSS 复电压 |
 | [`../ieee13_daily_qsts.rss`](../ieee13_daily_qsts.rss) | IEEE13 全负荷三时点 Daily QSTS | `bus_phase`, `load_state`, `summary` | 可执行行为与完整行覆盖 |
 | [`../case14_4bus_master_slave_pf.rss`](../case14_4bus_master_slave_pf.rss) | case14 正序主网 + 4Bus 三相配网主从分裂 | `bus0..3` 等各轮 DataFrame | 显式执行三轮、PCC 功率与电压交换 |
+| [`../rssbundle/Examples/DistanceRelays/DistanceRelayTest.rssbundle`](../rssbundle/Examples/DistanceRelays/DistanceRelayTest.rssbundle) | 10 ms Distance Relay 网络暂态 V12 | 15 张 V12 长表 | OpenDSS 数值、29 个事件、9 组 Relay 终态 |
+| [`../rssbundle/Examples/DistanceRelays/TD21RelayTest.rssbundle`](../rssbundle/Examples/DistanceRelays/TD21RelayTest.rssbundle) | 1 ms TD21 网络暂态 V12 | 15 张 V12 长表 | OpenDSS 数值、动作顺序/次数和 Relay 终态 |
 
 ## 运行入口
 
 ```bash
 tensoreval --df sparrowzz/dss/4bus_daily_qsts.rss
+```
+
+暂态 bundle 直接运行并把 15 张结果完整写入目录：
+
+```bash
+tensoreval --result-dir /tmp/dynamic-results \
+  sparrowzz/dss/rssbundle/Examples/DistanceRelays/DistanceRelayTest.rssbundle
 ```
 
 `--dataframe` 和 `--df` 等价。Newton 潮流、Newton QSTS 和状态估计还需要选择

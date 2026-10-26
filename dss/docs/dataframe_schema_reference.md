@@ -425,7 +425,23 @@ loss_parameter`，以及公共潮流列 `max_iter,max_control_iter,tol,line_mode
 
 ### 网络动态输入与 V12 结果
 
-`timeline` 必需 `time_s:f64`，可选 `source_scale_re=1,source_scale_im=0`。所有值必须
+`ds_network_dynamics` 的前 20 个参数是固定网络表，后 9 个位置为：
+
+| 位置 | 表 | 行数要求 |
+|---:|---|---|
+| 21 | `timeline` | 至少一行 |
+| 22 | `event` | 零行或多行 |
+| 23 | `tcc_curve` | 零行或多行 |
+| 24 | `fuse` | 零行或多行 |
+| 25 | `recloser` | 零行或多行 |
+| 26 | `relay` | 零行或多行 |
+| 27 | `fault` | 零行或多行 |
+| 28 | `spec` | 零行或一行 |
+| 29 | `para` | 零行或一行；有 `result` 时必须恰好一行 |
+
+位置不可省略或交换。零行表只表示对应子系统未配置；任何非空表都会按该位置的 schema 解析。
+
+`timeline` 必需 `time_s:f64`，可选 `source_scale_re:f64=1,source_scale_im:f64=0`。所有值必须
 有限，时刻必须严格递增。该表同时用于 `ds_network_dynamics` 和兼容入口
 `ds_motor_dynamics`。
 
@@ -450,6 +466,11 @@ max_corrector_iterations,tolerance,max_network_iterations,voltage_tolerance,rela
 max_same_time_action_rounds=16`。
 `mechanical_load` 接受 `constant_power/constant`、`speed_dependent_torque/torque` 或
 `power_law`；省略的数值取 PSA `MotorNetworkDynamicSpec` 默认值。
+
+`para` 使用公共潮流参数 `max_iter,max_control_iter,tol,line_model,base_frequency_hz`，并用
+`result:str` 选择输出。`base_frequency_hz` 必须有限且大于零；`result` 的逗号项去除首尾空白后
+按顺序返回，空项、未知名称和重复名称失败。零行 `para` 使用默认求解参数和默认结果
+`bus_voltage`。
 
 `ds_network_dynamics` 在上述输入之后还接收 `fault`。它使用保护型动态 fault schema：
 声明中至少提供故障名称、母线、故障类型和相别，并可用 `on_time/off_time` 定义生命周期；
@@ -476,6 +497,14 @@ V12 固定返回以下 15 种可选结果。逐采样电气表均以 `time_s,seq
 | `device_state` | `time_s,sequence,class,name,bus,enabled,p_w,q_var,protection_connected,protection_owner,frt_connected,effective_connected,disconnect_reason,protection_owner_count,protection_connected_phase_count,protection_required_phase_count` |
 | `generator_state` | `time_s,sequence,generator,bus,phase,enabled,energized,voltage_re,voltage_im,current_re,current_im,current_mag,current_angle_deg,p_w,q_var,e1_mag_v,rotor_angle_deg,relative_speed_rad_s,speed_pu,shaft_power_w,electrical_power_w` |
 | `device_protection_connection` | `time_s,sequence,class,name,terminal,conductor,phase,owner_type,owner,owner_connected,effective_conductor_connected,aggregate_device_connected` |
+
+电压、电流、有功、无功和角度分别使用 V、A、W、var 和 degree。`branch_current` 的电流方向为
+从端口母线流入支路；PV/Storage 的 P/Q 正值表示向网络注入，Storage 充电 P 为负；电机 P/Q
+正值表示流入电机。未配置设备族时仍返回上述固定列的零行表。
+
+外部 `timeline` 是采样要求，不是输出行数承诺。故障切换、保护到期、普通控制和 FRT 状态变化
+会插入精确内部边界；同一个 `time_s` 可以有多个 `sequence`。跨表连接使用
+`time_s,sequence` 加结果自身的设备/母线/端子/相身份列，不能只按时间或当前行号连接。
 
 ## 9. 固定结果 schema
 

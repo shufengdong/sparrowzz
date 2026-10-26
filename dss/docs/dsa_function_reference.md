@@ -243,7 +243,11 @@ fault_result = ds_dss_fault_study("run.dss", "fault_result");
 | `ds_dss_dynamic_plan` | 可选 Snapshot 初始化后的有界 `Dynamic/Dynamics` | `bus_voltage` | `bus_voltage,branch_current,source_flow,pvsystem_state,storage_state,motor_state,event,solver_trace,fault_state,protection_state,frt_state,control_state,device_state,generator_state,device_protection_connection` |
 
 `ds_dss_dynamic_plan(path, para_or_results)` 读取本地入口；三参数形式
-`ds_dss_dynamic_plan(path, source_root, para_or_results)` 为 bundle 限定依赖根。它把继承的
+`ds_dss_dynamic_plan(path, source_root, para_or_results)` 为 bundle 限定依赖根。第一个参数必须是
+本地字符串路径；最后一个参数必须是结果字符串或具名 DataFrame。直接运行
+`tensoreval run.dss` 时，自动分类为 Dynamic 后请求上述全部 15 张表；在 RSS 中调用函数时只返回
+结果字符串或 `para.result` 指定的表，缺省为 `bus_voltage`。命令行模式、落盘文件和退出码见
+[tensoreval 命令行参考](tensoreval_cli_reference.md)。它把继承的
 `h/step/stepsize`、`number`、`hour` 和 `sec/seconds` 降为一条严格等间隔 timeline，多个
 Dynamic `Solve` 必须使用同一步长且时钟连续。`MaxIterations`、`MaxControlIter` 和
 `Tolerance` 进入 PSA 求解参数；省略 `para` 时固定使用 `line_model=exact`。运行期对象修改、
@@ -433,6 +437,11 @@ result = ds_fault_location(
 
 ## 12. 网络动态与兼容入口
 
+选择规则如下：已有 DSS Dynamic/Dynamics 命令流时用 `ds_dss_dynamic_plan`；已经有类型化网络、
+timeline、事件和保护表时用 `ds_network_dynamics`；`ds_motor_dynamics` 只用于兼容旧脚本。三个
+入口均由 `tensoreval --df` 执行，直接 `.dss/.rssbundle` 的命令行行为见
+[tensoreval 暂态参考](tensoreval_cli_reference.md#5-暂态仿真的三种入口)。
+
 完整 V12 DataFrame 门面为：
 
 ```text
@@ -442,10 +451,12 @@ result = ds_fault_location(
 );
 ```
 
-固定 29 个参数。`timeline` 必需；`event`、四张保护表、`fault`、`spec` 和 `para` 可使用
-对应 schema 的零行表。第 20 位 `storage` 可非空。默认返回 `bus_voltage`，完整结果集合与
-`ds_dss_dynamic_plan` 相同，统一采用 PSA V12 的 `time_s,sequence,...` 长表契约。输入列、
-事件种类、默认值和 15 张结果表见
+固定 29 个参数。`timeline` 必需且不能是零行；`event`、四张保护表、`fault`、`spec`
+和 `para` 可使用对应 schema 的零行表。第 20 位 `storage` 可非空。`event` 描述明确时刻的操作，
+`fault` 描述带投退生命周期的保护故障对象，两者位置和 schema 不可交换。默认返回
+`bus_voltage`，完整结果集合与 `ds_dss_dynamic_plan` 相同，统一采用 PSA V12 的
+`time_s,sequence,...` 长表契约。内部事件边界可能在外部 timeline 之间产生额外时点；同刻多行
+用 `sequence` 确定动作前后顺序。输入列、事件种类、默认值和 15 张结果表见
 [网络动态输入与 V12 结果](dataframe_schema_reference.md#网络动态输入与-v12-结果)。
 
 原有电机兼容入口继续可用：
