@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 103 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 6 个单 PV VV_VW Daily 入口 |
-| 当前尚未发布的独立入口 | 156 | 259 个独立入口扣除 103 个已发布入口 |
+| 已转换并发布 bundle | 107 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 4 个 Distance/TD21 Dynamic 入口 |
+| 当前尚未发布的独立入口 | 152 | 259 个独立入口扣除 107 个已发布入口 |
 | 超时 | 0 | 无 |
 
-103 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+107 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 103 个发布入口；
-其余 156 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 107 个发布入口；
+其余 152 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -498,6 +498,26 @@ Solve 后计量动作。5 个 DOCTechNote 入口随后稳定暴露
 在同一输入上不会立即失败。报告现以 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` 记录当前可复现结果，
 后续应单独定位执行求解回退。发布总数保持 103，未发布数保持 156。
 
+### 第十九轮暂态保护结果
+
+2026-10-25 接入 `Examples/DistanceRelays` 的 4 个固定步长 Dynamic 入口。转换器现在接受
+`ControlMode=Time`、零时钟 `Time=(0,0)`、Fault 的 OpenDSS 缺省值、Relay `Like` 链、
+`RecloseIntervals=None`、`DebugTrace=No` 和只读 `Monitor Mode=32`。DataFrame V12 门面从固定
+timeline 配置 TD21 外部采样时钟；TD21 在开断期间继续记录零电流历史，并区分被监测元件自身重合闸
+的静默窗口。因此永久故障能够完成 4 次分闸、3 次重合并最终锁定。
+
+| 官方入口 | 执行规模 | OpenDSS 数值与动作门禁 |
+|---|---|---|
+| `Examples/DistanceRelays/DistanceRelayTest.DSS` | 42 条 DSS 语句、120 个 10 ms Dynamic 时点 | 29 个故障/保护事件及 9 组 Relay 终态一致；事件时刻最大差 1 个采样；稳态区间电压/电流最大缩放误差 `3.33e-8` / `2.88e-8` |
+| `Examples/DistanceRelays/ReverseDistanceRelayTest.DSS` | 42 条 DSS 语句、120 个 10 ms Dynamic 时点 | 与正向入口相同，反向监测 Relay 保持闭合；电压/电流最大缩放误差 `3.33e-8` / `2.88e-8` |
+| `Examples/DistanceRelays/TD21RelayTest.DSS` | 41 条 DSS 语句、1,200 个 1 ms Dynamic 时点 | 29 个事件、动作顺序、动作次数和 9 组终态一致；永久故障重复动作的累计时钟差最大 4 ms；稳态区间电压/电流最大缩放误差 `3.33e-8` / `5.66e-8` |
+| `Examples/DistanceRelays/ReverseTD21RelayTest.DSS` | 42 条 DSS 语句、1,200 个 1 ms Dynamic 时点 | 与正向入口相同，反向监测 Relay 不误动；电压/电流最大缩放误差 `3.33e-8` / `5.66e-8` |
+
+数值比较使用 OpenDSS `Monitor.thev Mode=32` 与 V12 `bus_voltage`/`branch_current`。为避免把两个
+求解器在离散事件边界上的先后顺序误记为电气误差，Distance 在 OpenDSS/PSA 任一事件前后 1 个
+外部步长、TD21 在任一事件前后 5 ms 不进入稳态数值统计；其余分别比较 66/120 和 935/1,200 个
+时点。四个 bundle 都从仓库复制到独立临时目录后完成自执行。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -559,7 +579,7 @@ Solve 后计量动作。5 个 DOCTechNote 入口随后稳定暴露
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 156 个尚未发布入口中逐项验证。
+   当前 152 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -582,7 +602,7 @@ Solve 后计量动作。5 个 DOCTechNote 入口随后稳定暴露
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 156 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 152 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -623,7 +643,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-103 个 `converted` 和 156 个 `unsupported`：
+107 个 `converted` 和 152 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

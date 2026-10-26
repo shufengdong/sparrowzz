@@ -101,6 +101,11 @@ Dynamic 转换把 `h/step/stepsize`、`number`、`hour`、`sec/seconds` 降为�
 并输出 V12 的 15 张可选长表。多个 Dynamic `Solve` 可累计，但步长不能改变、时钟不能回拨；
 运行期对象修改、未映射命令和设置、DynamicEq/DynOut、VCCS、用户 DLL 或 EMT 内容会
 fail closed。该适配器表示 PSA 已覆盖的 RMS/phasor 子集，不表示兼容 OpenDSS 全部暂态扩展。
+`ControlMode=Time` 和零时钟 `Time=(0,0)` 可直接导入；其他控制模式或非零时钟重置会明确失败。
+Monitor 当前只接受不改变计算的 `Mode=32` Line/Fault 观察器，电气量由 V12
+`bus_voltage`、`branch_current`、`fault_state`、`protection_state` 和 `event` 表提供。
+完整三相、整端动作的 Distance/TD21 Relay 已由 `Examples/DistanceRelays` 的 4 个官方入口覆盖；
+逐导体、不完整三相端口和其他未映射 Monitor 模式仍 fail closed。
 
 静态 Snapshot 投影只用于没有原生 `Solve` 的显式静态路径或兼容性处理。原生 `Solve` 不再
 进入该投影，而是统一交给 execution plan。投影可移除以下语句：
