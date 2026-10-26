@@ -43,6 +43,11 @@
 必须保留位置。空对象表也占据自己的槽位。当前 `import_dss` 使用静态导入 profile；
 `Solve`、运行时 `Set`、`Export` 等执行命令不能作为静态模型的一部分。
 
+这里描述的是**独立 RSS 自行读取模型**的场景。若宿主改用
+`tensoreval --df --input NAME=FILE` 注入 DataFrame，脚本必须直接引用这些 `NAME`，禁止再次
+调用 `import_dss` 读取同一模型。每个 `--input` 只注入一张表；完整潮流仍需分别注入并传递
+全部 20 张网络表和参数表。两种模式都有效，但不能在同一模型工作流中混用。
+
 需要保留受支持的单 `Solve` 时，可用 `import_dss_execution` 得到完整 33 项 QSTS bundle
 及 `diagnostics/events`；需要直接连续执行多个 `Solve` 时，使用 `ds_*_dss_plan`，不要先走
 静态 `import_dss`。
@@ -146,7 +151,18 @@ tensoreval --result-dir /tmp/dynamic-results \
 完整输入、15 张输出和 fail-closed 条件见
 [tensoreval 暂态参考](tensoreval_cli_reference.md#5-暂态仿真的三种入口)。
 
-## 7. 运行并检查
+## 7. 生成脚本的最小语法检查
+
+代码生成 Agent 在运行前必须逐项确认：
+
+- 顶层只写 `NAME = RHS;`、`[NAME1, NAME2] = RHS;` 或以 `{ ... };` 为右值的具名声明；
+- 最大依赖层 DataFrame 声明的结果绑定就是输出，不需要额外的输出语句；
+- 禁止在末尾追加 `summary;`、`voltage;` 或其他裸变量表达式；
+- `para.result` 请求的结果数量和顺序必须与左侧绑定的数量和顺序完全一致；
+- 标量只能作为后续声明消费的中间节点，不能留在最大依赖层作为最终输出；
+- 模型由脚本读取时使用 `import_dss`；模型由 `--input` 注入时直接引用绑定名，不重复导入。
+
+## 8. 运行并检查
 
 ```bash
 tensoreval --df path/to/case.rss
@@ -163,7 +179,7 @@ tensoreval --df --verbose --result-dir results path/to/case.rss
 6. 与 OpenDSS 对照时按稳定键连接，不依赖行顺序；
 7. 比较复数实部/虚部，并记录每类量的容差。
 
-## 8. 生成脚本时的禁止推断
+## 9. 生成脚本时的禁止推断
 
 - 不从 OpenDSS 属性名直接猜测 DataFrame 列名；查 schema 参考。
 - 不交换 `import_dss` 返回位置或完整网络参数位置。

@@ -84,6 +84,29 @@ QSTS 的结果时间是步末，曲线在步首采样。4Bus 对照把输出 `ti
 - 注释使用 `//` 或 `/* ... */`；
 - `#include` 是预处理指令，不是普通函数调用。
 
+### `DataFrame mixed graph only accepts variable declarations`
+
+**触发条件**：`tensoreval --df` 的顶层程序中出现了变量声明以外的语句。最常见原因是在结果
+声明后追加裸变量，试图显式选择输出：
+
+```text
+// 错误：第二行的 result; 是裸表达式
+result = select(col(value), input);
+result;
+```
+
+正确修改是删除裸表达式，只保留产生结果的具名声明：
+
+```text
+// 正确：最大依赖层的 result 绑定会自动成为输出
+result = select(col(value), input);
+```
+
+函数结果的左侧绑定已经建立依赖图节点。`if`、`for`、`return` 等普通 RustScript 语句也不能
+直接放在 `--df` 顶层；需要数值控制流时，把它放在 `name = { ... };` 声明右侧。**不要把给
+裸变量补分号写成修复方法**：`result` 和 `result;` 都不是变量声明，只有 `NAME = RHS;` 或
+`[NAME1, NAME2] = RHS;` 才合法。
+
 ### unknown variable / frame
 
 RSS 图按变量依赖求值。裸标识符在表达式参数中常被翻译为字符串字面量；DataFrame 位置的
@@ -203,6 +226,8 @@ Distance/TD21 只接纳完整三相端口和整端动作的有界子集。逐导
 ## 9. 新脚本合入前检查表
 
 - `.rss` 中解释了模型、分析、关键参数和输出；
+- `--df` 顶层只有以分号结束的具名声明，结果绑定后没有追加裸变量表达式；
+- 模型来源明确：独立脚本使用 `import_dss`，宿主 `--input` 注入时直接引用绑定名且不重复导入；
 - 使用完整网络参数，没有依赖含糊的 legacy 短形式；
 - 所有位置参数与 DSA reference 一致；
 - OpenDSS 与 RSS 使用同一电气假设和单位；

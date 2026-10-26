@@ -57,15 +57,24 @@ RSDss DataFrame 的执行路径。
 `--dataframe` 与 `--df` 等价。多个 RSS 文件按命令行顺序拼接后解析；局部 `#include` 在解析前
 展开。`.dss` 和 `.rssbundle` 必须独占位置参数，不能和其他脚本一起执行。
 
+`--df` 的顶层程序必须只包含以分号结束的具名声明。声明绑定本身参与依赖图和输出选择，禁止
+追加裸变量表达式；完整规则和正反例见
+[RSDss 顶层程序约束](rss_language_reference.md#11-顶层程序约束must)。
+
 ### 2.1 命令行 DataFrame 输入
 
 ```text
 tensoreval --df --input NAME=FILE [--input NAME2=FILE2] SCRIPT.rss
 ```
 
-每个 `NAME` 在本次命令中必须唯一且非空，并成为 RSS 顶层 DataFrame 变量。`.xls/.xlsx`
-必须只有一个工作表，`.parquet` 按 Parquet 读取，其他后缀按带表头 CSV 读取；所有行参与
-schema 推断。任一文件读取或解析失败时，在脚本求值前终止整个命令。
+每个 `NAME` 在本次命令中必须唯一且非空，并成为 RSS 求值开始前已有的 DataFrame 变量；
+脚本直接引用该 `NAME`，不需要且禁止在脚本末尾追加裸变量表达式。`.xls/.xlsx` 必须只有一个
+工作表，`.parquet` 按 Parquet 读取，其他后缀按带表头 CSV 读取；所有行参与 schema 推断。
+任一文件读取或解析失败时，在脚本求值前终止整个命令。
+
+模型输入有两种不同场景：独立 RSS 脚本自行读取 DSS 时使用 `import_dss(...)`；宿主通过
+`--input NAME=FILE` 注入模型表时，脚本直接引用这些 `NAME`，禁止再次调用 `import_dss`
+读取同一模型。每个 `--input` 只产生一张 DataFrame，不会自动展开 DSS 文件。
 
 `--input` 只适用于 `--df`；处理 `.dss` 时仅可与 `--dss-to-rss --mode bundle` 一起使用，
 此时输入文件及 schema 被写入 bundle 清单。
@@ -80,8 +89,9 @@ tensoreval --result-dir DIR [--output-format csv|parquet] 输入
 ```
 
 - `csv` 为缺省格式，写表头；`parquet` 使用 Snappy 压缩；
-- 每个结果写为 `DIR/NAME.csv` 或 `DIR/NAME.parquet`；
-- RSS 的 `NAME` 是终端输出变量名；直接 DSS 和 bundle 使用脚本声明的结果名；
+- `--df` 的结果名称来自最大依赖层 DataFrame 声明的左侧绑定；绑定本身就是输出，禁止在
+  脚本末尾追加 `NAME;`；直接 DSS 和 bundle 使用其执行脚本声明的结果名；
+- `--result-dir` 使用这些绑定名称，将每个结果写为 `DIR/NAME.csv` 或 `DIR/NAME.parquet`；
 - 结果名只能包含字母、数字、`_`、`-`、`.`，且不能是 `.` 或 `..`；
 - `--result-dir` 适用于 `--df`、直接 `.dss` 和 `.rssbundle`，不能与 `--dss-to-rss` 同用；
 - `--output-format` 必须与 `--result-dir` 同时出现；
