@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "dynamic",
+    "compatibility": "opendss-native",
+    "results": [
+      "bus_voltage",
+      "branch_current",
+      "source_flow",
+      "pvsystem_state",
+      "storage_state",
+      "motor_state",
+      "event",
+      "solver_trace",
+      "fault_state",
+      "protection_state",
+      "frt_state",
+      "control_state",
+      "device_state",
+      "generator_state",
+      "device_protection_connection"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/DistanceRelays/DistanceRelayTest.DSS",
+    "root": "dss",
+    "tree_sha256": "cd57c0b6f2890991838b1aa8bd0b080ed8867b4839a339e5ff9723daf2e9e271"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/DistanceRelays/DistanceRelayTest.DSS",
+      "role": "dss-entry",
+      "sha256": "8bea9ba30c5fa81b52541bf50cf63265d2bb2d0b55278d952cb84b99392d761c"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "2b7248f52995c9321ece1f05cd7625e91c37ffedf4df9bca7968b1b04e59ec23"
+    }
+  ],
+  "inputs": []
+}

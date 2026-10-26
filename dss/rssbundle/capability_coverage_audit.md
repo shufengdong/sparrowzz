@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：103 个入口已经发布 bundle，156 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：107 个入口已经发布 bundle，152 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫。2,900 步 P174 的导入和投影
   等价测试仍通过，但当前完整 `--check` 在 epoch 0 首次潮流求解失败。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
@@ -249,6 +249,11 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
 
 ### 其他明确能力缺口
 
+Distance/TD21 Relay 已不再是统一能力缺口。`Examples/DistanceRelays` 的 4 个官方 Dynamic
+入口已完成固定时钟、故障生命周期、方向性、重合闸/锁定、9 组 Relay 终态和 Monitor V/I
+门禁并发布 bundle。该结论只覆盖完整三相端口、整端开断和 V12 有界 RMS/phasor 合同；超出该
+边界的 Distance/TD21 配置仍由导入器明确拒绝。
+
 - 当前 12 个以 `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` 为首诊断的入口主要使用
   多成员组合 VV_VW 的非 1 `deltaP`/`deltaQ`、超出有界曲线基准或成员关系。纯 Volt-Watt 和
   单 PV VV_VW 已支持有限的 `0 < DeltaP_factor, DeltaQ_factor <= 1`；多成员合同继续要求因子为 1。
@@ -256,7 +261,7 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
 - 9 个 Storage 入口使用 `%kWrated`、`EffCurve` 或 `DebugTrace`；前两项会改变电气结果。
 - `LoadShape Action=Normalize` 已实现有界导入；其他 Action 以及 Normalize 后继续修改曲线仍没有
   可证明等价的执行合同。
-- GFM、DynEq、VCCS、用户 DLL、Distance/TD21/59N Relay、AutoTrans 未支持接法和特殊节点
+- GFM、DynEq、VCCS、用户 DLL、59N Relay、AutoTrans 未支持接法和特殊节点
   编号仍属于明确边界。
 - IEEE118 原始 53 Generator deck 虽有静态替代投影，但原生 generator 版本自身没有完成
   有界参考生成，不能列为“转换后应与 OpenDSS 一致”的确定案例。
@@ -269,7 +274,7 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 156 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 152 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
