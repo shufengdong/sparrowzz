@@ -52,6 +52,8 @@ tensoreval path/to/case.rssbundle
 | IEEE13 短路 | `voc`, `v_f`, `i_f` 的第一参与相复相量 | 同上 | `< 5e-3` |
 | IEEE34 短路 | 同上 | 同上 | `< 1e-4` |
 | 4Bus Daily QSTS | 每个 sample-time/bus/phase 的复电压 | 同上 | `< 1e-3` |
+| Distance Relay Dynamic | 稳态窗口的母线复电压/支路复电流、事件和 9 组 Relay 终态 | 数值按缩放误差；事件按顺序和时刻 | 数值 `< 3.4e-8`，事件最大差 1 个 10 ms 样本 |
+| TD21 Relay Dynamic | 稳态窗口的母线复电压/支路复电流、29 个事件和 9 组 Relay 终态 | 数值按缩放误差；动作按顺序、次数和时刻 | 数值 `< 5.7e-8`，累计动作时钟差最大 4 ms |
 
 因此 dff_script 与 PSA 使用同一批 OpenDSS fixture，但“所有 PSA 测试共用一个容差”并不
 成立。PSA 不同对象族和量测有各自的 `QuantitySpec` 与 tolerance。新增 RSS 案例时，应复用
@@ -164,7 +166,41 @@ element/terminal/phase 稳定键，不能按行号比较。
 使用 release；只计算需要的 `h_max`；先在 IEEE13 验证频谱和输出，再扩到更大馈线。
 debug 下 CIGRE-LV 整网谐波可能需要约 30 分钟，不应据此判断死锁。
 
-## 8. 新脚本合入前检查表
+## 8. 暂态仿真排查
+
+### timeline 或 Dynamic 时钟失败
+
+显式表入口检查 `timeline.time_s` 是否有限、非空并严格递增。DSS 入口检查 `h/step/stepsize`
+是否始终为同一个正数，以及多个 `Solve` 的 `hour/sec/seconds` 是否连续。不要用非零
+`Time=(hour,sec)` 重置掩盖回拨；当前 adapter 会 fail closed。
+
+### 同一时刻出现重复结果
+
+这通常是正确的动作边界，不是重复计算。故障投入/切除、保护到期、普通控制和 FRT 状态变化
+可以在同一个 `time_s` 形成动作前后多个 `sequence`。按 `(time_s,sequence,身份列)` 排序和
+连接，不要只保留每个时间的第一行或最后一行。
+
+### 暂态运行成功但保护结果不对
+
+同时检查：
+
+1. `event.applied` 和 `reason` 是否表明输入动作真正执行；
+2. `protection_state` 的量测、pickup、timer、operation、pending action 和 locked-out；
+3. `device_state` 的保护 owner、有效连接和断开原因；
+4. `device_protection_connection` 的 terminal/conductor/phase、owner 连接和聚合连接；
+5. `solver_trace.converged` 以及残差是否在动作前后都有效。
+
+Distance/TD21 只接纳完整三相端口和整端动作的有界子集。逐导体端口、DynamicEq/DynOut、VCCS、
+用户 DLL、EMT 或未映射 Monitor 不会退化运行，而会返回稳定诊断。
+
+### 暂态数值比较在事件附近放大
+
+先用 OpenDSS/PSA 两侧事件的并集确定排除窗口，再比较其余稳态采样。当前已发布 Distance 案例
+排除任一事件前后 1 个外部步长，TD21 排除任一事件前后 5 ms；窗口只用于数值统计，事件顺序、
+次数、动作时刻和最终状态仍须单独比较。完整命令和 15 张结果解释见
+[tensoreval 暂态参考](tensoreval_cli_reference.md#8-v12-暂态输出)。
+
+## 9. 新脚本合入前检查表
 
 - `.rss` 中解释了模型、分析、关键参数和输出；
 - 使用完整网络参数，没有依赖含糊的 legacy 短形式；
@@ -175,4 +211,5 @@ debug 下 CIGRE-LV 整网谐波可能需要约 30 分钟，不应据此判断死
 - 直接 `tensoreval --df` 运行通过；
 - 对应发布前集成测试通过；
 - 大型谐波测试在 release 下运行；
+- 暂态结果按 `time_s,sequence` 和设备身份列连接，并检查 solver/event/终态三类证据；
 - 文档、案例和机器可读 catalog 同步更新。

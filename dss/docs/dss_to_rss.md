@@ -4,7 +4,8 @@
 `tensoreval --df` 执行的
 `.rss` 脚本。转换器在写文件前展开并审计本地 `Redirect`/`Compile` 文件树，按 PSA
 当前契约导入全部电气内容，并用所选 PSA 求解器实际求解一次。任一步失败都不会留下部分
-可执行脚本。
+可执行脚本。`tensoreval` 的全部输入模式、输出文件和暂态 V12 结果见
+[命令行与暂态仿真参考](tensoreval_cli_reference.md)。
 
 ## 1. 命令
 

@@ -7,7 +7,8 @@ RSDss 是面向 DataFrame 和配电系统分析的 RustScript 方言。`.rss` �
 
 本文说明 RSDss 的词法、赋值、DataFrame 函数和列表达式语义。每个函数的精确参数和行为见
 [RSDss 函数参考](rsdss_function_reference.md)，DSA 入口见
-[DSA 函数参考](dsa_function_reference.md)。
+[DSA 函数参考](dsa_function_reference.md)。命令行输入组合、结果落盘、DSS/bundle 执行和暂态
+工作流见 [tensoreval 命令行与暂态仿真参考](tensoreval_cli_reference.md)。
 
 ## 1. 执行模式与语法边界
 

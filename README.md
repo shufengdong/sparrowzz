@@ -12,7 +12,22 @@ Each folder contains paired `*.model` / `*.solution` files:
 - `*.model` is the input model text consumed by the solver
 - `*.solution` is the reference (ground-truth) result for validation
 
-All other top-level folders are currently **work in progress (WIP)**.
+## Distribution simulation with tensoreval
+
+- [dss/](dss/) contains the public RSS distribution-system examples and the complete `tensoreval`
+  documentation for power flow, QSTS, harmonics, short circuit, state estimation, Monte Carlo,
+  restoration, protection, fault location, DSS conversion, and bounded RMS/phasor transient studies.
+- Start with the [tensoreval command-line and transient reference](dss/docs/tensoreval_cli_reference.md)
+  for input modes, output files, the 29-argument DataFrame dynamic facade, and all 15 V12 transient
+  result tables.
+
+```text
+tensoreval --df sparrowzz/dss/ieee13_power_flow.rss
+tensoreval --result-dir /tmp/dynamic-results \
+  sparrowzz/dss/rssbundle/Examples/DistanceRelays/DistanceRelayTest.rssbundle
+```
+
+All other top-level folders not listed as stable suites or `dss/` are currently **work in progress (WIP)**.
 
 ## Other directories (WIP)
 
@@ -20,10 +35,8 @@ The following top-level directories are under active development and are not par
 
 - [data/](data/)
 - [index/](index/)
-- [rsdss/](rsdss/)
 - [rspower/](rspower/)
 - [rustscript/](rustscript/)
-- [target/](target/)
 
 ## CLI usage (model selection)
 
