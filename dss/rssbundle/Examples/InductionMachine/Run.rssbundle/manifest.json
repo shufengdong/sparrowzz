@@ -1,0 +1,146 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "dynamic",
+    "compatibility": "opendss-native",
+    "results": [
+      "bus_voltage",
+      "branch_current",
+      "source_flow",
+      "pvsystem_state",
+      "storage_state",
+      "motor_state",
+      "event",
+      "solver_trace",
+      "fault_state",
+      "protection_state",
+      "frt_state",
+      "control_state",
+      "device_state",
+      "generator_state",
+      "device_protection_connection"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InductionMachine/Run.dss",
+    "root": "dss",
+    "tree_sha256": "6b837f53f0dc555cea50b276bfe404221f42bd1cb24e4c8f928d1b56aa245f06"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InductionMachine/BusCoords.dat",
+      "role": "data-asset",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Capacitor.dss",
+      "role": "dss-source",
+      "sha256": "8855fc1523daa849954c68a2a46f6ffea355e559c508fc85f2cae9cc664b8660"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Fault.dss",
+      "role": "dss-source",
+      "sha256": "be4c8b21927d71b0e259c8c922a81a08cd3b0f42a3c91476bdcd445e4f4a643e"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Fuse.dss",
+      "role": "dss-source",
+      "sha256": "c34002ecb8a1791e21c57c50e0986ce49783453ea570bb184ef3805955fb7367"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/GrowthShape.dss",
+      "role": "dss-source",
+      "sha256": "41b019f3062ae332e35984c84fb3144df22b0dc4a9722e94bc37f975959f59ec"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/IndMach012.dss",
+      "role": "dss-source",
+      "sha256": "2ee205b762d8e2dd9ea3f4bbd347489e486fb7b41ee53ab06c5d8986245ad9e0"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/LineCode.dss",
+      "role": "dss-source",
+      "sha256": "5b4dd4ec46056c40c3dad51393a587c84e5d00f64c65e6363325d8b0128ffa5b"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Load.dss",
+      "role": "dss-source",
+      "sha256": "713688d45d643a3c39227a5625ebf6119b580864c3c887715e98d691e080daee"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/LoadShape.dss",
+      "role": "dss-source",
+      "sha256": "eba33cbc11efe6917d147d7d8d5cbe0743e7e6da2e69ba2b1f95828949147a47"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Master.DSS",
+      "role": "dss-source",
+      "sha256": "8ced290b2d2e3a4203c199184f49d96be96ae5df4f2af2b8bd7c1376252b1ee0"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Monitor.dss",
+      "role": "dss-source",
+      "sha256": "411529d19d4850281dadcaeac46329867352665399f3bd56a8e3d9b721802c55"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Recloser.dss",
+      "role": "dss-source",
+      "sha256": "316c6540e51efc7df85c08bfecf38ac7a4ab07974de71775d3dd8a2b9868e9fc"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/RegControl.dss",
+      "role": "dss-source",
+      "sha256": "096ae2cf447a278478c7333ef866cc6f45141a1fe72db49988b818db05391cdf"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Relay.dss",
+      "role": "dss-source",
+      "sha256": "1bc9d2ece706eef316fccb480a5578e873885992604a0f9c955cb4303c765325"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Run.dss",
+      "role": "dss-entry",
+      "sha256": "546058ea4701d6cf084ffa0af2ac6ef0391f0ef344215ecea60b168ef0bd7913"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Spectrum.dss",
+      "role": "dss-source",
+      "sha256": "d0a01558a272003b91d79af55a43de8fe1e0e925f01e7957c8687b3752f40766"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/TCC_Curve.dss",
+      "role": "dss-source",
+      "sha256": "c2143f91dfd5d6d7186b03bf4ddabffb281b72da733fcd66329e00bb2fe31cb0"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Transformer.dss",
+      "role": "dss-source",
+      "sha256": "91dc7995954ba0d41a37fb148818a846f75466231b515e7acaa25c964885aa46"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/Vsource.dss",
+      "role": "dss-source",
+      "sha256": "98fe7a7af5dd939b076e59ebd08b9170cdae705641691c1be75ecd335c344c3d"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/line.dss",
+      "role": "dss-source",
+      "sha256": "06067f44df14e732b7e25959618bf4e88f796afd5b9e4dfdc19e61e38a692735"
+    },
+    {
+      "path": "dss/Examples/InductionMachine/wpwind2400.csv",
+      "role": "data-asset",
+      "sha256": "c1ca290614528c1ff6a54504bd4956e87bbb232f38b99865ed02e34f94c8da4c"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "3bf5656bf36ab04add1cba8320bca2b9056260d3b26b23bc4fc8b38424cd1f9b"
+    }
+  ],
+  "inputs": []
+}

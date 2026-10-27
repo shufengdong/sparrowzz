@@ -4413,6 +4413,8 @@
         "p_rated": "list<f64>",
         "i_max": "list<f64>",
         "s_max": "list<f64>",
+        "inverter_efficiency_curve_x": "list<f64>",
+        "inverter_efficiency_curve_y": "list<f64>",
         "v_nom": "f64",
         "sc_r_pct": "f64",
         "sc_x_pct": "f64",
@@ -4551,6 +4553,20 @@
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "inverter_efficiency_curve_x",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": true,
+            "unit": "pu_active_power_per_rated_va"
+          },
+          {
+            "name": "inverter_efficiency_curve_y",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": true,
+            "unit": "pu_efficiency"
           },
           {
             "name": "v_nom",
@@ -4734,9 +4750,52 @@
           "flat_list_to_matrix",
           "scalar_to_string_list"
         ],
-        "rules": [],
+        "rules": [
+          {
+            "type": "paired_presence",
+            "fields": [
+              "inverter_efficiency_curve_x",
+              "inverter_efficiency_curve_y"
+            ]
+          },
+          {
+            "type": "equal_length",
+            "fields": [
+              "inverter_efficiency_curve_x",
+              "inverter_efficiency_curve_y"
+            ],
+            "minimumLength": 2
+          },
+          {
+            "type": "strictly_increasing",
+            "field": "inverter_efficiency_curve_x",
+            "minimum": 0.0,
+            "minimumInclusive": true
+          },
+          {
+            "type": "range",
+            "field": "inverter_efficiency_curve_y",
+            "minimum": 0.0,
+            "minimumInclusive": false,
+            "maximum": 1.0,
+            "maximumInclusive": true,
+            "each": true
+          },
+          {
+            "type": "conditional_required",
+            "required": [
+              "s_max"
+            ],
+            "when": {
+              "field": "inverter_efficiency_curve_x",
+              "present": true
+            }
+          }
+        ],
         "source": [
-          "psa/src/dsa/parse/storage.rs"
+          "psa/src/dsa/parse/storage.rs",
+          "psa/src/dsa/devices/storage.rs",
+          "psa/src/dsa/parse/dss_import.rs"
         ],
         "shape": "uniform"
       }

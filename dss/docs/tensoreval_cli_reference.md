@@ -163,9 +163,18 @@ DSS 动态入口必须满足：
 - `h/step/stepsize` 必须形成有限、严格为正且固定的外部步长；
 - `number`、`hour`、`sec/seconds` 必须形成连续、不能回拨的时钟；多个 Dynamic `Solve` 可累计，
   但不能在中途改变步长；
-- `MaxIterations`、`MaxControlIter` 和 `Tolerance` 映射到 PSA 求解参数；
+- `MaxControlIter` 映射到 PSA 潮流控制参数；`Tolerance` 同时映射到潮流参数与动态网络耦合
+  容差，省略时 native Dynamic 门面使用 OpenDSS 默认值 `1e-4`。`MaxIterations` 映射到基础
+  潮流参数；对算法不同的 PSA 动态网络迭代，它只能提高、不能降低默认的 40 次预算；
+- 前置 Snapshot 使用 DSS `Vsource` 的实际 `pu`/电压幅值收敛 STATIC RegControl/CapControl，
+  再从最终 tap/step 初始化 t=0 动态设备；进入 Dynamic 后普通控制按 Time 延时队列继续运行；
 - `ControlMode=Time` 和零时钟 `Time=(0,0)` 可导入；其他控制模式或非零时钟重置失败；
-- Fault、TCC_Curve、Fuse、Recloser、受支持 Relay 和只读 `Monitor Mode=32` 按有界合同导入；
+- Fault、TCC_Curve、Fuse、Recloser 和受支持 Relay 按有界合同导入；无曲线 Voltage Relay 作为
+  永不拾取的保护对象保留；
+- 只读 Monitor 仅接受 mode 0 的 Line/Transformer、mode 3 的 IndMach012、mode 5 的 Vsource，
+  以及 mode 32 的 Line/Fault，并投影到现有 V12 结果表；
+- IndMach012 的 Daily/Yearly/Duty 曲线会完整校验并保留，但原生动态运行时不采样；其他设备的
+  Dynamic 曲线消费者仍失败关闭；
 - 运行期对象修改、未映射 `Set`、Open/Close/Enable/Disable、DynamicEq/DynOut、VCCS、用户 DLL、
   EMT、逐导体保护动作和未覆盖对象失败关闭。
 
