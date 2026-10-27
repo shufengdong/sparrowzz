@@ -18,9 +18,17 @@
 10. [从 OpenDSS 迁移到 RSS](opendss_to_rss.md)：完整迁移流程和数值对照方法。
 11. [DSS 到 RSS 严格转换](dss_to_rss.md)：`tensoreval --dss-to-rss`、bundle、成功条件和不支持诊断。
 
-机器可读索引位于 [`catalog/functions.json`](catalog/functions.json) 和
-[`catalog/dataframes.json`](catalog/dataframes.json)。Markdown 解释语义，JSON 固定名称、
-参数位置和 schema，生成脚本时应同时参考两者。
+机器可读合同由三个互补目录组成：
+
+- [`catalog/functions.json`](catalog/functions.json) 固定函数分派名称、规范 arity、参数组和结果名；
+- [`catalog/dataframes.json`](catalog/dataframes.json) 固定各输入、输出 DataFrame 的列 schema；
+- [`catalog/study_facades.json`](catalog/study_facades.json) 是 DataFrame 研究门面的权威机器合同，
+  把每个函数的每个位置参数映射到精确 `schemaRef`，并用 `inputKind=model|data|struct`
+  声明输入类别。
+
+生成器必须联合读取三者。禁止根据函数名、参数名或对 PSA 源码的猜测推断输入类别；同名
+参数在不同门面可以引用不同 schema，例如两类 `measurement` 和恢复重构、短路研究使用的
+两类 `fault`。
 
 ## 可信来源
 
@@ -36,10 +44,10 @@
 一个可运行案例。不能根据 OpenDSS 属性名推测 RSS 列名，也不能根据 PSA 内部结构推测
 RSDss 已公开相同入口。
 
-文档发布流程会运行目录一致性检查，核对两个 JSON 的版本和内部引用、完整网络顺序、全部公开 DSA 名称、Rust
-`*_RESULT_NAMES` 常量与 catalog 结果列表、QSTS 状态/轨迹构造器的固定列，以及 Markdown
-本地链接；潮流的 11 张详细结果表也直接与 PSA DataFrame 构造器核对。它不会替代 Rust
-编译和仿真案例测试。
+文档发布流程会运行目录一致性检查，核对三个 JSON 的版本和内部引用、完整网络顺序、全部
+DataFrame 研究门面、Rust `*_RESULT_NAMES` 常量与 catalog 结果列表、QSTS 状态、计量和轨迹
+构造器的固定列，以及 Markdown 本地链接；潮流的 11 张详细结果表也直接与 PSA DataFrame
+构造器核对。它不会替代 Rust 编译和仿真案例测试。
 
 ## 已验证案例
 
