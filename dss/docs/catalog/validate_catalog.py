@@ -177,6 +177,165 @@ def schema_at(dataframes, reference):
     return value
 
 
+def schema_fields(schema):
+    fields = set()
+    for key in (
+        "required",
+        "optional",
+        "defaults",
+        "required_additional",
+        "optional_additional",
+    ):
+        value = schema.get(key) if isinstance(schema, dict) else None
+        if isinstance(value, dict):
+            fields.update(value)
+    if isinstance(schema, dict):
+        for key in ("columns", "columns_before_time_metadata", "prefix_columns"):
+            value = schema.get(key)
+            if isinstance(value, list):
+                fields.update(item for item in value if isinstance(item, str))
+    return fields
+
+
+def validate_base_schemas(dataframes):
+    references = {}  # type: Dict[str, str]
+
+    def collect(value, path):
+        if isinstance(value, dict):
+            if "base_schema" in value:
+                reference = value["base_schema"]
+                if not isinstance(reference, str) or not reference or "." not in reference:
+                    fail(f"{path}.base_schema must use a complete catalog path")
+                try:
+                    schema_at(dataframes, reference)
+                except AssertionError:
+                    fail(f"unknown base_schema {reference} at {path}")
+                references[path] = reference
+            for key, item in value.items():
+                collect(item, f"{path}.{key}" if path else key)
+        elif isinstance(value, list):
+            for index, item in enumerate(value):
+                collect(item, f"{path}[{index}]")
+
+    collect(dataframes, "")
+
+    visited = set()  # type: Set[str]
+    active = []
+
+    def visit(path):
+        if path in active:
+            cycle = active[active.index(path) :] + [path]
+            fail("circular base_schema reference: " + " -> ".join(cycle))
+        if path in visited:
+            return
+        active.append(path)
+        target = references.get(path)
+        if target in references:
+            visit(target)
+        active.pop()
+        visited.add(path)
+
+    for path in references:
+        visit(path)
+
+
+def validate_result_constraints(function, facade, dataframes, result_names, recommended):
+    constraints = facade.get("resultConstraints")
+    if not isinstance(constraints, list) or not constraints:
+        fail(f"{function} must define resultConstraints")
+
+    inputs = facade["inputs"]
+    inputs_by_id = {item["id"]: item for item in inputs}
+    inputs_by_alias = {item["alias"]: item for item in inputs}
+    defaults = []
+
+    def result_list(constraint, kind):
+        results = constraint.get("results")
+        if not isinstance(results, list) or not results:
+            fail(f"{function} {kind}.results must be a non-empty list")
+        if any(not isinstance(name, str) or not name for name in results):
+            fail(f"{function} {kind}.results must contain non-empty strings")
+        if len(results) != len(set(results)):
+            fail(f"{function} {kind}.results must be unique")
+        unknown = set(results) - set(result_names)
+        if unknown:
+            fail(f"{function} {kind} references unknown results {sorted(unknown)}")
+        return results
+
+    for index, constraint in enumerate(constraints):
+        if not isinstance(constraint, dict):
+            fail(f"{function} resultConstraints[{index}] must be an object")
+        kind = constraint.get("type")
+        if not isinstance(kind, str):
+            fail(f"{function} resultConstraints[{index}].type must be a string")
+
+        if kind == "ordered_unique_selection":
+            selector = constraint.get("selector")
+            if not isinstance(selector, str) or not selector.strip() or "." not in selector:
+                fail(f"{function} ordered_unique_selection.selector must be a dotted string")
+            minimum = constraint.get("minimum")
+            if isinstance(minimum, bool) or not isinstance(minimum, int) or minimum < 1:
+                fail(f"{function} ordered_unique_selection.minimum must be an integer >= 1")
+            if constraint.get("bindingCount") != "selected_result_count":
+                fail(
+                    f"{function} ordered_unique_selection.bindingCount "
+                    "must equal selected_result_count"
+                )
+            components = selector.split(".")
+            selector_input = inputs_by_alias.get(components[0])
+            if selector_input is None or selector_input["inputKind"] != "struct":
+                fail(
+                    f"{function} ordered_unique_selection selector must start with a Struct input alias"
+                )
+            selector_schema = schema_at(dataframes, selector_input["schemaRef"])
+            if components[-1] not in schema_fields(selector_schema):
+                fail(
+                    f"{function} ordered_unique_selection selector has unknown schema field "
+                    f"{components[-1]}"
+                )
+        elif kind == "default_results":
+            defaults.append(kind)
+            selected = result_list(constraint, kind)
+            if not set(selected).issubset(recommended):
+                fail(f"{function} recommended results do not include its default result set")
+        elif kind == "fixed_results":
+            defaults.append(kind)
+            selected = result_list(constraint, kind)
+            binding_count = constraint.get("bindingCount")
+            if isinstance(binding_count, bool) or not isinstance(binding_count, int):
+                fail(f"{function} fixed_results.bindingCount must be an integer")
+            if binding_count != len(selected):
+                fail(
+                    f"{function} fixed_results.bindingCount must equal its result count "
+                    f"{len(selected)}"
+                )
+            if selected != result_names:
+                fail(f"{function} fixed_results must equal the facade result list")
+            if not set(selected).issubset(recommended):
+                fail(f"{function} recommended results do not include its fixed result set")
+        elif kind == "conditional_unavailable":
+            result = constraint.get("result")
+            if not isinstance(result, str) or not result:
+                fail(f"{function} conditional_unavailable.result must be a non-empty string")
+            if result not in result_names:
+                fail(f"{function} conditional_unavailable references unknown result {result}")
+            when = constraint.get("when")
+            if not isinstance(when, dict):
+                fail(f"{function} conditional_unavailable.when must be an object")
+            input_id = when.get("input")
+            if not isinstance(input_id, str) or not input_id:
+                fail(f"{function} conditional_unavailable.when.input must be a non-empty string")
+            if input_id not in inputs_by_id:
+                fail(f"{function} conditional_unavailable references unknown input {input_id}")
+            if not isinstance(when.get("nonEmpty"), bool):
+                fail(f"{function} conditional_unavailable.when.nonEmpty must be boolean")
+        else:
+            fail(f"{function} has unknown result constraint {kind}")
+
+    if len(defaults) != 1:
+        fail(f"{function} must define exactly one default_results or fixed_results constraint")
+
+
 def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
     if study_facades.get("schema_version") != 1:
         fail("study_facades.json must use schema_version 1")
@@ -287,31 +446,7 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
         if not recommended:
             fail(f"{function} must recommend at least one result")
 
-        constraints = facade.get("resultConstraints")
-        if not isinstance(constraints, list) or not constraints:
-            fail(f"{function} must define resultConstraints")
-        constrained_default = None
-        for constraint in constraints:
-            kind = constraint.get("type")
-            if kind not in {"ordered_unique_selection", "default_results", "fixed_results", "conditional_unavailable"}:
-                fail(f"{function} has unknown result constraint {kind}")
-            referenced = constraint.get("results", [])
-            if referenced and not set(referenced).issubset(names):
-                fail(f"{function} result constraint references unknown results {referenced}")
-            if kind in {"default_results", "fixed_results"}:
-                if not referenced:
-                    fail(f"{function} {kind} must name at least one result")
-                constrained_default = set(referenced)
-            if kind == "conditional_unavailable":
-                if constraint.get("result") not in names:
-                    fail(f"{function} conditional constraint references an unknown result")
-                condition_input = constraint.get("when", {}).get("input")
-                if condition_input not in input_ids:
-                    fail(f"{function} conditional constraint references unknown input {condition_input}")
-        if constrained_default is None:
-            fail(f"{function} must declare default_results or fixed_results")
-        if not constrained_default.issubset(recommended):
-            fail(f"{function} recommended results do not include its default/fixed result set")
+        validate_result_constraints(function, facade, dataframes, names, recommended)
 
     by_function = {facade["function"]: facade for facade in facades}
     for group in [
@@ -404,6 +539,7 @@ def main():
             f"extra={sorted(actual_dsa - registered_dsa)}"
         )
 
+    validate_base_schemas(dataframes)
     validate_study_facades(functions, dataframes, study_facades, dsa_by_name)
 
     for name in sorted(registered_dsa):
