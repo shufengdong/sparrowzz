@@ -18,10 +18,10 @@
 10. [从 OpenDSS 迁移到 RSS](opendss_to_rss.md)：完整迁移流程和数值对照方法。
 11. [DSS 到 RSS 严格转换](dss_to_rss.md)：`tensoreval --dss-to-rss`、bundle、成功条件和不支持诊断。
 
-机器可读合同由三个互补目录组成：
+机器可读合同的格式见 [`catalog/README.md`](catalog/README.md)，由三个互补目录组成：
 
 - [`catalog/functions.json`](catalog/functions.json) 固定函数分派名称、规范 arity、参数组和结果名；
-- [`catalog/dataframes.json`](catalog/dataframes.json) 固定各输入、输出 DataFrame 的列 schema；
+- [`catalog/dataframes.json`](catalog/dataframes.json) 固定各输入、Struct 参数卡和输出 DataFrame 的完整执行 schema、dtype grammar 与继承规则；
 - [`catalog/study_facades.json`](catalog/study_facades.json) 是 DataFrame 研究门面的权威机器合同，
   把每个函数的每个位置参数映射到精确 `schemaRef`，并用 `inputKind=model|data|struct`
   声明输入类别。

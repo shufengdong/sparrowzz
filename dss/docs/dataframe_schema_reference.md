@@ -1,9 +1,9 @@
 # DataFrame schema 参考
 
 本文记录 RSS 中直接构造或传给 `ds_*` 的 DataFrame 契约。列名区分大小写，表内对象名的
-解析通常不区分 ASCII 大小写。类型写作 `str`、`bool`、`u32`、`f64`、`list<str>` 和
-`list<f64>`；脚本中的整数常可由 Polars 转为解析器需要的数值类型，但新脚本应尽量按表中
-类型构造。
+解析通常不区分 ASCII 大小写。完整类型语法、Arrow/Parquet 映射、nullable、受控上传转换、
+Struct 参数卡和结果继承规则以 [机器目录格式](catalog/README.md)及
+`catalog/dataframes.json.dtype_grammar` 为准。自然语言表格用于阅读，不得覆盖机器合同。
 
 除非单独说明，电气量使用 SI：电压 V、电流 A、有功 W、无功 var、视在功率 VA、阻抗
 ohm、时间 s、频率 Hz、角度 rad。DSS 导入器负责把 OpenDSS 常用的 kV、kW、kvar、kVA
@@ -14,8 +14,9 @@ ohm、时间 s、频率 Hz、角度 rad。DSS 导入器负责把 OpenDSS 常用�
 [`catalog/study_facades.json`](catalog/study_facades.json) 是全部已注入 DataFrame `ds_*`
 研究门面的权威参数映射。它逐函数、逐位置给出 `inputKind` 和指向本文件同一 snapshot 中
 [`catalog/dataframes.json`](catalog/dataframes.json) 的 `schemaRef`；函数名、arity 和结果名仍由
-[`catalog/functions.json`](catalog/functions.json) 定义。调用方必须读取这三份合同，禁止根据
-函数名或参数名猜测输入类别。
+[`catalog/functions.json`](catalog/functions.json) 定义。目录格式见
+[`catalog/README.md`](catalog/README.md)。调用方必须读取这三份合同，禁止根据函数名或参数名
+猜测输入类别、列类型、默认值或结果结构。
 
 分类语义固定为：
 
