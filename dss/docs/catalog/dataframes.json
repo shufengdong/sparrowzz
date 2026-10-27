@@ -2613,7 +2613,7 @@
         "save_harmonic",
         "save_frequency_hz"
       ],
-      "base_schema": "harmonic_monitor",
+      "base_schema": "result_frames.harmonic_monitor",
       "schema_source": "psa/src/dsa/harmonics/monitor.rs"
     },
     "fault": {
