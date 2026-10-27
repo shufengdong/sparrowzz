@@ -172,6 +172,16 @@ ExpControl 时，分别用从 0 连续递增的 `invcontrol_member_order` 或
 `expcontrol_member_order` 固定 OpenDSS DERList/PVSystemList 的逐设备顺序；这些序号
 不表示 fleet、权重或优先级。
 
+### `storage`
+
+除额定能量、SOC 和充放电效率外，Storage 可选使用成对的
+`inverter_efficiency_curve_x/y:list<f64>` 表示 OpenDSS `EffCurve`。两列必须同时出现、
+长度相等且至少含两个点；X 必须非负并严格递增，Y 必须在 `(0,1]`，同时必须提供
+`s_max`。X 是交流端有功绝对值与设备额定 VA 的比值，Y 是逆变器效率，运行时线性插值并
+按端点斜率外推。放电能量顺序为“交流输出除以曲线效率、加空载损耗、再除以放电效率”；
+充电顺序为“交流输入乘曲线效率、扣空载损耗、再乘充电效率”。机器调用方必须以
+[`catalog/dataframes.json`](catalog/dataframes.json) 的 `frames.storage.contract` 为准。
+
 ### `control_profile`
 
 `name` 必需，`enabled` 默认 true。`mode` 支持 `VOLTVAR`, `VOLTWATT`,

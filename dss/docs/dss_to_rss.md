@@ -102,9 +102,21 @@ Dynamic 转换把 `h/step/stepsize`、`number`、`hour`、`sec/seconds` 降为�
 并输出 V12 的 15 张可选长表。多个 Dynamic `Solve` 可累计，但步长不能改变、时钟不能回拨；
 运行期对象修改、未映射命令和设置、DynamicEq/DynOut、VCCS、用户 DLL 或 EMT 内容会
 fail closed。该适配器表示 PSA 已覆盖的 RMS/phasor 子集，不表示兼容 OpenDSS 全部暂态扩展。
+`Tolerance` 同时约束基础潮流与动态网络耦合，省略时采用 OpenDSS 缺省值 `1e-4`。
+`MaxIterations` 约束基础潮流迭代；对算法不同的 PSA 动态网络耦合迭代，它只能提高、不能降低
+默认的 40 次预算。`MaxControlIter` 约束基础潮流控制迭代。
 `ControlMode=Time` 和零时钟 `Time=(0,0)` 可直接导入；其他控制模式或非零时钟重置会明确失败。
-Monitor 当前只接受不改变计算的 `Mode=32` Line/Fault 观察器，电气量由 V12
-`bus_voltage`、`branch_current`、`fault_state`、`protection_state` 和 `event` 表提供。
+若 Dynamic 前有 Snapshot `Solve`，`ds_dss_dynamic_plan` 先按 DSS `Vsource` 的实际 `pu`/电压
+幅值和 STATIC 控制队列收敛 RegControl/CapControl，再以该终态初始化 t=0 动态设备；进入
+Dynamic 后普通控制按 `ControlMode=Time` 的延时队列继续运行。结果中的 STATIC 控制行是初始化
+审计，后续 TIME 行是动态时钟上的控制状态，调用方不应把初始 tap 重置为 1.0。
+Monitor 当前只接受不改变计算的有界观察器：mode 0 的 Line/Transformer 投影到
+`bus_voltage`/`branch_current`，mode 3 的 IndMach012 投影到 `motor_state`，mode 5 的 Vsource
+投影到 V12 时间轴和 `solver_trace` 可表示的求解状态子集，mode 32 的 Line/Fault 投影到电气量、
+故障、保护和事件表。转换不会另行生成 OpenDSS 原生 Monitor 缓冲区；每个投影均返回
+`PSA.DSS.DYNAMIC.MONITOR_PROJECTED` 警告。
+IndMach012 的 Daily/Yearly/Duty LoadShape 会完整解析、校验引用并保留在 motor 输入中，但当前
+原生动态运行时不采样；Load/Generator/PVSystem/Storage 的 Dynamic 曲线消费者仍失败关闭。
 完整三相、整端动作的 Distance/TD21 Relay 已由 `Examples/DistanceRelays` 的 4 个官方入口覆盖；
 逐导体、不完整三相端口和其他未映射 Monitor 模式仍 fail closed。
 
@@ -211,9 +223,11 @@ DSS import produced findings that can change OpenDSS results
 基线重扫结果是：10 个官方原始入口通过严格检查、生成 bundle 并完成构建期自执行；589 个文件
 是没有独立研究命令的模型或公共依赖片段；另有 249 个独立入口因当时未映射的生命周期、对象
 属性、路径、执行顺序或求解问题失败，没有文件超时。后续只在这 249 个独立入口中做定向改造，
-目前另有 93 个入口通过并发布，总计 103 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
-HarmonicT，以及 `Examples/FreqScan/Run_Scan.dss` 的 188 点非整数频率扫描；不包含对官方文件的
-删改或静态化包装。
+目前另有 109 个入口通过并发布，总计 119 个官方原始入口。新增入口包括 Snapshot/QSTS、
+FaultStudy、HarmonicT、固定步长 Dynamic，以及 `Examples/FreqScan/Run_Scan.dss` 的 188 点
+非整数频率扫描；不包含对官方文件的删改或静态化包装。Dynamic 入口
+`Examples/InductionMachine/Run.dss` 已完成 Snapshot 初始化、5,000 步连续执行、共享目标保护动作、
+调压器终态和便携 bundle 自执行门禁；完整证据见实时清单。
 
 纯模型 `IEEE123Master.dss` 另用 `--study snapshot` 完成定向检查和 bundle 自执行，但因原文件
 没有研究命令，不计入无 `--study` 扫描的 10 个可运行入口。实时清单、全部剩余诊断和 IEEE8500
