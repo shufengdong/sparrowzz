@@ -81,6 +81,12 @@ class CatalogValidatorTests(unittest.TestCase):
         self.write("dataframes.json", catalog)
         self.assert_invalid("circular base_schema")
 
+    def test_rejects_base_schema_that_targets_an_array(self):
+        catalog = self.read("dataframes.json")
+        catalog["result_frames"]["harmonic_monitor_save"]["base_schema"] = "result_frames.harmonic_monitor.columns"
+        self.write("dataframes.json", catalog)
+        self.assert_invalid("base_schema.*schema object")
+
     def test_rejects_constraint_with_missing_required_field(self):
         catalog = self.read("study_facades.json")
         constraint = self.constraint(self.facade(catalog, "ds_radial_pf"), "ordered_unique_selection")
@@ -143,6 +149,37 @@ class CatalogValidatorTests(unittest.TestCase):
         constraint["selector"] = "para.missing"
         self.write("study_facades.json", catalog)
         self.assert_invalid("selector.*unknown schema field")
+
+    def test_rejects_selector_with_nested_path(self):
+        catalog = self.read("study_facades.json")
+        constraint = self.constraint(self.facade(catalog, "ds_radial_pf"), "ordered_unique_selection")
+        constraint["selector"] = "para.nonexistent.result"
+        self.write("study_facades.json", catalog)
+        self.assert_invalid("selector.*<structAlias>.<field>")
+
+    def test_rejects_selectable_results_without_selection_constraint(self):
+        catalog = self.read("study_facades.json")
+        facade = self.facade(catalog, "ds_radial_pf")
+        facade["resultConstraints"] = [
+            item for item in facade["resultConstraints"] if item["type"] != "ordered_unique_selection"
+        ]
+        self.write("study_facades.json", catalog)
+        self.assert_invalid("selectable result mode")
+
+    def test_rejects_selection_constraint_with_fixed_results(self):
+        catalog = self.read("study_facades.json")
+        facade = self.facade(catalog, "ds_wls_se")
+        facade["resultConstraints"].insert(
+            0,
+            {
+                "type": "ordered_unique_selection",
+                "selector": "para.result",
+                "minimum": 1,
+                "bindingCount": "selected_result_count",
+            },
+        )
+        self.write("study_facades.json", catalog)
+        self.assert_invalid("fixed result mode")
 
 
 if __name__ == "__main__":
