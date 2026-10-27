@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/StorageTechNote/Example_9_4_External/Storage_external.dss",
+    "root": "dss",
+    "tree_sha256": "7fa4713128835ff07db010d96a602481d15457de9c5bbb1beff71d521066548f"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/StorageTechNote/Example_9_4_External/Storage_external.dss",
+      "role": "dss-entry",
+      "sha256": "9b5546fdf47abfbadf2abd10fd1db0af7616ba571ae41073ac45da96e20b262d"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "b54e67ce2a47603f8d9b6fb7a76a11c591548ef797725998c62cf15edfb8b337"
+    }
+  ],
+  "inputs": []
+}

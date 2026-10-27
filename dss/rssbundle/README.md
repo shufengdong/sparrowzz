@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 125 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 4 个 PFPriority+InvControl 和 2 个 MonitoredVoltage 入口 |
-| 当前尚未发布的独立入口 | 134 | 259 个独立入口扣除 125 个已发布入口 |
+| 已转换并发布 bundle | 131 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 6 个 StorageTechNote 入口 |
+| 当前尚未发布的独立入口 | 128 | 259 个独立入口扣除 131 个已发布入口 |
 | 超时 | 0 | 无 |
 
-125 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+131 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 125 个发布入口；
-其余 134 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 131 个发布入口；
+其余 128 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -612,6 +612,33 @@ release `tensoreval`（SHA-256
 逐入口原始指标见 [`numerical_comparison.csv`](numerical_comparison.csv)。发布总数由 119 增至
 125，尚未发布数由 140 降至 134。
 
+### 第二十四轮 Storage DebugTrace 与 EffCurve 闭环
+
+2026-10-28 使用按 `--no-default-features --features with_dsa_mumps,tensoreval-cli` 重建的
+release `tensoreval`（SHA-256
+`56127dd321e97da9875abc19c20e27598ae56d36aeb8fa3f9a53c6a12ce0c29e`），重扫
+StorageTechNote 和 StorageControllerTechNote 的 14 个独立入口。PSA 现按 OpenDSS 语义接入
+`DebugTrace`、`EffCurve`、Daily 的 24×1h 默认调度、Monitor 终端默认值、Storage mode 1/3
+监视器、跨 Solve 的 SOC 延续、`State`/`kW` 源顺序副作用、FOLLOW 恒 kvar 和 PF 空闲损耗。
+
+下面 6 个未修改的官方入口均严格转换为 portable bundle、自执行成功，并与 OpenDSSDirect.py
+逐时比较 24 个样本。门禁同时覆盖 `State`、`kWh`、`kWOut`、`kWIn`、`kvarOut`、`InvEff`
+和三相 P/Q；能量按 500 kWh、功率按 50 kVA、效率按 1 归一化，统一门限为 `1e-3`：
+
+| 官方入口 | 最大归一化误差 | RMS 归一化误差 | 最差通道 |
+|---|---:|---:|---|
+| `Example_9_1_Default/Storage_default.dss` | `2.42539e-5` | `4.17131e-6` | `Storage1.kvarOut@11h` |
+| `Example_9_2_Follow/Storage_follow.dss` | `2.42533e-5` | `3.29827e-6` | `Storage1.Q3@2h` |
+| `Example_9_3_Price/Storage_price.dss` | `2.42539e-5` | `4.17294e-6` | `Storage1.kvarOut@17h` |
+| `Example_9_4_External/Storage_external.dss` | `2.67944e-8` | `7.87727e-9` | `Storage1.kWh@21h` |
+| `Example_9_5_ReactivePower/Constantkvar_9_5_1/Storage_follow_kvar.dss` | `3.77232e-5` | `1.04712e-5` | `Storage1.kWh@20h` |
+| `Example_9_5_ReactivePower/ConstantPF_9_5_2/Storage_follow_PF.dss` | `3.73155e-5` | `1.03063e-5` | `Storage1.kWh@6h` |
+
+8 个 StorageControllerTechNote 入口已越过原先的 `EffCurve`/`DebugTrace` 阻断，当前首个真实缺口
+统一为 execution-plan `BatchEdit`：关闭全部 CapControl/RegControl、为全部 Load 绑定 Daily 曲线；
+其中 PeakShaveDch/PeakShaveLow_Ch 还批量设置 `%stored=20`。这些入口尚未发布，也未计入本轮
+数值通过数。发布总数由 125 增至 131，尚未发布数由 134 降至 128。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -673,7 +700,7 @@ release `tensoreval`（SHA-256
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 134 个尚未发布入口中逐项验证。
+   当前 128 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -696,7 +723,7 @@ release `tensoreval`（SHA-256
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 134 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 128 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -707,7 +734,8 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 |---:|---|---|---|
 | 23 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
 | 15 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 基线扫描时请求 Dynamic、Direct 等当时尚无转换适配器的生命周期；InductionMachine Dynamic 已重扫并发布，其他 Dynamic 仍需复核，Direct 仍未支持。 |
-| 18 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage 属性尚无无损映射。 |
+| 8 | `unsupported` | `PSA.DSS.EXECUTION.COMMAND_UNSUPPORTED` | StorageController 入口的 `BatchEdit` 尚无有序执行映射。 |
+| 4 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | 其他 Storage 属性尚无无损映射。 |
 | 9 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
 | 3 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SET_UNSUPPORTED` | `Set` 选项尚无可验证的 RSS 执行语义。 |
 | 8 | `unsupported` | `REQUEST.SOURCE.ESCAPES_ROOT` | 数据资产引用越过本次允许的获取根。 |
@@ -736,7 +764,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-125 个 `converted` 和 134 个 `unsupported`：
+131 个 `converted` 和 128 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

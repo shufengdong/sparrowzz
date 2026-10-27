@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/StorageTechNote/Example_9_5_ReactivePower/ConstantPF_9_5_2/Storage_follow_PF.dss",
+    "root": "dss",
+    "tree_sha256": "19d7622f3e5610f3e581669cc907ca530537d3b32977e272d42954950f02abf5"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/StorageTechNote/Example_9_5_ReactivePower/ConstantPF_9_5_2/Storage_follow_PF.dss",
+      "role": "dss-entry",
+      "sha256": "db66efd4f3cd27ac36e15e56cd41001397e8a078e8feba2caec33dae7fa59214"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "539fa13dacba984772ad9b5e0fd1e9b4108f60d4c28699bc2c7ab16768e4abea"
+    }
+  ],
+  "inputs": []
+}
