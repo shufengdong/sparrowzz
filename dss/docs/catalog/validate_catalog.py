@@ -207,9 +207,11 @@ def validate_base_schemas(dataframes):
                 if not isinstance(reference, str) or not reference or "." not in reference:
                     fail(f"{path}.base_schema must use a complete catalog path")
                 try:
-                    schema_at(dataframes, reference)
+                    target = schema_at(dataframes, reference)
                 except AssertionError:
                     fail(f"unknown base_schema {reference} at {path}")
+                if not isinstance(target, dict):
+                    fail(f"{path}.base_schema must reference a schema object, got {reference}")
                 references[path] = reference
             for key, item in value.items():
                 collect(item, f"{path}.{key}" if path else key)
@@ -248,6 +250,7 @@ def validate_result_constraints(function, facade, dataframes, result_names, reco
     inputs_by_id = {item["id"]: item for item in inputs}
     inputs_by_alias = {item["alias"]: item for item in inputs}
     defaults = []
+    selection_count = 0
 
     def result_list(constraint, kind):
         results = constraint.get("results")
@@ -270,6 +273,7 @@ def validate_result_constraints(function, facade, dataframes, result_names, reco
             fail(f"{function} resultConstraints[{index}].type must be a string")
 
         if kind == "ordered_unique_selection":
+            selection_count += 1
             selector = constraint.get("selector")
             if not isinstance(selector, str) or not selector.strip() or "." not in selector:
                 fail(f"{function} ordered_unique_selection.selector must be a dotted string")
@@ -282,6 +286,11 @@ def validate_result_constraints(function, facade, dataframes, result_names, reco
                     "must equal selected_result_count"
                 )
             components = selector.split(".")
+            if len(components) != 2 or any(not component for component in components):
+                fail(
+                    f"{function} ordered_unique_selection selector must use "
+                    "<structAlias>.<field>"
+                )
             selector_input = inputs_by_alias.get(components[0])
             if selector_input is None or selector_input["inputKind"] != "struct":
                 fail(
@@ -334,6 +343,16 @@ def validate_result_constraints(function, facade, dataframes, result_names, reco
 
     if len(defaults) != 1:
         fail(f"{function} must define exactly one default_results or fixed_results constraint")
+    if defaults[0] == "default_results" and selection_count != 1:
+        fail(
+            f"{function} selectable result mode requires exactly one "
+            "ordered_unique_selection and one default_results constraint"
+        )
+    if defaults[0] == "fixed_results" and selection_count != 0:
+        fail(
+            f"{function} fixed result mode requires exactly one fixed_results constraint "
+            "and no ordered_unique_selection"
+        )
 
 
 def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
