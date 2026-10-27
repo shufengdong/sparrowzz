@@ -167,6 +167,9 @@ terminal_map_from, terminal_map_to`。可选 `open` 给出开断状态，`i_max`
 `gfm_angle_source`, `r_ohm`, `x_ohm`, `droop_p`, `droop_q`。PV 可用
 `pmpp`, `irradiance`, `pct_pmpp`, 温度字段、`pv_pt_curve_x/y`、`pv_eff_curve_x/y`、
 `inverter_efficiency`, `cut_in/cut_out`, `var_follow_inverter` 描述阵列和逆变器。
+`watt_priority` 在视在功率越限时优先保持有功；`pf_priority` 对固定功率因数设备按同一比例
+缩放 P/Q。DSS 导入的 `pf_priority=true` + InvControl 只覆盖单 PV、单 Volt-Watt 且未启用
+`watt_priority`/`LimitCurrent` 的有界子集，其他组合 fail closed。
 `q_setpoint` 优先于控制配置中的定功率因数。多个设备共享 bounded InvControl 或
 ExpControl 时，分别用从 0 连续递增的 `invcontrol_member_order` 或
 `expcontrol_member_order` 固定 OpenDSS DERList/PVSystemList 的逐设备顺序；这些序号
