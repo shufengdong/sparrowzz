@@ -212,6 +212,12 @@ def validate_base_schemas(dataframes):
                     fail(f"unknown base_schema {reference} at {path}")
                 if not isinstance(target, dict):
                     fail(f"{path}.base_schema must reference a schema object, got {reference}")
+                components = reference.split(".")
+                if len(components) != 2 or any(not component for component in components):
+                    fail(
+                        f"{path}.base_schema must use "
+                        f"<catalogSection>.<schemaName>, got {reference}"
+                    )
                 references[path] = reference
             for key, item in value.items():
                 collect(item, f"{path}.{key}" if path else key)

@@ -87,6 +87,12 @@ class CatalogValidatorTests(unittest.TestCase):
         self.write("dataframes.json", catalog)
         self.assert_invalid("base_schema.*schema object")
 
+    def test_rejects_base_schema_that_targets_a_nested_field_map(self):
+        catalog = self.read("dataframes.json")
+        catalog["result_frames"]["harmonic_monitor_save"]["base_schema"] = "frames.bus.required"
+        self.write("dataframes.json", catalog)
+        self.assert_invalid("base_schema.*<catalogSection>.<schemaName>")
+
     def test_rejects_constraint_with_missing_required_field(self):
         catalog = self.read("study_facades.json")
         constraint = self.constraint(self.facade(catalog, "ds_radial_pf"), "ordered_unique_selection")
