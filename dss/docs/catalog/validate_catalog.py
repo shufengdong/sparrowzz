@@ -5,7 +5,7 @@ import json
 import re
 import sys
 from pathlib import Path
-from typing import Any, Dict, Set
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 
 ROOT = Path(__file__).resolve().parents[4]
@@ -179,6 +179,13 @@ def schema_at(dataframes, reference):
 
 def schema_fields(schema):
     fields = set()
+    contract = schema.get("contract") if isinstance(schema, dict) else None
+    if isinstance(contract, dict) and isinstance(contract.get("columns"), list):
+        fields.update(
+            item.get("name")
+            for item in contract["columns"]
+            if isinstance(item, dict) and isinstance(item.get("name"), str)
+        )
     for key in (
         "required",
         "optional",
@@ -246,6 +253,380 @@ def validate_base_schemas(dataframes):
     for path in references:
         visit(path)
 
+
+
+_DTYPE_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
+_DTYPE_GENERIC = re.compile(r"^([A-Za-z_][A-Za-z0-9_]*)<(.+)>$")
+
+
+def validate_dtype_grammar(dataframes):
+    grammar = dataframes.get("dtype_grammar")
+    if not isinstance(grammar, dict) or grammar.get("version") != 1:
+        fail("dataframes.dtype_grammar must use version 1")
+    for key in ("primitives", "constructors", "semantic_types", "upload_conversions"):
+        if not isinstance(grammar.get(key), dict):
+            fail(f"dtype_grammar.{key} must be an object")
+    names = set(grammar["primitives"]) | set(grammar["semantic_types"])
+    if len(names) != len(grammar["primitives"]) + len(grammar["semantic_types"]):
+        fail("dtype grammar primitive and semantic names must be disjoint")
+    for name, definition in grammar["primitives"].items():
+        if not _DTYPE_NAME.fullmatch(name) or not isinstance(definition, dict):
+            fail(f"invalid primitive dtype definition {name}")
+        for field in ("arrow", "parquet", "logical"):
+            if not isinstance(definition.get(field), str) or not definition[field]:
+                fail(f"primitive dtype {name} lacks {field}")
+    for name, definition in grammar["constructors"].items():
+        if not _DTYPE_NAME.fullmatch(name) or not isinstance(definition, dict):
+            fail(f"invalid dtype constructor definition {name}")
+        if definition.get("arity") != 1:
+            fail(f"dtype constructor {name} must declare arity 1")
+        for field in ("arrow", "parquet"):
+            if not isinstance(definition.get(field), str) or "{element}" not in definition[field]:
+                fail(f"dtype constructor {name} lacks a machine {field} template")
+        if not isinstance(definition.get("nullableElements"), bool):
+            fail(f"dtype constructor {name} must declare nullableElements")
+    for name, definition in grammar["semantic_types"].items():
+        if not _DTYPE_NAME.fullmatch(name) or not isinstance(definition, dict):
+            fail(f"invalid semantic dtype definition {name}")
+        if not isinstance(definition.get("accepts"), list) or not definition["accepts"]:
+            fail(f"semantic dtype {name} must declare accepted physical dtypes")
+        for field in ("canonicalArrow", "canonicalParquet"):
+            if not isinstance(definition.get(field), str) or not definition[field]:
+                fail(f"semantic dtype {name} lacks {field}")
+    return grammar
+
+
+def parse_dtype(dtype, grammar, location):
+    if not isinstance(dtype, str) or not dtype:
+        fail(f"{location} dtype must be a non-empty string")
+    names = set(grammar["primitives"]) | set(grammar["semantic_types"])
+    if dtype in names:
+        return
+    match = _DTYPE_GENERIC.fullmatch(dtype)
+    if match is None:
+        if any(token in dtype for token in "<>"):
+            fail(f"invalid dtype syntax {dtype} at {location}")
+        fail(f"undeclared dtype {dtype} at {location}")
+    constructor, inner = match.groups()
+    if constructor not in grammar["constructors"]:
+        fail(f"undeclared dtype constructor {constructor} at {location}")
+    # The grammar is unary. Reject commas and malformed nesting rather than
+    # accepting an undocumented multi-argument expression.
+    depth = 0
+    for char in inner:
+        if char == "<":
+            depth += 1
+        elif char == ">":
+            depth -= 1
+            if depth < 0:
+                fail(f"invalid dtype syntax {dtype} at {location}")
+        elif char == "," and depth == 0:
+            fail(f"invalid dtype syntax {dtype} at {location}")
+    if depth != 0:
+        fail(f"invalid dtype syntax {dtype} at {location}")
+    parse_dtype(inner, grammar, location)
+
+
+def _top_level_schema(dataframes, reference):
+    components = reference.split(".")
+    if len(components) != 2 or any(not component for component in components):
+        fail(f"schema reference must use <catalogSection>.<schemaName>, got {reference}")
+    schema = schema_at(dataframes, reference)
+    if not isinstance(schema, dict):
+        fail(f"schemaRef {reference} does not identify a schema object")
+    return schema
+
+
+def resolve_contract_columns(dataframes, reference, active=None):
+    active = [] if active is None else active
+    if reference in active:
+        cycle = active[active.index(reference):] + [reference]
+        fail("circular base_schema reference: " + " -> ".join(cycle))
+    schema = _top_level_schema(dataframes, reference)
+    contract = schema.get("contract")
+    if not isinstance(contract, dict):
+        fail(f"prose-only or incomplete schema {reference}: missing contract")
+    local = contract.get("columns")
+    if not isinstance(local, list):
+        fail(f"prose-only or incomplete schema {reference}: contract.columns must be a list")
+    local_names = []
+    for index, column in enumerate(local):
+        if not isinstance(column, dict) or not isinstance(column.get("name"), str) or not column["name"]:
+            fail(f"{reference}.contract.columns[{index}] must define a name")
+        local_names.append(column["name"])
+    if len(local_names) != len(set(local_names)):
+        fail(f"{reference} contract has duplicate local columns")
+    base = schema.get("base_schema")
+    if not base:
+        return list(local)
+    base_columns = resolve_contract_columns(dataframes, base, active + [reference])
+    base_names = {column["name"] for column in base_columns}
+    conflicts = [name for name in local_names if name in base_names]
+    if conflicts:
+        fail(f"base_schema column conflict in {reference}: {', '.join(conflicts)}")
+    merge = contract.get("baseMerge")
+    if not isinstance(merge, dict) or merge.get("override") != "forbidden":
+        fail(f"{reference}.contract.baseMerge must forbid overrides")
+    order = merge.get("order")
+    if order == "base_then_local":
+        return base_columns + list(local)
+    if order == "local_then_base":
+        return list(local) + base_columns
+    fail(f"{reference}.contract.baseMerge.order is invalid")
+
+
+def _facade_references(study_facades):
+    direct = {}
+    for facade in study_facades["facades"]:
+        function = facade["function"]
+        for role, entries in (("input", facade["inputs"]), ("result", facade["results"])):
+            for entry in entries:
+                direct.setdefault(entry["schemaRef"], set()).add((function, role))
+    return direct
+
+
+def _affected_text(affected, reference):
+    rows = affected.get(reference, set())
+    return ", ".join(sorted(function for function, _ in rows)) or "none"
+
+
+def _contract_error(affected, reference, detail):
+    fail(f"{detail}; schema={reference}; affected facades=[{_affected_text(affected, reference)}]")
+
+
+def _rule_field_references(rule):
+    values = []
+    for key in ("field", "left", "rightField", "lengthField"):
+        value = rule.get(key)
+        if isinstance(value, str):
+            values.append(value)
+    for key in ("fields", "required", "optional", "enabled"):
+        value = rule.get(key)
+        if isinstance(value, list):
+            values.extend(item for item in value if isinstance(item, str))
+    when = rule.get("when")
+    if (
+        isinstance(when, dict)
+        and "input" not in when
+        and isinstance(when.get("field"), str)
+    ):
+        values.append(when["field"])
+    return values
+
+
+def _validate_card(reference, column, all_fields, affected):
+    name = column["name"]
+    card = column.get("card")
+    expected = {"default", "unit", "range", "enum", "visibleWhen", "enabledWhen"}
+    if not isinstance(card, dict) or set(card) != expected:
+        _contract_error(affected, reference, f"Struct card metadata incomplete at {reference}.{name}")
+    default = card["default"]
+    if not isinstance(default, dict) or default.get("state") not in {"value", "required", "omitted"}:
+        _contract_error(affected, reference, f"invalid default state at {reference}.{name}")
+    if default["state"] == "value" and "value" not in default:
+        _contract_error(affected, reference, f"default value missing at {reference}.{name}")
+    if default["state"] != "value" and "value" in default:
+        _contract_error(affected, reference, f"non-value default carries a value at {reference}.{name}")
+    for key in ("unit", "range", "enum"):
+        value = card[key]
+        if not isinstance(value, dict) or value.get("state") not in {"value", "bounded", "values", "not_applicable"}:
+            _contract_error(affected, reference, f"invalid {key} metadata at {reference}.{name}")
+    bounded = card["range"]
+    if bounded["state"] == "bounded":
+        for key in ("minimumInclusive", "maximumInclusive"):
+            if not isinstance(bounded.get(key), bool):
+                _contract_error(affected, reference, f"range {key} missing at {reference}.{name}")
+        if "minimum" not in bounded or "maximum" not in bounded:
+            _contract_error(affected, reference, f"range bounds missing at {reference}.{name}")
+    enum = card["enum"]
+    if enum["state"] == "values" and (not isinstance(enum.get("values"), list) or not enum["values"]):
+        _contract_error(affected, reference, f"enum values missing at {reference}.{name}")
+    for key in ("visibleWhen", "enabledWhen"):
+        value = card[key]
+        if not isinstance(value, dict) or value.get("state") not in {"always", "condition"}:
+            _contract_error(affected, reference, f"invalid {key} at {reference}.{name}")
+        if value["state"] == "condition":
+            when = value.get("when")
+            if not isinstance(when, dict) or when.get("field") not in all_fields:
+                _contract_error(affected, reference, f"{key} references unknown field at {reference}.{name}")
+
+
+def _validate_contract(dataframes, reference, expected_kind, grammar, affected):
+    schema = _top_level_schema(dataframes, reference)
+    contract = schema.get("contract")
+    if not isinstance(contract, dict):
+        _contract_error(affected, reference, f"prose-only or incomplete schema {reference}")
+    required_contract_fields = {
+        "kind", "rowCount", "columnPolicy", "columns", "stableKeys", "sortKeys",
+        "columnAliases", "allowedConversions", "rules", "source", "shape"
+    }
+    missing = required_contract_fields - set(contract)
+    if missing:
+        _contract_error(affected, reference, f"prose-only or incomplete schema {reference}: missing {sorted(missing)}")
+    if contract.get("kind") != expected_kind:
+        _contract_error(affected, reference, f"contract kind differs: expected {expected_kind}, got {contract.get('kind')}")
+    valid_rows = {"zero", "one", "zero_or_one", "zero_or_more", "one_or_more"}
+    if contract.get("rowCount") not in valid_rows:
+        _contract_error(affected, reference, f"invalid rowCount {contract.get('rowCount')}")
+    policy = contract.get("columnPolicy")
+    if not isinstance(policy, dict) or policy.get("mode") not in {"closed", "open", "dynamic"}:
+        _contract_error(affected, reference, "columnPolicy must declare closed, open or dynamic mode")
+    if policy["mode"] in {"closed", "open"} and policy.get("unknownColumns") not in {"forbidden", "ignored"}:
+        _contract_error(affected, reference, "columnPolicy must declare unknownColumns behavior")
+    if policy["mode"] == "dynamic" and not isinstance(policy.get("rules"), list):
+        _contract_error(affected, reference, "dynamic columnPolicy requires machine rules")
+    for key in ("stableKeys", "sortKeys", "allowedConversions", "rules", "source"):
+        if not isinstance(contract.get(key), list):
+            _contract_error(affected, reference, f"contract.{key} must be a list")
+    if not contract["source"] or any(not isinstance(value, str) or not value for value in contract["source"]):
+        _contract_error(affected, reference, "contract.source must cite parser, builder or test evidence")
+    for source in contract["source"]:
+        source_path = source.split("::", 1)[0]
+        if "://" not in source_path and not (ROOT / source_path).exists():
+            _contract_error(affected, reference, f"contract.source does not exist: {source}")
+    if not isinstance(contract.get("columnAliases"), dict):
+        _contract_error(affected, reference, "contract.columnAliases must be an object")
+    try:
+        columns = resolve_contract_columns(dataframes, reference)
+    except AssertionError as error:
+        _contract_error(affected, reference, str(error))
+    if not columns:
+        _contract_error(affected, reference, "prose-only or incomplete schema has no resolved columns")
+    names = [column["name"] for column in columns]
+    for index, column in enumerate(columns):
+        name = column["name"]
+        for key in ("dtype", "required", "nullable", "unit"):
+            if key not in column:
+                _contract_error(affected, reference, f"column metadata missing {key} at {reference}.{name}")
+        if not isinstance(column["required"], bool) or not isinstance(column["nullable"], bool):
+            _contract_error(affected, reference, f"required/nullable must be boolean at {reference}.{name}")
+        if not isinstance(column["unit"], str) or not column["unit"]:
+            _contract_error(affected, reference, f"unit must be explicit at {reference}.{name}")
+        try:
+            parse_dtype(column["dtype"], grammar, f"{reference}.{name}")
+        except AssertionError as error:
+            _contract_error(affected, reference, str(error))
+    for key in ("stableKeys", "sortKeys"):
+        unknown = set(contract[key]) - set(names)
+        if unknown:
+            _contract_error(affected, reference, f"contract.{key} references unknown fields {sorted(unknown)}")
+    for alias, canonical in contract["columnAliases"].items():
+        if not isinstance(alias, str) or canonical not in names:
+            _contract_error(affected, reference, f"column alias {alias} has unknown target {canonical}")
+    unknown_conversions = set(contract["allowedConversions"]) - set(grammar["upload_conversions"])
+    if unknown_conversions:
+        _contract_error(affected, reference, f"unknown upload conversions {sorted(unknown_conversions)}")
+    virtual_fields = set()
+    discriminator = contract.get("discriminator")
+    if isinstance(discriminator, dict) and discriminator.get("synthetic") is True:
+        virtual_fields.add(discriminator.get("field"))
+    for rule_index, rule in enumerate(contract["rules"]):
+        if not isinstance(rule, dict) or not isinstance(rule.get("type"), str):
+            _contract_error(affected, reference, f"rule {rule_index} must have a machine type")
+        unknown = set(_rule_field_references(rule)) - set(names) - virtual_fields
+        if unknown:
+            _contract_error(affected, reference, f"rule {rule_index} references unknown fields {sorted(unknown)}")
+    if expected_kind == "struct":
+        if contract["rowCount"] not in {"zero", "one", "zero_or_one"}:
+            _contract_error(affected, reference, "Struct rowCount must be zero, one or zero_or_one")
+        for column in columns:
+            _validate_card(reference, column, set(names), affected)
+    shape = contract.get("shape")
+    if shape not in {"uniform", "discriminated"}:
+        _contract_error(affected, reference, "contract.shape must be uniform or discriminated")
+    discriminator = contract.get("discriminator")
+    variants = contract.get("variants")
+    if shape == "uniform":
+        if discriminator is not None or variants is not None:
+            _contract_error(affected, reference, "uniform schema must not declare discriminator or variants")
+    else:
+        if not isinstance(discriminator, dict) or not isinstance(variants, list) or not variants:
+            _contract_error(affected, reference, "discriminated schema requires discriminator and non-empty variants")
+        field = discriminator.get("field")
+        source = discriminator.get("source")
+        if source not in {"column", "presence", "external_struct"}:
+            _contract_error(affected, reference, "discriminator.source must be column, presence or external_struct")
+        if source == "column" and field not in names:
+            _contract_error(affected, reference, f"discriminator references unknown field {field}")
+        if source == "presence" and discriminator.get("synthetic") is not True:
+            _contract_error(affected, reference, "presence discriminator must be explicitly synthetic")
+        if not isinstance(field, str) or not field:
+            _contract_error(affected, reference, "discriminator must define a field")
+        ids = []
+        for variant in variants:
+            if not isinstance(variant, dict) or not isinstance(variant.get("id"), str) or not variant["id"]:
+                _contract_error(affected, reference, "variant must define a stable id")
+            ids.append(variant["id"])
+            when = variant.get("when")
+            if not isinstance(when, dict) or not any(key in when for key in ("equals", "notEquals", "in", "present")):
+                _contract_error(affected, reference, f"variant {variant['id']} lacks a machine when clause")
+            present = when.get("present", [])
+            if present and (not isinstance(present, list) or any(item not in names for item in present)):
+                _contract_error(affected, reference, f"variant {variant['id']} presence discriminator references unknown fields")
+            unknown = set(_rule_field_references(variant)) - set(names)
+            if unknown:
+                _contract_error(affected, reference, f"variant {variant['id']} references unknown fields {sorted(unknown)}")
+            for side_schema in variant.get("sideSchemas", []):
+                try:
+                    _top_level_schema(dataframes, side_schema)
+                except AssertionError as error:
+                    _contract_error(affected, reference, f"variant {variant['id']} has invalid side schema: {error}")
+        if len(ids) != len(set(ids)):
+            _contract_error(affected, reference, "variant ids must be unique")
+    return columns
+
+
+def validate_catalog_contracts(dataframes, study_facades):
+    grammar = validate_dtype_grammar(dataframes)
+    direct = _facade_references(study_facades)
+    affected = {reference: set(rows) for reference, rows in direct.items()}
+    # Propagate facade context through every base_schema edge so a low-level
+    # diagnostic names each public facade whose effective contract is broken.
+    changed = True
+    while changed:
+        changed = False
+        for reference, rows in list(affected.items()):
+            schema = _top_level_schema(dataframes, reference)
+            base = schema.get("base_schema")
+            if base:
+                before = len(affected.setdefault(base, set()))
+                affected[base].update(rows)
+                changed |= len(affected[base]) != before
+    model_refs = {entry["schemaRef"] for facade in study_facades["facades"] for entry in facade["inputs"] if entry["inputKind"] == "model"}
+    data_refs = {entry["schemaRef"] for facade in study_facades["facades"] for entry in facade["inputs"] if entry["inputKind"] == "data"}
+    struct_refs = {entry["schemaRef"] for facade in study_facades["facades"] for entry in facade["inputs"] if entry["inputKind"] == "struct"}
+    result_refs = {entry["schemaRef"] for facade in study_facades["facades"] for entry in facade["results"]}
+    expected = {}
+    for kind, refs in (("model", model_refs), ("data", data_refs), ("struct", struct_refs), ("result", result_refs)):
+        for reference in refs:
+            if reference in expected and expected[reference] != kind:
+                _contract_error(affected, reference, f"schema used as both {expected[reference]} and {kind}")
+            expected[reference] = kind
+    # Include base schemas using the consuming schema kind; incompatible use is rejected.
+    queue = list(expected)
+    while queue:
+        reference = queue.pop()
+        schema = _top_level_schema(dataframes, reference)
+        base = schema.get("base_schema")
+        if not base:
+            continue
+        kind = expected[reference]
+        if base in expected and expected[base] != kind:
+            _contract_error(affected, base, f"base schema kind conflict {expected[base]} versus {kind}")
+        if base not in expected:
+            expected[base] = kind
+            queue.append(base)
+    for reference in sorted(expected):
+        _validate_contract(dataframes, reference, expected[reference], grammar, affected)
+    return {
+        "facades": len(study_facades["facades"]),
+        "models": len(model_refs),
+        "data": len(data_refs),
+        "structs": len(struct_refs),
+        "results": len(result_refs),
+        "resolvedResults": len({reference for reference, kind in expected.items() if kind == "result"}),
+        "diagnostics": 0,
+    }
 
 def validate_result_constraints(function, facade, dataframes, result_names, recommended):
     constraints = facade.get("resultConstraints")
@@ -531,7 +912,7 @@ def registered_dsa_names(source):
 
 def validate_local_links():
     link_pattern = re.compile(r"\[[^\]]+\]\(([^)]+)\)")
-    for markdown in DOCS.glob("*.md"):
+    for markdown in DOCS.rglob("*.md"):
         for target in link_pattern.findall(markdown.read_text(encoding="utf-8")):
             path_text = target.split("#", 1)[0]
             if not path_text or "://" in path_text or path_text.startswith("mailto:"):
@@ -545,8 +926,10 @@ def main():
     functions = load_json(FUNCTIONS)
     dataframes = load_json(DATAFRAMES)
     study_facades = load_json(STUDY_FACADES)
-    if functions.get("schema_version") != 2 or dataframes.get("schema_version") != 2:
-        fail("both catalogs must use schema_version 2")
+    if functions.get("schema_version") != 2:
+        fail("functions.json must use schema_version 2")
+    if dataframes.get("schema_version") != 3:
+        fail("dataframes.json must use schema_version 3")
 
     translate = TRANSLATE.read_text(encoding="utf-8")
     frame_ops = FRAME_OPS.read_text(encoding="utf-8")
@@ -566,6 +949,7 @@ def main():
 
     validate_base_schemas(dataframes)
     validate_study_facades(functions, dataframes, study_facades, dsa_by_name)
+    contract_stats = validate_catalog_contracts(dataframes, study_facades)
 
     for name in sorted(registered_dsa):
         quoted = f'"{name}"'
@@ -663,9 +1047,11 @@ def main():
     validate_local_links()
     print(
         f"validated {len(actual_dsa)} DSA functions, "
-        f"{len(study_facades['facades'])} DataFrame study facades, "
-        f"{len(dataframes['analysis_inputs'])} analysis inputs and "
-        f"{len(dataframes['result_frames'])} result contracts"
+        f"{contract_stats['facades']} DataFrame study facades, "
+        f"{contract_stats['models']} model, {contract_stats['data']} data, "
+        f"{contract_stats['structs']} struct and {contract_stats['results']} direct "
+        f"result schemas ({contract_stats['resolvedResults']} including inherited bases), "
+        "zero completeness diagnostics"
     )
     return 0
 

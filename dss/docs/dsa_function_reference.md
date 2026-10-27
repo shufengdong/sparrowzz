@@ -20,8 +20,9 @@
 DataFrame 研究门面的参数分类与 schema 映射以
 [`catalog/study_facades.json`](catalog/study_facades.json) 为权威合同。
 [`catalog/functions.json`](catalog/functions.json) 仍负责函数分派和 arity，
-[`catalog/dataframes.json`](catalog/dataframes.json) 仍负责具体表结构。调用方必须读取 facade
-中逐参数的 `inputKind` 和 `schemaRef`，禁止根据参数名推断；`required=true` 表示该位置必须
+[`catalog/dataframes.json`](catalog/dataframes.json) 仍负责具体表结构。机器字段格式见
+[`catalog/README.md`](catalog/README.md)。调用方必须读取 facade 中逐参数的 `inputKind` 和
+`schemaRef`，禁止根据参数名推断；`required=true` 表示该位置必须
 传一张 DataFrame，允许零行时也不能省略位置。
 
 Radial/Newton、WLS/MNMR/MCE、网络动态/电机动态分别是独立门面。用户明确选择算法后，

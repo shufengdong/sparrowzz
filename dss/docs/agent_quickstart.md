@@ -4,7 +4,9 @@
 [DSA 函数参考](dsa_function_reference.md) 和
 [DataFrame schema 参考](dataframe_schema_reference.md) 为准。代码生成器还必须读取
 [`catalog/study_facades.json`](catalog/study_facades.json)：它是逐门面参数位置、
-`inputKind` 和 `schemaRef` 的权威机器合同。禁止从函数名或参数名自行推断输入类别。
+`inputKind` 和 `schemaRef` 的权威机器合同；列 dtype、Struct 参数卡和结果继承由
+[`catalog/dataframes.json`](catalog/dataframes.json) 定义，格式见
+[`catalog/README.md`](catalog/README.md)。禁止从函数名、参数名、样例或 Rust 源码自行推断执行事实。
 
 ## 1. 先把需求归入分析类型
 
