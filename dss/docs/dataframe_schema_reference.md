@@ -9,6 +9,49 @@
 ohm、时间 s、频率 Hz、角度 rad。DSS 导入器负责把 OpenDSS 常用的 kV、kW、kvar、kVA
 和角度制换算到这些契约。
 
+## 机器可读门面与输入分类
+
+[`catalog/study_facades.json`](catalog/study_facades.json) 是全部已注入 DataFrame `ds_*`
+研究门面的权威参数映射。它逐函数、逐位置给出 `inputKind` 和指向本文件同一 snapshot 中
+[`catalog/dataframes.json`](catalog/dataframes.json) 的 `schemaRef`；函数名、arity 和结果名仍由
+[`catalog/functions.json`](catalog/functions.json) 定义。调用方必须读取这三份合同，禁止根据
+函数名或参数名猜测输入类别。
+
+分类语义固定为：
+
+- `model`：网络拓扑、设备、保护装置或持久控制对象；身份和跨表引用关系属于模型；
+- `data`：量测、曲线采样值、场景、事件、故障工况、观测、假设等可替换的行式数据；
+- `struct`：逻辑上的一个配置对象，使用零行或单行参数 DataFrame，具体行数由 schema 约束。
+
+变化频率不能单独决定类别。解析器如何消费每行、该表是否声明持久身份、是否被其他模型表
+引用，才是分类依据。当前源码审计矩阵如下；固定网络在 JSON 中展开为 20 个独立输入：
+
+| 门面/输入 | `inputKind` | `schemaRef` | 源码语义与判断依据 |
+|---|---|---|---|
+| 全部完整门面的 `bus`…`storage` 20 张固定网络表 | `model` | `frames.bus`…`frames.storage` | 构成拓扑、设备和持久网络控制模型；位置顺序固定 |
+| 通用 `para` | `struct` | `frames.para` | 表示零个或一个配置对象；底层 `parse_params` 在无 `result` 时容忍多行但只读取第 0 行，调用方禁止依赖被忽略的额外行；有 `result` 时强制恰好一行 |
+| QSTS `solution` | `struct` | `frames.solution` | `parse_solution` 强制恰好一行并生成整个求解日程 |
+| QSTS `load_shape` | `data` | `frames.load_shape` | 每行是命名曲线的一个时间采样点 |
+| QSTS `shape_assignment` | `model` | `frames.shape_assignment` | 保存设备身份到命名曲线的持久引用关系 |
+| QSTS `storage_controller`、`switch_control` | `model` | `frames.storage_controller`、`frames.switch_control` | 有稳定控制器身份、受控设备引用和跨时点状态 |
+| QSTS/保护/动态 `tcc_curve` | `data` | `frames.tcc_curve` | 保存电流—时间曲线采样值；保护设备按名称引用它 |
+| QSTS/保护/动态 `fuse`、`recloser`、`relay` | `model` | `frames.fuse`、`frames.recloser`、`frames.relay` | 有保护装置身份、整定、曲线引用和动作目标 |
+| QSTS/谐波 `monitor`、QSTS `energy_meter` | `model` | `frames.monitor`、`frames.energy_meter` | 有持久表计身份、被测元件或区域引用及寄存器配置 |
+| 短路/QSTS `fault` | `data` | `frames.fault` | 每行是可替换的故障位置、类型、阻抗或投退工况 |
+| 恢复重构 `fault` | `data` | `analysis_inputs.restore_fault` | 每行只声明必须保持断开的开关身份，不使用短路 fault schema |
+| 网络动态 `fault` | `data` | `analysis_inputs.dynamic_fault` | 在基础故障电气数据上增加稳定事件名和投退生命周期 |
+| 状态估计 `measurement` | `data` | `analysis_inputs.state_estimation_measurement` | 标量量测、位置、数值和权重行 |
+| Monte Carlo `spec`、`multipliers` | `struct`、`data` | `analysis_inputs.monte_carlo_spec`、`analysis_inputs.monte_carlo_multipliers` | `spec` 恰好一行；`multipliers` 是 replay 场景样本行 |
+| 保护配合 `fault_case`、`current_sample`、`pair`、`observed_action` | `data` | 对应 `analysis_inputs.protection_*` | 本次审计的故障工况、电流样本、主后备组合和观测证据 |
+| 保护配合 `para` | `struct` | `analysis_inputs.protection_para` | 零行或单行容差与结果选择配置 |
+| 故障定位 `measurement`、`hypothesis_switch`、`hypothesis_line` | `data` | 对应 `analysis_inputs.fault_location_*` | 复相量观测及可替换的候选网络假设行 |
+| 故障定位 `para` | `struct` | `analysis_inputs.fault_location_para` | 零行或单行搜索与损失函数配置 |
+| 动态 `timeline`、`event` | `data` | `analysis_inputs.dynamic_timeline`、`analysis_inputs.dynamic_event` | 外部采样要求和按时刻排列的运行事件 |
+| 动态 `spec` | `struct` | `analysis_inputs.dynamic_spec` | 零行或单行动态模型与积分配置 |
+
+同名 alias 不建立 schema 等价关系。状态估计和故障定位的 `measurement`、短路/QSTS、恢复
+重构和网络动态的 `fault` 都必须按所选 facade 的 `schemaRef` 分别处理。
+
 ## 1. 完整网络的 20 张表
 
 完整网络参数必须按下列顺序传入。`import_dss` 和 `import_bmopf` 也按此顺序返回。
@@ -178,11 +221,16 @@ charge_efficiency, discharge_efficiency
 
 ## 4. `para`
 
-`para` 是一行表。`import_dss` 至少生成：
+通用 `para` 的公开合同是零行或单行配置表；零行选择该分析默认值。底层 `parse_params`
+在没有 `result` 列时会容忍多行但只读取第 0 行；调用方禁止依赖被忽略的额外行。
+`result` 列存在时，表达式分派会强制表恰好一行。`import_dss` 至少生成：
 
 | 列 | 类型 | 规则 |
 |---|---|---|
 | `base_frequency_hz` | `f64` | 有限且大于 0 |
+| `max_iter` | 正整数 | 非线性或优化迭代上限 |
+| `max_control_iter` | 正整数 | 离散控制外层迭代上限 |
+| `tol` | `f64` | 有限且大于 0 |
 | `line_model` | `str` | 常用 `exact`；各分析可有自己的默认值 |
 | `result` | `str` | 逗号分隔、忽略大小写；不得为空、未知或重复 |
 
@@ -351,6 +399,12 @@ QSTS 故障还可使用 `on_time`/`ontime`, `off_time`, `temporary`, `min_amps`/
 故障定位都把参数写成 `measurement`，但它们不是同一种表，不能互换。机器目录使用
 `state_estimation_measurement` 和 `fault_location_measurement` 消除这种歧义。
 
+### 谐波 `para`
+
+谐波 `para` 使用 `analysis_inputs.harmonic_para`，必须恰好一行并包含正整数语义的
+`h_max`。可选 `buses:list<str>` 只能含大小写不敏感的唯一非空母线名；`skin_effect` 和
+`neglect_load_y` 默认为 `false`。公共求解、基频和 `result` 列遵循通用 `para` 规则。
+
 ### 状态估计 `measurement`
 
 每行必需 `type:str, phase:str, value:f64`；`weight:f64` 可省略，默认 `1.0`，且必须
@@ -383,6 +437,12 @@ QSTS 故障还可使用 `on_time`/`ontime`, `off_time`, `temporary`, `min_amps`/
 随机模式要求 `multipliers` 是零行表。Replay 模式要求
 `scenario:整数,multiplier:f64`；场景编号从 1 连续递增。`m1_replay` 还要求 `load:str`，
 并为每个场景和每个网络负荷恰好提供一行；`global_replay` 每个场景恰好一行。
+
+### 恢复重构 `fault`
+
+恢复重构的 `fault` 使用 `analysis_inputs.restore_fault`，每行只需要 `name:str`。`name`
+必须引用完整网络 `switch` 表中的开关，表示故障隔离后该开关必须保持断开。该表不接受
+短路 `frames.fault` 的 `bus,terminal_map,kind` 语义；两者参数 alias 相同，但 schema 不同。
 
 ### 保护配合输入
 
@@ -622,6 +682,11 @@ predicted_current_re,predicted_current_im,predicted_voltage_re,predicted_voltage
 QSTS 对每张逐时步结果追加 `time,load_multiplier,generation_multiplier`。执行计划入口再
 追加 `epoch_index,solve_event_sequence`；`diagnostics` 和 `events` 使用各自的执行审计
 schema。各状态结果在三列时序元数据之前的固定列为：
+
+机器目录的 `qsts_outputs` 为每个公开 QSTS 结果保存上下文完整的 schema；逐时步结果的
+`columns` 已包含上述三列，Monitor、EnergyMeter、可靠性、区域、保存快照和负荷持续时间
+结果则引用各自真实构造器合同。调用方不得把静态 `result_frames.bus_voltage` 直接当成
+QSTS `bus_voltage`，否则会遗漏时间元数据。
 
 | 结果 | 固定列 |
 |---|---|

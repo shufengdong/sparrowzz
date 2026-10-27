@@ -661,14 +661,24 @@
         "base_frequency_hz": "f64"
       },
       "optional": {
+        "base_frequency_hz": "f64",
+        "max_iter": "u32_semantics",
+        "max_control_iter": "u32_semantics",
+        "tol": "f64",
         "line_model": "str",
         "result": "str"
       },
       "constraints": [
-        "one row when result is present",
-        "base_frequency_hz is finite and positive",
-        "result is a comma-separated list without empty, unknown or duplicate names"
-      ]
+        "zero rows selects analysis defaults unless an analysis requires one row",
+        "the public struct contract is zero or one row; parse_params currently reads only row 0 when result is absent, so callers must not rely on tolerated extra rows",
+        "base_frequency_hz is finite and positive when present",
+        "max_iter and max_control_iter are positive integers when present",
+        "tol is finite and positive when present",
+        "result requires exactly one row and is a comma-separated list without empty, unknown or duplicate names"
+      ],
+      "row_count": "0_or_1",
+      "schema_source": "psa/src/dsa/parse/params.rs",
+      "dispatch_source": "tensoreval://expr_df/frame_ops.rs"
     },
     "solution": {
       "required": {
@@ -689,7 +699,10 @@
         "default_duty": "str",
         "price_curve": "str",
         "price_signal": "f64",
-        "peak_day": "u32"
+        "peak_day": "u32",
+        "load_duration_curve": "str",
+        "rating_season": "u32_semantics",
+        "rating_seasons": "list<f64>"
       },
       "enums": {
         "mode": [
@@ -704,7 +717,16 @@
           "LOADDURATION2",
           "LD2"
         ]
-      }
+      },
+      "row_count": 1,
+      "constraints": [
+        "exactly one row",
+        "number is a positive integer and step_size_s is finite and positive",
+        "rating_season and rating_seasons are mutually exclusive",
+        "rating_seasons contains one item or exactly number items"
+      ],
+      "schema_source": "psa/src/dsa/pf/time_series.rs",
+      "schema_parser": "parse_solution"
     },
     "load_shape": {
       "required": {
@@ -1113,6 +1135,586 @@
       "phases"
     ]
   },
+  "qsts_outputs": {
+    "bus_voltage": {
+      "base_schema": "result_frames.bus_voltage",
+      "columns": [
+        "bus",
+        "v_mag",
+        "v_ang",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "bus_phase": {
+      "base_schema": "result_frames.bus_phase",
+      "columns": [
+        "bus",
+        "phase",
+        "v_re",
+        "v_im",
+        "v_mag",
+        "v_ang",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "load_state": {
+      "base_schema": "result_frames.load_state",
+      "columns": [
+        "load",
+        "bus",
+        "requested_p",
+        "requested_q",
+        "served_p",
+        "served_q",
+        "v_min_pu",
+        "deenergized",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "generator_state": {
+      "base_schema": "result_frames.generator_state",
+      "columns": [
+        "generator",
+        "bus",
+        "phase",
+        "p",
+        "q",
+        "v_mag",
+        "i_mag",
+        "q_min",
+        "q_max",
+        "control_mode",
+        "q_limited",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "branch_flow": {
+      "base_schema": "result_frames.branch_flow",
+      "columns": [
+        "branch",
+        "element",
+        "bus_from",
+        "bus_to",
+        "phase_from",
+        "phase_to",
+        "v_from_re",
+        "v_from_im",
+        "v_to_re",
+        "v_to_im",
+        "i_from_re",
+        "i_from_im",
+        "i_from_mag",
+        "i_to_re",
+        "i_to_im",
+        "i_to_mag",
+        "p_from",
+        "q_from",
+        "p_to",
+        "q_to",
+        "p_loss",
+        "q_loss",
+        "winding_1_phase",
+        "winding_1_v_re",
+        "winding_1_v_im",
+        "winding_1_i_re",
+        "winding_1_i_im",
+        "winding_1_tap",
+        "winding_2_phase",
+        "winding_2_v_re",
+        "winding_2_v_im",
+        "winding_2_i_re",
+        "winding_2_i_im",
+        "winding_2_tap",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "source_flow": {
+      "base_schema": "result_frames.source_flow",
+      "columns": [
+        "source",
+        "terminal",
+        "bus",
+        "phase",
+        "v_re",
+        "v_im",
+        "i_re",
+        "i_im",
+        "i_mag",
+        "p",
+        "q",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "transformer_winding_flow": {
+      "base_schema": "result_frames.transformer_winding_flow",
+      "columns": [
+        "transformer",
+        "winding",
+        "bus",
+        "phase",
+        "v_re",
+        "v_im",
+        "i_re",
+        "i_im",
+        "tap",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "conductor_flow": {
+      "base_schema": "result_frames.conductor_flow",
+      "columns": [
+        "element",
+        "kind",
+        "conductor",
+        "terminal_from",
+        "terminal_to",
+        "bus_from",
+        "bus_to",
+        "harmonic",
+        "frequency_hz",
+        "v_from_re",
+        "v_from_im",
+        "v_from_mag",
+        "v_to_re",
+        "v_to_im",
+        "v_to_mag",
+        "i_from_re",
+        "i_from_im",
+        "i_from_mag",
+        "i_to_re",
+        "i_to_im",
+        "i_to_mag",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "regulator_state": {
+      "base_schema": "result_frames.regulator_state",
+      "columns": [
+        "transformer",
+        "bus_from",
+        "bus_to",
+        "phase",
+        "regulator_group",
+        "monitored",
+        "monitored_bus",
+        "monitored_phase",
+        "remote",
+        "ptratio",
+        "remote_ptratio",
+        "reversible",
+        "cogen",
+        "rev_vreg",
+        "rev_band",
+        "rev_threshold",
+        "reverse_state",
+        "cogen_state",
+        "delay",
+        "tap_delay",
+        "rev_delay",
+        "tap_ratio",
+        "tap_winding",
+        "tap_winding_tap",
+        "winding_1_tap",
+        "winding_2_tap",
+        "tap_position",
+        "tap_min",
+        "tap_max",
+        "at_min",
+        "at_max",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "capacitor_state": {
+      "base_schema": "result_frames.capacitor_state",
+      "columns": [
+        "capacitor",
+        "bus",
+        "enabled",
+        "control_mode",
+        "monitored_bus",
+        "monitored_bus_from",
+        "monitored_bus_to",
+        "monitored_terminal",
+        "monitored_phase",
+        "steps",
+        "states",
+        "q_rated",
+        "q_effective",
+        "i_normal",
+        "i_emergency",
+        "i_actual_max",
+        "normal_loading",
+        "emergency_loading",
+        "on_setting",
+        "off_setting",
+        "ptratio",
+        "ctratio",
+        "pct_min_kvar",
+        "delay",
+        "delay_off",
+        "dead_time",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "reactor_state": {
+      "base_schema": "result_frames.reactor_state",
+      "columns": [
+        "reactor",
+        "kind",
+        "bus_from",
+        "bus_to",
+        "enabled",
+        "state",
+        "kv",
+        "r_ohm",
+        "x_ohm",
+        "kvar",
+        "i_normal",
+        "i_emergency",
+        "i_actual_max",
+        "normal_loading",
+        "emergency_loading",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "ibr_state": {
+      "base_schema": "result_frames.ibr_state",
+      "columns": [
+        "ibr",
+        "bus",
+        "phase",
+        "terminal_to",
+        "topology",
+        "prime_mover",
+        "control_profile",
+        "voltage_aggregation",
+        "inv_control_mode",
+        "volt_var",
+        "volt_watt",
+        "dynamic_reactive_current",
+        "watt_pf",
+        "watt_var",
+        "avr",
+        "watt_priority",
+        "p_available",
+        "p_command",
+        "q_command",
+        "p_limited",
+        "q_limited",
+        "p_output",
+        "q_output",
+        "p_curtailed",
+        "v_mag",
+        "i_output",
+        "s_max",
+        "i_limit",
+        "power_limited",
+        "current_limited",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "gfm_state": {
+      "base_schema": "result_frames.gfm_state",
+      "columns": [
+        "ibr",
+        "bus",
+        "phase",
+        "terminal_to",
+        "e_mag",
+        "e_angle_deg",
+        "target_p",
+        "target_q",
+        "p",
+        "q",
+        "frequency_deviation_pu",
+        "voltage_deviation_pu",
+        "p_limited",
+        "q_limited",
+        "s_limited",
+        "i_limited",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "violations": {
+      "base_schema": "result_frames.violations",
+      "columns": [
+        "kind",
+        "element",
+        "bus",
+        "phase",
+        "value",
+        "limit",
+        "ratio",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "summary": {
+      "base_schema": "result_frames.summary",
+      "columns": [
+        "method",
+        "converged",
+        "control_iterations",
+        "control_actions",
+        "control_time",
+        "solve_count",
+        "plan_builds",
+        "last_iterations",
+        "total_iterations",
+        "p_loss",
+        "q_loss",
+        "violation_count",
+        "max_violation_ratio",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "storage_state": {
+      "base_schema": "result_frames.storage_state",
+      "columns": [
+        "name",
+        "soc",
+        "energy",
+        "p_total",
+        "q_total",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "storage_controller_state": {
+      "base_schema": "result_frames.storage_controller_state",
+      "columns": [
+        "name",
+        "mode",
+        "state",
+        "monitored",
+        "target",
+        "deadband",
+        "requested_p",
+        "fleet_p",
+        "inhibited",
+        "locked",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "switch_control_state": {
+      "base_schema": "result_frames.switch_control_state",
+      "columns": [
+        "name",
+        "switched_obj",
+        "switched_term",
+        "switched_conductor",
+        "state",
+        "normal",
+        "locked",
+        "condition_active",
+        "measurement",
+        "pending_action",
+        "due_time",
+        "phases",
+        "phase_states",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "fuse_state": {
+      "base_schema": "result_frames.fuse_state",
+      "columns": [
+        "name",
+        "monitored_obj",
+        "monitored_term",
+        "switched_obj",
+        "switched_term",
+        "state",
+        "blown",
+        "current",
+        "trip_time",
+        "due_time",
+        "phases",
+        "phase_states",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "recloser_state": {
+      "base_schema": "result_frames.recloser_state",
+      "columns": [
+        "name",
+        "monitored_obj",
+        "monitored_term",
+        "switched_obj",
+        "switched_term",
+        "switched_conductor",
+        "state",
+        "locked_out",
+        "operation",
+        "curve_mode",
+        "phase_current",
+        "ground_current",
+        "trip_source",
+        "trip_time",
+        "pending_action",
+        "due_time",
+        "phases",
+        "phase_states",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "relay_state": {
+      "base_schema": "result_frames.relay_state",
+      "columns": [
+        "name",
+        "relay_type",
+        "monitored_obj",
+        "monitored_term",
+        "switched_obj",
+        "switched_term",
+        "switched_conductor",
+        "state",
+        "normal_state",
+        "locked_out",
+        "operation",
+        "phase_current",
+        "ground_current",
+        "min_voltage",
+        "max_voltage",
+        "reverse_power",
+        "negative_sequence_current",
+        "negative_sequence_voltage",
+        "generic_variable",
+        "generic_value",
+        "doc_current",
+        "doc_current_angle",
+        "doc_control_power",
+        "distance_loop",
+        "distance_impedance_re",
+        "distance_impedance_im",
+        "distance_reach_fraction",
+        "td21_fault_detected",
+        "td21_loop",
+        "td21_directional_impedance_re",
+        "td21_directional_impedance_im",
+        "td21_distance",
+        "td21_history_points",
+        "td21_quiet_samples",
+        "trip_source",
+        "trip_time",
+        "pending_action",
+        "due_time",
+        "phases",
+        "phase_states",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "fault_state": {
+      "base_schema": "result_frames.fault_state",
+      "columns": [
+        "index",
+        "bus",
+        "kind",
+        "active",
+        "cleared",
+        "on_time",
+        "off_time",
+        "temporary",
+        "min_amps",
+        "current",
+        "phases",
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ],
+      "schema_source": "tensoreval://expr_df/frame_ops.rs::qsts_step_frame"
+    },
+    "monitor": {
+      "base_schema": "result_frames.qsts_monitor"
+    },
+    "monitor_save": {
+      "base_schema": "result_frames.qsts_monitor_save"
+    },
+    "energy_meter": {
+      "base_schema": "result_frames.qsts_energy_meter"
+    },
+    "meter_loss_breakdown": {
+      "base_schema": "result_frames.qsts_meter_loss_breakdown"
+    },
+    "reliability": {
+      "base_schema": "result_frames.qsts_reliability"
+    },
+    "meter_zone": {
+      "base_schema": "result_frames.qsts_meter_zone"
+    },
+    "meter_phase_voltage": {
+      "base_schema": "result_frames.meter_phase_voltage"
+    },
+    "meter_save": {
+      "base_schema": "result_frames.qsts_meter_save"
+    },
+    "load_duration": {
+      "base_schema": "result_frames.qsts_load_duration"
+    },
+    "execution_trace": {
+      "base_schema": "result_frames.execution_trace"
+    }
+  },
   "analysis_inputs": {
     "state_estimation_measurement": {
       "context": [
@@ -1495,7 +2097,72 @@
         ]
       }
     }
-  },
+  ,
+    "harmonic_para": {
+      "context": [
+        "ds_harmonic_study"
+      ],
+      "row_count": 1,
+      "required": {
+        "h_max": "u32_semantics"
+      },
+      "optional": {
+        "buses": "list<str>",
+        "skin_effect": "bool",
+        "neglect_load_y": "bool",
+        "base_frequency_hz": "f64",
+        "max_iter": "u32_semantics",
+        "max_control_iter": "u32_semantics",
+        "tol": "f64",
+        "line_model": "str",
+        "result": "str"
+      },
+      "constraints": [
+        "h_max is a positive integer",
+        "buses contains unique non-empty names",
+        "common solver and result columns follow frames.para"
+      ],
+      "schema_source": "psa/src/dsa/harmonics/input.rs",
+      "schema_parser": "parse_harmonic_spec"
+    },
+    "restore_fault": {
+      "context": [
+        "ds_restore"
+      ],
+      "required": {
+        "name": "str"
+      },
+      "shape": "one forced-open switch identity per row",
+      "constraints": [
+        "name references a switch in the supplied network"
+      ],
+      "schema_source": "psa/src/dsa/reconfiguration/input.rs",
+      "schema_parser": "parse_forced_open"
+    },
+    "dynamic_fault": {
+      "context": [
+        "ds_network_dynamics"
+      ],
+      "base_schema": "frames.fault",
+      "required_additional": {
+        "name": "str"
+      },
+      "optional_additional": {
+        "on_time": "f64",
+        "off_time": "f64",
+        "temporary": "bool",
+        "min_amps": "f64",
+        "enabled": "bool"
+      },
+      "constraints": [
+        "name is unique ignoring ASCII case",
+        "on_time is finite and non-negative",
+        "off_time is finite and greater than on_time when present",
+        "min_amps is finite and non-negative"
+      ],
+      "schema_source": "psa/src/dsa/dynamics/dataframe.rs",
+      "schema_parser": "parse_protected_faults"
+    }},
   "result_frames": {
     "bus_voltage": {
       "columns": [
@@ -2551,5 +3218,287 @@
       ],
       "applies_to": "Every DSS execution-plan result frame; trailing events after the final Solve contain null epoch metadata."
     }
-  }
+  ,
+    "qsts_monitor": {
+      "result_name": "monitor",
+      "context": [
+        "ds_radial_qsts",
+        "ds_newton_raphson_qsts"
+      ],
+      "columns": [
+        "monitor",
+        "time",
+        "mode",
+        "element",
+        "terminal",
+        "phase",
+        "channel",
+        "value",
+        "validity",
+        "origin",
+        "v_re",
+        "v_im",
+        "v_mag",
+        "v_angle_deg",
+        "i_re",
+        "i_im",
+        "i_mag",
+        "i_angle_deg",
+        "p",
+        "q",
+        "s_va",
+        "s_angle_deg",
+        "p_loss",
+        "q_loss"
+      ],
+      "schema_source": "psa/src/dsa/pf/metering.rs"
+    },
+    "qsts_monitor_save": {
+      "result_name": "monitor_save",
+      "context": [
+        "ds_radial_qsts",
+        "ds_newton_raphson_qsts"
+      ],
+      "columns": [
+        "save_time",
+        "monitor",
+        "time",
+        "mode",
+        "element",
+        "terminal",
+        "phase",
+        "channel",
+        "value",
+        "validity",
+        "origin",
+        "v_re",
+        "v_im",
+        "v_mag",
+        "v_angle_deg",
+        "i_re",
+        "i_im",
+        "i_mag",
+        "i_angle_deg",
+        "p",
+        "q",
+        "s_va",
+        "s_angle_deg",
+        "p_loss",
+        "q_loss"
+      ],
+      "schema_source": "psa/src/dsa/pf/metering.rs"
+    },
+    "qsts_energy_meter": {
+      "result_name": "energy_meter",
+      "context": [
+        "ds_radial_qsts",
+        "ds_newton_raphson_qsts"
+      ],
+      "columns": [
+        "meter",
+        "time",
+        "element",
+        "terminal",
+        "p",
+        "q",
+        "p_loss",
+        "q_loss",
+        "kwh",
+        "kvarh",
+        "zone_kwh",
+        "zone_kvarh",
+        "loss_kwh",
+        "loss_kvarh",
+        "peak_kw",
+        "peak_kva",
+        "max_kw",
+        "max_kva",
+        "max_loss_kw",
+        "overload_kwh",
+        "overload_kvarh",
+        "load_een_kwh",
+        "load_ue_kwh",
+        "zone_een_kwh",
+        "zone_ue_kwh",
+        "overload_een_kwh",
+        "overload_ue_kwh",
+        "planning_load_een_kwh",
+        "planning_load_ue_kwh",
+        "aux1",
+        "aux2",
+        "aux3",
+        "aux4",
+        "aux5",
+        "aux6",
+        "aux7",
+        "aux8",
+        "aux9",
+        "aux10",
+        "aux11",
+        "aux12",
+        "aux13",
+        "aux14",
+        "aux15",
+        "aux16",
+        "aux17",
+        "aux18",
+        "aux19",
+        "aux20",
+        "aux21",
+        "aux22",
+        "aux23",
+        "aux24",
+        "aux25",
+        "aux26",
+        "aux27",
+        "aux28",
+        "aux29",
+        "aux30"
+      ],
+      "schema_source": "psa/src/dsa/pf/metering.rs"
+    },
+    "qsts_meter_loss_breakdown": {
+      "result_name": "meter_loss_breakdown",
+      "context": [
+        "ds_radial_qsts",
+        "ds_newton_raphson_qsts"
+      ],
+      "columns": [
+        "meter",
+        "time",
+        "dimension",
+        "category",
+        "voltage_base_v",
+        "p_loss",
+        "q_loss",
+        "loss_kwh",
+        "loss_kvarh"
+      ],
+      "schema_source": "psa/src/dsa/pf/metering.rs"
+    },
+    "qsts_reliability": {
+      "result_name": "reliability",
+      "context": [
+        "ds_radial_qsts",
+        "ds_newton_raphson_qsts"
+      ],
+      "columns": [
+        "meter",
+        "customers",
+        "saidi_h",
+        "saifi",
+        "caidi_h",
+        "maifi",
+        "asai",
+        "eens_kwh",
+        "load_een_kwh",
+        "load_ue_kwh",
+        "zone_een_kwh",
+        "zone_ue_kwh"
+      ],
+      "schema_source": "psa/src/dsa/pf/metering.rs"
+    },
+    "qsts_meter_zone": {
+      "result_name": "meter_zone",
+      "context": [
+        "ds_radial_qsts",
+        "ds_newton_raphson_qsts"
+      ],
+      "columns": [
+        "meter",
+        "time",
+        "element",
+        "load",
+        "bus"
+      ],
+      "schema_source": "psa/src/dsa/pf/metering.rs"
+    },
+    "qsts_meter_save": {
+      "result_name": "meter_save",
+      "context": [
+        "ds_radial_qsts",
+        "ds_newton_raphson_qsts"
+      ],
+      "columns": [
+        "meter",
+        "time",
+        "element",
+        "terminal",
+        "p",
+        "q",
+        "p_loss",
+        "q_loss",
+        "kwh",
+        "kvarh",
+        "zone_kwh",
+        "zone_kvarh",
+        "loss_kwh",
+        "loss_kvarh",
+        "peak_kw",
+        "peak_kva",
+        "max_kw",
+        "max_kva",
+        "max_loss_kw",
+        "overload_kwh",
+        "overload_kvarh",
+        "load_een_kwh",
+        "load_ue_kwh",
+        "zone_een_kwh",
+        "zone_ue_kwh",
+        "overload_een_kwh",
+        "overload_ue_kwh",
+        "planning_load_een_kwh",
+        "planning_load_ue_kwh",
+        "aux1",
+        "aux2",
+        "aux3",
+        "aux4",
+        "aux5",
+        "aux6",
+        "aux7",
+        "aux8",
+        "aux9",
+        "aux10",
+        "aux11",
+        "aux12",
+        "aux13",
+        "aux14",
+        "aux15",
+        "aux16",
+        "aux17",
+        "aux18",
+        "aux19",
+        "aux20",
+        "aux21",
+        "aux22",
+        "aux23",
+        "aux24",
+        "aux25",
+        "aux26",
+        "aux27",
+        "aux28",
+        "aux29",
+        "aux30"
+      ],
+      "schema_source": "psa/src/dsa/pf/metering.rs"
+    },
+    "qsts_load_duration": {
+      "result_name": "load_duration",
+      "context": [
+        "ds_radial_qsts",
+        "ds_newton_raphson_qsts"
+      ],
+      "columns": [
+        "rank",
+        "mode",
+        "source_time",
+        "load_p_w",
+        "generation_p_w",
+        "net_load_p_w",
+        "load_level_w",
+        "duration_h",
+        "cumulative_duration_h"
+      ],
+      "schema_source": "psa/src/dsa/pf/time_series.rs"
+    }}
 }

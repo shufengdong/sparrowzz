@@ -17,6 +17,16 @@
 - 本参考给出函数级契约，所有输入列、类型、默认值和结果列以
   [DataFrame schema 参考](dataframe_schema_reference.md)及机器目录为准。
 
+DataFrame 研究门面的参数分类与 schema 映射以
+[`catalog/study_facades.json`](catalog/study_facades.json) 为权威合同。
+[`catalog/functions.json`](catalog/functions.json) 仍负责函数分派和 arity，
+[`catalog/dataframes.json`](catalog/dataframes.json) 仍负责具体表结构。调用方必须读取 facade
+中逐参数的 `inputKind` 和 `schemaRef`，禁止根据参数名推断；`required=true` 表示该位置必须
+传一张 DataFrame，允许零行时也不能省略位置。
+
+Radial/Newton、WLS/MNMR/MCE、网络动态/电机动态分别是独立门面。用户明确选择算法后，
+生成器禁止把函数名规范化为同族的另一个函数。
+
 | 函数组 | arity | 默认结果 | 返回数量 |
 |---|---:|---|---|
 | `import_dss/import_dss_url/import_bmopf/import_bmopf_url` | 1 | 不适用 | 固定 21 |
@@ -64,6 +74,9 @@
 
 位置 1–6 始终按必需表解析；位置 7–20 的零行表转为 `None`。非空表会进入对应 PSA
 解析器，不能用任意非空表充当占位符。
+
+这 20 个固定位置在 facade 合同中全部分类为 `model`，并逐项展开为 `frames.bus` 到
+`frames.storage`，不会保留为不可判定的 `network[20]` 占位。
 
 ## 2. 导入函数
 
@@ -158,6 +171,11 @@ bus, line, linecode, load, transformer, voltage_source,
 
 除 `solution` 和 `para` 外，零行表表示未配置该子系统。`fault` 非空时自动选择带故障和
 保护量测的 QSTS 入口。默认结果为 `bus_voltage`。支持结果：
+
+QSTS 扩展输入的分类依据是解析器消费方式：`solution` 与 `para` 各表示一个配置对象，属于
+`struct`；`load_shape`、`tcc_curve` 和 `fault` 是曲线采样或工况行，属于 `data`；
+`shape_assignment`、`storage_controller`、`switch_control`、`fuse`、`recloser`、`relay`、
+`monitor`、`energy_meter` 都保存稳定身份或对设备/曲线的持久引用，属于 `model`。
 
 ```text
 bus_voltage, bus_phase, load_state, generator_state, branch_flow, source_flow,
@@ -394,6 +412,10 @@ bus, line, linecode, load, transformer, voltage_source,
 switch, fault, para
 ```
 
+这里的 `fault` 不是短路 `frames.fault`。恢复解析器只读取每行 `name:str`，将其解释为故障
+隔离后必须保持断开的开关身份；机器合同引用
+`analysis_inputs.restore_fault`。它属于可替换的故障隔离工况 `data`。
+
 默认结果为 `switches`。支持 `switches, restored_loads, bus_voltage, objective`。
 四张结果的固定列见[恢复重构结果 schema](dataframe_schema_reference.md#恢复重构)。
 
@@ -418,6 +440,10 @@ misoperations, uncovered, action_diagnostics
 [保护配合输入](dataframe_schema_reference.md#保护配合输入)；六张结果的固定列见
 [保护配合结果 schema](dataframe_schema_reference.md#保护配合)。零行 `observed_action` 表示没有
 现场动作证据；零行 `pair` 允许只计算设备动作表。
+
+分类上，`fuse/recloser/relay` 是有身份、曲线引用和动作目标的保护 `model`；`tcc_curve`
+保存电流—时间采样值，属于 `data`；`fault_case/current_sample/pair/observed_action` 都是本次
+审计可替换的工况或证据行，属于 `data`；`para` 是 `struct`。
 
 ## 11. 故障定位
 

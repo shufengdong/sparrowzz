@@ -2,7 +2,9 @@
 
 本文给出从用户需求到可运行 `.rss` 的固定步骤。函数签名和表结构分别以
 [DSA 函数参考](dsa_function_reference.md) 和
-[DataFrame schema 参考](dataframe_schema_reference.md) 为准。
+[DataFrame schema 参考](dataframe_schema_reference.md) 为准。代码生成器还必须读取
+[`catalog/study_facades.json`](catalog/study_facades.json)：它是逐门面参数位置、
+`inputKind` 和 `schemaRef` 的权威机器合同。禁止从函数名或参数名自行推断输入类别。
 
 ## 1. 先把需求归入分析类型
 
@@ -58,6 +60,11 @@
 [tensoreval 命令行与暂态仿真参考](tensoreval_cli_reference.md)。
 
 ## 3. 显式构造分析配置
+
+准备 `--input` 或生成输入卡片时，先按所选 facade 的 `inputs` 顺序处理：`model` 是具有
+身份和引用关系的网络、设备或持久控制对象，`data` 是可替换的量测、曲线样本、场景、事件、
+工况或假设行，`struct` 是零行或单行配置。必须使用该项的 `schemaRef`；同名
+`measurement` 或 `fault` 不能跨门面复用 schema。
 
 静态潮流的最小参数表：
 
@@ -181,6 +188,9 @@ tensoreval --df --verbose --result-dir results path/to/case.rss
 
 ## 9. 生成脚本时的禁止推断
 
+- 不从函数名或参数名猜测 `model/data/struct`；读取 `study_facades.json`。
+- 不把同名参数当成同一 schema；状态估计与故障定位的 `measurement`、短路与恢复的
+  `fault` 都有不同合同。
 - 不从 OpenDSS 属性名直接猜测 DataFrame 列名；查 schema 参考。
 - 不交换 `import_dss` 返回位置或完整网络参数位置。
 - 不省略 QSTS 的空子系统参数。
