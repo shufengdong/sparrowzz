@@ -1,0 +1,46 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "dynamic",
+    "compatibility": "opendss-native",
+    "results": [
+      "bus_voltage",
+      "branch_current",
+      "source_flow",
+      "pvsystem_state",
+      "storage_state",
+      "motor_state",
+      "event",
+      "solver_trace",
+      "fault_state",
+      "protection_state",
+      "frt_state",
+      "control_state",
+      "device_state",
+      "generator_state",
+      "device_protection_connection"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/Scripts/59NRelayDemo.dss",
+    "root": "dss",
+    "tree_sha256": "f50d65983a07bca1da9b60aad26cb815e8f83aeb4f517411d640d750c20dbf0b"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/Scripts/59NRelayDemo.dss",
+      "role": "dss-entry",
+      "sha256": "45547e02f41b8459c807e1992688d5374fcf7a2cb66eaab54d5bef133dd8d7f4"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "c3236838bdca3f0d86de56b7aa409f56234d5ced9114fa937336dbd0047c928c"
+    }
+  ],
+  "inputs": []
+}

@@ -5741,10 +5741,12 @@
         "q_multiplier": "f64",
         "period_s": "f64",
         "interpolation": "str",
-        "use_actual": "bool"
+        "use_actual": "bool",
+        "open_dss_fixed_interval": "bool"
       },
       "defaults": {
-        "q_multiplier": "p_multiplier"
+        "q_multiplier": "p_multiplier",
+        "open_dss_fixed_interval": false
       },
       "shape": "long table; one sample per row",
       "contract": {
@@ -5803,6 +5805,13 @@
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_fixed_interval",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
           }
         ],
         "stableKeys": [
@@ -5820,7 +5829,8 @@
         ],
         "rules": [],
         "source": [
-          "psa/src/dsa/pf/time_series.rs"
+          "psa/src/dsa/pf/time_series.rs",
+          "psa/src/dsa/parse/dss_import.rs"
         ],
         "shape": "uniform"
       }

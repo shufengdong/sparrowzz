@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：118 个入口已经发布 bundle，141 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：134 个入口已经发布 bundle，125 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫。2,900 步 P174 的导入和投影
   等价测试仍通过，但当前完整 `--check` 在 epoch 0 首次潮流求解失败。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
@@ -26,7 +26,10 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
 求解后端选择或严格导入门面，不需要先新增一种电气元件方程。2026-10-21 的定向复测中，
 11 个入口完成 bundle 自执行并按官方相对路径发布；2,900 步 P174 入口完成导入和官方输入到
 锁定数值投影的逐表等价检查。当时完整 `--check` 在 release 构建运行 90 分钟后仍未结束，
-消除重复求解后再次运行 30 分钟仍未完成。
+消除重复求解后再次运行 30 分钟仍未完成。这里的运行时限只用于控制扫描资源，不是发布标准。
+后续完整 8,760 时点运行和 OpenDSS 年度轨迹比较均已完成，
+`Examples/StoCtrl_Current_PeakShave/master.dss` 现已发布；其完整数值门禁见 README 和
+`numerical_comparison.csv`。
 
 2026-10-24 当前 release 复测时，P174 的两项导入/投影测试继续通过，但完整 `--check` 已稳定
 在 epoch 0、`1 s` 的首次潮流求解失败。该入口因此仍不发布，并从性能长门禁转为执行求解回退
@@ -48,8 +51,8 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
 | `Examples/HarmonicsVariableLoad/IEEE_519.DSS` | 同一 HarmonicT 运行时已覆盖逐快照状态变化 | Load 属性跨 Solve 快照物化后自执行通过，bundle 已发布 |
 
 这些入口的转换改造已经按 IEEE4 后端/多 study、IEEE30 静态 Newton 路由、FaultStudy
-adapter、IEEE519 快照物化和 IEEE8500 严格门面的顺序完成。IEEE8500 仍是性能和完整性
-长门禁；尤其 2,900 步 Duty 不进入普通快速测试。
+adapter、IEEE519 快照物化和 IEEE8500 严格门面的顺序完成。IEEE8500 的完整性验证仍需长时间
+运行；尤其 2,900 步 Duty 不进入普通快速测试，但运行时间本身不决定是否发布。
 
 ## 后续 8 个候选入口的定向分析
 

@@ -289,6 +289,10 @@ charge_efficiency, discharge_efficiency
 | `period_s` | `f64` | 否 | 同一曲线各行必须一致 |
 | `interpolation` | `str` | 否 | 同一曲线各行必须一致 |
 | `use_actual` | `bool` | 否 | 同一曲线各行必须一致 |
+| `open_dss_fixed_interval` | `bool` | 否 | 默认 `false`；DSS importer 对固定间隔 LoadShape 设为 `true`，按 OpenDSS 解时钟减去半个曲线间隔后采样；同一曲线各行必须一致 |
+
+`open_dss_fixed_interval` 是 importer 生成的执行语义标记。自行构造的 DataFrame 曲线通常应省略它；
+省略时保持现有的区间起点采样语义。显式时间点曲线不会设置该标记。
 
 ### `shape_assignment`
 

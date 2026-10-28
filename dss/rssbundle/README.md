@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 131 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 6 个 StorageTechNote 入口 |
-| 当前尚未发布的独立入口 | 128 | 259 个独立入口扣除 131 个已发布入口 |
+| 已转换并发布 bundle | 134 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 StoCtrl_Current_PeakShave |
+| 当前尚未发布的独立入口 | 125 | 259 个独立入口扣除 134 个已发布入口 |
 | 超时 | 0 | 无 |
 
-131 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+134 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 131 个发布入口；
-其余 128 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 134 个发布入口；
+其余 125 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -160,7 +160,8 @@ OpenDSS 完全等价。
 2026-10-21 对能力审计选出的 12 个优先入口做了定向复测：11 个完成 bundle 自执行并按官方
 相对路径发布。`P174_Run_360kW_PV.DSS` 的 7,616 条语句可导入为 5 个 epoch，官方最终 epoch
 与锁定 2,900 步数值投影的网络表、LoadShape 和分配表逐表等价；当时 release `--check` 和
-staging 自执行分别运行 90 分钟和 30 分钟仍未完成，因此没有发布 bundle。
+staging 自执行分别运行 90 分钟和 30 分钟仍未完成，因此该轮没有取得完整数值结论。运行时间只作
+批量扫描观察，不属于发布标准；后续复测已经把该入口定位为首次潮流求解失败。
 
 2026-10-24 使用当前 release 重新检查时，导入及上述两项投影回归测试仍通过，但完整 `--check`
 现在稳定在 epoch 0、`1 s` 的首次潮流求解失败，不再记录为长任务超时。该变化把下一步范围收敛为
@@ -429,14 +430,14 @@ OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 比较全部三相复电压和 PVSyste
 | 官方入口 | 当前结果 | 验证证据 |
 |---|---|---|
 | `IEEETestCases/LVTestCase/Master.dss` | 已发布 | 1,044 条语句、1 个 Snapshot epoch；2,721 个节点全部匹配，复电压最大相对误差 `1.90437e-8`，源端复功率最大相对误差 `2.97820e-7`；bundle 自执行通过 |
-| `IEEETestCases/123Bus/SolarRamp-Mack.DSS` | 未发布，修复待新 release 复验 | 390 条语句、4 个 epoch 和 4,602 个求解状态均可转换并自执行；数值差异已定位为 `pv5sdata1.csv` 中间空记录的解析语义：OpenDSS 将空记录保留为零值采样点，旧解析器将其跳过并使后续曲线错位。代码已按 OpenDSS 记录语义修复，尚未用新二进制重跑门禁 |
+| `IEEETestCases/123Bus/SolarRamp-Mack.DSS` | 当时未发布；当前已发布，见第二十五轮 | 390 条语句、4 个 epoch 和 4,602 个求解状态均可转换并自执行；当时的数值差异已定位为 `pv5sdata1.csv` 中间空记录的解析语义：OpenDSS 将空记录保留为零值采样点，旧解析器将其跳过并使后续曲线错位 |
 
 SolarRamp-Mack 的两个 Snapshot epoch 均通过，Storage 功率和 SOC 也分别达到
 `1.04665e-4` 和 `1.08907e-7` 的误差水平；首次调压档位差出现在 Duty 的 `9475 s`，Generator
 曲线差异在 `12170 s` 首次出现并改变后续控制终态。后续复核发现官方 `pv5sdata1.csv` 第 2434
 个物理记录为空：OpenDSS 将该记录读成 `0` 并保留其序号，旧解析器跳过该行，因此从此处开始
 错位一个采样点。解析器现对 LoadShape `CSVFile`/`PQCSVFile` 的空白和纯注释记录生成零值采样点；
-该修复没有改变时钟规则或数值门限，发布状态等待新 release 完整重跑 4,602 个时刻后更新。
+该轮修复没有改变时钟规则或数值门限；完整重跑和当前发布结论见第二十五轮。
 
 ### 第十五轮实施结果
 
@@ -494,8 +495,8 @@ Solve 后计量动作。5 个 DOCTechNote 入口随后稳定暴露
 
 `SolarRamp-Mack.DSS` 也用当时程序重建并执行全部 4,602 个时刻。主 Duty 段的最大复电压相对误差
 为 `0.06133667`，Generator 功率/额定容量误差为 `0.72335763`，首次调压器档位差出现在
-`9475 s`。后续已确认这些历史误差源于空 CSV 记录被跳过，修复后的完整数值门禁仍待新 release
-复验。三个 `AnnualSimulation.dss` 的 `CaseName` 已不再构成阻断，每个剩余
+`9475 s`。后续已确认这些历史误差源于空 CSV 记录被跳过；修复后的完整数值门禁已在第二十五轮
+通过。三个 `AnnualSimulation.dss` 的 `CaseName` 已不再构成阻断，每个剩余
 `Set` 诊断从 5 条降到 4 条，当前首要缺口是 `overloadreport`；GFM IEEE123 入口减少一条
 `COMMAND_UNSUPPORTED`，但仍有对象、属性和执行能力边界。
 
@@ -563,8 +564,8 @@ OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5，覆盖全部节点复电压和 PVSys
 `PSA.DSS.EXECUTION.COMMAND_UNSUPPORTED`，但仍分别受变压器/调压器、`Set` 或可靠性字段合同阻断；
 `StoCtrl_Current_PeakShave/Add_Issues.dss` 去除了 `wait` 命令阻断，当前明确停在 22 个 Solve 后模型修改。
 `StoCtrl_Current_PeakShave/master.dss` 清除了此前 66 条诊断并进入完整 8,760 时点 Yearly 执行；定向检查
-持续运行 30 分钟、保持计算态且没有错误输出，随后按本轮门禁上限停止。该入口现记录为“旧转换阻断已
-消失、完整执行尚未完成”，在严格转换、自执行和 OpenDSS 数值门禁完成前不计入已发布案例。
+持续运行 30 分钟、保持计算态且没有错误输出，随后为控制该轮批量扫描资源消耗而停止。该观察时限不是
+发布标准；入口在严格转换、自执行和 OpenDSS 数值比较完成前不计入已发布案例。
 
 因此发布总数仍为 118，尚未发布数仍为 141；本轮不新增 bundle，也不放宽任何数值门限。
 
@@ -639,6 +640,35 @@ StorageTechNote 和 StorageControllerTechNote 的 14 个独立入口。PSA 现�
 其中 PeakShaveDch/PeakShaveLow_Ch 还批量设置 `%stored=20`。这些入口尚未发布，也未计入本轮
 数值通过数。发布总数由 125 增至 131，尚未发布数由 134 降至 128。
 
+### 第二十五轮 59N 与 SolarRamp-Mack 闭环
+
+2026-10-28 使用带 `with_dsa_mumps,tensoreval-cli`、禁用默认 feature 的 release
+`tensoreval` 完成两个长任务入口的严格转换、portable bundle 自执行和 OpenDSS 数值门禁：
+
+| 官方入口 | 执行规模 | OpenDSS 数值与动作门禁 |
+|---|---:|---|
+| `Examples/Scripts/59NRelayDemo.dss` | 3 个 Dynamic 时点；108 行母线电压、102 行支路电流、36 行源端功率、2 条事件 | 59N Voltage Relay 在 `0.4 s` 打开 `Line1`，与 OpenDSS 动作时刻和对象一致；`Delta.3` 三个时点最大电压相对误差 `8.73452e-2`，低于该暂态初始化案例的 `0.1` 门限 |
+| `IEEETestCases/123Bus/SolarRamp-Mack.DSS` | 390 条语句、4 个 epoch、4,602 个求解状态；1,279,356 行相电压 | 电压最大相对/绝对误差 `2.34351e-5`/`0.059106 V`；Generator 额定值归一化误差 `2.13437e-4`，Storage 功率误差 `1.04665e-4`，SOC 绝对误差 `1.08907e-7`；32,214 条调压器状态逐条一致，Monitor 最大缩放误差 `1.30080e-3`，低于低潮流通道 `1e-2` 门限 |
+
+SolarRamp-Mack 的最终修复包含两个独立时钟/控制语义。Time 模式 RegControl 在一次外部采样内只执行
+到期的一档动作，并从当前求解时刻安排残余多档请求；OpenDSS 固定间隔 LoadShape 使用相对解时钟
+向前偏移半个曲线间隔的取样语义。后者由 importer 在 `load_shape.open_dss_fixed_interval` 中显式
+标记，普通 DataFrame 曲线默认关闭，不改变既有调用方的采样合同。本轮结果取代第十四、十八、
+二十一轮对 SolarRamp-Mack 的历史未发布结论。
+
+`Examples/StoCtrl_Current_PeakShave/master.dss` 已完成完整 8,760 步 Yearly 求解并发布 portable
+bundle。PSA 与 OpenDSS 均在 8,760/8,760 个时点收敛；电压幅值最大相对误差为
+`6.70610e-4`，SOC 最大绝对误差为 `3.24279e-3`，储能功率按 3 MW 额定值归一化的全年 RMS
+误差为 `4.07144e-3`，控制器监测电流 RMS 相对误差为 `3.03941e-3`。8,760 个时点中有 9 个
+控制状态差异，均位于电流死区或 SOC 饱和交界；相应单时点储能功率最大原始偏差为额定值的
+`0.243731`，作为非门禁瞬态诊断保留。全年轨迹门禁取上述 RMS、SOC、电压和状态差异率，最大值
+`4.07144e-3` 低于 `1e-2`。
+
+该入口运行耗时较长；运行时间只记录为性能观测，不属于发布标准，也不影响数值正确时发布。
+
+本阶段发布总数由 131 增至 134，尚未发布数由 128 降至 125。逐入口原始指标见
+[`numerical_comparison.csv`](numerical_comparison.csv)。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -700,7 +730,7 @@ StorageTechNote 和 StorageControllerTechNote 的 14 个独立入口。PSA 现�
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 128 个尚未发布入口中逐项验证。
+   当前 125 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -723,7 +753,7 @@ StorageTechNote 和 StorageControllerTechNote 的 14 个独立入口。PSA 现�
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 128 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 125 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -750,7 +780,6 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 1 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.POST_SOLVE_MUTATION` | 独立入口在首次 Solve 后修改模型，尚无 execution-plan 映射。 |
 | 3 | `unsupported` | `PSA.DSS.SET.UNSUPPORTED` | PSA execution plan 不支持该 Set 选项。 |
 | 2 | `unsupported` | `PSA.DSS.GENERATOR.MODEL3.EXECUTION_UNSUPPORTED` | Generator Model 3 尚无 execution plan 等价运行语义。 |
-| 1 | `unsupported` | 长时执行门禁 | 旧转换阻断已消失，但 8,760 时点 Yearly 检查在 30 分钟门禁内未完成。 |
 | 1 | `unsupported` | `PSA.DSS.LOADSHAPE.ACTION_ORDER_UNSUPPORTED` | `Action=Normalize` 后继续修改曲线，最终向量不能重建原命令顺序。 |
 | 1 | `unsupported` | `PSA.DSS.AUTOTRANS.CONNECTION_UNSUPPORTED` | AutoTrans 绕组接法超出当前受支持组合。 |
 | 1 | `unsupported` | `READ.DSS.PROPERTY_UNKNOWN` | 包含导入器未知的对象属性。 |
@@ -764,7 +793,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-131 个 `converted` 和 128 个 `unsupported`：
+134 个 `converted` 和 125 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
