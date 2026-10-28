@@ -5742,11 +5742,13 @@
         "period_s": "f64",
         "interpolation": "str",
         "use_actual": "bool",
-        "open_dss_fixed_interval": "bool"
+        "open_dss_fixed_interval": "bool",
+        "open_dss_solution_time": "bool"
       },
       "defaults": {
         "q_multiplier": "p_multiplier",
-        "open_dss_fixed_interval": false
+        "open_dss_fixed_interval": false,
+        "open_dss_solution_time": false
       },
       "shape": "long table; one sample per row",
       "contract": {
@@ -5808,6 +5810,13 @@
           },
           {
             "name": "open_dss_fixed_interval",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_solution_time",
             "dtype": "bool",
             "required": false,
             "nullable": true,

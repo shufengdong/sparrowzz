@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：134 个入口已经发布 bundle，125 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：139 个入口已经发布 bundle，120 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫。2,900 步 P174 的导入和投影
   等价测试仍通过，但当前完整 `--check` 在 epoch 0 首次潮流求解失败。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
@@ -228,9 +228,10 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
 - 11 个 DRC/VV_DRC 案例继续失败于隐式 `DERList`、`avgwindowlen`、
   `voltage_curvex_ref` 等有界 InvControl 合同；多数还使用当前 DRC 子集不接受的
   `DeltaQ_Factor=0.2`。
-- 8 个 StorageControllerTechNote 案例继续失败于每个 Storage 的 `EffCurve`。控制器的
-  Follow、LoadShape、PeakShave、PeakShaveLow、Schedule、Support 和 Time 模式虽已存在，
-  但不能忽略设备效率曲线后声称官方结果一致。
+- StorageControllerTechNote 的 `EffCurve`、DebugTrace 和有界 `BatchEdit` 已进入实际执行合同。
+  `Follow`、`LoadShape`、`Schedule`、`Time` 4 个入口已完成 24 时点 OpenDSS 数值门禁并发布；
+  其余 4 个入口也能严格转换和自执行，但 PeakShave 系列的边界状态/分配以及 `Support` 的
+  `InhibitTime` 生命周期仍未达到数值门禁，因此继续保持未发布。
 - 8 个 MemoryMappingLoadShapes 案例还涉及 MemoryMapping、Sng/Dbl 二进制或专用文本加载
   语义，超出当前 LoadShape 文件合同。
 
@@ -308,6 +309,9 @@ Distance/TD21 Relay 已不再是统一能力缺口。`Examples/DistanceRelays` �
   3 个 epoch、300 个 Duty 时刻，IEEE37 FaultStudy 175 个场景。
 - IEEE34、IEEE123 和 SolarRamp 已逐工作点比较 OpenDSS 的电压、线路电流/功率、源端功率、
   loss、调压器终态或 Monitor；IEEE37 已比较全母线故障的去共模电压、故障电流和正负序阻抗。
+- `IEEETestCases/123Bus/RevRegTest.dss` 已完成 5 个 epoch、74 个求解时点和 20,572 个节点复电压
+  的 OpenDSS 逐点比较；最大相对误差 `1.43082e-5`，7 组调压器的 518 条 tap 状态全部一致，
+  Newton portable bundle 自执行通过。
 - `cargo test -p psa --features dsa --test regcontrol_property_boundaries`：5 项通过，包含
   RegControl `Like` 后续属性回放和 `Clear` 历史隔离。
 - `cargo test -p psa --features dsa --test short_circuit native_ieee37_faultstudy_alias_matches_opendss_all_buses`：
