@@ -2700,6 +2700,7 @@
         "pct_p_rated": "f64",
         "q_setpoint": "f64",
         "watt_priority": "bool",
+        "pf_priority": "bool",
         "sc_model": "str",
         "v_nom": "f64",
         "sc_r_pct": "f64",
@@ -2844,6 +2845,13 @@
           },
           {
             "name": "watt_priority",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "pf_priority",
             "dtype": "bool",
             "required": false,
             "nullable": true,

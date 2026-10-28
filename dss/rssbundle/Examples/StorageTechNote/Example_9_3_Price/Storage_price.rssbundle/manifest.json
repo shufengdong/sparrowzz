@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/StorageTechNote/Example_9_3_Price/Storage_price.dss",
+    "root": "dss",
+    "tree_sha256": "49336ee03cc9d67a04351c19634545ae50165f3989a5033252e118683941043f"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/StorageTechNote/Example_9_3_Price/Storage_price.dss",
+      "role": "dss-entry",
+      "sha256": "008f7fb591821235a73912a36bfe3fc2c86015a52b66314534b0f2df21e70eca"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "c6e2854f538c6a319dc0436d23559fa6a9aef70041e865c91d34bf1265576d42"
+    }
+  ],
+  "inputs": []
+}
