@@ -949,6 +949,46 @@ Generator/Harmonic 失败、2 个忽略。官方入口仍未达到 portable 自�
 `line_model=Exact` 的故障窗 V/I/P/Q 与设备状态比较，因此不改 `conversion_report.csv`，
 不新增 bundle；发布总数保持 144，尚未发布数保持 115。
 
+### 第三十六轮 Snapshot→Dynamics 中惰性的 EnergyMeter
+
+2026-10-29 继续固定同一非 DynExp IEEE123 GFL Daily 入口。OpenDSSDirect.py 0.9.4 /
+DSS C-API 0.14.5 的官方双路径探针分别保留和移除 `EnergyMeter.Feeder`：Snapshot、故障前、
+故障中和清除后四个检查点的全部母线复电压、全网损耗、PVSystem/Storage 端口电流、功率及内部
+状态最大绝对差均为 0；EnergyMeter 寄存器在 Snapshot 和 200+70+200 个自动 Dynamic 步后仍为
+复位值。隔离五路径参考进一步锁定：Snapshot 与自动 Dynamic 为 `kWh=0`、`Max kW=-1e50`；
+显式 `Meters.Sample()` 后分别变为 `2.500150565056e-4 kWh`、`900.0542034202 kW`；Daily 单步
+自动累计 `900.0531994212 kWh`。有表和无表 Dynamic 的负荷电压、馈线电流及功率按固定十进制
+输出完全相同。
+
+`eig-rs` master 的 `383eddb13` 因此只把 Snapshot 已初始化生命周期中的 EnergyMeter 作为经过
+边界校验的惰性 provenance：复用 QSTS 的线路/开关/变压器端子解析，只允许
+`element`、`terminal`、`basefreq`、`enabled`，并发出
+`PSA.DSS.DYNAMIC.ENERGY_METER_INERT` Warning。无 Snapshot、Snapshot 后声明/电气修改、
+EnergyMeter Edit/Enable/Disable、`Action`、`ZoneList`、显式 Sample/AllocateLoads、meter export
+或寄存器保存/复位请求都继续 fail closed；没有新增 Dynamic meter 结果表。`47c0cfc37` 加入五行
+Native CSV、两个 DSS 输入、独立 generator 和 manifest 消费测试。generator/公共输入/动态输入/CSV
+SHA-256 依次为
+`80d4f4b1e109716e16c0e011d929a9019c095667f4ef94ee34420b29c131d7a8`、
+`cb4bee3633e5a859c504a338ed9932d6c73ffd1b837b7f0760e9a57baad6adcd`、
+`21f96b6f18d9359df6413fcdf33a311ec7e7f35e50600c7688c2496516e9f9b4`、
+`b2f211ae7cb3ee14e322e6578ea41e32a402b6be0d63ea2c58b29bf1f5d019a1`；manifest 管理并消费
+731 个输出，generator `--check` 字节一致。
+
+固定上游 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，使用 release
+`tensoreval`（SHA-256
+`2165393e8900c0b8bce328886ef067fe8c4220e2145789f55ab12036174b75fe`）重新检查
+`Run_IEEE123Bus_GFLDaily.DSS`。退出码为 1，已经越过 `EnergyMeter.Feeder`；新的最深诊断为
+`PSA.DSS.DYNAMIC.MONITOR_MODE_UNSUPPORTED`。官方声明顺序中的首个边界是
+`Monitor.pvmonitor element=PVSystem.myPV mode=1 terminal=1`，其后还有 Storage mode 1 以及两类
+设备的 mode 0/3 Monitor。它们需要独立锁定通道、采样时刻和方向，不能因 `Export Monitors All`
+是输出命令而省略 Monitor 声明。
+
+聚焦门禁为 Dynamic execution 27/27、Native 消费 1/1、Snapshot 初始化 4/4、MEMS 门面 1/1，
+reference manifest 40/40。完整 `dss_import` 为 461 通过、10 个既有失败（共 471）；完整 DSA 库
+为 1,386 通过、5 个既有 Generator/Harmonic 失败、2 个忽略（共 1,393）。官方入口仍未达到
+portable 自执行，也没有进入必须显式设置 `line_model=Exact` 的故障窗 V/I/P/Q 与设备状态比较，
+所以 `conversion_report.csv` 未改，不新增 bundle；发布总数保持 144，尚未发布数保持 115。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：

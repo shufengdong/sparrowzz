@@ -499,6 +499,66 @@ OpenDSS 数值比较，因此 `conversion_report.csv` 保持 144 个 `converted`
 3. 上述对象边界闭合并生成 portable bundle 后，以 `line_model=Exact` 比较故障窗 V/I/P/Q 与
    PVSystem/Storage 状态；两层发布门禁都通过前不改变 144/115 计数。
 
+## 第三十六轮：Dynamic EnergyMeter 惰性证明与 Monitor 边界
+
+固定官方 IEEE123 GFL Daily 的有表/无表双路径使用 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5。
+在 Snapshot、200 ms 故障前、70 ms 故障中和 200 ms 清除后检查点，全部母线复电压、损耗、
+PVSystem/Storage 电流、功率和公开内部状态的最大绝对差均为 0；EnergyMeter 在 470 个自动
+Dynamic 步内没有采样。独立五路径锁定参考给出相同结论，并证明显式 `Meters.Sample()` 会把
+`kWh/Max kW` 从 `0/-1e50` 改为 `2.500150565056e-4/900.0542034202`，Daily 则自动累计
+`900.0531994212 kWh`。因此“自动 Dynamic 中惰性”不能外推为显式 meter 请求也可省略。
+
+`383eddb13` 实现有界准入：只有有效且可失效的 Snapshot 初始化证明存在时，EnergyMeter 的
+标准边界才作为 provenance 保留并发出 `PSA.DSS.DYNAMIC.ENERGY_METER_INERT`。声明属性仅限
+`element/terminal/basefreq/enabled`；运行期变更、Action、ZoneList、Sample、AllocateLoads、
+meter export、保存和复位请求全部拒绝。代码复用既有 QSTS 边界解析，未增加 meter runtime、
+寄存器或结果 schema。`47c0cfc37` 加入五行 Native reference；四个 SHA-256 为
+`80d4f4b1e109716e16c0e011d929a9019c095667f4ef94ee34420b29c131d7a8`、
+`cb4bee3633e5a859c504a338ed9932d6c73ffd1b837b7f0760e9a57baad6adcd`、
+`21f96b6f18d9359df6413fcdf33a311ec7e7f35e50600c7688c2496516e9f9b4`、
+`b2f211ae7cb3ee14e322e6578ea41e32a402b6be0d63ea2c58b29bf1f5d019a1`；manifest 计数为
+731/731，`--check` 和 40 项 manifest 测试通过。
+
+release `tensoreval` SHA-256 为
+`2165393e8900c0b8bce328886ef067fe8c4220e2145789f55ab12036174b75fe`。固定官方入口完整检查退出码
+为 1，最深诊断推进到 `PSA.DSS.DYNAMIC.MONITOR_MODE_UNSUPPORTED`；按源文件声明顺序，首个
+对象是 mode 1 的 `Monitor.pvmonitor`，后续是 `Monitor.pvvi`/`pvstatevars` 和对应 Storage
+mode 1/0/3。下一轮应分别锁定 mode 1 功率通道、mode 0 V/I 通道和 mode 3 状态通道的采样时刻、
+极性与 V12 投影，不能把 Monitor 声明等同于末尾的 Export 副作用。
+
+验证计数：Dynamic execution 27/27、Native reference consumer 1/1、Snapshot 初始化 4/4、
+MEMS façade 1/1、manifest 40/40；完整 `dss_import` 461 通过、10 个既有失败；完整 DSA lib
+1,386 通过、5 个既有 Generator/Harmonic 失败、2 个忽略。由于 portable execution 和显式
+`line_model=Exact` 的 Native 故障窗数值门禁都未通过，`conversion_report.csv`、bundle 树和
+144 converted / 115 unsupported 均保持不变。
+
+本轮完整基线的失败集合逐项为：`dss_import` 的
+`dss_autotrans_series_tap_regcontrol_reaches_qsts_runtime`、
+`execution_profile_fails_closed_for_unsupported_or_incomplete_time_semantics`、
+`execution_profile_rejects_spurious_one_shot_reclose_interval`、
+`generator_dynamic_import_rejects_unsupported_runtime_boundaries`、
+`invcontrol_voltvar_disjoint_controllers_execute_independently`、
+`invcontrol_voltvar_member_order_does_not_change_per_device_capability`、
+`protected_dynamic_doc_multishot_rejects_invalid_reclose_sequences`、
+`protected_dynamic_profile_admits_inert_voltage_relay_without_curves`、
+`protected_dynamic_profile_rejects_doc_reclose_intervals`、
+`volt_var_keeps_pvsystem_model_one_above_vmaxpu`；DSA lib 的
+`generator_invalid_specs_devices_and_samples_fail_closed`、
+`generator_network_rejects_noncanonical_phases_and_wrong_connection`、
+`generator_parameter_bases_match_hand_calculation`、
+`prepared_dynamic_v10_generator_state_schema_order_and_deenergized_zeros`、
+`harmonic_monitor_state_modes_reuse_fundamental_state_and_match_opendss`。它们与上一轮集合相同，
+新增 EnergyMeter 单元与消费测试均不在失败路径中。
+
+### 下一轮更新后的优先级
+
+1. 先用 Native reference 分别锁定 PVSystem/Storage mode 0、1、3 的列名、单位、方向和每步采样
+   顺序，再决定复用 V12 结果表还是新增有版本的投影；不得只放宽 importer。
+2. Monitor 声明闭合后必须先生成并搬移执行 portable bundle，再以 `line_model=Exact` 比较官方
+   故障前/中/后的 V/I/P/Q 及 PVSystem/Storage 状态。
+3. 两个发布门禁完成前继续保持 144/115；EnergyMeter 的显式采样、寄存器导出和 QSTS 累计仍是
+   独立运行时合同，不属于本轮惰性准入。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
