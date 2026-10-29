@@ -944,8 +944,8 @@ Clear 后重建三类回归均 fail closed。
 
 聚焦门禁：Dynamic execution 23/23、Native 锁定 1/1、reference manifest 40/40、Snapshot
 初始化 4/4、MEMS 门面 1/1；宽过滤 `dynamic_profile_` 为 26/28，两个失败是既有 Relay 测试。
-完整 `dss_import` 为 460 通过、10 个既有失败；完整 DSA 库为 1,383 通过、5 个既有
-Generator/Harmonic 失败。官方入口仍未达到 portable 自执行，更未进入必须显式使用
+完整 `dss_import` 为 460 通过、10 个既有失败；完整 DSA 库为 1,382 通过、5 个既有
+Generator/Harmonic 失败、2 个忽略。官方入口仍未达到 portable 自执行，更未进入必须显式使用
 `line_model=Exact` 的故障窗 V/I/P/Q 与设备状态比较，因此不改 `conversion_report.csv`，
 不新增 bundle；发布总数保持 144，尚未发布数保持 115。
 

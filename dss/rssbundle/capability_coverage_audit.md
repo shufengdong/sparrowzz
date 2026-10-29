@@ -486,8 +486,8 @@ PV 证明。新增三类负测锁定 PV 后声明、后编辑和 Clear/rebuild �
 
 聚焦测试为 Dynamic execution 23/23、Native 参考 1/1、manifest 40/40、Snapshot 初始化 4/4、
 MEMS 门面 1/1；宽 `dynamic_profile_` 过滤为 26/28，失败仍是两个既有 Relay 用例。完整
-`dss_import` 为 460/470，10 个既有失败；完整 DSA 库为 1,383/1,388，5 个既有
-Generator/Harmonic 失败。入口未通过 portable 自执行，也没有执行要求 `line_model=Exact` 的
+`dss_import` 为 460/470，10 个既有失败；完整 DSA 库为 1,382 通过、5 个既有
+Generator/Harmonic 失败、2 个忽略（共 1,389）。入口未通过 portable 自执行，也没有执行要求 `line_model=Exact` 的
 OpenDSS 数值比较，因此 `conversion_report.csv` 保持 144 个 `converted`、115 个 `unsupported`。
 
 ### 下一轮更新后的优先级
