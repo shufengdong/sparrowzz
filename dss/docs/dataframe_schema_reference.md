@@ -18,6 +18,10 @@ ohm、时间 s、频率 Hz、角度 rad。DSS 导入器负责把 OpenDSS 常用�
 [`catalog/README.md`](catalog/README.md)。调用方必须读取这三份合同，禁止根据函数名或参数名
 猜测输入类别、列类型、默认值或结果结构。
 
+DSS/rssbundle 的投影还必须读取
+[`catalog/case_projections.json`](catalog/case_projections.json)。它不新增猜测规则，而是把
+来源函数绑定到已有 facade 和 schema。manifest 只保存 profile 引用及本案例的结果绑定。
+
 分类语义固定为：
 
 - `model`：网络拓扑、设备、保护装置或持久控制对象；身份和跨表引用关系属于模型；
@@ -49,6 +53,18 @@ ohm、时间 s、频率 Hz、角度 rad。DSS 导入器负责把 OpenDSS 常用�
 | 故障定位 `para` | `struct` | `analysis_inputs.fault_location_para` | 零行或单行搜索与损失函数配置 |
 | 动态 `timeline`、`event` | `data` | `analysis_inputs.dynamic_timeline`、`analysis_inputs.dynamic_event` | 外部采样要求和按时刻排列的运行事件 |
 | 动态 `spec` | `struct` | `analysis_inputs.dynamic_spec` | 零行或单行动态模型与积分配置 |
+
+execution-plan 投影中的 `execution_inputs.bus`…`storage` 与 Solve epoch 一起形成 `model`；
+`shape_assignment`、控制器、保护装置、Monitor 和 EnergyMeter 仍为 `model`。`solution`、
+`load_shape`、`tcc_curve`、`fault`、epoch/setting/mutation/action/reference/event/diagnostic 为
+`data`，末尾 `para` 为 `struct`。这里的 `solution` 是逐 epoch 已物化日程行，因此不同于
+普通 QSTS 门面中单配置对象的 `frames.solution` 分类。
+
+谐波计划的基础网络和 `snapshot_*` 20 表均为 `model`；`frequency_axis`、
+`frequency_spectrum`、`harmonic_monitor`、`harmonic_snapshot` 为 `data`；`harmonic_plan` 与
+`para` 为 `struct`。`harmonic_snapshot` 用连续 `snapshot_index`、`time_s` 和
+`base_frequency_hz` 选择同索引的快照模型行。空快照集合表示直接使用基础模型；非空集合
+必须完整提供全部 20 个固定位置，不能只覆盖发生变化的列。
 
 同名 alias 不建立 schema 等价关系。状态估计和故障定位的 `measurement`、短路/QSTS、恢复
 重构和网络动态的 `fault` 都必须按所选 facade 的 `schemaRef` 分别处理。

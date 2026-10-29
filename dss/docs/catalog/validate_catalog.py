@@ -2,6 +2,7 @@
 """Validate the public RSDss documentation catalogs against the dispatch source."""
 
 import json
+import hashlib
 import re
 import sys
 from pathlib import Path
@@ -13,6 +14,8 @@ DOCS = ROOT / "sparrowzz/dss/docs"
 FUNCTIONS = DOCS / "catalog/functions.json"
 DATAFRAMES = DOCS / "catalog/dataframes.json"
 STUDY_FACADES = DOCS / "catalog/study_facades.json"
+CASE_PROJECTIONS = DOCS / "catalog/case_projections.json"
+RSSBUNDLES = ROOT / "sparrowzz/dss/rssbundle"
 TENSOREVAL = next(ROOT.glob("*/src/bin/tensoreval.rs"))
 RUNTIME_SRC = TENSOREVAL.parents[1]
 TRANSLATE = RUNTIME_SRC / "ml/expr_df/translate.rs"
@@ -27,11 +30,13 @@ RESULT_CONSTANTS = {
         "ds_newton_raphson_dss_plan",
         "ds_radial_dss_plan_url",
         "ds_newton_raphson_dss_plan_url",
+        "ds_radial_execution_plan",
+        "ds_newton_raphson_execution_plan",
     },
     "QSTS_RESULT_NAMES": {"ds_radial_qsts", "ds_newton_raphson_qsts"},
     "MONTE_CARLO_RESULT_NAMES": {"ds_monte_carlo"},
     "RESTORE_RESULT_NAMES": {"ds_restore"},
-    "HARMONIC_RESULT_NAMES": {"ds_harmonic_study"},
+    "HARMONIC_RESULT_NAMES": {"ds_harmonic_study", "ds_harmonic_execution_plan"},
     "FAULT_RESULT_NAMES": {"ds_fault_study"},
     "POWER_FLOW_RESULT_NAMES": {"ds_radial_pf", "ds_newton_raphson_pf"},
 }
@@ -616,7 +621,16 @@ def validate_catalog_contracts(dataframes, study_facades):
         if base not in expected:
             expected[base] = kind
             queue.append(base)
-    for reference in sorted(expected):
+    def inheritance_depth(reference, active=None):
+        active = set() if active is None else active
+        if reference in active:
+            return 0
+        base = _top_level_schema(dataframes, reference).get("base_schema")
+        return 0 if not base else 1 + inheritance_depth(base, active | {reference})
+
+    # Validate roots before derived contracts so an invalid shared base is
+    # diagnosed at its authoritative schema and names every affected facade.
+    for reference in sorted(expected, key=lambda value: (inheritance_depth(value), value)):
         _validate_contract(dataframes, reference, expected[reference], grammar, affected)
     return {
         "facades": len(study_facades["facades"]),
@@ -814,6 +828,31 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
             expected_kind = INPUT_KIND_BY_SCHEMA.get(item["schemaRef"])
             if item["schemaRef"].startswith("frames.") and item["schemaRef"].split(".", 1)[1] in network_order:
                 expected_kind = "model"
+            if item["schemaRef"].startswith("execution_inputs."):
+                schema_name = item["schemaRef"].split(".", 1)[1]
+                expected_kind = (
+                    "model"
+                    if schema_name in set(network_order) | {
+                        "shape_assignment", "storage_controller", "switch_control",
+                        "fuse", "recloser", "relay", "monitor", "energy_meter",
+                    }
+                    else "data"
+                )
+            if item["schemaRef"] == "harmonic_execution_inputs.monitor":
+                expected_kind = "model"
+            if item["schemaRef"] in {
+                "harmonic_execution_inputs.frequency_axis",
+                "harmonic_execution_inputs.frequency_spectrum",
+            }:
+                expected_kind = "data"
+            if item["schemaRef"] == "harmonic_execution_inputs.plan":
+                expected_kind = "struct"
+            if item["schemaRef"].startswith("harmonic_snapshot_inputs."):
+                expected_kind = (
+                    "data"
+                    if item["schemaRef"] == "harmonic_snapshot_inputs.snapshot"
+                    else "model"
+                )
             if expected_kind is None:
                 fail(f"{function}.{item['id']} has no audited inputKind for {item['schemaRef']}")
             if item["inputKind"] != expected_kind:
@@ -863,6 +902,145 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
     ]:
         if len({by_function[name]["id"] for name in group}) != len(group):
             fail(f"related algorithms must remain separate facades: {group}")
+
+
+def validate_case_projections(case_projections, study_facades, dsa_by_name, frame_ops, translate):
+    if case_projections.get("schema_version") != 1:
+        fail("case_projections.json must use schema_version 1")
+    profiles = case_projections.get("profiles")
+    if not isinstance(profiles, list) or not profiles:
+        fail("case_projections.profiles must be a non-empty list")
+    facade_by_function = {facade["function"]: facade for facade in study_facades["facades"]}
+    expected_sources = {
+        "ds_radial_pf",
+        "ds_newton_raphson_pf",
+        "ds_radial_dss_plan",
+        "ds_newton_raphson_dss_plan",
+        "ds_dss_fault_study",
+        "ds_dss_harmonic_plan",
+        "ds_dss_dynamic_plan",
+        "ds_dss_auto_add",
+        "ds_dss_relcalc",
+    }
+    ids = [profile.get("id") for profile in profiles]
+    sources = [profile.get("sourceFunction") for profile in profiles]
+    if any(not isinstance(value, str) or not value for value in ids) or len(ids) != len(set(ids)):
+        fail("case projection profile ids must be non-empty and unique")
+    if len(sources) != len(set(sources)):
+        fail("each path study function must have exactly one case projection profile")
+    if set(sources) != expected_sources:
+        fail(
+            "case projection source mismatch: "
+            f"missing={sorted(expected_sources - set(sources))}, "
+            f"extra={sorted(set(sources) - expected_sources)}"
+        )
+    for profile in profiles:
+        source = profile["sourceFunction"]
+        target = profile.get("targetFunction")
+        projector = profile.get("projector")
+        if source not in dsa_by_name:
+            fail(f"case projection {profile['id']} references unknown source function {source}")
+        compatibility = profile.get("compatibility")
+        if not isinstance(compatibility, dict) or compatibility.get("failClosed") is not True:
+            fail(f"case projection {profile['id']} must be fail-closed")
+        if compatibility.get("status") not in {"enabled", "disabled"}:
+            fail(f"case projection {profile['id']} has invalid compatibility status")
+        if not isinstance(compatibility.get("stableDiagnostic"), str) or not compatibility["stableDiagnostic"]:
+            fail(f"case projection {profile['id']} lacks a stable diagnostic")
+        if profile.get("managedEntry") != "managed.rss":
+            fail(f"case projection {profile['id']} must publish managed.rss")
+        if compatibility["status"] == "disabled":
+            if target or projector != "unsupported" or profile.get("inputs") or profile.get("results"):
+                fail(f"disabled case projection {profile['id']} cannot advertise an executable target")
+            continue
+        if target not in facade_by_function:
+            fail(f"case projection {profile['id']} references unknown DataFrame facade {target}")
+        if not isinstance(projector, str) or f'"{projector}"' not in frame_ops or f'"{projector}"' not in translate:
+            fail(f"case projection {profile['id']} references unknown projector {projector}")
+        facade = facade_by_function[target]
+        if profile.get("inputs") != facade["inputs"]:
+            fail(f"case projection {profile['id']} input contract differs from {target}")
+        if profile.get("results") != facade["results"]:
+            fail(f"case projection {profile['id']} result contract differs from {target}")
+        source_results = profile.get("sourceResults")
+        result_map = profile.get("resultMap")
+        if not isinstance(source_results, list) or not source_results or len(source_results) != len(set(source_results)):
+            fail(f"case projection {profile['id']} sourceResults must be non-empty and unique")
+        if not isinstance(result_map, dict) or set(result_map) != set(source_results):
+            fail(f"case projection {profile['id']} resultMap must cover every source result")
+        target_results = {result["name"] for result in facade["results"]}
+        unknown = set(result_map.values()) - target_results
+        if unknown:
+            fail(f"case projection {profile['id']} maps unknown target results {sorted(unknown)}")
+        bundle_result_map = profile.get("bundleResultMap")
+        if not isinstance(bundle_result_map, dict) or not bundle_result_map:
+            fail(f"case projection {profile['id']} must declare bundleResultMap")
+        unknown = set(bundle_result_map.values()) - target_results
+        if unknown:
+            fail(f"case projection {profile['id']} bundleResultMap references unknown target results {sorted(unknown)}")
+        selector = profile.get("resultSelector")
+        if selector != {"input": "para", "field": "result", "valueSource": "profile.resultMap(manifest.study.results)"}:
+            fail(f"case projection {profile['id']} must declare the para.result manifest mapping")
+
+
+def validate_rssbundles(case_projections, study_facades, dataframes):
+    profiles = {profile["id"]: profile for profile in case_projections["profiles"]}
+    facades = {facade["function"]: facade for facade in study_facades["facades"]}
+    manifests = sorted(RSSBUNDLES.glob("**/manifest.json"))
+    if not manifests:
+        fail("rssbundle library contains no manifests")
+    for path in manifests:
+        manifest = load_json(path)
+        label = str(path.relative_to(RSSBUNDLES))
+        if manifest.get("schema_version") != 2:
+            fail(f"{label} must use bundle schema_version 2")
+        projection = manifest.get("projection")
+        if not isinstance(projection, dict):
+            fail(f"{label} lacks a projection contract")
+        profile = profiles.get(projection.get("profile"))
+        if profile is None:
+            fail(f"{label} references unknown projection profile {projection.get('profile')}")
+        for manifest_key, profile_key in (
+            ("source_function", "sourceFunction"),
+            ("projector", "projector"),
+            ("target_function", "targetFunction"),
+            ("managed_entry", "managedEntry"),
+        ):
+            if projection.get(manifest_key) != profile.get(profile_key):
+                fail(f"{label} projection {manifest_key} differs from {profile['id']}")
+        if projection.get("status") != "enabled" or projection.get("stable_diagnostic") != profile["compatibility"]["stableDiagnostic"]:
+            fail(f"{label} projection must publish the enabled fail-closed profile status")
+        facade = facades[profile["targetFunction"]]
+        for item in facade["inputs"] + facade["results"]:
+            schema_at(dataframes, item["schemaRef"])
+        source_results = manifest.get("study", {}).get("results")
+        projected_results = projection.get("results")
+        if not isinstance(source_results, list) or not isinstance(projected_results, list) or len(source_results) != len(projected_results):
+            fail(f"{label} projection results differ from study.results")
+        expected_map = profile["bundleResultMap"]
+        for source, result in zip(source_results, projected_results):
+            if result.get("source") != source or result.get("target") != expected_map.get(source):
+                fail(f"{label} cannot map published result {source} through {profile['id']}")
+            if result.get("binding") != f"result_{source}":
+                fail(f"{label} uses a non-canonical managed result binding for {source}")
+        managed = path.parent / projection["managed_entry"]
+        if not managed.is_file():
+            fail(f"{label} is missing {projection['managed_entry']}")
+        script = managed.read_text(encoding="utf-8")
+        if any(token in script.lower() for token in (".dss", "import_dss", "source_root", "http://", "https://")):
+            fail(f"{label} managed entry contains a forbidden path or import token")
+        expected_arguments = ", ".join(item["alias"] for item in facade["inputs"])
+        expected_bindings = ", ".join(result["binding"] for result in projected_results)
+        expected_left = expected_bindings if len(projected_results) == 1 else f"[{expected_bindings}]"
+        if f"{expected_left} = {profile['targetFunction']}({expected_arguments});" not in script:
+            fail(f"{label} managed entry differs from its DataFrame facade contract")
+        declared = [item for item in manifest.get("files", []) if item.get("path") == projection["managed_entry"]]
+        if len(declared) != 1 or declared[0].get("role") != "managed-rss":
+            fail(f"{label} must declare managed.rss with role managed-rss")
+        actual_hash = hashlib.sha256(managed.read_bytes()).hexdigest()
+        if declared[0].get("sha256") != actual_hash:
+            fail(f"{label} managed entry hash is stale")
+    return len(manifests)
 
 
 def result_constant(source, name):
@@ -926,6 +1104,7 @@ def main():
     functions = load_json(FUNCTIONS)
     dataframes = load_json(DATAFRAMES)
     study_facades = load_json(STUDY_FACADES)
+    case_projections = load_json(CASE_PROJECTIONS)
     if functions.get("schema_version") != 2:
         fail("functions.json must use schema_version 2")
     if dataframes.get("schema_version") != 3:
@@ -949,6 +1128,8 @@ def main():
 
     validate_base_schemas(dataframes)
     validate_study_facades(functions, dataframes, study_facades, dsa_by_name)
+    validate_case_projections(case_projections, study_facades, dsa_by_name, frame_ops, translate)
+    bundle_count = validate_rssbundles(case_projections, study_facades, dataframes)
     contract_stats = validate_catalog_contracts(dataframes, study_facades)
 
     for name in sorted(registered_dsa):
@@ -1051,7 +1232,7 @@ def main():
         f"{contract_stats['models']} model, {contract_stats['data']} data, "
         f"{contract_stats['structs']} struct and {contract_stats['results']} direct "
         f"result schemas ({contract_stats['resolvedResults']} including inherited bases), "
-        "zero completeness diagnostics"
+        f"{bundle_count} projected bundles, zero completeness diagnostics"
     )
     return 0
 

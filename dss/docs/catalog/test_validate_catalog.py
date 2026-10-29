@@ -29,7 +29,7 @@ class CatalogValidatorTests(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.catalog_dir = Path(self.temp_dir.name)
-        for name in ("functions.json", "dataframes.json", "study_facades.json"):
+        for name in ("functions.json", "dataframes.json", "study_facades.json", "case_projections.json"):
             shutil.copy2(CATALOG_DIR / name, self.catalog_dir / name)
 
     def tearDown(self):
@@ -56,6 +56,7 @@ class CatalogValidatorTests(unittest.TestCase):
             FUNCTIONS=self.catalog_dir / "functions.json",
             DATAFRAMES=self.catalog_dir / "dataframes.json",
             STUDY_FACADES=self.catalog_dir / "study_facades.json",
+            CASE_PROJECTIONS=self.catalog_dir / "case_projections.json",
         ):
             with contextlib.redirect_stdout(io.StringIO()):
                 with self.assertRaisesRegex(AssertionError, pattern):
@@ -67,6 +68,49 @@ class CatalogValidatorTests(unittest.TestCase):
             catalog["result_frames"]["harmonic_monitor_save"]["base_schema"],
             "result_frames.harmonic_monitor",
         )
+
+    def test_five_path_lifecycles_have_fail_closed_dataframe_projections(self):
+        catalog = self.read("case_projections.json")
+        lifecycle_sources = {
+            "ds_radial_dss_plan", "ds_newton_raphson_dss_plan", "ds_dss_fault_study",
+            "ds_dss_harmonic_plan", "ds_dss_dynamic_plan",
+        }
+        path_profiles = [item for item in catalog["profiles"] if item["sourceFunction"] in lifecycle_sources]
+        self.assertEqual(len(path_profiles), 5)
+        self.assertEqual(
+            {item["sourceFunction"] for item in path_profiles},
+            {
+                "ds_radial_dss_plan",
+                "ds_newton_raphson_dss_plan",
+                "ds_dss_fault_study",
+                "ds_dss_harmonic_plan",
+                "ds_dss_dynamic_plan",
+            },
+        )
+        self.assertTrue(all(item["compatibility"]["failClosed"] for item in path_profiles))
+
+    def test_all_published_bundles_have_pathless_dataframe_projections(self):
+        count = self.validator.validate_rssbundles(
+            self.read("case_projections.json"),
+            self.read("study_facades.json"),
+            self.read("dataframes.json"),
+        )
+        self.assertEqual(count, 144)
+
+    def test_rejects_case_projection_contract_drift(self):
+        catalog = self.read("case_projections.json")
+        catalog["profiles"][0]["inputs"][0]["inputKind"] = "data"
+        self.write("case_projections.json", catalog)
+        self.assert_invalid("input contract differs")
+
+    def test_execution_and_harmonic_plan_schemas_are_machine_complete(self):
+        dataframes = self.read("dataframes.json")
+        for section in ("execution_inputs", "execution_outputs", "harmonic_execution_inputs"):
+            self.assertIn(section, dataframes)
+            self.assertTrue(dataframes[section])
+            for name, schema in dataframes[section].items():
+                self.assertIsInstance(schema.get("contract"), dict, f"{section}.{name}")
+                self.assertIn("columns", schema["contract"], f"{section}.{name}")
 
     def test_rejects_invalid_recursive_base_schema_reference(self):
         catalog = self.read("dataframes.json")
@@ -263,10 +307,10 @@ class CatalogValidatorTests(unittest.TestCase):
         facades = self.read("study_facades.json")
         stats = self.validator.validate_catalog_contracts(dataframes, facades)
         self.assertEqual(stats["facades"], len(facades["facades"]))
-        self.assertEqual(stats["facades"], 15)
-        self.assertEqual(stats["models"], 28)
-        self.assertEqual(stats["structs"], 7)
-        self.assertEqual(stats["results"], 85)
+        self.assertEqual(stats["facades"], 18)
+        self.assertEqual(stats["models"], 77)
+        self.assertEqual(stats["structs"], 8)
+        self.assertEqual(stats["results"], 119)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):
@@ -290,6 +334,7 @@ class CatalogValidatorTests(unittest.TestCase):
             FUNCTIONS=self.catalog_dir / "functions.json",
             DATAFRAMES=self.catalog_dir / "dataframes.json",
             STUDY_FACADES=self.catalog_dir / "study_facades.json",
+            CASE_PROJECTIONS=self.catalog_dir / "case_projections.json",
         ):
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(self.validator.main(), 0)

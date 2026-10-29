@@ -68,12 +68,33 @@ tensoreval path/to/case.rssbundle
 ```
 
 默认 `--mode linked` 仍生成单个 `.rss`。`--mode bundle` 生成一个目录，包含
-`manifest.json`、`main.rss`、`dss/` 以及可选的 `inputs/`。DSS 源文件和文件型数据资产都按
+`manifest.json`、`main.rss`、`managed.rss`、`dss/` 以及可选的 `inputs/`。DSS 源文件和文件型数据资产都按
 原始 source-root 相对路径复制到 `dss/`；manifest 使用 `dss-source` 和 `data-asset` 角色区分二者。
 这种布局让 Redirect 引入的 DSS 仍能在 acquisition root 内读取 CSV。转换器在临时目录中完成
-路径重写、清单校验和一次自执行后再原子发布。早期 schema v1 bundle 的顶层 `assets/` 仍可读取。
+路径重写、清单校验和一次自执行后再原子发布。早期 schema v1 bundle 必须重新生成，才能获得
+`managed.rss` 和 `projection` 合同；schema v2 不把旧版顶层 `assets/` 布局视为受管运行输入。
 `--source-root` 可显式指定依赖树边界；`--force` 只在新 bundle 完整验证后替换旧目录。
 本页后续章节定义清单字段、路径约束和验证顺序。
+
+schema v2 中，`main.rss` 是原始 DSS 生命周期的便携复放入口；`managed.rss` 是 V4 受管入口。
+后者只调用 `projection.target_function`，参数只能是宿主注入的 DataFrame 别名，禁止包含
+`.dss` 路径、URL、`source_root` 或 `import_dss(...)`。`manifest.projection.profile` 指向
+[`catalog/case_projections.json`](catalog/case_projections.json)，其中机器可读地声明每个输入的
+`model|data|struct` 角色、schema、位置、结果映射和稳定诊断。DSS 文件只用于首次投影和审计；
+模型、普通 Data/Struct 资源建立后，受管执行不再读取 `dss/`。
+
+当前五类路径生命周期的映射为：
+
+| DSS 来源函数 | profile | DataFrame 门面 |
+|---|---|---|
+| `ds_radial_dss_plan` | `dss_execution_radial_v1` | `ds_radial_execution_plan` |
+| `ds_newton_raphson_dss_plan` | `dss_execution_newton_v1` | `ds_newton_raphson_execution_plan` |
+| `ds_dss_fault_study` | `dss_fault_study_v1` | `ds_fault_study` |
+| `ds_dss_harmonic_plan` | `dss_harmonic_plan_v1` | `ds_harmonic_execution_plan` |
+| `ds_dss_dynamic_plan` | `dss_dynamic_plan_v1` | `ds_network_dynamics` |
+
+不具备无损 DataFrame 投影的生命周期由生成器发布 `disabled` profile 和
+`TENSOREVAL.RSS.BUNDLE.PROJECTION_UNAVAILABLE`，不会伪造近似结果。
 
 ## 2. 转换路径
 

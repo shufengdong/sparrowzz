@@ -18,17 +18,23 @@
 10. [从 OpenDSS 迁移到 RSS](opendss_to_rss.md)：完整迁移流程和数值对照方法。
 11. [DSS 到 RSS 严格转换](dss_to_rss.md)：`tensoreval --dss-to-rss`、bundle、成功条件和不支持诊断。
 
-机器可读合同的格式见 [`catalog/README.md`](catalog/README.md)，由三个互补目录组成：
+机器可读合同的格式见 [`catalog/README.md`](catalog/README.md)，由四个互补目录组成：
 
 - [`catalog/functions.json`](catalog/functions.json) 固定函数分派名称、规范 arity、参数组和结果名；
 - [`catalog/dataframes.json`](catalog/dataframes.json) 固定各输入、Struct 参数卡和输出 DataFrame 的完整执行 schema、dtype grammar 与继承规则；
 - [`catalog/study_facades.json`](catalog/study_facades.json) 是 DataFrame 研究门面的权威机器合同，
   把每个函数的每个位置参数映射到精确 `schemaRef`，并用 `inputKind=model|data|struct`
   声明输入类别。
+- [`catalog/case_projections.json`](catalog/case_projections.json) 把 DSS/rssbundle 来源函数映射到
+  路径无关的 DataFrame 门面、投影器、结果映射和稳定 fail-closed 诊断。
 
-生成器必须联合读取三者。禁止根据函数名、参数名或对 PSA 源码的猜测推断输入类别；同名
+生成器必须联合读取四者。禁止根据函数名、参数名或对 PSA 源码的猜测推断输入类别；同名
 参数在不同门面可以引用不同 schema，例如两类 `measurement` 和恢复重构、短路研究使用的
 两类 `fault`。
+
+当前 `rssbundle` manifest schema v2 同时发布 `projection` 和 `managed.rss`。`main.rss` 用于
+复放原始 DSS 来源；受管运行必须使用 `managed.rss` 并由宿主注入 catalog 声明的全部
+DataFrame 别名。受管入口中禁止出现 DSS 路径、`source_root` 或 `import_dss(...)`。
 
 ## 可信来源
 

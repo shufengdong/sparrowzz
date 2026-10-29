@@ -33,10 +33,12 @@ Radial/Newton、WLS/MNMR/MCE、网络动态/电机动态分别是独立门面。
 | `import_dss/import_dss_url/import_bmopf/import_bmopf_url` | 1 | 不适用 | 固定 21 |
 | `import_dss_execution/import_dss_execution_url` | 1 | 不适用 | 固定 35 |
 | `ds_radial_dss_plan* / ds_newton_raphson_dss_plan*` | 1 或 2 | `bus_voltage` | 由结果字符串或 `para.result` 决定 |
+| `ds_radial_execution_plan / ds_newton_raphson_execution_plan` | 40 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_dss_dynamic_plan` | 2 或 3 | `bus_voltage` | 由结果字符串或 `para.result` 决定 |
 | `ds_radial_pf/ds_newton_raphson_pf` | 21；兼容 6–11 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_radial_qsts/ds_newton_raphson_qsts` | 33 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_harmonic_study` | 22；兼容 8/14 | `bus_voltage` | 由 `para.result` 决定 |
+| `ds_harmonic_execution_plan` | 58 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_fault_study` | 22；兼容 8/13 | `fault` | 由 `para.result` 决定 |
 | `ds_wls_se/ds_mnmr_se/ds_mce_se` | 22；兼容 11/12 | 不适用 | 固定 1 |
 | `ds_monte_carlo` | 23 | `voltage_statistics` | 由 `para.result` 决定 |
@@ -229,6 +231,18 @@ URL 形式为 `ds_radial_dss_plan_url` 和 `ds_newton_raphson_dss_plan_url`。�
 计划入口的诊断表也带 epoch 标识；全局事件表把每条事件映射到对应 epoch，最后一个
 `Solve` 之后尚未执行的 trailing events 的 epoch 列为空。
 
+V4 受管案例不得调用上述路径入口。`project_dss_execution_plan` 在导入阶段把完整计划投影为
+40 张 DataFrame：20 张按 `epoch_index` 分组的模型表、12 张研究表、7 张有序生命周期表和
+`para`。运行阶段使用 `ds_radial_execution_plan` 或 `ds_newton_raphson_execution_plan`；两者
+不会按拓扑互换求解器。投影保留 `solve_event_sequence`、continuation state、mutation、
+Monitor/保护/计量/故障状态、trace、diagnostics 和 events。事件来源使用稳定的 `source:N`
+身份，已物化文件参数会被替换为 `<materialized-resource>`，运行时无需也不得恢复服务器路径。
+
+`ds_harmonic_execution_plan` 的 58 个输入由基础网络 20 表、研究 12 表、显式频率轴、频谱、
+Monitor、计划 Struct、20 张按 `snapshot_index` 分组的 Solve 快照模型表、快照索引和 `para`
+组成。`frequency_order:f64` 保留非整数值；`Run_Scan` 的 1.083333333、1.166666667 等频点
+会被实际执行。Harmonic/HarmonicT 的基波初始化和 Solve 间 mutation 通过快照表无损保留。
+
 ### DSS 原生 FaultStudy、Harmonic、AutoAdd、RelCalc 和 Dynamic
 
 这些入口接收本地 `.dss` 路径和参数 DataFrame 或结果选择字符串；bundle 生成脚本可在两者
@@ -272,6 +286,11 @@ Dynamic `Solve` 必须使用同一步长且时钟连续。`MaxIterations`、`Max
 `Tolerance` 进入 PSA 求解参数；省略 `para` 时固定使用 `line_model=exact`。运行期对象修改、
 Open/Close/Enable/Disable、未映射 `Set`、DynamicEq/DynOut、VCCS、用户 DLL 和 EMT 内容会
 以稳定诊断失败，不能被静默忽略。
+
+路径入口与受管门面的权威映射位于
+[`catalog/case_projections.json`](catalog/case_projections.json)。bundle manifest schema v2
+引用 profile 并提供有序 `source → target → binding` 结果映射；最终 `managed.rss` 只调用
+DataFrame 门面，禁止包含 DSS 路径、URL、`source_root` 或导入函数。
 
 Harmonic/HarmonicT 的每张非空结果表都含 `step_index:UInt32,time_s:Float64`；含
 `harmonic` 的表还含 `frequency_hz:Float64`。角度单位为度，电压为 V，电流为 A，功率

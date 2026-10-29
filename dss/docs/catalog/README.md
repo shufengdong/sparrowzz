@@ -5,8 +5,47 @@
 - `functions.json`（schema version 2）：函数分派名、arity、规范参数组和结果名；
 - `study_facades.json`（schema version 1）：逐门面的参数位置、`inputKind`、`schemaRef`、结果映射和结果选择约束；
 - `dataframes.json`（schema version 3）：输入、Struct 和结果 DataFrame 的完整执行 schema。
+- `case_projections.json`（schema version 1）：DSS 来源函数到 DataFrame 门面的投影 profile、输入/结果合同、bundle 结果映射与稳定诊断。
 
 `study_facades.json` 是研究门面的入口索引，`dataframes.json` 是它引用的类型库。调用方禁止从函数名、参数名、Rust 源码、样例或说明段落推断执行事实。
+
+## rssbundle 投影合同
+
+`case_projections.json` 是案例导入的权威机器合同。启用 profile 的 `inputs` 和 `results`
+必须逐字段等于目标 `study_facades.json` 门面；`resultMap` 描述来源函数的结果选择名，
+`bundleResultMap` 描述 manifest 中旧脚本绑定名到目标结果名的映射。`managedEntry` 固定为
+`managed.rss`。`compatibility.failClosed=true` 且必须提供 `stableDiagnostic`。
+
+bundle manifest schema v2 的 `projection` 包含 `source_function`、`profile`、`projector`、
+`target_function`、`managed_entry`、`status`、`stable_diagnostic` 和有序 `results`。每个结果项
+明确给出 `source`、`target` 和无冲突的 `binding`。`managed.rss` 只引用已注入 DataFrame
+别名；DSS 文件与 `main.rss` 是可审计导入来源，不是受管研究的运行依赖。
+
+```json
+{
+  "projection": {
+    "source_function": "ds_radial_dss_plan",
+    "profile": "dss_execution_radial_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_radial_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {"source": "voltage", "target": "bus_phase", "binding": "result_voltage"}
+    ]
+  }
+}
+```
+
+宿主必须先以 `projector` 对 `source.entry` 做一次导入，将 profile 中 `inputKind=model` 的表写入
+模型版本，将 `data|struct` 写入可替换本地资源，再按 `inputs[].position` 注入默认 alias。
+结果卡使用 manifest 的 `results[].target` 写入 profile 声明的 selector；最终输出资源名使用
+`results[].binding`。宿主禁止把 `source.entry` 或 `source.root` 传给受管脚本。
+
+当前 144 个发布案例均为 `enabled`：121 个 radial execution、10 个 Newton execution、
+3 个 fault、3 个 harmonic、6 个 dynamic 和 1 个 Newton static。AutoAdd/RelCalc 的新 bundle
+会发布 `disabled` profile 与 `TENSOREVAL.RSS.BUNDLE.PROJECTION_UNAVAILABLE`，不会生成近似研究。
 
 ## 执行合同与展示字段
 
@@ -141,4 +180,5 @@ python3 dss/docs/catalog/validate_catalog.py
 python3 dss/docs/catalog/test_validate_catalog.py
 ```
 
-校验器遍历 `study_facades.json` 的全部门面及传递 `base_schema` 引用，并在诊断中报告受影响的门面和字段。目录发布要求两个命令均通过且完整性诊断为零。
+校验器遍历 `study_facades.json` 的全部门面及传递 `base_schema` 引用，还扫描全部 rssbundle
+manifest、`managed.rss`、结果映射和文件哈希。目录发布要求两个命令均通过且完整性诊断为零。

@@ -22,8 +22,10 @@
 | 当前尚未发布的独立入口 | 115 | 259 个独立入口扣除 144 个已发布入口 |
 | 超时 | 0 | 无 |
 
-144 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
-RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
+144 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
+原子发布前完成一次自执行。catalog 审计确认 143 个路径型入口均能投影到 DataFrame 门面，
+另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0。已经位于 `sparrowzz/dss/models` 的
 静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 144 个发布入口；
 其余 115 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
