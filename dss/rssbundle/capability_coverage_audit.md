@@ -356,6 +356,45 @@ open/close typed event，以及 `StepTime` 到 `StepSize` 的固定步长别名�
 4. 任一入口只有在 portable bundle 自执行和 OpenDSS 数值门禁均通过后，才更新
    `conversion_report.csv` 与 144/115 计数。
 
+## 第三十二轮：Dynamic Daily 启动与绝对时钟
+
+`eig-rs` master 的 `afa322e4c`、`ef8d75811`、`7a93cfee8` 已完成第三十一轮第一优先项的有界
+实现：固定间隔 STEP `Load.daily` 只在整个 Dynamic 窗口常量时物化 P/Q，`LoadShapeClass=Daily`
+控制是否激活曲线，`Time=(h,s)` 保留为绝对起点，后续 typed event 继续使用绝对时标。超出范围的
+Yearly/Duty、PVSystem Daily、运行中曲线转换及非 Load consumer 均有稳定拒绝诊断。
+
+OpenDSSDirect 锁定证据为：10 h 的官方 Daily 样本倍率是 `0.88`，未激活
+`LoadShapeClass=Daily` 时同一 `daily` 引用保持 unity。PSA 的数值对标集成测试使用
+`line_model=Exact`，同时断言 0.88 启动种子及 `36000.2 s` 的故障事件。大绝对时刻的固定步长
+检查改为与投影网格比较，避免 f64 消减把均匀 1 ms 网格误报为非均匀。
+
+固定 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，使用 release
+`tensoreval`（SHA-256
+`90874a816b7865852e0cb40df3133c2da3e07cdc93008bf5b8dddfadfbc0402b`）重新完整检查 7 个候选：
+
+| 候选 | 第三十一轮阻断 | 第三十二轮最深阻断 | 判断 |
+|---|---|---|---|
+| Kundur DynamicExp | Generator 外部动态模型 | `PSA.DSS.GENERATOR.DYNAMIC_EXTERNAL_MODEL_UNSUPPORTED` | 不受本轮 Load Daily 合同影响 |
+| IEEE123 GFL Daily | `LoadShapeClass=Daily` | `PSA.DSS.PVSYSTEM.DYNAMIC_VALUE_INVALID`，`safevoltage=0` | 已证明 Daily/10 h/Load 启动闭合；下一步需锁定零 SafeVoltage 的原生语义 |
+| IEEE123 GFL Daily DynExp | `LoadShapeClass=Daily` | `PSA.DSS.PVSYSTEM.PROPERTY_UNSUPPORTED` | 已到官方 `DynamicEq`/`DynOut` 用户动态表达式边界，不能由普通 GFL adapter 代替 |
+| IEEE123 GFM、CannotPickUpLoad、AmpLimit | `Open Line.SW5 terminal=1` | `PSA.DSS.DYNAMIC.COMMAND_UNSUPPORTED` | topology continuation 仍是首阻断 |
+| Wind GFL Dynamic | Load Daily consumer | `PSA.DSS.OBJECT.UNSUPPORTED` | 已越过负荷曲线，首阻断推进到 `WindGen.wtg1` 对象/方程 |
+
+所有探针退出码均为 1，没有候选达到 portable execution，更没有进入 OpenDSS 数值门禁。聚焦测试
+为 20/20、6/6、PSA 集成 4/4、MEMS 门面 1/1；完整 DSA 库为 1,375 通过、5 个既有
+Generator/Harmonic 失败、2 个忽略，失败集合未变化。因此 `conversion_report.csv` 仍保持
+144 个 `converted`、115 个 `unsupported`。
+
+### 下一轮更新后的优先级
+
+1. 先用 OpenDSSDirect 锁定 `SafeVoltage=0` 在原生 PV 动态中的禁用/阈值语义；若能有界表达，再推进
+   非 DynExp GFL，并要求 portable execution 与故障前后 V/I/P/Q 数值门禁。
+2. `DynamicEq`/`DynOut`、WindGen 和 Generator 外部模型是独立真实方程边界，不因 Daily 启动完成而
+   降低门禁；分别评估实现成本与可取证参考后再排序。
+3. 三个 GFM 入口仍先处理 Snapshot→Dynamic topology continuation，再暴露 Storage GFM/AmpLimit，
+   不把拓扑闭合与设备方程混成同一改动。
+4. 只有 portable bundle 自执行和 OpenDSS 数值门禁均通过，才修改发布清单与 144/115 计数。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，

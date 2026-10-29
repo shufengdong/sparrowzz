@@ -817,6 +817,37 @@ Generator/Harmonic 测试失败、2 个忽略；5 个失败单独复跑仍失败
 “继续放宽命令白名单”调整为：先实现可取证的 Dynamic LoadShape 采样与时钟初始化；GFM 则单独定义
 Snapshot→Dynamic topology continuation 和 Storage GFM 方程合同。
 
+### 第三十二轮 Dynamic Daily 启动与绝对时钟
+
+2026-10-29 继续按上述优先级改进 DSA。`eig-rs` master 的 `afa322e4c`、`ef8d75811` 和
+`7a93cfee8` 分别加入有界 Dynamic Load 日曲线物化、非零初始绝对时钟，以及 execution adapter
+中的 Load P/Q 启动种子。范围刻意限制为固定间隔、STEP、在 `(start,end]` 内不跨采样转换的
+`Load.daily`；Yearly/Duty、PVSystem Daily、启动后曲线切换和非 Load consumer 继续 fail closed。
+绝对时钟还修正为按固定网格投影校验，避免 10 h 附近的浮点消减误判 1 ms 步长。
+
+锁定的 OpenDSSDirect 探针表明：官方日曲线在 `LoadShapeClass=Daily Time=(10,0)` 时对 Load P/Q
+使用 `0.88` 倍率；仅存在 `daily` 引用但没有激活 `LoadShapeClass=Daily` 时保持 `1.0`。PSA 单元和
+集成测试同时锁定这两种语义；OpenDSS 数值对标集成测试显式使用 `line_model=Exact`，并验证故障
+事件仍落在绝对时刻 `36000.2 s`。
+
+使用固定上游 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1` 和 release
+`tensoreval`（SHA-256
+`90874a816b7865852e0cb40df3133c2da3e07cdc93008bf5b8dddfadfbc0402b`）重新执行 7 个入口；全部
+退出码均为 1，但 GFL/Wind 已越过本轮目标诊断：
+
+| 官方入口组 | 本轮已越过 | 当前最深诊断 | 下一边界 |
+|---|---|---|---|
+| Kundur DynamicExp | 无变化 | `PSA.DSS.GENERATOR.DYNAMIC_EXTERNAL_MODEL_UNSUPPORTED` | 外部 Generator dynamic/shaft 模型 |
+| IEEE123 GFL Daily | `LoadShapeClass=Daily`、10 h 时钟、Load 日曲线启动种子 | `PSA.DSS.PVSYSTEM.DYNAMIC_VALUE_INVALID`，`safevoltage=0` | 先锁定 OpenDSS 的零值语义，再决定是否扩展原生 PV 动态参数合同 |
+| IEEE123 GFL Daily DynExp | 同上 | `PSA.DSS.PVSYSTEM.PROPERTY_UNSUPPORTED` | 官方 PVSystem 的 `DynamicEq`/`DynOut` 用户动态表达式不在当前 lossless profile |
+| 三个 IEEE123 GFM | 无变化 | `PSA.DSS.DYNAMIC.COMMAND_UNSUPPORTED` | 仍为 Snapshot 后、Dynamic 前 `Open Line.SW5 terminal=1` 的 topology continuation |
+| Wind GFL Dynamic | `LoadShape.default` 的 Load consumer | `PSA.DSS.OBJECT.UNSUPPORTED` | 已到真正的 `WindGen.wtg1` 对象/方程缺口 |
+
+聚焦回归为 Dynamic execution 20/20、Dynamic Load profile window 6/6、PSA 集成 4/4、MEMS
+门面 1/1。完整 `psa --features dsa --lib` 为 1,375 通过、5 个既有 Generator/Harmonic 失败、
+2 个忽略，失败集合与上一轮相同。7 个入口尚未通过 portable execution 和 OpenDSS 数值门禁，
+因此仍不改 `conversion_report.csv`，不新增 bundle；发布总数保持 144，尚未发布数保持 115。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
