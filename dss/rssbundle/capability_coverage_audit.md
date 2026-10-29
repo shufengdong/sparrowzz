@@ -402,11 +402,12 @@ Generator/Harmonic 失败、2 个忽略，失败集合未变化。因此 `conver
 这不是缺失值或禁用设备的哨兵，而是合法下边界。`eig-rs` master 的 `079a77dc2`、`bfc608a8c`
 因此只做有界扩展：PVSystem/Storage 动态设备规格接受有限 `[0,1]`，DSS importer 接受
 `[0,100]` 并按百分数精确缩放。负数、超过上界、NaN 和正负无穷继续返回原有设备级诊断；
-共享逆变器提交内核保持不变，并由正电压暂降测试锁定零最小电压不会错误离线。
+共享逆变器提交内核对齐 Native 的 `MinVS=0` 低压停机旁路，并由正电压暂降与零电压测试锁定
+零最小电压不会错误离线。
 
 固定 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，使用 release
 `tensoreval`（SHA-256
-`2478f9b31602a6aa5f21cd6d1044733e0512cf746dc2934f557f6e5a8a99c883`）重新检查非 DynExp
+`3a733f94e50c5dcbed6854cf3cd2638e99753bf1e39a60eb20cf9e8127fa3007`）重新检查非 DynExp
 `Run_IEEE123Bus_GFLDaily.DSS`。退出码为 1，但最深诊断已从
 `PSA.DSS.PVSYSTEM.DYNAMIC_VALUE_INVALID: safevoltage=0` 推进为
 `PSA.DSS.PVSYSTEM.DYNAMIC_CONTROL_MODE_UNSUPPORTED: dynamic PVSystem requires explicit
@@ -414,9 +415,9 @@ ControlMode=GFL`。官方 PVSystem 对象没有显式 `ControlMode`，同一脚�
 `InvControl.StoCtrl ... mode=GFM`；下一轮必须先用 Native 运行和属性/状态轨迹确认默认控制模式、
 InvControl 作用域及 PV/Storage 各自的实际模式，再决定是否能安全补全 importer 合同。
 
-本轮聚焦门禁全部通过：PV 4/4、Storage 3/3、共享逆变器 4/4、SafeVoltage importer 2/2、
+本轮聚焦门禁全部通过：PV 4/4、Storage 3/3、共享逆变器 5/5、SafeVoltage importer 2/2、
 动态快照初始化 4/4、MEMS 表达式门面 1/1。完整 `dss_import` 集成为 454 通过、11 个既有失败；
-完整 DSA 库为 1,378 通过、5 个既有 Generator/Harmonic 失败、2 个忽略，失败集合不经过本轮路径。
+完整 DSA 库为 1,379 通过、5 个既有 Generator/Harmonic 失败、2 个忽略，失败集合不经过本轮路径。
 入口尚未生成可自执行 portable bundle，也未进入显式 `line_model=Exact` 的 OpenDSS V/I/P/Q
 数值门禁，因此 `conversion_report.csv` 保持 144 个 `converted`、115 个 `unsupported`。
 
