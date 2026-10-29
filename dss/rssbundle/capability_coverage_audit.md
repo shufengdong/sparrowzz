@@ -452,14 +452,47 @@ Generator/Harmonic 失败、2 个忽略。本轮没有 portable bundle，也未�
 `line_model=Exact` 的故障窗 V/I/P/Q 及 PVSystem/Storage 状态比较，故
 `conversion_report.csv` 仍为 144 个 `converted`、115 个 `unsupported`。
 
+## 第三十五轮：Snapshot 初始化后的 PV Daily 为惰性 provenance
+
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 的隔离双路径参考锁定了同一 PV Daily 声明的两种
+行为：10:00 的 Daily 单步在 `36001 s` 得到 `IrradianceNow=0.5`、400 kW；Snapshot 初始化后
+切换 Dynamics 的 1 ms 步在 `36000.001 s` 仍为 `IrradianceNow=1.0`、800 kW。两条路径均
+收敛。由此可知，官方入口中的 Daily 引用在当前 Snapshot→Dynamics 生命周期只保留声明来源，
+不是动态运行时采样输入。
+
+`45a430a24` 只对已执行 Snapshot、活动 `LoadShapeClass=Daily`、固定间隔且非 UseActual 的轮廓，
+以及已准入、无 TShape/P-T/EffCurve 依赖的完整 GFL PV 发出
+`PSA.DSS.DYNAMIC.PVSYSTEM_PROFILE_INERT` Warning；静态 800 kW 工作点不变。所有未证明变体
+继续返回原诊断。`884a088de` 加入独立 generator、两个 DSS 输入、两行 Native CSV 和 manifest
+消费测试；生成器/公共输入/动态输入/CSV SHA-256 依次为
+`30d8ae3fb92ff739ec1957dc53869af7862b0f4a8b6e4a8d8b962ce1208ea993`、
+`ce66b96159ea2d4fb676a85c7c195ba14e0e7f6de2f2bc1b922b39108e14616e`、
+`52ab404066665c96f6fae1722f484e19da0ace5d38bdd39dd839354a7385eb9b`、
+`8f35b46755f6a2ce7c7d00933c1c788d4e4fa48cd1d4566fb02c29335addbba6`。manifest 计数由
+729 增至 730，且 generator `--check`、40 项 manifest 测试均通过。
+
+固定 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，使用 release
+`tensoreval`（SHA-256
+`daf73afce7802119167d34403c6816e1a7e04438554b7f29db76a563d7671e23`）重新检查
+`Run_IEEE123Bus_GFLDaily.DSS`。退出码为 1；PV profile consumer 已越过，新的首个阻断诊断是
+`PSA.DSS.OBJECT.UNSUPPORTED`，target 为 `EnergyMeter.Feeder`。完整诊断还包含 6 个后续 Monitor
+边界：两个 mode 1 功率 Monitor，以及 PVSystem/Storage 各自的 mode 0 电气 Monitor 和 mode 3
+状态 Monitor，当前均没有对应的 V12 动态结果投影。本轮不扩大设计去处理这些独立对象合同。
+
+聚焦测试为 Dynamic execution 22/22、Native 参考 1/1、manifest 40/40、Snapshot 初始化 4/4、
+MEMS 门面 1/1；宽 `dynamic_profile_` 过滤为 26/28，失败仍是两个既有 Relay 用例。完整
+`dss_import` 为 460/470，10 个既有失败；完整 DSA 库为 1,383/1,388，5 个既有
+Generator/Harmonic 失败。入口未通过 portable 自执行，也没有执行要求 `line_model=Exact` 的
+OpenDSS 数值比较，因此 `conversion_report.csv` 保持 144 个 `converted`、115 个 `unsupported`。
+
 ### 下一轮更新后的优先级
 
-1. 用 Native OpenDSS 锁定 Dynamic Daily 中 PVSystem irradiance/temperature、P-T/EffCurve、
-   `pvshape` 与状态输出的采样时刻、插值和组合顺序，并保存故障窗轨迹。
-2. 只在上述证据覆盖的固定间隔 Daily 窗口内，为现有 GFL PV adapter 增加有界 profile consumer；
-   Yearly/Duty、启动后曲线切换、用户 `DynamicEq`/`DynOut` 继续 fail closed。
-3. 生成 portable bundle 后，以 `line_model=Exact` 比较故障窗 V/I/P/Q 以及 PVSystem/Storage
-   状态；两层发布门禁都通过前不改变 144/115 计数。
+1. 先判定 `EnergyMeter.Feeder` 在 Dynamic 转换中是可审计的惰性声明，还是必须连续维护寄存器的
+   运行时对象；只有 Native 生命周期与当前 V12 输出合同证明等价时才允许省略或投影。
+2. 分别为 PVSystem/Storage 锁定 mode 0/1/3 Monitor 的公开通道、采样时刻和终端方向；不得用
+   “Export 是副作用”推导 Monitor 声明无语义。
+3. 上述对象边界闭合并生成 portable bundle 后，以 `line_model=Exact` 比较故障窗 V/I/P/Q 与
+   PVSystem/Storage 状态；两层发布门禁都通过前不改变 144/115 计数。
 
 ## 建议的实现门禁
 

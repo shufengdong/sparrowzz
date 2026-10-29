@@ -906,6 +906,43 @@ profile consumer；不能把 PV 曲线当作 Load 倍率复用。
 `line_model=Exact` 的 OpenDSS 故障窗 V/I/P/Q 与 PVSystem/Storage 状态数值门禁，因此不改
 `conversion_report.csv`，不新增 bundle；发布总数保持 144，尚未发布数保持 115。
 
+### 第三十五轮 Snapshot 初始化后的惰性 PV Daily 证明
+
+2026-10-29 继续固定非 DynExp IEEE123 GFL Daily 入口。Native 双路径探针使用
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 和同一个 800 kW PVSystem、固定间隔
+`LoadShape.pvshape=0.5`：直接在 10:00 执行一个 Daily 步后，公开状态为
+`time=36001 s`、`IrradianceNow=0.5`、`kW=400`；先执行 Snapshot，再切到
+`LoadShapeClass=Daily` 的 Dynamics 并执行 1 ms 后，状态为 `time=36000.001 s`、
+`IrradianceNow=1.0`、`kW=800`。这证明该 Native 生命周期不会在 Dynamics 切换时重新采样
+PV Daily，不能把 0.5 乘数套到 Snapshot 已初始化的 PV 工作点。
+
+`eig-rs` master 的 `45a430a24` 因此只准入“Snapshot 已初始化、活动类为 Daily、固定间隔、
+`UseActual=false`、现有完整 GFL PV、无 TShape/P-T/EffCurve 依赖”的 PV `daily` 引用；它保留
+800 kW 静态可用功率并发出 `PSA.DSS.DYNAMIC.PVSYSTEM_PROFILE_INERT` Warning，不采样轮廓。
+无 Snapshot、非活动 Daily、显式小时轴、`UseActual=yes`、Yearly/Duty、温度/曲线依赖、非完整
+动态模型和运行期 profile 编辑仍 fail closed。`884a088de` 锁定两行 Native CSV；生成器、公共
+DSS、Dynamics DSS 与 CSV 的 SHA-256 分别为
+`30d8ae3fb92ff739ec1957dc53869af7862b0f4a8b6e4a8d8b962ce1208ea993`、
+`ce66b96159ea2d4fb676a85c7c195ba14e0e7f6de2f2bc1b922b39108e14616e`、
+`52ab404066665c96f6fae1722f484e19da0ace5d38bdd39dd839354a7385eb9b`、
+`8f35b46755f6a2ce7c7d00933c1c788d4e4fa48cd1d4566fb02c29335addbba6`；reference manifest
+现管理并消费 730 个输出，`--check` 字节一致。
+
+使用同一固定上游和 release `tensoreval`（SHA-256
+`daf73afce7802119167d34403c6816e1a7e04438554b7f29db76a563d7671e23`）再次执行官方入口。
+退出码仍为 1，但已越过 PV profile consumer；CLI 最深诊断为 `PSA.DSS.OBJECT.UNSUPPORTED`，
+完整 importer 诊断将首个目标定位为 `EnergyMeter.Feeder`。同一诊断批还明确列出 6 个 Monitor
+投影边界：mode 1 的 `pvmonitor`/`stomonitor`，以及面向 PVSystem/Storage 的 mode 0、mode 3
+目标均未映射到当前 V12 动态结果表。本轮按设计在这一新边界停止，没有把 EnergyMeter 或 Monitor
+当作输出副作用静默丢弃。
+
+聚焦门禁：Dynamic execution 22/22、Native 锁定 1/1、reference manifest 40/40、Snapshot
+初始化 4/4、MEMS 门面 1/1；宽过滤 `dynamic_profile_` 为 26/28，两个失败是既有 Relay 测试。
+完整 `dss_import` 为 460 通过、10 个既有失败；完整 DSA 库为 1,383 通过、5 个既有
+Generator/Harmonic 失败。官方入口仍未达到 portable 自执行，更未进入必须显式使用
+`line_model=Exact` 的故障窗 V/I/P/Q 与设备状态比较，因此不改 `conversion_report.csv`，
+不新增 bundle；发布总数保持 144，尚未发布数保持 115。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
