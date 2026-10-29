@@ -1,0 +1,98 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/StorageControllerTechNote/Schedule/ScheduleRun.dss",
+    "root": "dss",
+    "tree_sha256": "8b5a58d13073ed80c37c2a07634b1f6102e706978a72aa62e5f8edcb2f43e2e1"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/StorageControllerTechNote/LoadShape1.CSV",
+      "role": "data-asset",
+      "sha256": "00ac042b60285026f340772779bd85f5ecda28ad08d1b021225cc2ab0e3643f1"
+    },
+    {
+      "path": "dss/Examples/StorageControllerTechNote/Schedule/ScheduleRun.dss",
+      "role": "dss-entry",
+      "sha256": "f1ac6d23847f471b0865770c1fd0150a7500cb88dd70fbab75fe4737ed9e1cff"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Buscoords.dss",
+      "role": "data-asset",
+      "sha256": "aa3d71873e595578f8c952dffd16b8cf74d5d811da40e16db8a4f0c72abe8c32"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/CapControls.DSS",
+      "role": "dss-source",
+      "sha256": "562818b4d905f391e88ed58efcd54150d4296d6cfb355f8abac32c969a290348"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Capacitors.dss",
+      "role": "dss-source",
+      "sha256": "cc05836176a6715b121619079eb6cef96e77468a3368c8ed44815f2e9d684dcf"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/LineCodes2.DSS",
+      "role": "dss-source",
+      "sha256": "3fec9199a41696a758eaff7065f86a89477f70898b1bee3295de9c74f154121a"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Lines.dss",
+      "role": "dss-source",
+      "sha256": "460eb5e8179bda1926d0d70cf4fc9d8bdd29ab4dd9a101941730749f8a4a663a"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/LoadXfmrCodes.dss",
+      "role": "dss-source",
+      "sha256": "422122863efd0268cb125694b0830673baa6ce466157ceea223cb64bcbe0a533"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Master-unbal.dss",
+      "role": "dss-source",
+      "sha256": "abfad814aa9c510433a1c2d575cd97bda5629dbfc3195ebe9c9b84222e7e3851"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Regulators.dss",
+      "role": "dss-source",
+      "sha256": "041f353f55076feaaf751bbb20551226f8727ddfbdfc5101cf1b1f222da38617"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Transformers.dss",
+      "role": "dss-source",
+      "sha256": "cab397f65f5de08c4d82cf794c03c432b404cd5db7db37ff827869db8344b708"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Triplex_Linecodes.dss",
+      "role": "dss-source",
+      "sha256": "7dfbfc23e19d8930c9e5ac3302bd9e8e9d52aee9c333e3fc80422f15752a886d"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/Triplex_Lines.DSS",
+      "role": "dss-source",
+      "sha256": "abf45521bc05a7f9d5c3fa4c94c4f24f7ea9bc984e7086b303ae4a143d77971d"
+    },
+    {
+      "path": "dss/IEEETestCases/8500-Node/UnbalancedLoads.DSS",
+      "role": "dss-source",
+      "sha256": "72705438556764981d430a9148c84b783f76b977911a2284ffe9295740bddaba"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "5655a2f54a4bedeecf017cd7c36955150fecf89d2e100aeba420e5c5f9a5409e"
+    }
+  ],
+  "inputs": []
+}

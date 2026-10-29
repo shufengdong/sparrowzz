@@ -2,5 +2,7 @@
 *.dss -text
 *.DSS -text
 *.csv -text
+*.CSV -text
+*.dat -text
 *.txt -text
 *.TXT -text

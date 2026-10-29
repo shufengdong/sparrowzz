@@ -1,0 +1,118 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/StoCtrl_Current_PeakShave/master.dss",
+    "root": "dss",
+    "tree_sha256": "665c66e833e3a634d3eda1fe1adea7348ba5fc28f6649665f36eb44bf4d7b24b"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/Add_Issues.dss",
+      "role": "dss-source",
+      "sha256": "5b22c5864e28d8a437edce3d36435e9e40a5a5edb013e262e1c3880ad9434688"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/Add_Storage.dss",
+      "role": "dss-source",
+      "sha256": "a788643ce23ce3257e537fad4540e68be33f9919acd2329a66a9a4c0666619a9"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/BusCoords.dss",
+      "role": "data-asset",
+      "sha256": "33297ac2c6be1e3c7ef9b2134cdecd757354c1b813080ba3b1b4010c00e1849b"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/BusVoltageBases.DSS",
+      "role": "dss-source",
+      "sha256": "e048dcd2a3575cc45108f56835286d31b19015d09d9cb8848a85fcfcb6504ec4"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/CapControl.DSS",
+      "role": "dss-source",
+      "sha256": "c298aa2e50c67f4ada4eeebce2f1fa886ca1adfd8616c395b229a44fa5462cec"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/Capacitor.DSS",
+      "role": "dss-source",
+      "sha256": "3aa278df8565785e1deaae091ddc8d462bd998108b505539622456a7cdba0fc7"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/EnergyMeter.DSS",
+      "role": "dss-source",
+      "sha256": "12df1b0bfa71a78bcd01434f6b24cf655044cdd7cdba6a8fdb8c50818d1ae933"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/GrowthShape.DSS",
+      "role": "dss-source",
+      "sha256": "41b019f3062ae332e35984c84fb3144df22b0dc4a9722e94bc37f975959f59ec"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/Line.DSS",
+      "role": "dss-source",
+      "sha256": "e04fca1d13c2d9191b88d84bf9d12a01153c204b7eb134a8bcd968bfcaa99dab"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/LineCode.DSS",
+      "role": "dss-source",
+      "sha256": "762eddcc10dbff72f646be60f6ada336b36d750c967bf09f159a458f99721d80"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/Load.DSS",
+      "role": "dss-source",
+      "sha256": "83d582043391e35664bfda30975937f865a4340d278513c0967adb69a2f2bf41"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/LoadShape.DSS",
+      "role": "dss-source",
+      "sha256": "66152e0f7341b8483e3cf40f57eb9b171c8535fb3d1c271109f5bc8a65611f7b"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/Monitor.DSS",
+      "role": "dss-source",
+      "sha256": "ed8274c0bff324cdba6c8cb851a564562ee1467a35f7b91e259690bab176c570"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/Spectrum.DSS",
+      "role": "dss-source",
+      "sha256": "d0a01558a272003b91d79af55a43de8fe1e0e925f01e7957c8687b3752f40766"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/TCC_Curve.DSS",
+      "role": "dss-source",
+      "sha256": "fd9c6414a29caaede4368044f6a430179ae07595142973def747521c01b59e6c"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/Transformer.DSS",
+      "role": "dss-source",
+      "sha256": "6aa395f6204221351cac6e1d52578e7412b44413f72396411b921a9cc2099d32"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/Vsource.dss",
+      "role": "dss-source",
+      "sha256": "4da89b311b67cca794822b184df34112f8b207eb8c57af1bd8850d119f429772"
+    },
+    {
+      "path": "dss/Examples/StoCtrl_Current_PeakShave/master.dss",
+      "role": "dss-entry",
+      "sha256": "8c903b713c358cd1d53f1b6dc2c1323d27ecbf29aa3e6206a54abf9fa81d8132"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "f8beedbd7cf261a5ef602e4c4adf62e4aadb5c1b72988142ac845331c776e9cc"
+    }
+  ],
+  "inputs": []
+}

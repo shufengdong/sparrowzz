@@ -4432,6 +4432,8 @@
         "p_max": "list<f64>",
         "q_min": "list<f64>",
         "q_max": "list<f64>",
+        "p_min_no_vars": "f64",
+        "p_min_kvar_max": "f64",
         "idling_loss": "f64",
         "cut_in": "f64",
         "cut_out": "f64",
@@ -4640,6 +4642,20 @@
             "unit": "not_applicable"
           },
           {
+            "name": "p_min_no_vars",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "pu_rated_active_power"
+          },
+          {
+            "name": "p_min_kvar_max",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "pu_rated_active_power"
+          },
+          {
             "name": "idling_loss",
             "dtype": "f64",
             "required": false,
@@ -4796,6 +4812,46 @@
             ],
             "when": {
               "field": "inverter_efficiency_curve_x",
+              "present": true
+            }
+          },
+          {
+            "type": "paired_presence",
+            "fields": [
+              "p_min_no_vars",
+              "p_min_kvar_max"
+            ]
+          },
+          {
+            "type": "range",
+            "field": "p_min_no_vars",
+            "minimum": 0.0,
+            "minimumInclusive": true,
+            "maximum": 1.0,
+            "maximumInclusive": true
+          },
+          {
+            "type": "range",
+            "field": "p_min_kvar_max",
+            "minimum": 0.0,
+            "minimumInclusive": true,
+            "maximum": 1.0,
+            "maximumInclusive": true
+          },
+          {
+            "type": "compare",
+            "left": "p_min_no_vars",
+            "operator": "<=",
+            "rightField": "p_min_kvar_max",
+            "whenPresent": true
+          },
+          {
+            "type": "conditional_required",
+            "required": [
+              "p_rated"
+            ],
+            "when": {
+              "field": "p_min_no_vars",
               "present": true
             }
           }
@@ -5741,10 +5797,14 @@
         "q_multiplier": "f64",
         "period_s": "f64",
         "interpolation": "str",
-        "use_actual": "bool"
+        "use_actual": "bool",
+        "open_dss_fixed_interval": "bool",
+        "open_dss_solution_time": "bool"
       },
       "defaults": {
-        "q_multiplier": "p_multiplier"
+        "q_multiplier": "p_multiplier",
+        "open_dss_fixed_interval": false,
+        "open_dss_solution_time": false
       },
       "shape": "long table; one sample per row",
       "contract": {
@@ -5803,6 +5863,20 @@
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_fixed_interval",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_solution_time",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
           }
         ],
         "stableKeys": [
@@ -5820,7 +5894,8 @@
         ],
         "rules": [],
         "source": [
-          "psa/src/dsa/pf/time_series.rs"
+          "psa/src/dsa/pf/time_series.rs",
+          "psa/src/dsa/parse/dss_import.rs"
         ],
         "shape": "uniform"
       }
