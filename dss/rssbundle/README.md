@@ -744,6 +744,79 @@ SOC/死区边界仍有状态及分配差异；`Support` 的 `InhibitTime` 生命
 `1.40126e-5`，均通过 `1e-3` 门限。正式 portable bundle 的默认 `bus_phase` 输出为 72 行，
 已在独立结果目录自执行通过。发布总数由 143 增至 144，尚未发布数由 116 降至 115。
 
+### 第三十轮未发布入口分层复扫
+
+2026-10-29 使用 release `tensoreval`（SHA-256
+`b9502e25cd89e4974142bcf34b718d0397e5ff4b99d24abc76105f41efd9b51a`）对当前 115 个未发布
+独立入口增加一轮“仅转换、不求解”复扫。固定上游仍为
+`electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，所有入口统一使用
+`Version8/Distrib` acquisition root。115 个入口均在 30 秒内得到确定结果，其中 21 个已经能生成
+linked RSS，0 个超时；这只证明当前 importer 和 RSS emitter 能表达输入，不等于 bundle 自执行或
+OpenDSS 数值门禁通过。
+
+对 21 个入口继续做运行层探针后，候选范围收敛如下：
+
+- 7 个 Dynamic 入口已经越过生命周期分类器。Kundur DynamicExp 停在 Dynamic 启动后的
+  `New Fault`/`Disable Fault`/`Open Line` 网络修改；5 个 IEEE123 GFL/GFM 入口和 1 个 Wind GFL
+  入口先停在 Dynamic adapter 尚未复用有界 `BatchEdit Load..* Daily=default`。DSA 运行时已经有
+  typed fault on/off 和 topology open/close 事件，因此这组优先调查 importer 到 typed event 的
+  有序 lowering，而不是新增暂态方程。
+- `Examples/AutoTrans/AutoHLT.dss` 已能生成 8 个 execution epoch，运行时在第一个三相短路工作点
+  返回 fault-study protection measurement 求解失败。原脚本只使用现有三绕组变压器、Fault、Load
+  和源/线路切换，且注释给出电流、损耗和满载电压参考，是一个边界集中的 Snapshot fault
+  continuation 候选。
+- `IEEETestCases/NEVTestCase/Run_NEV.dss` 的主模型只包含现有线路、变压器、负荷、接地和电容；
+  当前唯一首层阻断是同一入口依次执行 Snapshot、FaultStudy、Harmonic。三个 adapter 已分别存在，
+  后续工作是定义多 study bundle 的结果命名和 continuation，而不能把生命周期简单改名。
+- `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` 当前可以生成 RSS；60 秒执行探针没有重现旧报告中
+  epoch 0、`1 s` 的即时失败，也没有在观察窗内完成。它继续作为 2,900 步独立长门禁，不以本轮
+  无错误输出判为通过。
+- ckt24 的两个 AnnualSimulation、`Examples/Scripts/AnnualSimulation.dss` 和
+  `EPRITestCircuits/ckt7/RunDSS_ckt7.dss` 也已能生成 RSS。它们应进入独立 Yearly 预算和数值轨迹
+  门禁，不与快速兼容扫描共享超时结论。
+
+本轮同时排除了若干仅看“生成 RSS”会产生的假阳性：4 个 VCCS Dynamic 入口运行时仍明确缺少
+VCCS 对象模型；Paulo 的两个 `solve_*` 和 ExpControl 的 `SolveAndExportMonitors.dss` 是依赖父脚本
+先构网的片段，单独执行没有有效拓扑；GFM Snapshot-B 仍在断开 SW5 后形成无电压参考孤岛。
+InverterTechNote 的 `11_2_kWRatedViolation.dss` 和 `11_3_ReactivePowerViolation.dss` 则未进入上述
+21 个：它们分别需要 Storage 充/放电 Volt-Watt 曲线和 Storage-target VV_DRC。现有原生 singleton/
+overlap 证据已证明这不是只改 DERList 校验即可完成的接入，必须把 InvControl 动作接入同一 Storage
+idle loss、SOC、dispatch state 和区间推进运行时。
+
+本轮没有新增正式 bundle，发布总数保持 144，尚未发布数保持 115。更详细的候选排序和排除依据见
+[`capability_coverage_audit.md`](capability_coverage_audit.md)。
+
+### 第三十一轮 Dynamic 原生命令 lowering
+
+2026-10-29 按第三十轮的第一优先项直接改进 DSA。`eig-rs` master 的
+`aaef84412`、`282b1ddeb` 和 `203bba69f` 依次加入了三层有界语义：Dynamic 启动前复用
+execution plan 的 `BatchEdit` 展开；启动后把 `New Fault`、Fault enable/disable 和整元件
+`Open`/`Close` 降为保持源顺序与累计求解时刻的 typed event；把官方脚本使用的 `StepTime`
+别名映射到固定步长 `StepSize`。超出边界的运行时属性修改、选相开断、非零 `Time=(h,s)` 和动态
+LoadShape 采样仍然 fail closed。
+
+使用 release `tensoreval`（SHA-256
+`2470c55251fb109a176b917521cd3b1eb85f5690e6b60fc4b43d25863802a089`）和固定上游
+`electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，以 `Version8/Distrib` 为
+acquisition root 重新执行全部 7 个 Dynamic 候选的 `--dss-to-rss --check`：
+
+| 官方入口组 | 已越过的首诊断 | 当前最深诊断 | 结论 |
+|---|---|---|---|
+| `Dynamic_KundurDynExp.dss` | 启动后的 `New Fault`、`Disable Fault`、`Open Line` | `PSA.DSS.GENERATOR.DYNAMIC_EXTERNAL_MODEL_UNSUPPORTED` | typed event lowering 已生效；剩余的是外部 Generator dynamic/shaft 模型，不是命令编排缺口 |
+| 两个 IEEE123 GFL 入口 | `BatchEdit Load..* Daily=default`、`StepTime` | `PSA.DSS.DYNAMIC.SET_UNSUPPORTED`；按源顺序首个未映射设置为 `LoadShapeClass=Daily` | 后续还有非零 `Time=(10,0)` 和动态负荷曲线消费，不能把设置静默忽略 |
+| 三个 IEEE123 GFM 入口 | `BatchEdit Load..* Daily=default` | `PSA.DSS.DYNAMIC.COMMAND_UNSUPPORTED`；首个未映射命令为初始 Snapshot 后、Dynamic 前的 `Open Line.SW5 terminal=1` | 需要跨 Snapshot 到 Dynamic 的拓扑 continuation；随后仍有 Storage GFM/AmpLimit 边界 |
+| Wind GFL Dynamic | 运行时 Fault on/off typed event | `PSA.DSS.DYNAMIC.PROFILE_CONSUMER_UNSUPPORTED` | `LoadShape.default` 没有当前 native dynamic runtime 可消费的采样输入 |
+
+聚焦 importer 回归为 12/12 通过；V12 集成测试还断言了 `line_model=Exact`，并验证 Fault on/off 与
+topology open 的事件行和时刻。完整 `psa --features dsa --lib` 本轮得到 1,359 通过、5 个既有
+Generator/Harmonic 测试失败、2 个忽略；5 个失败单独复跑仍失败，且不经过本轮改动的 DSS importer
+路径，因此没有以完整套件全绿作为结论。
+
+这 7 个入口都尚未完成 portable execution 和 OpenDSS 数值门禁，本轮不改
+`conversion_report.csv`，不新增 bundle；发布总数仍为 144，尚未发布数仍为 115。下一轮优先级从
+“继续放宽命令白名单”调整为：先实现可取证的 Dynamic LoadShape 采样与时钟初始化；GFM 则单独定义
+Snapshot→Dynamic topology continuation 和 Storage GFM 方程合同。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -837,9 +910,8 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 | 数量 | 分类 | 诊断码 | 原因 |
 |---:|---|---|---|
-| 14 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 基线扫描时请求 Dynamic、Direct 等当时尚无转换适配器的生命周期；InductionMachine Dynamic 已重扫并发布，其他 Dynamic 仍需复核，Direct 仍未支持。 |
+| 14 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 保存的完整检查请求 Dynamic、Direct 等尚未完成入口合同的生命周期；第三十轮仅转换探针已把其中部分 Dynamic 入口推进到运行层诊断，Direct 仍未支持。 |
 | 13 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
-| 6 | `unsupported` | `PSA.DSS.EXECUTION.COMMAND_UNSUPPORTED` | 尚未分类的执行命令没有有序执行映射；有界 `BatchEdit` 已覆盖本轮发布的 StorageController 入口。 |
 | 9 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
 | 8 | `unsupported` | `REQUEST.SOURCE.ESCAPES_ROOT` | 数据资产引用越过本次允许的获取根。 |
 | 7 | `unsupported` | `PSA.DSS.NODE.PHASE_LABEL_UNSUPPORTED` | 节点/相导体编号超出当前网络表约束。 |
@@ -849,18 +921,20 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 5 | `unsupported` | `PSA.DSS.SET.UNSUPPORTED` | PSA execution plan 不支持该 Set 选项。 |
 | 5 | `unsupported` | `READ.DSS.VALUE_UNSUPPORTED` | 对象值或控制行为被识别，但当前计算合同不能保持。 |
 | 5 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 模型可导入，但所选求解器不支持该拓扑、后端不可用或未收敛。 |
-| 4 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | 其他 Storage 属性尚无无损映射。 |
 | 4 | `unsupported` | `PSA.DSS.LINECODE.RELIABILITY_RETAINED` | LineCode 可靠性字段尚未进入所选计算合同。 |
 | 3 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SET_UNSUPPORTED` | `Set` 选项尚无可验证的 RSS 执行语义。 |
 | 3 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.COMMAND_UNSUPPORTED` | 运行命令尚无可验证的 RSS 映射。 |
+| 2 | `unsupported` | `PSA.DSS.EXECUTION.COMMAND_UNSUPPORTED` | 尚未分类的执行命令没有有序执行映射；有界 `BatchEdit` 已覆盖 StorageController 入口。 |
 | 2 | `unsupported` | `PSA.DSS.GENERATOR.MODEL3.EXECUTION_UNSUPPORTED` | Generator Model 3 尚无 execution plan 等价运行语义。 |
+| 2 | `unsupported` | `READ.DSS.PROPERTY_UNKNOWN` | 包含导入器未知的对象属性。 |
 | 2 | `unsupported` | `PSA.DSS.OBJECT.UNSUPPORTED` | 使用了当前 importer 未覆盖的 DSS 对象。 |
 | 1 | `unsupported` | `PSA.DSS.REGCONTROL.PROPERTY_UNSUPPORTED` | RegControl 属性尚无 transformer/control 表语义。 |
-| 1 | `unsupported` | `PSA.DSS.LOADSHAPE.ACTION_ORDER_UNSUPPORTED` | `Action=Normalize` 后继续修改曲线，最终向量不能重建原命令顺序。 |
 | 1 | `unsupported` | `PSA.DSS.AUTOTRANS.CONNECTION_UNSUPPORTED` | AutoTrans 绕组接法超出当前受支持组合。 |
 | 1 | `unsupported` | `PSA.DSS.STORAGE.PHASES_UNSUPPORTED` | Storage 相数超出当前一相或三相模型。 |
-| 1 | `unsupported` | `READ.DSS.PROPERTY_UNKNOWN` | 包含导入器未知的对象属性。 |
+| 1 | `unsupported` | `PSA.DSS.LOADSHAPE.ACTION_ORDER_UNSUPPORTED` | `Action=Normalize` 后继续修改曲线，最终向量不能重建原命令顺序。 |
+| 1 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | Storage-target InvControl 不能由当前 PVSystem-only typed runtime 无损表达。 |
 | 1 | `unsupported` | `PSA.DSS.CONTROL.REQUIRED_PROPERTY_MISSING` | 控制对象缺少当前有界合同要求的显式属性。 |
+| 1 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage `AmpLimit` 尚无当前运行时映射。 |
 | 1 | `unsupported` | `PSA.DSS.TRANSFORMER.PROPERTY_UNSUPPORTED` | Transformer 属性尚无当前 owned table 的无损映射。 |
 | 1 | `unsupported` | `PSA.DSS.GENERATOR.MODEL3.PV_FACTOR_UNSUPPORTED` | Generator Model 3 的 PV factor 超出当前静态执行合同。 |
 | 1 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.POST_SOLVE_MUTATION` | 独立入口在首次 Solve 后修改模型，尚无 execution-plan 映射。 |

@@ -261,17 +261,100 @@ Distance/TD21 Relay 已不再是统一能力缺口。`Examples/DistanceRelays` �
 门禁并发布 bundle。该结论只覆盖完整三相端口、整端开断和 V12 有界 RMS/phasor 合同；超出该
 边界的 Distance/TD21 配置仍由导入器明确拒绝。
 
-- 当前 12 个以 `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` 为首诊断的入口主要使用
-  多成员组合 VV_VW 的非 1 `deltaP`/`deltaQ`、超出有界曲线基准或成员关系。纯 Volt-Watt 和
-  单 PV VV_VW 已支持有限的 `0 < DeltaP_factor, DeltaQ_factor <= 1`；多成员合同继续要求因子为 1。
-- 11 个 PVSystem 入口使用 `PFPriority` 等没有无损映射的属性。
-- 9 个 Storage 入口使用 `%kWrated`、`EffCurve` 或 `DebugTrace`；前两项会改变电气结果。
+- 当前仅 1 个入口以 `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` 为首诊断：
+  `11_3_ReactivePowerViolation.dss` 的 Storage-target VV_DRC。单 PV 和已取证 multi-target/overlap
+  PVSystem 合同已闭合；Storage member 仍等待统一状态运行时。
+- PFPriority 的 4 个有界官方入口已在第二十三轮发布，不再属于当前未发布分组。
+- `%kWrated`、`EffCurve` 和 `DebugTrace` 已被第二十四、二十九轮消费；当前剩余 Storage 首诊断集中在
+  GFM `AmpLimit` 以及 `11_2` 的 Storage Volt-Watt 充/放电曲线和成员类型。
 - `LoadShape Action=Normalize` 已实现有界导入；其他 Action 以及 Normalize 后继续修改曲线仍没有
   可证明等价的执行合同。
-- GFM、DynEq、VCCS、用户 DLL、59N Relay、AutoTrans 未支持接法和特殊节点
-  编号仍属于明确边界。
+- GFM 的部分动态命令 lowering、DynamicExp 启动后网络事件、VCCS、用户 DLL、AutoTrans 未支持接法
+  和特殊节点编号仍属于明确边界；59N Relay 已在第二十五轮发布，不再列为缺口。
 - IEEE118 原始 53 Generator deck 虽有静态替代投影，但原生 generator 版本自身没有完成
   有界参考生成，不能列为“转换后应与 OpenDSS 一致”的确定案例。
+
+## 第三十轮：115 个未发布入口的 DSA 候选分层
+
+2026-10-29 使用 release `tensoreval`（SHA-256
+`b9502e25cd89e4974142bcf34b718d0397e5ff4b99d24abc76105f41efd9b51a`）重新读取固定
+`electricdss-tst` revision，并对 115 个未发布独立入口先执行“仅转换、不求解”探针。统一使用
+`Version8/Distrib` 作为 acquisition root；每个入口限时 30 秒，115/115 得到确定结果，21 个生成
+linked RSS，0 个超时。随后对其中 16 个非 Yearly、非 P174 入口执行 30 秒完整 `--check`，16 个均
+返回明确运行层诊断；另对 ckt7 和 P174 做 60 秒观察，两者都进入长执行且没有即时错误输出。
+
+这轮的目的不是增加发布数，而是把“parser/emitter 已经能表达”与“DSA runtime 能完成且数值一致”
+分开。没有 OpenDSS 数值门禁的入口继续保持 `unsupported`。
+
+| 候选组 | 入口数 | 当前最深诊断与已有原语 | 判断与顺序 |
+|---|---:|---|---|
+| Dynamic 原生命令 lowering | 7 | `Dynamic_KundurDynExp.dss` 已到启动后的 `New Fault`/`Disable Fault`/`Open Line`；5 个 IEEE123 GFL/GFM 和 1 个 Wind GFL 先停在 Dynamic 对 `BatchEdit Load..* Daily=default` 的命令拒绝。运行时已有 typed fault on/off、topology open/close 和 fixed-clock continuation | **第一优先**。先复用 execution plan 的有界 BatchEdit 展开，再把启动后的 Fault/开关命令映射为 typed dynamic event；每消除一层都重跑，不能预先宣称 GFM/Wind 对象已闭合 |
+| AutoHLT Snapshot fault continuation | 1 | `AutoHLT.dss` 已生成 8 个 epoch；第一个三相短路工作点在 `2 s` 返回 fault-study protection measurement 求解失败。三绕组变压器、Fault、Load 和源/线路切换均有现有 DSA 表达 | **第二优先**。案例小、参考值直接写在官方脚本中，适合先区分静态 Fault stamp 与保护测量路径，再锁定 I/P/loss/voltage |
+| NEV 多 study bundle | 1 | 主模型是已支持的无源网络；入口按 Snapshot→FaultStudy→Harmonic 顺序执行，当前只由 `MIXED_STUDY_UNSUPPORTED` 阻断 | **第三优先**。三个 adapter 已独立存在；需要结果命名、study 顺序和状态 continuation 合同，不能把 mode 互相别名化 |
+| P174 2,900 步 Duty | 1 | 当前仅转换通过；60 秒内未重现旧版 epoch 0 即时失败，也未完成。已有完整 2,900 步 locked projection | **独立长门禁**。先固定当前 release 哈希跑完整首 Snapshot 和 2,900 步，再决定是求解回退、性能问题还是已经恢复；观察超时不算失败或通过 |
+| Yearly ckt24/ckt7 | 4 | 两个 ckt24 AnnualSimulation、Scripts AnnualSimulation 和 ckt7 已能生成 RSS；ckt7 60 秒内持续执行 | **独立长门禁**。需要 8,760 时点收敛、状态和轨迹门禁；不适合普通快速复扫 |
+| Storage-target InvControl | 2 | `11_2_kWRatedViolation.dss` 缺 `voltWattCH_curve` 与 Storage Volt-Watt member；`11_3_ReactivePowerViolation.dss` 缺 Storage-target VV_DRC。已有 P2-E-057/064 singleton/overlap 原生证据 | **高可信但大改造**。必须统一 Storage 与 IBR 的控制动作、idle loss、SOC、dispatch state 和区间推进；禁止只放宽 DERList 校验 |
+
+### 本轮排除的生成期假阳性
+
+- 4 个 VCCS Dynamic 入口虽然能生成 RSS，完整检查仍返回 `PSA.DSS.OBJECT.UNSUPPORTED`；需要新增
+  VCCS 电气/动态模型，不是 importer 接线工作。
+- `Examples/ExpControl/SolveAndExportMonitors.dss` 只含 Solve/Export，必须由 `Master.dss` 在同一
+  OpenDSS 进程中先构网；把它当独立入口会得到无效拓扑。Paulo 的 `solve_snapshot.dss` 和
+  `solve_daily.dss` 同样是父脚本片段。
+- `Run_IEEE123Bus_GFMSnap-B.DSS` 的 importer 已能表达两段 Snapshot，但第二段断开 SW5 后形成
+  无电压参考孤岛；当前求解失败与既有审计一致。
+- GIC、NCIM、VCCS、WindGen QSTS、Storage GFM/AmpLimit 等真实对象或方程缺口没有因为生成 RSS
+  的数量变化而自动晋级为近期候选。
+
+### 下一轮验证门禁
+
+1. Dynamic lowering 必须先用 importer 单元测试证明 BatchEdit 在 Dynamic 启动前物化，且 post-start
+   Fault/Open/Disable 被保留为有时标、稳定顺序的 typed event；再运行至少 Kundur 与一个 GFL 入口。
+2. AutoHLT 必须逐 epoch 比较三相短路电流、复损耗和满载端电压；所有 OpenDSS 对标参数显式使用
+   `line_model="exact"`。
+3. NEV 必须为每个 study 使用独立结果表主键和 manifest 记录，不能用最后一个 study 的成功覆盖前面
+   study 的失败。
+4. P174/Yearly 使用单独长任务预算，并记录 release SHA、完成步数、首次失败时刻和收敛状态；不能以
+   批量扫描超时更新 `conversion_report.csv`。
+5. Storage-target InvControl 在 runtime 统一前继续保持现有证据化 fail closed；任何实现必须消费既有
+   P2-E-057/064 oracle，而不是删除拒绝测试。
+
+## 第三十一轮：Dynamic lowering 实施与再分层
+
+第三十轮第一优先项已经在 `eig-rs` master 的 `aaef84412`、`282b1ddeb`、`203bba69f` 落地。
+实现只接入已有可验证原语：启动前有界 `BatchEdit` 物化，启动后的 Fault on/off 和整元件 topology
+open/close typed event，以及 `StepTime` 到 `StepSize` 的固定步长别名。V12 集成测试显式使用
+`line_model=Exact`，验证事件顺序和累计时刻；运行时任意属性编辑、选相开断、非零 clock reset 与
+未采样的动态曲线继续明确拒绝。
+
+固定 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，使用 release
+`tensoreval`（SHA-256
+`2470c55251fb109a176b917521cd3b1eb85f5690e6b60fc4b43d25863802a089`）对 7 个候选重新执行完整
+`--check`，结果如下：
+
+| 候选 | 修复前首阻断 | 修复后首阻断 | 后续判断 |
+|---|---|---|---|
+| Kundur DynamicExp | post-start Fault/Line mutation | `PSA.DSS.GENERATOR.DYNAMIC_EXTERNAL_MODEL_UNSUPPORTED` | 已证明命令层闭合；必须新增或接入外部 Generator dynamic/shaft 模型后才能继续 |
+| IEEE123 GFL、GFL DynExp | prestart BatchEdit | `PSA.DSS.DYNAMIC.SET_UNSUPPORTED`，对应首个未映射 `LoadShapeClass=Daily` | `Time=(10,0)` 与 LoadShape 采样共同构成新的有界合同，不能把设置当作无副作用 |
+| IEEE123 GFM、CannotPickUpLoad、AmpLimit | prestart BatchEdit | `PSA.DSS.DYNAMIC.COMMAND_UNSUPPORTED`，对应 Snapshot 后的 `Open Line.SW5 terminal=1` | 先定义 Snapshot→Dynamic 拓扑 continuation；Storage GFM 与 AmpLimit 仍是后续真实方程边界 |
+| Wind GFL Dynamic | prestart BatchEdit | `PSA.DSS.DYNAMIC.PROFILE_CONSUMER_UNSUPPORTED` | Fault 生命周期已被 typed event 消费；下一缺口是 `LoadShape.default` 的动态采样输入 |
+
+聚焦 Dynamic importer 测试 12/12 通过。完整 DSA 库测试为 1,359 通过、5 个既有失败、2 个忽略；
+失败集中在 Generator 动态参数/连接和 Harmonic Monitor state，单独复跑仍失败，不经过本轮 importer
+改动路径。由于 7 个官方入口仍全部 fail closed，未执行 OpenDSS 数值比较，也不改变发布状态：
+`conversion_report.csv` 保持 144 个 `converted`、115 个 `unsupported`。
+
+### 下一轮更新后的优先级
+
+1. 对 GFL/Wind 先定义 `LoadShapeClass=Daily`、`LoadShape.default` 与 Dynamic 初始时钟的采样合同；
+   必须用官方 10 h 初值和故障前后 V/I/P/Q 轨迹取证，不能只让命令通过。
+2. 对 GFM 把初始 Snapshot、`Open Line.SW5`、第二次 Snapshot 和 Dynamic 启动建成显式 continuation；
+   之后再分别处理 Storage GFM 电压源和 `AmpLimit`，避免把拓扑与设备方程混为一个诊断。
+3. Kundur 只有在 Generator dynamic/shaft 外部模型有可执行替代或原生 adapter 后再晋级；命令 lowering
+   已不再是该入口的首要缺口。
+4. 任一入口只有在 portable bundle 自执行和 OpenDSS 数值门禁均通过后，才更新
+   `conversion_report.csv` 与 144/115 计数。
 
 ## 建议的实现门禁
 
@@ -281,7 +364,7 @@ Distance/TD21 Relay 已不再是统一能力缺口。`Examples/DistanceRelays` �
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 141 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 115 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
