@@ -234,7 +234,57 @@ mc_para = with_columns(alias("voltage_statistics,scenario_voltage,summary", resu
 一组最小表，不要把 QSTS `load_shape` 直接当作 replay 输入。当前此入口拒绝非空独立
 storage。
 
-## 9. 外部数据与结果后处理
+## 9. 网络暂态 V12
+
+已有受支持的 OpenDSS Dynamic/Dynamics 入口时，先用严格转换检查，随后生成并运行 bundle：
+
+```bash
+tensoreval --dss-to-rss --check path/to/case.dss
+tensoreval --dss-to-rss --mode bundle --output path/to/case.rssbundle path/to/case.dss
+tensoreval --result-dir path/to/results path/to/case.rssbundle
+```
+
+只有模型定义、没有研究命令时，在前两条转换命令中增加 `--study dynamic`。`--check` 不写
+输出；第三条命令运行后，目录中每个终端结果对应一个 CSV。转换器生成的 Dynamic bundle 默认
+请求全部 15 张 V12 结果。
+
+显式 DataFrame 入口固定写成：
+
+```text
+dynamic_para = with_columns(
+    alias("bus_voltage,solver_trace,event,protection_state,device_protection_connection", result),
+    para
+);
+
+[voltage, trace, events, protection, connection] = ds_network_dynamics(
+    bus, line, linecode, load, transformer, voltage_source,
+    motor, transformer_winding, transformer_impedance, current_source,
+    generator, ibr, switch, shunt, capacitor, reactor, spectrum,
+    control_profile, xy_curve, storage,
+    timeline, event, tcc_curve, fuse, recloser, relay, fault, spec, dynamic_para
+);
+```
+
+前 20 张网络表和后 9 张研究表都不能省略。`timeline.time_s` 必须有限并严格递增；没有配置的
+`event/tcc_curve/fuse/recloser/relay/fault/spec` 传零行 DataFrame。故障或保护动作时同一
+`time_s` 可能输出多个 `sequence`，结果连接键必须包含二者和设备身份列。
+
+常用选择：电气稳定性用 `bus_voltage,branch_current,solver_trace`；保护动作加入
+`event,fault_state,protection_state,device_protection_connection`；DER 和电机响应加入
+`pvsystem_state,storage_state,motor_state,generator_state,frt_state,device_state`。
+
+可运行案例：
+
+```bash
+tensoreval --result-dir /tmp/distance-dynamic \
+  sparrowzz/dss/rssbundle/Examples/DistanceRelays/DistanceRelayTest.rssbundle
+```
+
+该案例是 120 个 10 ms 外部时点的 Distance Relay 动态研究；TD21 案例使用 1,200 个 1 ms
+外部时点。两者均按 OpenDSS 数值、事件顺序、动作次数和终态验证。完整输入、输出、单位和失败
+边界见 [tensoreval 命令行与暂态仿真参考](tensoreval_cli_reference.md)。
+
+## 10. 外部数据与结果后处理
 
 通过 `#include` 或 `#include_url` 读取脚本文本，通过 RSDss 的输入函数读取数据，再使用
 `select/filter/join/aggregate/sort` 处理。组合多张表时显式写方向：
@@ -247,10 +297,12 @@ joined = join(voltage, limits, bus, bus, "left");
 裸标识符在表达式位置通常是字符串字面量；要引用列使用 `col(name)`，要一次选多列使用
 `cols(a, b)`。多返回函数必须用 `[a, b]` 解构，返回数量必须与 `para.result` 匹配。
 
-## 10. 运行命令
+## 11. 运行命令
 
 ```bash
 tensoreval --df path/to/case.rss
+tensoreval --df --result-dir path/to/results path/to/case.rss
+tensoreval --result-dir path/to/results path/to/case.rssbundle
 ```
 
 Newton 和状态估计需要安装包含 MUMPS 或 MKL 后端的版本。谐波和大模型使用发布版

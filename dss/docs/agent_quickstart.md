@@ -2,7 +2,11 @@
 
 本文给出从用户需求到可运行 `.rss` 的固定步骤。函数签名和表结构分别以
 [DSA 函数参考](dsa_function_reference.md) 和
-[DataFrame schema 参考](dataframe_schema_reference.md) 为准。
+[DataFrame schema 参考](dataframe_schema_reference.md) 为准。代码生成器还必须读取
+[`catalog/study_facades.json`](catalog/study_facades.json)：它是逐门面参数位置、
+`inputKind` 和 `schemaRef` 的权威机器合同；列 dtype、Struct 参数卡和结果继承由
+[`catalog/dataframes.json`](catalog/dataframes.json) 定义，格式见
+[`catalog/README.md`](catalog/README.md)。禁止从函数名、参数名、样例或 Rust 源码自行推断执行事实。
 
 ## 1. 先把需求归入分析类型
 
@@ -20,7 +24,9 @@
 | 供电恢复重构 | `ds_restore` | 需要显式 switch 和 fault 表 |
 | 保护配合审计 | `ds_protection_coordination` | 消费故障和量测样本，不自行求故障电流 |
 | 故障定位 | `ds_fault_location` | 需要量测和候选开关/线路表 |
-| 电机网络动态 | `ds_motor_dynamics` | 需要 timeline、event 和动态 spec |
+| 完整 RMS/phasor 网络动态 | `ds_network_dynamics` | 29 参数；需要 timeline，可接 Storage、Generator、故障和保护表 |
+| 保留受支持的 DSS Dynamic 命令流 | `ds_dss_dynamic_plan` | 本地 `.dss`，固定步长且满足 PSA V12 有界合同 |
+| 兼容电机网络动态 | `ds_motor_dynamics` | 28 参数；只返回三种旧结果且拒绝非空 Storage |
 
 不确定网络是否满足 Radial 边界时，先检查电源数量、连通性和环路。已明确存在环网、并联
 支路或多个固定电压源时直接选择 Newton。
@@ -41,11 +47,26 @@
 必须保留位置。空对象表也占据自己的槽位。当前 `import_dss` 使用静态导入 profile；
 `Solve`、运行时 `Set`、`Export` 等执行命令不能作为静态模型的一部分。
 
+这里描述的是**独立 RSS 自行读取模型**的场景。若宿主改用
+`tensoreval --df --input NAME=FILE` 注入 DataFrame，脚本必须直接引用这些 `NAME`，禁止再次
+调用 `import_dss` 读取同一模型。每个 `--input` 只注入一张表；完整潮流仍需分别注入并传递
+全部 20 张网络表和参数表。两种模式都有效，但不能在同一模型工作流中混用。
+
 需要保留受支持的单 `Solve` 时，可用 `import_dss_execution` 得到完整 33 项 QSTS bundle
 及 `diagnostics/events`；需要直接连续执行多个 `Solve` 时，使用 `ds_*_dss_plan`，不要先走
 静态 `import_dss`。
 
+暂态不要走静态 `import_dss` 后再猜测 DSS 命令语义。已有 Dynamic/Dynamics 命令流时使用
+`ds_dss_dynamic_plan`，或直接执行 `.dss/.rssbundle`；上游已经提供 20 张网络表、timeline 和
+保护表时才使用 `ds_network_dynamics`。三种命令行路径和落盘规则见
+[tensoreval 命令行与暂态仿真参考](tensoreval_cli_reference.md)。
+
 ## 3. 显式构造分析配置
+
+准备 `--input` 或生成输入卡片时，先按所选 facade 的 `inputs` 顺序处理：`model` 是具有
+身份和引用关系的网络、设备或持久控制对象，`data` 是可替换的量测、曲线样本、场景、事件、
+工况或假设行，`struct` 是零行或单行配置。必须使用该项的 `schemaRef`；同名
+`measurement` 或 `fault` 不能跨门面复用 schema。
 
 静态潮流的最小参数表：
 
@@ -109,16 +130,52 @@ monitor, energy_meter, fault, para
 | DSS 执行计划证据 | `execution_trace`、`diagnostics`、`events` |
 | 谐波母线结果 | `bus_voltage` |
 | 故障和故障支路电流 | `fault,branch_flow` |
+| 暂态电压和收敛 | `bus_voltage,solver_trace` |
+| 暂态故障与保护动作 | `branch_current,event,fault_state,protection_state,device_protection_connection` |
+| 暂态 DER/电机/Generator | `pvsystem_state,storage_state,motor_state,generator_state,frt_state,device_state` |
 
 输出变量名不能与随后仍作为裸标识符使用的枚举值同名。例如参数中使用
 `alias(bus_phase, result)` 时，把输出命名为 `voltage` 或 `qsts_voltage`，避免形成意外
 依赖或循环。
 
-## 6. 运行并检查
+## 6. 暂态输入和输出检查
+
+显式 V12 门面固定为 29 个参数：20 张网络表，随后依次是
+`timeline,event,tcc_curve,fuse,recloser,relay,fault,spec,para`。`timeline` 必须非空且
+`time_s` 严格递增；其他研究表没有配置时仍传零行 DataFrame。不要交换 `event` 与 `fault`：
+前者描述明确时刻的操作，后者描述带 on/off 生命周期的保护故障对象。
+
+所有暂态结果都是带 `time_s,sequence` 的长表；内部故障、保护、控制和 FRT 边界可能在外部
+时间轴之间插入行。同一时间的动作前后状态靠 `sequence` 区分。验收至少同时检查
+`solver_trace.converged`、`event.applied/reason`、保护终态和 `device_protection_connection`，
+不能只看最终母线电压。
+
+已有 DSS Dynamic 入口时优先运行已验证 bundle：
+
+```bash
+tensoreval --result-dir /tmp/dynamic-results \
+  sparrowzz/dss/rssbundle/Examples/DistanceRelays/DistanceRelayTest.rssbundle
+```
+
+完整输入、15 张输出和 fail-closed 条件见
+[tensoreval 暂态参考](tensoreval_cli_reference.md#5-暂态仿真的三种入口)。
+
+## 7. 生成脚本的最小语法检查
+
+代码生成 Agent 在运行前必须逐项确认：
+
+- 顶层只写 `NAME = RHS;`、`[NAME1, NAME2] = RHS;` 或以 `{ ... };` 为右值的具名声明；
+- 最大依赖层 DataFrame 声明的结果绑定就是输出，不需要额外的输出语句；
+- 禁止在末尾追加 `summary;`、`voltage;` 或其他裸变量表达式；
+- `para.result` 请求的结果数量和顺序必须与左侧绑定的数量和顺序完全一致；
+- 标量只能作为后续声明消费的中间节点，不能留在最大依赖层作为最终输出；
+- 模型由脚本读取时使用 `import_dss`；模型由 `--input` 注入时直接引用绑定名，不重复导入。
+
+## 8. 运行并检查
 
 ```bash
 tensoreval --df path/to/case.rss
-tensoreval --df --verbose path/to/case.rss
+tensoreval --df --verbose --result-dir results path/to/case.rss
 ```
 
 验收至少检查：
@@ -131,8 +188,11 @@ tensoreval --df --verbose path/to/case.rss
 6. 与 OpenDSS 对照时按稳定键连接，不依赖行顺序；
 7. 比较复数实部/虚部，并记录每类量的容差。
 
-## 7. 生成脚本时的禁止推断
+## 9. 生成脚本时的禁止推断
 
+- 不从函数名或参数名猜测 `model/data/struct`；读取 `study_facades.json`。
+- 不把同名参数当成同一 schema；状态估计与故障定位的 `measurement`、短路与恢复的
+  `fault` 都有不同合同。
 - 不从 OpenDSS 属性名直接猜测 DataFrame 列名；查 schema 参考。
 - 不交换 `import_dss` 返回位置或完整网络参数位置。
 - 不省略 QSTS 的空子系统参数。
@@ -141,3 +201,5 @@ tensoreval --df --verbose path/to/case.rss
 - 不假设角度单位统一；静态 `bus_phase.v_ang` 为 rad，谐波角度为 degree。
 - 不使用结果表的当前行顺序作为业务身份。
 - 不把测试的 `1e-3` 容差推广为所有网络的通用验收标准。
+- 不把 RMS/phasor V12 暂态称为 EMT 或完整 OpenDSS Dynamic Mode。
+- 不按 `time_s` 单列去重暂态输出；同刻的不同 `sequence` 表示确定的动作前后边界。

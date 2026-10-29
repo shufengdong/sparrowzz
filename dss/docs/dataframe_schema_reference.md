@@ -1,13 +1,57 @@
 # DataFrame schema 参考
 
 本文记录 RSS 中直接构造或传给 `ds_*` 的 DataFrame 契约。列名区分大小写，表内对象名的
-解析通常不区分 ASCII 大小写。类型写作 `str`、`bool`、`u32`、`f64`、`list<str>` 和
-`list<f64>`；脚本中的整数常可由 Polars 转为解析器需要的数值类型，但新脚本应尽量按表中
-类型构造。
+解析通常不区分 ASCII 大小写。完整类型语法、Arrow/Parquet 映射、nullable、受控上传转换、
+Struct 参数卡和结果继承规则以 [机器目录格式](catalog/README.md)及
+`catalog/dataframes.json.dtype_grammar` 为准。自然语言表格用于阅读，不得覆盖机器合同。
 
 除非单独说明，电气量使用 SI：电压 V、电流 A、有功 W、无功 var、视在功率 VA、阻抗
 ohm、时间 s、频率 Hz、角度 rad。DSS 导入器负责把 OpenDSS 常用的 kV、kW、kvar、kVA
 和角度制换算到这些契约。
+
+## 机器可读门面与输入分类
+
+[`catalog/study_facades.json`](catalog/study_facades.json) 是全部已注入 DataFrame `ds_*`
+研究门面的权威参数映射。它逐函数、逐位置给出 `inputKind` 和指向本文件同一 snapshot 中
+[`catalog/dataframes.json`](catalog/dataframes.json) 的 `schemaRef`；函数名、arity 和结果名仍由
+[`catalog/functions.json`](catalog/functions.json) 定义。目录格式见
+[`catalog/README.md`](catalog/README.md)。调用方必须读取这三份合同，禁止根据函数名或参数名
+猜测输入类别、列类型、默认值或结果结构。
+
+分类语义固定为：
+
+- `model`：网络拓扑、设备、保护装置或持久控制对象；身份和跨表引用关系属于模型；
+- `data`：量测、曲线采样值、场景、事件、故障工况、观测、假设等可替换的行式数据；
+- `struct`：逻辑上的一个配置对象，使用零行或单行参数 DataFrame，具体行数由 schema 约束。
+
+变化频率不能单独决定类别。解析器如何消费每行、该表是否声明持久身份、是否被其他模型表
+引用，才是分类依据。当前源码审计矩阵如下；固定网络在 JSON 中展开为 20 个独立输入：
+
+| 门面/输入 | `inputKind` | `schemaRef` | 源码语义与判断依据 |
+|---|---|---|---|
+| 全部完整门面的 `bus`…`storage` 20 张固定网络表 | `model` | `frames.bus`…`frames.storage` | 构成拓扑、设备和持久网络控制模型；位置顺序固定 |
+| 通用 `para` | `struct` | `frames.para` | 表示零个或一个配置对象；底层 `parse_params` 在无 `result` 时容忍多行但只读取第 0 行，调用方禁止依赖被忽略的额外行；有 `result` 时强制恰好一行 |
+| QSTS `solution` | `struct` | `frames.solution` | `parse_solution` 强制恰好一行并生成整个求解日程 |
+| QSTS `load_shape` | `data` | `frames.load_shape` | 每行是命名曲线的一个时间采样点 |
+| QSTS `shape_assignment` | `model` | `frames.shape_assignment` | 保存设备身份到命名曲线的持久引用关系 |
+| QSTS `storage_controller`、`switch_control` | `model` | `frames.storage_controller`、`frames.switch_control` | 有稳定控制器身份、受控设备引用和跨时点状态 |
+| QSTS/保护/动态 `tcc_curve` | `data` | `frames.tcc_curve` | 保存电流—时间曲线采样值；保护设备按名称引用它 |
+| QSTS/保护/动态 `fuse`、`recloser`、`relay` | `model` | `frames.fuse`、`frames.recloser`、`frames.relay` | 有保护装置身份、整定、曲线引用和动作目标 |
+| QSTS/谐波 `monitor`、QSTS `energy_meter` | `model` | `frames.monitor`、`frames.energy_meter` | 有持久表计身份、被测元件或区域引用及寄存器配置 |
+| 短路/QSTS `fault` | `data` | `frames.fault` | 每行是可替换的故障位置、类型、阻抗或投退工况 |
+| 恢复重构 `fault` | `data` | `analysis_inputs.restore_fault` | 每行只声明必须保持断开的开关身份，不使用短路 fault schema |
+| 网络动态 `fault` | `data` | `analysis_inputs.dynamic_fault` | 在基础故障电气数据上增加稳定事件名和投退生命周期 |
+| 状态估计 `measurement` | `data` | `analysis_inputs.state_estimation_measurement` | 标量量测、位置、数值和权重行 |
+| Monte Carlo `spec`、`multipliers` | `struct`、`data` | `analysis_inputs.monte_carlo_spec`、`analysis_inputs.monte_carlo_multipliers` | `spec` 恰好一行；`multipliers` 是 replay 场景样本行 |
+| 保护配合 `fault_case`、`current_sample`、`pair`、`observed_action` | `data` | 对应 `analysis_inputs.protection_*` | 本次审计的故障工况、电流样本、主后备组合和观测证据 |
+| 保护配合 `para` | `struct` | `analysis_inputs.protection_para` | 零行或单行容差与结果选择配置 |
+| 故障定位 `measurement`、`hypothesis_switch`、`hypothesis_line` | `data` | 对应 `analysis_inputs.fault_location_*` | 复相量观测及可替换的候选网络假设行 |
+| 故障定位 `para` | `struct` | `analysis_inputs.fault_location_para` | 零行或单行搜索与损失函数配置 |
+| 动态 `timeline`、`event` | `data` | `analysis_inputs.dynamic_timeline`、`analysis_inputs.dynamic_event` | 外部采样要求和按时刻排列的运行事件 |
+| 动态 `spec` | `struct` | `analysis_inputs.dynamic_spec` | 零行或单行动态模型与积分配置 |
+
+同名 alias 不建立 schema 等价关系。状态估计和故障定位的 `measurement`、短路/QSTS、恢复
+重构和网络动态的 `fault` 都必须按所选 facade 的 `schemaRef` 分别处理。
 
 ## 1. 完整网络的 20 张表
 
@@ -123,10 +167,23 @@ terminal_map_from, terminal_map_to`。可选 `open` 给出开断状态，`i_max`
 `gfm_angle_source`, `r_ohm`, `x_ohm`, `droop_p`, `droop_q`。PV 可用
 `pmpp`, `irradiance`, `pct_pmpp`, 温度字段、`pv_pt_curve_x/y`、`pv_eff_curve_x/y`、
 `inverter_efficiency`, `cut_in/cut_out`, `var_follow_inverter` 描述阵列和逆变器。
+`watt_priority` 在视在功率越限时优先保持有功；`pf_priority` 对固定功率因数设备按同一比例
+缩放 P/Q。DSS 导入的 `pf_priority=true` + InvControl 只覆盖单 PV、单 Volt-Watt 且未启用
+`watt_priority`/`LimitCurrent` 的有界子集，其他组合 fail closed。
 `q_setpoint` 优先于控制配置中的定功率因数。多个设备共享 bounded InvControl 或
 ExpControl 时，分别用从 0 连续递增的 `invcontrol_member_order` 或
 `expcontrol_member_order` 固定 OpenDSS DERList/PVSystemList 的逐设备顺序；这些序号
 不表示 fleet、权重或优先级。
+
+### `storage`
+
+除额定能量、SOC 和充放电效率外，Storage 可选使用成对的
+`inverter_efficiency_curve_x/y:list<f64>` 表示 OpenDSS `EffCurve`。两列必须同时出现、
+长度相等且至少含两个点；X 必须非负并严格递增，Y 必须在 `(0,1]`，同时必须提供
+`s_max`。X 是交流端有功绝对值与设备额定 VA 的比值，Y 是逆变器效率，运行时线性插值并
+按端点斜率外推。放电能量顺序为“交流输出除以曲线效率、加空载损耗、再除以放电效率”；
+充电顺序为“交流输入乘曲线效率、扣空载损耗、再乘充电效率”。机器调用方必须以
+[`catalog/dataframes.json`](catalog/dataframes.json) 的 `frames.storage.contract` 为准。
 
 ### `control_profile`
 
@@ -178,11 +235,16 @@ charge_efficiency, discharge_efficiency
 
 ## 4. `para`
 
-`para` 是一行表。`import_dss` 至少生成：
+通用 `para` 的公开合同是零行或单行配置表；零行选择该分析默认值。底层 `parse_params`
+在没有 `result` 列时会容忍多行但只读取第 0 行；调用方禁止依赖被忽略的额外行。
+`result` 列存在时，表达式分派会强制表恰好一行。`import_dss` 至少生成：
 
 | 列 | 类型 | 规则 |
 |---|---|---|
 | `base_frequency_hz` | `f64` | 有限且大于 0 |
+| `max_iter` | 正整数 | 非线性或优化迭代上限 |
+| `max_control_iter` | 正整数 | 离散控制外层迭代上限 |
+| `tol` | `f64` | 有限且大于 0 |
 | `line_model` | `str` | 常用 `exact`；各分析可有自己的默认值 |
 | `result` | `str` | 逗号分隔、忽略大小写；不得为空、未知或重复 |
 
@@ -351,6 +413,12 @@ QSTS 故障还可使用 `on_time`/`ontime`, `off_time`, `temporary`, `min_amps`/
 故障定位都把参数写成 `measurement`，但它们不是同一种表，不能互换。机器目录使用
 `state_estimation_measurement` 和 `fault_location_measurement` 消除这种歧义。
 
+### 谐波 `para`
+
+谐波 `para` 使用 `analysis_inputs.harmonic_para`，必须恰好一行并包含正整数语义的
+`h_max`。可选 `buses:list<str>` 只能含大小写不敏感的唯一非空母线名；`skin_effect` 和
+`neglect_load_y` 默认为 `false`。公共求解、基频和 `result` 列遵循通用 `para` 规则。
+
 ### 状态估计 `measurement`
 
 每行必需 `type:str, phase:str, value:f64`；`weight:f64` 可省略，默认 `1.0`，且必须
@@ -383,6 +451,12 @@ QSTS 故障还可使用 `on_time`/`ontime`, `off_time`, `temporary`, `min_amps`/
 随机模式要求 `multipliers` 是零行表。Replay 模式要求
 `scenario:整数,multiplier:f64`；场景编号从 1 连续递增。`m1_replay` 还要求 `load:str`，
 并为每个场景和每个网络负荷恰好提供一行；`global_replay` 每个场景恰好一行。
+
+### 恢复重构 `fault`
+
+恢复重构的 `fault` 使用 `analysis_inputs.restore_fault`，每行只需要 `name:str`。`name`
+必须引用完整网络 `switch` 表中的开关，表示故障隔离后该开关必须保持断开。该表不接受
+短路 `frames.fault` 的 `bus,terminal_map,kind` 语义；两者参数 alias 相同，但 schema 不同。
 
 ### 保护配合输入
 
@@ -423,28 +497,88 @@ resistance_min_ohm,resistance_max_ohm,reactance_min_ohm,reactance_max_ohm,loss,
 loss_parameter`，以及公共潮流列 `max_iter,max_control_iter,tol,line_model`。`loss` 仅接受
 `least_squares,huber,cauchy`。
 
-### 电机网络动态输入
+### 网络动态输入与 V12 结果
 
-`timeline` 必需 `time_s:f64`，可选 `source_scale_re=1,source_scale_im=0`。所有值必须
-有限，时刻必须严格递增。
+`ds_network_dynamics` 的前 20 个参数是固定网络表，后 9 个位置为：
+
+| 位置 | 表 | 行数要求 |
+|---:|---|---|
+| 21 | `timeline` | 至少一行 |
+| 22 | `event` | 零行或多行 |
+| 23 | `tcc_curve` | 零行或多行 |
+| 24 | `fuse` | 零行或多行 |
+| 25 | `recloser` | 零行或多行 |
+| 26 | `relay` | 零行或多行 |
+| 27 | `fault` | 零行或多行 |
+| 28 | `spec` | 零行或一行 |
+| 29 | `para` | 零行或一行；有 `result` 时必须恰好一行 |
+
+位置不可省略或交换。零行表只表示对应子系统未配置；任何非空表都会按该位置的 schema 解析。
+
+`timeline` 必需 `time_s:f64`，可选 `source_scale_re:f64=1,source_scale_im:f64=0`。所有值必须
+有限，时刻必须严格递增。该表同时用于 `ds_network_dynamics` 和兼容入口
+`ds_motor_dynamics`。
 
 `event` 每行必需 `time_s,kind`，`kind` 决定其他列：
 
 | `kind` | 必需列 | 可选列 |
 |---|---|---|
-| `fault_on` | `event_id,bus,phases,fault_kind` | `bus2,percent,zf_re=0,zf_im=0` |
+| `fault_on` | `event_id,bus,phases,fault_kind` | `bus2,percent,zf_re=0,zf_im=0,g_matrix` |
 | `fault_off` | `event_id` | 无 |
 | `topology` | `element,action` | 无 |
 | `conductor_topology` | `element,terminal,conductor,action` | 无 |
 | `protection` | `device,element,action` | 无 |
 | `conductor_protection` | `device,element,terminal,conductor,action` | 无 |
+| `storage_state` | `device,action` | `action=IDLING/CHARGING/DISCHARGING` |
+| `device_availability` | `device_class,device,enabled` | `device_class=Load/PVSystem/Generator` |
 
-`action` 接受 `open/trip` 或 `close/reclose`。`spec` 可为零行或一行；支持
+拓扑/保护 `action` 接受 `open/trip` 或 `close/reclose`。`fault_on.g_matrix` 若非空，
+必须是按行展平、有限、对称的 `len(phases) × len(phases)` 电导矩阵。`spec` 可为零行或一行；支持
 `frequency_hz,initial_slip,shaft_power_w,mechanical_load,torque_exponent,
 voltage_exponent,speed_exponent,locked_rotor,stall_slip_threshold,
-max_corrector_iterations,tolerance,max_network_iterations,voltage_tolerance,relaxation`。
+max_corrector_iterations,tolerance,max_network_iterations,voltage_tolerance,relaxation,
+max_same_time_action_rounds=16`。
 `mechanical_load` 接受 `constant_power/constant`、`speed_dependent_torque/torque` 或
 `power_law`；省略的数值取 PSA `MotorNetworkDynamicSpec` 默认值。
+
+`para` 使用公共潮流参数 `max_iter,max_control_iter,tol,line_model,base_frequency_hz`，并用
+`result:str` 选择输出。`base_frequency_hz` 必须有限且大于零；`result` 的逗号项去除首尾空白后
+按顺序返回，空项、未知名称和重复名称失败。零行 `para` 使用默认求解参数和默认结果
+`bus_voltage`。
+
+`ds_network_dynamics` 在上述输入之后还接收 `fault`。它使用保护型动态 fault schema：
+声明中至少提供故障名称、母线、故障类型和相别，并可用 `on_time/off_time` 定义生命周期；
+精确列与 DSS `Fault` 导入表一致。`tcc_curve/fuse/recloser/relay` 使用 QSTS 同名输入
+schema。四张表和 `fault` 都可为零行表。
+
+V12 固定返回以下 15 种可选结果。逐采样电气表均以 `time_s,sequence` 开头；空设备族仍
+返回带固定列的零行表。
+
+| 结果 | 固定列（省略换行） |
+|---|---|
+| `bus_voltage` | `time_s,sequence,bus,phase,v_re,v_im,v_mag,v_angle_deg` |
+| `branch_current` | `time_s,sequence,element,kind,terminal,bus,phase,i_re,i_im,i_mag,i_angle_deg` |
+| `source_flow` | `time_s,sequence,source,terminal,bus,phase,v_re,v_im,i_re,i_im,p_w,q_var` |
+| `pvsystem_state` | `time_s,sequence,pvsystem,bus,phase,voltage_re,voltage_im,current_re,current_im,p_w,q_var,modulation,control_error,safe_mode` |
+| `storage_state` | `time_s,sequence,storage,bus,phase,voltage_re,voltage_im,current_re,current_im,p_w,q_var,modulation,control_error,command_state,safe_mode,stored_kwh,soc_pu` |
+| `motor_state` | `time_s,sequence,motor,phase,voltage_re,voltage_im,current_re,current_im,current_mag,current_angle_deg,slip,speed_pu,relative_speed_rad_s,rotor_angle_deg,p_w,q_var,electromagnetic_torque_nm,shaft_power_w,stalled` |
+| `event` | `time_s,event_id,kind,target,action,applied,sequence,source,reason` |
+| `solver_trace` | `time_s,sequence,predictor_iterations,corrector_iterations,voltage_residual,current_residual,kcl_residual,converged` |
+| `fault_state` | `time_s,sequence,name,bus,kind,enabled,active,cleared,current_a,transition_reason` |
+| `protection_state` | `time_s,sequence,name,device_type,monitored_obj,monitored_term,channel,current_a,pickup,timer_s,operation,state,pending_action,next_due_s,relay_type,measurement_kind,min_voltage_pu,max_voltage_pu,trip_source,locked_out,doc_control_power_w,doc_current_a,doc_current_angle_deg,directional_blocked,doc_region,negative_sequence_current_a,negative_sequence_voltage_v,reverse_power_w,monitored_conductor,pickup_phase,switched_obj,switched_term,switched_conductor` |
+| `frt_state` | `time_s,sequence,name,bus,voltage_pu,frequency_hz,voltage_zone,frequency_zone,violation_time_s,connection_state,recovery_fraction,p_w,q_var,stored_kwh,min_voltage_pu,max_voltage_pu,governing_voltage_side,operating_mode,zone_response,policy,connection_kind,measurement_phase_from,measurement_phase_to,device_voltage_pu,port_available` |
+| `control_state` | `time_s,sequence,name,control_type,monitored_obj,monitored_term,controlled_obj,mode,measurement_kind,measurement_value,setpoint_value,deadband_value,state,pending_action,next_due_s,source_ordinal,tap_position,tap_ratio,regulator_direction,capacitor_step,capacitor_steps,last_open_s` |
+| `device_state` | `time_s,sequence,class,name,bus,enabled,p_w,q_var,protection_connected,protection_owner,frt_connected,effective_connected,disconnect_reason,protection_owner_count,protection_connected_phase_count,protection_required_phase_count` |
+| `generator_state` | `time_s,sequence,generator,bus,phase,enabled,energized,voltage_re,voltage_im,current_re,current_im,current_mag,current_angle_deg,p_w,q_var,e1_mag_v,rotor_angle_deg,relative_speed_rad_s,speed_pu,shaft_power_w,electrical_power_w` |
+| `device_protection_connection` | `time_s,sequence,class,name,terminal,conductor,phase,owner_type,owner,owner_connected,effective_conductor_connected,aggregate_device_connected` |
+
+电压、电流、有功、无功和角度分别使用 V、A、W、var 和 degree。`branch_current` 的电流方向为
+从端口母线流入支路；PV/Storage 的 P/Q 正值表示向网络注入，Storage 充电 P 为负；电机 P/Q
+正值表示流入电机。未配置设备族时仍返回上述固定列的零行表。
+
+外部 `timeline` 是采样要求，不是输出行数承诺。故障切换、保护到期、普通控制和 FRT 状态变化
+会插入精确内部边界；同一个 `time_s` 可以有多个 `sequence`。跨表连接使用
+`time_s,sequence` 加结果自身的设备/母线/端子/相身份列，不能只按时间或当前行号连接。
 
 ## 9. 固定结果 schema
 
@@ -562,6 +696,11 @@ predicted_current_re,predicted_current_im,predicted_voltage_re,predicted_voltage
 QSTS 对每张逐时步结果追加 `time,load_multiplier,generation_multiplier`。执行计划入口再
 追加 `epoch_index,solve_event_sequence`；`diagnostics` 和 `events` 使用各自的执行审计
 schema。各状态结果在三列时序元数据之前的固定列为：
+
+机器目录的 `qsts_outputs` 为每个公开 QSTS 结果保存上下文完整的 schema；逐时步结果的
+`columns` 已包含上述三列，Monitor、EnergyMeter、可靠性、区域、保存快照和负荷持续时间
+结果则引用各自真实构造器合同。调用方不得把静态 `result_frames.bus_voltage` 直接当成
+QSTS `bus_voltage`，否则会遗漏时间元数据。
 
 | 结果 | 固定列 |
 |---|---|

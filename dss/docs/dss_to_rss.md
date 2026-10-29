@@ -4,7 +4,8 @@
 `tensoreval --df` 执行的
 `.rss` 脚本。转换器在写文件前展开并审计本地 `Redirect`/`Compile` 文件树，按 PSA
 当前契约导入全部电气内容，并用所选 PSA 求解器实际求解一次。任一步失败都不会留下部分
-可执行脚本。
+可执行脚本。`tensoreval` 的全部输入模式、输出文件和暂态 V12 结果见
+[命令行与暂态仿真参考](tensoreval_cli_reference.md)。
 
 ## 1. 命令
 
@@ -54,7 +55,7 @@ MUMPS 或 MKL 后端。
 tensoreval --dss-to-rss --check --study snapshot path/to/model.dss
 ```
 
-`--study` 支持 `snapshot`、`execution`、`harmonic`、`auto-add` 和 `relcalc`。该参数选择
+`--study` 支持 `snapshot`、`execution`、`harmonic`、`auto-add`、`relcalc` 和 `dynamic`。该参数选择
 PSA adapter，不跳过对应 adapter 的严格语义检查。
 
 需要把 DSS 文件树、数据资产和外部输入一起交付时，生成便携 bundle：
@@ -86,15 +87,38 @@ tensoreval path/to/case.rssbundle
 | `Mode=Harmonic/HarmonicT` | `ds_dss_harmonic_plan` | 满足 PSA 原生谐波执行合同 |
 | `Mode=AutoAdd` | `ds_dss_auto_add` | 满足 PSA 有界单次 AutoAdd 合同 |
 | Snapshot 后执行 `RelCalc` | `ds_dss_relcalc` | 满足 PSA 径向分区可靠性合同 |
+| 可选 Snapshot 初始化后执行 `Dynamic/Dynamics` | `ds_dss_dynamic_plan` | 固定正步长、连续时钟，且所有对象与命令满足 PSA protected Dynamic V12 合同 |
 
 转换器先解析完整命令流再分类。专用生命周期优先于其准备阶段的 Snapshot；Snapshot 初始化
 后继续 Daily/Yearly/Duty 等 QSTS 由同一个 execution plan 表达。一个文件中混合 QSTS、
-Harmonic、AutoAdd 或 RelCalc 仍会以 `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED`
+Harmonic、AutoAdd、RelCalc 或 Dynamic 仍会以 `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED`
 失败。只有模型定义、没有研究命令的入口不会由转换器猜测研究类型，必须使用 `--study`。
 
 为保持已有生成脚本合同，Snapshot 和 ExecutionPlan 的 linked RSS 把所选 `bus_phase`
 结果绑定为终端变量 `voltage`；`tensoreval case.dss` 的直接执行结果名仍为 `bus_phase`。
-Harmonic、AutoAdd 和 RelCalc 的终端变量名与各自结果名完全相同。
+Harmonic、AutoAdd、RelCalc 和 Dynamic 的终端变量名与各自结果名完全相同。
+
+Dynamic 转换把 `h/step/stepsize`、`number`、`hour`、`sec/seconds` 降为严格等间隔 timeline，
+并输出 V12 的 15 张可选长表。多个 Dynamic `Solve` 可累计，但步长不能改变、时钟不能回拨；
+运行期对象修改、未映射命令和设置、DynamicEq/DynOut、VCCS、用户 DLL 或 EMT 内容会
+fail closed。该适配器表示 PSA 已覆盖的 RMS/phasor 子集，不表示兼容 OpenDSS 全部暂态扩展。
+`Tolerance` 同时约束基础潮流与动态网络耦合，省略时采用 OpenDSS 缺省值 `1e-4`。
+`MaxIterations` 约束基础潮流迭代；对算法不同的 PSA 动态网络耦合迭代，它只能提高、不能降低
+默认的 40 次预算。`MaxControlIter` 约束基础潮流控制迭代。
+`ControlMode=Time` 和零时钟 `Time=(0,0)` 可直接导入；其他控制模式或非零时钟重置会明确失败。
+若 Dynamic 前有 Snapshot `Solve`，`ds_dss_dynamic_plan` 先按 DSS `Vsource` 的实际 `pu`/电压
+幅值和 STATIC 控制队列收敛 RegControl/CapControl，再以该终态初始化 t=0 动态设备；进入
+Dynamic 后普通控制按 `ControlMode=Time` 的延时队列继续运行。结果中的 STATIC 控制行是初始化
+审计，后续 TIME 行是动态时钟上的控制状态，调用方不应把初始 tap 重置为 1.0。
+Monitor 当前只接受不改变计算的有界观察器：mode 0 的 Line/Transformer 投影到
+`bus_voltage`/`branch_current`，mode 3 的 IndMach012 投影到 `motor_state`，mode 5 的 Vsource
+投影到 V12 时间轴和 `solver_trace` 可表示的求解状态子集，mode 32 的 Line/Fault 投影到电气量、
+故障、保护和事件表。转换不会另行生成 OpenDSS 原生 Monitor 缓冲区；每个投影均返回
+`PSA.DSS.DYNAMIC.MONITOR_PROJECTED` 警告。
+IndMach012 的 Daily/Yearly/Duty LoadShape 会完整解析、校验引用并保留在 motor 输入中，但当前
+原生动态运行时不采样；Load/Generator/PVSystem/Storage 的 Dynamic 曲线消费者仍失败关闭。
+完整三相、整端动作的 Distance/TD21 Relay 已由 `Examples/DistanceRelays` 的 4 个官方入口覆盖；
+逐导体、不完整三相端口和其他未映射 Monitor 模式仍 fail closed。
 
 静态 Snapshot 投影只用于没有原生 `Solve` 的显式静态路径或兼容性处理。原生 `Solve` 不再
 进入该投影，而是统一交给 execution plan。投影可移除以下语句：
@@ -175,7 +199,9 @@ DSS import produced findings that can change OpenDSS results
 | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 导入成功，但所选 PSA 求解器未能完成计算 |
 | `TENSOREVAL.DSS.TRANSLATE.STATIC_ENTRY_UNAVAILABLE` | 可直接计算，但没有可供生成 RSS 使用的单一静态模型入口 |
 | `TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED` | 入口只定义模型，没有可分类的研究命令 |
-| `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 FaultStudy、Dynamic、M1/M2/M3/MonteFault 等尚无原生 adapter 的生命周期 |
+| `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 请求 M1/M2/M3/MonteFault 等尚无原生 adapter 的生命周期 |
+| `PSA.DSS.DYNAMIC.COMMAND_UNSUPPORTED` / `PSA.DSS.DYNAMIC.SET_UNSUPPORTED` / `PSA.DSS.DYNAMIC.SET_GROUP_UNREPRESENTABLE` | Dynamic 命令或设置不能无损降低到 V12 执行合同；声明设置与运行设置需分开书写 |
+| `PSA.DSS.DYNAMIC.STEP_CHANGE_UNSUPPORTED` / `PSA.DSS.DYNAMIC.CLOCK_RESET_UNSUPPORTED` | Dynamic 生命周期改变步长或重置时钟 |
 | `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` | 一个命令流混合了没有 continuation 合同的研究类型 |
 | `TENSOREVAL.DSS.TRANSLATE.GENERATED_RSS_FAILED` | 生成文本已形成，但通过同一 RSDss/PSA 门面自校验失败 |
 | `TENSOREVAL.RSS.BUNDLE.PATH_INVALID` / `TENSOREVAL.RSS.BUNDLE.PATH_ESCAPE` | 清单路径不规范，或解析后越过 bundle 根目录 |
@@ -197,9 +223,11 @@ DSS import produced findings that can change OpenDSS results
 基线重扫结果是：10 个官方原始入口通过严格检查、生成 bundle 并完成构建期自执行；589 个文件
 是没有独立研究命令的模型或公共依赖片段；另有 249 个独立入口因当时未映射的生命周期、对象
 属性、路径、执行顺序或求解问题失败，没有文件超时。后续只在这 249 个独立入口中做定向改造，
-目前另有 93 个入口通过并发布，总计 103 个官方原始入口。新增入口包括 Snapshot/QSTS、FaultStudy、
-HarmonicT，以及 `Examples/FreqScan/Run_Scan.dss` 的 188 点非整数频率扫描；不包含对官方文件的
-删改或静态化包装。
+目前另有 109 个入口通过并发布，总计 119 个官方原始入口。新增入口包括 Snapshot/QSTS、
+FaultStudy、HarmonicT、固定步长 Dynamic，以及 `Examples/FreqScan/Run_Scan.dss` 的 188 点
+非整数频率扫描；不包含对官方文件的删改或静态化包装。Dynamic 入口
+`Examples/InductionMachine/Run.dss` 已完成 Snapshot 初始化、5,000 步连续执行、共享目标保护动作、
+调压器终态和便携 bundle 自执行门禁；完整证据见实时清单。
 
 纯模型 `IEEE123Master.dss` 另用 `--study snapshot` 完成定向检查和 bundle 自执行，但因原文件
 没有研究命令，不计入无 `--study` 扫描的 10 个可运行入口。实时清单、全部剩余诊断和 IEEE8500

@@ -7,7 +7,8 @@ RSDss 是面向 DataFrame 和配电系统分析的 RustScript 方言。`.rss` �
 
 本文说明 RSDss 的词法、赋值、DataFrame 函数和列表达式语义。每个函数的精确参数和行为见
 [RSDss 函数参考](rsdss_function_reference.md)，DSA 入口见
-[DSA 函数参考](dsa_function_reference.md)。
+[DSA 函数参考](dsa_function_reference.md)。命令行输入组合、结果落盘、DSS/bundle 执行和暂态
+工作流见 [tensoreval 命令行与暂态仿真参考](tensoreval_cli_reference.md)。
 
 ## 1. 执行模式与语法边界
 
@@ -29,9 +30,44 @@ RSDss 命令行模式通过以下命令启用：
 tensoreval --df case.rss
 ```
 
-顶层只接受具名声明；每个声明产生 DataFrame、多张 DataFrame 或供后续节点使用的标量。
-`if`、`for`、`while`、`loop`、`fn`、`break`、`continue` 和 `return` 属于普通 RustScript
-数值程序语法，不能作为当前 `tensoreval --df` 的顶层语句。
+### 1.1 顶层程序约束（MUST）
+
+`tensoreval --df` 把整个顶层程序编译为 DataFrame 依赖图。代码生成器和人工编写者必须遵守：
+
+- **每个顶层语句必须是具名变量声明**，禁止顶层调用语句和裸表达式；
+- 单结果声明必须写成 `NAME = RHS;`，多结果声明必须写成
+  `[NAME1, NAME2] = MULTI_RESULT_RHS;`；`_` 只能用作多结果丢弃槽位；
+- **每条声明必须以分号结束**；函数结果的左侧绑定本身就是依赖图节点；
+- 输出由最大依赖层（终端层）的声明自动产生。在线性或连通图中，这些通常是没有后续消费者的
+  叶子声明；较浅的独立叶子不属于输出；
+- 终端层声明必须产生 DataFrame。标量可以作为中间节点，但不能作为最终输出；
+- **禁止**在函数调用后追加 `summary;`、`voltage;` 或其他裸变量来“选择输出”；加不加分号都
+  不会把裸变量变成声明；
+- `if`、`for`、`while`、`loop`、`fn`、`break`、`continue` 和 `return` 是普通 RustScript
+  语句，只能出现在声明右侧的 `{ ... }` 内嵌数值程序中，不能作为 `--df` 顶层语句。
+
+给定命令行输入 `--input input=data.csv`，下面是语法完整的最小正反例：
+
+```text
+// 正确：result 的声明绑定本身就是输出，不需要追加任何表达式
+result = select(col(value), input);
+```
+
+多结果声明同样由左侧绑定产生输出；下面的完整示例会返回 `first` 和 `second` 两张单值表：
+
+```text
+[first, second] = { return (1, 2); };
+```
+
+```text
+// 错误：result; 是裸表达式，不是变量声明
+result = select(col(value), input);
+result;
+```
+
+错误脚本会报告 `DataFrame mixed graph only accepts variable declarations`。需要输出多张表时，
+应让同一个终端声明按实际函数返回顺序绑定多个名称；完整静态潮流示例见
+[智能体快速指南](agent_quickstart.md#3-显式构造分析配置)。
 
 普通 tensoreval 模式执行 Tensor/VM 程序，可以使用 RustScript 控制流，但不能调用
 `import_dss`、`ds_*` 等 RSDss DataFrame 入口。两种命令行模式共用文件拼接、include
@@ -207,7 +243,8 @@ output = with_columns(
 );
 ```
 
-终端输出必须是 DataFrame；未被后续节点消费的纯标量不能作为 tensoreval 的最终结果。
+最大依赖层的输出必须是 DataFrame；纯标量可以被后续声明消费，但位于最大依赖层时不能作为
+`tensoreval --df` 的最终结果。
 
 ### 3.2 多结果声明
 
@@ -228,16 +265,23 @@ output = with_columns(
 
 ### 3.3 顶层右值
 
-RSDss 顶层右值必须最终形成一个受支持的函数调用，例如 `select(...)`、`height(...)`、
-`import_dss(...)` 或 `ds_radial_pf(...)`。单独写算术表达式不能作为 DataFrame 图节点：
+RSDss 顶层语句必须是声明，且普通声明的右值必须以受支持的函数调用形成 DataFrame、
+多张 DataFrame 或标量。标量只能由 `height`、`width` 等受支持函数产生并供后续声明消费：
 
 ```text
-// 不作为 RSDss 顶层节点使用
-x = 1 + 2;
-
-// 把计算放进产生 DataFrame 的函数
-output = select(alias(1 + 2, value), input);
+// 合法：rows 是标量中间节点，output 是终端 DataFrame
+rows = height(input);
+output = select(alias(rows, row_count), input);
 ```
+
+```text
+// 错误：任意算术表达式不能单独作为 DataFrame 图声明右值
+scale = 1 + 2;
+```
+
+函数调用也必须绑定名称；`select(...);`、`import_dss(...);` 这类没有左值的顶层调用与
+`output;` 这类裸变量表达式都不是 RSDss DataFrame 声明。需要任意数值计算时，使用
+`output = { ... };` 内嵌数值程序，并让其返回值转换为 DataFrame。
 
 ## 4. 表达式语法
 
@@ -392,7 +436,8 @@ ds_radial_pf ds_newton_raphson_pf
 ds_radial_qsts ds_newton_raphson_qsts
 ds_radial_dss_plan ds_newton_raphson_dss_plan
 ds_radial_dss_plan_url ds_newton_raphson_dss_plan_url
-ds_harmonic_study ds_fault_study
+ds_dss_harmonic_plan ds_dss_auto_add ds_dss_relcalc ds_dss_dynamic_plan
+ds_harmonic_study ds_fault_study ds_network_dynamics
 ds_wls_se ds_mnmr_se ds_mce_se
 ds_monte_carlo ds_restore ds_protection_coordination
 ds_fault_location ds_motor_dynamics
@@ -463,6 +508,16 @@ tensoreval --df \
 `--input` 只在 `--df` 模式可用。它不会把路径字符串传入脚本，也不会自动把文件名或列名
 变成变量。DataFrame 保留文件读取器得到的列名、行顺序和 dtype，直到脚本显式变换它。
 
+模型来源必须按运行场景二选一：
+
+- **独立 RSS 自行读取 DSS 模型**：脚本使用 `import_dss("model.dss")`，由该声明产生完整网络表；
+- **宿主已经注入 DataFrame**：命令使用一个或多个 `--input NAME=FILE`，脚本直接把 `NAME`
+  当作已有 DataFrame 引用，禁止再次调用 `import_dss` 读取同一模型。
+
+`--input` 每个绑定只注入一张表。宿主若注入完整配电模型，必须分别提供分析函数需要的全部
+网络表和参数表，并使用与脚本参数一致的名称；它不会把一个 DSS 文件展开成 20 张网络表。
+`import_dss` 仍是独立、自包含 RSS 脚本的有效入口，不能因为宿主注入场景而删除。
+
 ### 7.3 脚本内数据源
 
 RSDss 不提供通用 DataFrame 表字面量。没有 `--input` 时，第一层必须使用能够自行产生
@@ -497,13 +552,15 @@ DataFrame；DSS 文件内部的 `Redirect`/`Compile` 只由相应 DSS 导入入�
 ### 8.1 哪些声明成为输出
 
 执行器为每个声明计算依赖层：不依赖其他脚本声明的节点位于第 0 层，消费其结果的节点位于
-更深层。只有全图最大依赖层中的声明会作为终端输出。输出按声明节点 ID，也就是源程序中的
-声明顺序稳定排列；同一个多结果声明内部再按左值顺序排列。
+更深层。只有全图最大依赖层中的声明会作为终端层输出。它们的左值绑定就是输出名称，禁止
+再追加裸变量表达式。输出按声明节点 ID，也就是源程序中的声明顺序稳定排列；同一个多结果
+声明内部再按左值顺序排列。
 
-这条规则不等价于“输出所有没有消费者的变量”。一个与主链无关、但层数较浅的叶节点不会
-返回。智能体应生成一张连通依赖图，并把所有需要返回的表放在同一个最终声明中，或保证它们
-处于相同的最大层。宿主流程中的 `TE_PARA_DF` 计划校验更严格：整张图必须只有一个连通
-分量，并且最大层只能有一个声明节点；该节点仍可通过多结果左值返回多张表。
+在线性或连通依赖图中，最大层声明通常就是未被后续声明消费的叶子 DataFrame 声明，并会
+自动成为输出。这条规则不等价于“输出任意深度的所有叶子”：一个与主链无关、但层数较浅的
+叶子节点不会返回。智能体应生成一张连通依赖图，并把所有需要返回的表放在同一个最终声明中，
+或保证它们处于相同的最大层。宿主流程中的 `TE_PARA_DF` 计划校验更严格：整张图必须只有一个
+连通分量，并且最大层只能有一个声明节点；该节点仍可通过多结果左值返回多张表。
 
 终端结果必须是 DataFrame。`height`、`width` 等标量可以作为中间变量，但终端标量会产生
 `InvalidExpression`。`_` 会占据并校验一个返回槽位，但不会形成输出。

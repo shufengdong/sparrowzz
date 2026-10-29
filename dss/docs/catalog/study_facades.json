@@ -1,0 +1,4594 @@
+{
+  "schema_version": 1,
+  "source_of_truth": [
+    "psa/src/dsa",
+    "tensoreval DataFrame DSA dispatch"
+  ],
+  "input_kind_semantics": {
+    "model": "网络拓扑、设备、保护装置或持久控制对象；其身份和跨表引用关系属于研究模型。",
+    "data": "量测、曲线采样值、场景、事件、故障工况、观测、假设或其他可替换的行式研究数据。",
+    "struct": "逻辑上的单个配置对象；对应零行或单行参数 DataFrame，具体行数以 schemaRef 为准。"
+  },
+  "rules": [
+    "调用方必须读取每个输入的 inputKind 和 schemaRef，禁止根据函数名或参数名推断类别。",
+    "required 表示固定位置必须传入 DataFrame；允许零行时仍不能省略该参数。",
+    "用户明确选择的算法函数必须原样保留，不得在同族门面之间自动规范化。"
+  ],
+  "facades": [
+    {
+      "id": "static_power_flow_radial",
+      "function": "ds_radial_pf",
+      "family": "static_power_flow",
+      "title": "径向潮流",
+      "description": "以前推回代求解单电源连通径向配电网的静态潮流。",
+      "differences": [
+        "只适用于径向边界，不需要 Newton 稀疏后端。",
+        "用户选择该算法时必须保留对应函数名，禁止在目录层改写为另一潮流算法。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 21,
+          "description": "零行或单行潮流求解参数与结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "bus_voltage",
+          "name": "bus_voltage",
+          "schemaRef": "result_frames.bus_voltage",
+          "description": "母线复电压列表。",
+          "recommended": true
+        },
+        {
+          "id": "bus_phase",
+          "name": "bus_phase",
+          "schemaRef": "result_frames.bus_phase",
+          "description": "逐母线逐相复电压长表。",
+          "recommended": false
+        },
+        {
+          "id": "load_state",
+          "name": "load_state",
+          "schemaRef": "result_frames.load_state",
+          "description": "负荷请求功率与实际供电状态。",
+          "recommended": false
+        },
+        {
+          "id": "generator_state",
+          "name": "generator_state",
+          "schemaRef": "result_frames.generator_state",
+          "description": "发电机逐相功率、电压、电流和限幅状态。",
+          "recommended": false
+        },
+        {
+          "id": "branch_flow",
+          "name": "branch_flow",
+          "schemaRef": "result_frames.branch_flow",
+          "description": "支路两端复电压、电流、功率和损耗。",
+          "recommended": false
+        },
+        {
+          "id": "source_flow",
+          "name": "source_flow",
+          "schemaRef": "result_frames.source_flow",
+          "description": "电源端口逐相功率流。",
+          "recommended": false
+        },
+        {
+          "id": "transformer_winding_flow",
+          "name": "transformer_winding_flow",
+          "schemaRef": "result_frames.transformer_winding_flow",
+          "description": "变压器各绕组逐相电气量和分接位置。",
+          "recommended": false
+        },
+        {
+          "id": "conductor_flow",
+          "name": "conductor_flow",
+          "schemaRef": "result_frames.conductor_flow",
+          "description": "按物理导体展开的端口电压与电流。",
+          "recommended": false
+        },
+        {
+          "id": "regulator_state",
+          "name": "regulator_state",
+          "schemaRef": "result_frames.regulator_state",
+          "description": "调压器量测、方向和分接终态。",
+          "recommended": false
+        },
+        {
+          "id": "capacitor_state",
+          "name": "capacitor_state",
+          "schemaRef": "result_frames.capacitor_state",
+          "description": "电容器投切、容量和负载状态。",
+          "recommended": false
+        },
+        {
+          "id": "reactor_state",
+          "name": "reactor_state",
+          "schemaRef": "result_frames.reactor_state",
+          "description": "电抗器投运和负载状态。",
+          "recommended": false
+        },
+        {
+          "id": "ibr_state",
+          "name": "ibr_state",
+          "schemaRef": "result_frames.ibr_state",
+          "description": "跟网型 IBR 命令、输出和限幅状态。",
+          "recommended": false
+        },
+        {
+          "id": "gfm_state",
+          "name": "gfm_state",
+          "schemaRef": "result_frames.gfm_state",
+          "description": "构网型 IBR 内电势、功率和限幅状态。",
+          "recommended": false
+        },
+        {
+          "id": "violations",
+          "name": "violations",
+          "schemaRef": "result_frames.violations",
+          "description": "电压、电流或容量越限明细。",
+          "recommended": false
+        },
+        {
+          "id": "summary",
+          "name": "summary",
+          "schemaRef": "result_frames.summary",
+          "description": "收敛、迭代、损耗和越限摘要。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "bus_voltage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "static_power_flow_newton",
+      "function": "ds_newton_raphson_pf",
+      "family": "static_power_flow",
+      "title": "牛顿-拉夫逊潮流",
+      "description": "以 Newton-Raphson 求解通用静态配电网络。",
+      "differences": [
+        "支持环网、并联支路、多电源和通用控制，但需要可用的稀疏求解后端。",
+        "用户选择该算法时必须保留对应函数名，禁止在目录层改写为另一潮流算法。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 21,
+          "description": "零行或单行潮流求解参数与结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "bus_voltage",
+          "name": "bus_voltage",
+          "schemaRef": "result_frames.bus_voltage",
+          "description": "母线复电压列表。",
+          "recommended": true
+        },
+        {
+          "id": "bus_phase",
+          "name": "bus_phase",
+          "schemaRef": "result_frames.bus_phase",
+          "description": "逐母线逐相复电压长表。",
+          "recommended": false
+        },
+        {
+          "id": "load_state",
+          "name": "load_state",
+          "schemaRef": "result_frames.load_state",
+          "description": "负荷请求功率与实际供电状态。",
+          "recommended": false
+        },
+        {
+          "id": "generator_state",
+          "name": "generator_state",
+          "schemaRef": "result_frames.generator_state",
+          "description": "发电机逐相功率、电压、电流和限幅状态。",
+          "recommended": false
+        },
+        {
+          "id": "branch_flow",
+          "name": "branch_flow",
+          "schemaRef": "result_frames.branch_flow",
+          "description": "支路两端复电压、电流、功率和损耗。",
+          "recommended": false
+        },
+        {
+          "id": "source_flow",
+          "name": "source_flow",
+          "schemaRef": "result_frames.source_flow",
+          "description": "电源端口逐相功率流。",
+          "recommended": false
+        },
+        {
+          "id": "transformer_winding_flow",
+          "name": "transformer_winding_flow",
+          "schemaRef": "result_frames.transformer_winding_flow",
+          "description": "变压器各绕组逐相电气量和分接位置。",
+          "recommended": false
+        },
+        {
+          "id": "conductor_flow",
+          "name": "conductor_flow",
+          "schemaRef": "result_frames.conductor_flow",
+          "description": "按物理导体展开的端口电压与电流。",
+          "recommended": false
+        },
+        {
+          "id": "regulator_state",
+          "name": "regulator_state",
+          "schemaRef": "result_frames.regulator_state",
+          "description": "调压器量测、方向和分接终态。",
+          "recommended": false
+        },
+        {
+          "id": "capacitor_state",
+          "name": "capacitor_state",
+          "schemaRef": "result_frames.capacitor_state",
+          "description": "电容器投切、容量和负载状态。",
+          "recommended": false
+        },
+        {
+          "id": "reactor_state",
+          "name": "reactor_state",
+          "schemaRef": "result_frames.reactor_state",
+          "description": "电抗器投运和负载状态。",
+          "recommended": false
+        },
+        {
+          "id": "ibr_state",
+          "name": "ibr_state",
+          "schemaRef": "result_frames.ibr_state",
+          "description": "跟网型 IBR 命令、输出和限幅状态。",
+          "recommended": false
+        },
+        {
+          "id": "gfm_state",
+          "name": "gfm_state",
+          "schemaRef": "result_frames.gfm_state",
+          "description": "构网型 IBR 内电势、功率和限幅状态。",
+          "recommended": false
+        },
+        {
+          "id": "violations",
+          "name": "violations",
+          "schemaRef": "result_frames.violations",
+          "description": "电压、电流或容量越限明细。",
+          "recommended": false
+        },
+        {
+          "id": "summary",
+          "name": "summary",
+          "schemaRef": "result_frames.summary",
+          "description": "收敛、迭代、损耗和越限摘要。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "bus_voltage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "qsts_radial",
+      "function": "ds_radial_qsts",
+      "family": "qsts",
+      "title": "径向 QSTS",
+      "description": "在 QSTS 时钟上以前推回代执行曲线、控制、保护和计量。",
+      "differences": [
+        "每个时点使用径向潮流，网络必须满足径向边界。",
+        "用户选择该算法时必须保留对应函数名，禁止在目录层改写为另一 QSTS 算法。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "solution",
+          "alias": "solution",
+          "inputKind": "struct",
+          "schemaRef": "frames.solution",
+          "required": true,
+          "position": 21,
+          "description": "单行 QSTS 时钟、模式和采样配置。"
+        },
+        {
+          "id": "load_shape",
+          "alias": "load_shape",
+          "inputKind": "data",
+          "schemaRef": "frames.load_shape",
+          "required": true,
+          "position": 22,
+          "description": "命名 P/Q 曲线的逐采样点行式数据。"
+        },
+        {
+          "id": "shape_assignment",
+          "alias": "shape_assignment",
+          "inputKind": "model",
+          "schemaRef": "frames.shape_assignment",
+          "required": true,
+          "position": 23,
+          "description": "设备身份到命名曲线的持久引用关系。"
+        },
+        {
+          "id": "storage_controller",
+          "alias": "storage_controller",
+          "inputKind": "model",
+          "schemaRef": "frames.storage_controller",
+          "required": true,
+          "position": 24,
+          "description": "具有名称、受控设备引用和运行状态延续的储能控制模型。"
+        },
+        {
+          "id": "switch_control",
+          "alias": "switch_control",
+          "inputKind": "model",
+          "schemaRef": "frames.switch_control",
+          "required": true,
+          "position": 25,
+          "description": "具有名称、动作目标和持久状态的开关控制模型。"
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "frames.tcc_curve",
+          "required": true,
+          "position": 26,
+          "description": "保护曲线的电流与时间采样值；设备通过曲线名引用这些数据。"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "frames.fuse",
+          "required": true,
+          "position": 27,
+          "description": "熔断器保护装置及其监测、动作目标和曲线引用模型。"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "frames.recloser",
+          "required": true,
+          "position": 28,
+          "description": "重合器保护装置、动作序列和曲线引用模型。"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "frames.relay",
+          "required": true,
+          "position": 29,
+          "description": "继电器保护装置、整定和动作目标模型。"
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor",
+          "inputKind": "model",
+          "schemaRef": "frames.monitor",
+          "required": true,
+          "position": 30,
+          "description": "持久 Monitor 定义、被测元件引用和采样模式。"
+        },
+        {
+          "id": "energy_meter",
+          "alias": "energy_meter",
+          "inputKind": "model",
+          "schemaRef": "frames.energy_meter",
+          "required": true,
+          "position": 31,
+          "description": "持久 EnergyMeter 定义、区域和寄存器配置。"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "frames.fault",
+          "required": true,
+          "position": 32,
+          "description": "可替换的故障工况与投退时刻行式数据。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 33,
+          "description": "零行或单行求解参数与结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "bus_voltage",
+          "name": "bus_voltage",
+          "schemaRef": "qsts_outputs.bus_voltage",
+          "description": "QSTS bus_voltage 结果合同。",
+          "recommended": true
+        },
+        {
+          "id": "bus_phase",
+          "name": "bus_phase",
+          "schemaRef": "qsts_outputs.bus_phase",
+          "description": "QSTS bus_phase 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "load_state",
+          "name": "load_state",
+          "schemaRef": "qsts_outputs.load_state",
+          "description": "QSTS load_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "generator_state",
+          "name": "generator_state",
+          "schemaRef": "qsts_outputs.generator_state",
+          "description": "QSTS generator_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "branch_flow",
+          "name": "branch_flow",
+          "schemaRef": "qsts_outputs.branch_flow",
+          "description": "QSTS branch_flow 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "source_flow",
+          "name": "source_flow",
+          "schemaRef": "qsts_outputs.source_flow",
+          "description": "QSTS source_flow 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "transformer_winding_flow",
+          "name": "transformer_winding_flow",
+          "schemaRef": "qsts_outputs.transformer_winding_flow",
+          "description": "QSTS transformer_winding_flow 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "conductor_flow",
+          "name": "conductor_flow",
+          "schemaRef": "qsts_outputs.conductor_flow",
+          "description": "QSTS conductor_flow 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "regulator_state",
+          "name": "regulator_state",
+          "schemaRef": "qsts_outputs.regulator_state",
+          "description": "QSTS regulator_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "capacitor_state",
+          "name": "capacitor_state",
+          "schemaRef": "qsts_outputs.capacitor_state",
+          "description": "QSTS capacitor_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "reactor_state",
+          "name": "reactor_state",
+          "schemaRef": "qsts_outputs.reactor_state",
+          "description": "QSTS reactor_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "ibr_state",
+          "name": "ibr_state",
+          "schemaRef": "qsts_outputs.ibr_state",
+          "description": "QSTS ibr_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "gfm_state",
+          "name": "gfm_state",
+          "schemaRef": "qsts_outputs.gfm_state",
+          "description": "QSTS gfm_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "violations",
+          "name": "violations",
+          "schemaRef": "qsts_outputs.violations",
+          "description": "QSTS violations 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "summary",
+          "name": "summary",
+          "schemaRef": "qsts_outputs.summary",
+          "description": "QSTS summary 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "storage_state",
+          "name": "storage_state",
+          "schemaRef": "qsts_outputs.storage_state",
+          "description": "QSTS storage_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "storage_controller_state",
+          "name": "storage_controller_state",
+          "schemaRef": "qsts_outputs.storage_controller_state",
+          "description": "QSTS storage_controller_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "switch_control_state",
+          "name": "switch_control_state",
+          "schemaRef": "qsts_outputs.switch_control_state",
+          "description": "QSTS switch_control_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "fuse_state",
+          "name": "fuse_state",
+          "schemaRef": "qsts_outputs.fuse_state",
+          "description": "QSTS fuse_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "recloser_state",
+          "name": "recloser_state",
+          "schemaRef": "qsts_outputs.recloser_state",
+          "description": "QSTS recloser_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "relay_state",
+          "name": "relay_state",
+          "schemaRef": "qsts_outputs.relay_state",
+          "description": "QSTS relay_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "fault_state",
+          "name": "fault_state",
+          "schemaRef": "qsts_outputs.fault_state",
+          "description": "QSTS fault_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "monitor",
+          "name": "monitor",
+          "schemaRef": "qsts_outputs.monitor",
+          "description": "QSTS monitor 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "monitor_save",
+          "name": "monitor_save",
+          "schemaRef": "qsts_outputs.monitor_save",
+          "description": "QSTS monitor_save 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "energy_meter",
+          "name": "energy_meter",
+          "schemaRef": "qsts_outputs.energy_meter",
+          "description": "QSTS energy_meter 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "meter_loss_breakdown",
+          "name": "meter_loss_breakdown",
+          "schemaRef": "qsts_outputs.meter_loss_breakdown",
+          "description": "QSTS meter_loss_breakdown 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "reliability",
+          "name": "reliability",
+          "schemaRef": "qsts_outputs.reliability",
+          "description": "QSTS reliability 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "meter_zone",
+          "name": "meter_zone",
+          "schemaRef": "qsts_outputs.meter_zone",
+          "description": "QSTS meter_zone 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "meter_phase_voltage",
+          "name": "meter_phase_voltage",
+          "schemaRef": "qsts_outputs.meter_phase_voltage",
+          "description": "QSTS meter_phase_voltage 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "meter_save",
+          "name": "meter_save",
+          "schemaRef": "qsts_outputs.meter_save",
+          "description": "QSTS meter_save 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "load_duration",
+          "name": "load_duration",
+          "schemaRef": "qsts_outputs.load_duration",
+          "description": "QSTS load_duration 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "execution_trace",
+          "name": "execution_trace",
+          "schemaRef": "qsts_outputs.execution_trace",
+          "description": "QSTS execution_trace 结果合同。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "bus_voltage"
+          ]
+        },
+        {
+          "type": "conditional_unavailable",
+          "result": "execution_trace",
+          "when": {
+            "input": "fault",
+            "nonEmpty": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "qsts_newton",
+      "function": "ds_newton_raphson_qsts",
+      "family": "qsts",
+      "title": "牛顿-拉夫逊 QSTS",
+      "description": "在 QSTS 时钟上以 Newton-Raphson 执行曲线、控制、保护和计量。",
+      "differences": [
+        "每个时点使用通用 Newton 潮流并需要稀疏求解后端。",
+        "用户选择该算法时必须保留对应函数名，禁止在目录层改写为另一 QSTS 算法。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "solution",
+          "alias": "solution",
+          "inputKind": "struct",
+          "schemaRef": "frames.solution",
+          "required": true,
+          "position": 21,
+          "description": "单行 QSTS 时钟、模式和采样配置。"
+        },
+        {
+          "id": "load_shape",
+          "alias": "load_shape",
+          "inputKind": "data",
+          "schemaRef": "frames.load_shape",
+          "required": true,
+          "position": 22,
+          "description": "命名 P/Q 曲线的逐采样点行式数据。"
+        },
+        {
+          "id": "shape_assignment",
+          "alias": "shape_assignment",
+          "inputKind": "model",
+          "schemaRef": "frames.shape_assignment",
+          "required": true,
+          "position": 23,
+          "description": "设备身份到命名曲线的持久引用关系。"
+        },
+        {
+          "id": "storage_controller",
+          "alias": "storage_controller",
+          "inputKind": "model",
+          "schemaRef": "frames.storage_controller",
+          "required": true,
+          "position": 24,
+          "description": "具有名称、受控设备引用和运行状态延续的储能控制模型。"
+        },
+        {
+          "id": "switch_control",
+          "alias": "switch_control",
+          "inputKind": "model",
+          "schemaRef": "frames.switch_control",
+          "required": true,
+          "position": 25,
+          "description": "具有名称、动作目标和持久状态的开关控制模型。"
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "frames.tcc_curve",
+          "required": true,
+          "position": 26,
+          "description": "保护曲线的电流与时间采样值；设备通过曲线名引用这些数据。"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "frames.fuse",
+          "required": true,
+          "position": 27,
+          "description": "熔断器保护装置及其监测、动作目标和曲线引用模型。"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "frames.recloser",
+          "required": true,
+          "position": 28,
+          "description": "重合器保护装置、动作序列和曲线引用模型。"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "frames.relay",
+          "required": true,
+          "position": 29,
+          "description": "继电器保护装置、整定和动作目标模型。"
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor",
+          "inputKind": "model",
+          "schemaRef": "frames.monitor",
+          "required": true,
+          "position": 30,
+          "description": "持久 Monitor 定义、被测元件引用和采样模式。"
+        },
+        {
+          "id": "energy_meter",
+          "alias": "energy_meter",
+          "inputKind": "model",
+          "schemaRef": "frames.energy_meter",
+          "required": true,
+          "position": 31,
+          "description": "持久 EnergyMeter 定义、区域和寄存器配置。"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "frames.fault",
+          "required": true,
+          "position": 32,
+          "description": "可替换的故障工况与投退时刻行式数据。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 33,
+          "description": "零行或单行求解参数与结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "bus_voltage",
+          "name": "bus_voltage",
+          "schemaRef": "qsts_outputs.bus_voltage",
+          "description": "QSTS bus_voltage 结果合同。",
+          "recommended": true
+        },
+        {
+          "id": "bus_phase",
+          "name": "bus_phase",
+          "schemaRef": "qsts_outputs.bus_phase",
+          "description": "QSTS bus_phase 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "load_state",
+          "name": "load_state",
+          "schemaRef": "qsts_outputs.load_state",
+          "description": "QSTS load_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "generator_state",
+          "name": "generator_state",
+          "schemaRef": "qsts_outputs.generator_state",
+          "description": "QSTS generator_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "branch_flow",
+          "name": "branch_flow",
+          "schemaRef": "qsts_outputs.branch_flow",
+          "description": "QSTS branch_flow 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "source_flow",
+          "name": "source_flow",
+          "schemaRef": "qsts_outputs.source_flow",
+          "description": "QSTS source_flow 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "transformer_winding_flow",
+          "name": "transformer_winding_flow",
+          "schemaRef": "qsts_outputs.transformer_winding_flow",
+          "description": "QSTS transformer_winding_flow 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "conductor_flow",
+          "name": "conductor_flow",
+          "schemaRef": "qsts_outputs.conductor_flow",
+          "description": "QSTS conductor_flow 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "regulator_state",
+          "name": "regulator_state",
+          "schemaRef": "qsts_outputs.regulator_state",
+          "description": "QSTS regulator_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "capacitor_state",
+          "name": "capacitor_state",
+          "schemaRef": "qsts_outputs.capacitor_state",
+          "description": "QSTS capacitor_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "reactor_state",
+          "name": "reactor_state",
+          "schemaRef": "qsts_outputs.reactor_state",
+          "description": "QSTS reactor_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "ibr_state",
+          "name": "ibr_state",
+          "schemaRef": "qsts_outputs.ibr_state",
+          "description": "QSTS ibr_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "gfm_state",
+          "name": "gfm_state",
+          "schemaRef": "qsts_outputs.gfm_state",
+          "description": "QSTS gfm_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "violations",
+          "name": "violations",
+          "schemaRef": "qsts_outputs.violations",
+          "description": "QSTS violations 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "summary",
+          "name": "summary",
+          "schemaRef": "qsts_outputs.summary",
+          "description": "QSTS summary 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "storage_state",
+          "name": "storage_state",
+          "schemaRef": "qsts_outputs.storage_state",
+          "description": "QSTS storage_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "storage_controller_state",
+          "name": "storage_controller_state",
+          "schemaRef": "qsts_outputs.storage_controller_state",
+          "description": "QSTS storage_controller_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "switch_control_state",
+          "name": "switch_control_state",
+          "schemaRef": "qsts_outputs.switch_control_state",
+          "description": "QSTS switch_control_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "fuse_state",
+          "name": "fuse_state",
+          "schemaRef": "qsts_outputs.fuse_state",
+          "description": "QSTS fuse_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "recloser_state",
+          "name": "recloser_state",
+          "schemaRef": "qsts_outputs.recloser_state",
+          "description": "QSTS recloser_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "relay_state",
+          "name": "relay_state",
+          "schemaRef": "qsts_outputs.relay_state",
+          "description": "QSTS relay_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "fault_state",
+          "name": "fault_state",
+          "schemaRef": "qsts_outputs.fault_state",
+          "description": "QSTS fault_state 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "monitor",
+          "name": "monitor",
+          "schemaRef": "qsts_outputs.monitor",
+          "description": "QSTS monitor 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "monitor_save",
+          "name": "monitor_save",
+          "schemaRef": "qsts_outputs.monitor_save",
+          "description": "QSTS monitor_save 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "energy_meter",
+          "name": "energy_meter",
+          "schemaRef": "qsts_outputs.energy_meter",
+          "description": "QSTS energy_meter 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "meter_loss_breakdown",
+          "name": "meter_loss_breakdown",
+          "schemaRef": "qsts_outputs.meter_loss_breakdown",
+          "description": "QSTS meter_loss_breakdown 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "reliability",
+          "name": "reliability",
+          "schemaRef": "qsts_outputs.reliability",
+          "description": "QSTS reliability 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "meter_zone",
+          "name": "meter_zone",
+          "schemaRef": "qsts_outputs.meter_zone",
+          "description": "QSTS meter_zone 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "meter_phase_voltage",
+          "name": "meter_phase_voltage",
+          "schemaRef": "qsts_outputs.meter_phase_voltage",
+          "description": "QSTS meter_phase_voltage 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "meter_save",
+          "name": "meter_save",
+          "schemaRef": "qsts_outputs.meter_save",
+          "description": "QSTS meter_save 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "load_duration",
+          "name": "load_duration",
+          "schemaRef": "qsts_outputs.load_duration",
+          "description": "QSTS load_duration 结果合同。",
+          "recommended": false
+        },
+        {
+          "id": "execution_trace",
+          "name": "execution_trace",
+          "schemaRef": "qsts_outputs.execution_trace",
+          "description": "QSTS execution_trace 结果合同。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "bus_voltage"
+          ]
+        },
+        {
+          "type": "conditional_unavailable",
+          "result": "execution_trace",
+          "when": {
+            "input": "fault",
+            "nonEmpty": true
+          }
+        }
+      ]
+    },
+    {
+      "id": "harmonic_study",
+      "function": "ds_harmonic_study",
+      "family": "harmonics",
+      "title": "谐波研究",
+      "description": "从完整网络、Monitor 模型和单行谐波配置执行频率扫描。",
+      "differences": [
+        "该门面执行显式 DataFrame 谐波研究，不解释 DSS 命令流。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor",
+          "inputKind": "model",
+          "schemaRef": "frames.monitor",
+          "required": true,
+          "position": 21,
+          "description": "持久 Monitor 定义和被测元件引用；零行表示不配置。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "analysis_inputs.harmonic_para",
+          "required": true,
+          "position": 22,
+          "description": "恰好一行的谐波频阶、求解参数和结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "bus_voltage",
+          "name": "bus_voltage",
+          "schemaRef": "result_frames.harmonic_bus_voltage",
+          "description": "逐母线逐相谐波电压和 THD。",
+          "recommended": true
+        },
+        {
+          "id": "branch_flow",
+          "name": "branch_flow",
+          "schemaRef": "result_frames.harmonic_branch_flow",
+          "description": "逐支路端口谐波电压、电流和功率。",
+          "recommended": false
+        },
+        {
+          "id": "conductor_flow",
+          "name": "conductor_flow",
+          "schemaRef": "result_frames.conductor_flow",
+          "description": "按物理导体展开的谐波电压与电流。",
+          "recommended": false
+        },
+        {
+          "id": "bus_sequence",
+          "name": "bus_sequence",
+          "schemaRef": "result_frames.harmonic_bus_sequence",
+          "description": "母线零、正、负序谐波电压。",
+          "recommended": false
+        },
+        {
+          "id": "branch_sequence",
+          "name": "branch_sequence",
+          "schemaRef": "result_frames.harmonic_branch_sequence",
+          "description": "支路零、正、负序谐波电气量。",
+          "recommended": false
+        },
+        {
+          "id": "monitor",
+          "name": "monitor",
+          "schemaRef": "result_frames.harmonic_monitor",
+          "description": "谐波 Monitor 通道长表。",
+          "recommended": false
+        },
+        {
+          "id": "monitor_save",
+          "name": "monitor_save",
+          "schemaRef": "result_frames.harmonic_monitor_save",
+          "description": "谐波 Monitor 保存快照。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "bus_voltage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fault_study",
+      "function": "ds_fault_study",
+      "family": "short_circuit",
+      "title": "故障与短路研究",
+      "description": "对显式故障工况逐行执行网络短路计算。",
+      "differences": [
+        "fault 输入是研究工况数据；该门面不从保护装置模型推断故障。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "frames.fault",
+          "required": true,
+          "position": 21,
+          "description": "逐行故障位置、类型、相别和故障阻抗工况。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 22,
+          "description": "零行或单行求解参数与结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "fault",
+          "name": "fault",
+          "schemaRef": "result_frames.fault",
+          "description": "每个短路工况的故障电流、故障前后电压和序量。",
+          "recommended": true
+        },
+        {
+          "id": "branch_flow",
+          "name": "branch_flow",
+          "schemaRef": "result_frames.fault_branch_flow",
+          "description": "各故障工况下的支路端口电流与功率。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "fault"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "state_estimation_wls",
+      "function": "ds_wls_se",
+      "family": "state_estimation",
+      "title": "WLS 状态估计",
+      "description": "以量测权重最小化加权平方残差。",
+      "differences": [
+        "WLS 使用二次残差，对离群量测的鲁棒性低于 MNMR/MCE。",
+        "WLS、MNMR 与 MCE 是三个独立门面，目录不得相互规范化。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "measurement",
+          "alias": "measurement",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.state_estimation_measurement",
+          "required": true,
+          "position": 21,
+          "description": "状态估计标量量测、位置、数值和权重行。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 22,
+          "description": "零行或单行迭代参数配置；本门面结果固定。"
+        }
+      ],
+      "results": [
+        {
+          "id": "result",
+          "name": "result",
+          "schemaRef": "result_frames.bus_voltage",
+          "description": "估计得到的母线复电压列表。",
+          "recommended": true
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "fixed_results",
+          "results": [
+            "result"
+          ],
+          "bindingCount": 1
+        }
+      ]
+    },
+    {
+      "id": "state_estimation_mnmr",
+      "function": "ds_mnmr_se",
+      "family": "state_estimation",
+      "title": "MNMR 状态估计",
+      "description": "以最大正常率鲁棒目标估计网络状态。",
+      "differences": [
+        "MNMR 使用非凸鲁棒目标，对初值敏感并以 WLS 结果热启动。",
+        "WLS、MNMR 与 MCE 是三个独立门面，目录不得相互规范化。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "measurement",
+          "alias": "measurement",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.state_estimation_measurement",
+          "required": true,
+          "position": 21,
+          "description": "状态估计标量量测、位置、数值和权重行。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 22,
+          "description": "零行或单行迭代参数配置；本门面结果固定。"
+        }
+      ],
+      "results": [
+        {
+          "id": "result",
+          "name": "result",
+          "schemaRef": "result_frames.bus_voltage",
+          "description": "估计得到的母线复电压列表。",
+          "recommended": true
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "fixed_results",
+          "results": [
+            "result"
+          ],
+          "bindingCount": 1
+        }
+      ]
+    },
+    {
+      "id": "state_estimation_mce",
+      "function": "ds_mce_se",
+      "family": "state_estimation",
+      "title": "MCE 状态估计",
+      "description": "以最小交叉熵鲁棒目标估计网络状态。",
+      "differences": [
+        "MCE 使用不同于 MNMR 的 softplus 型鲁棒目标，必须保留用户选定算法。",
+        "WLS、MNMR 与 MCE 是三个独立门面，目录不得相互规范化。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "measurement",
+          "alias": "measurement",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.state_estimation_measurement",
+          "required": true,
+          "position": 21,
+          "description": "状态估计标量量测、位置、数值和权重行。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 22,
+          "description": "零行或单行迭代参数配置；本门面结果固定。"
+        }
+      ],
+      "results": [
+        {
+          "id": "result",
+          "name": "result",
+          "schemaRef": "result_frames.bus_voltage",
+          "description": "估计得到的母线复电压列表。",
+          "recommended": true
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "fixed_results",
+          "results": [
+            "result"
+          ],
+          "bindingCount": 1
+        }
+      ]
+    },
+    {
+      "id": "monte_carlo",
+      "function": "ds_monte_carlo",
+      "family": "probabilistic_power_flow",
+      "title": "Monte Carlo 潮流",
+      "description": "按单行采样配置生成随机场景或重放给定倍率场景。",
+      "differences": [
+        "随机模式要求 multipliers 零行，replay 模式把 multipliers 作为确定性场景数据。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "spec",
+          "alias": "spec",
+          "inputKind": "struct",
+          "schemaRef": "analysis_inputs.monte_carlo_spec",
+          "required": true,
+          "position": 21,
+          "description": "恰好一行的采样模式、求解器、场景数和统计范围配置。"
+        },
+        {
+          "id": "multipliers",
+          "alias": "multipliers",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.monte_carlo_multipliers",
+          "required": true,
+          "position": 22,
+          "description": "Replay 模式的逐场景倍率数据；随机模式传零行表。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 23,
+          "description": "零行或单行潮流参数与结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "voltage_statistics",
+          "name": "voltage_statistics",
+          "schemaRef": "result_frames.voltage_statistics",
+          "description": "跨场景电压统计与越限比例。",
+          "recommended": true
+        },
+        {
+          "id": "scenario_voltage",
+          "name": "scenario_voltage",
+          "schemaRef": "result_frames.scenario_voltage",
+          "description": "逐场景逐母线逐相电压样本。",
+          "recommended": false
+        },
+        {
+          "id": "scenario_load_power",
+          "name": "scenario_load_power",
+          "schemaRef": "result_frames.scenario_load_power",
+          "description": "逐场景负荷倍率与实际功率。",
+          "recommended": false
+        },
+        {
+          "id": "summary",
+          "name": "summary",
+          "schemaRef": "result_frames.monte_carlo_summary",
+          "description": "场景总数、成功数、失败数、种子和求解器摘要。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "voltage_statistics"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "network_restoration",
+      "function": "ds_restore",
+      "family": "network_reconfiguration",
+      "title": "故障隔离后供电恢复",
+      "description": "把故障隔离开关集合固定为断开后，求解负荷恢复与开关重构方案。",
+      "differences": [
+        "本门面的 fault 是强制断开的开关身份表，不是短路计算的母线故障表。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.restore_fault",
+          "required": true,
+          "position": 21,
+          "description": "故障隔离后必须保持断开的开关名行式数据。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 22,
+          "description": "零行或单行 AC 后校核参数与结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "switches",
+          "name": "switches",
+          "schemaRef": "result_frames.restore_switches",
+          "description": "恢复方案中的开关终态。",
+          "recommended": true
+        },
+        {
+          "id": "restored_loads",
+          "name": "restored_loads",
+          "schemaRef": "result_frames.restored_loads",
+          "description": "逐母线逐相负荷恢复量和比例。",
+          "recommended": false
+        },
+        {
+          "id": "bus_voltage",
+          "name": "bus_voltage",
+          "schemaRef": "result_frames.bus_voltage",
+          "description": "恢复方案 AC 校核后的母线电压。",
+          "recommended": false
+        },
+        {
+          "id": "objective",
+          "name": "objective",
+          "schemaRef": "result_frames.restore_objective",
+          "description": "恢复优化目标值。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "switches"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "protection_coordination",
+      "function": "ds_protection_coordination",
+      "family": "protection",
+      "title": "保护配合审计",
+      "description": "用保护装置模型和外部故障电流、动作证据审计选择性、级差和误动。",
+      "differences": [
+        "该门面消费给定电流样本，不运行网络短路求解。"
+      ],
+      "inputs": [
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "frames.tcc_curve",
+          "required": true,
+          "position": 1,
+          "description": "保护曲线的电流与时间采样数据。"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "frames.fuse",
+          "required": true,
+          "position": 2,
+          "description": "熔断器保护装置及曲线、动作目标引用模型。"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "frames.recloser",
+          "required": true,
+          "position": 3,
+          "description": "重合器保护装置及曲线、动作序列模型。"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "frames.relay",
+          "required": true,
+          "position": 4,
+          "description": "继电器保护装置及整定、动作目标模型。"
+        },
+        {
+          "id": "fault_case",
+          "alias": "fault_case",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.protection_fault_case",
+          "required": true,
+          "position": 5,
+          "description": "待审计故障工况的身份、位置和起始时刻。"
+        },
+        {
+          "id": "current_sample",
+          "alias": "current_sample",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.protection_current_sample",
+          "required": true,
+          "position": 6,
+          "description": "每个故障与保护设备对应的相电流和地电流样本。"
+        },
+        {
+          "id": "pair",
+          "alias": "pair",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.protection_pair",
+          "required": true,
+          "position": 7,
+          "description": "需要审计的主保护、后备保护组合和级差要求。"
+        },
+        {
+          "id": "observed_action",
+          "alias": "observed_action",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.protection_observed_action",
+          "required": true,
+          "position": 8,
+          "description": "可选现场或重放动作观测；零行表示无观测证据。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "analysis_inputs.protection_para",
+          "required": true,
+          "position": 9,
+          "description": "零行或单行容差与结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "operations",
+          "name": "operations",
+          "schemaRef": "result_frames.protection_operations",
+          "description": "按故障、设备、动作序号和相展开的预测动作。",
+          "recommended": true
+        },
+        {
+          "id": "selectivity",
+          "name": "selectivity",
+          "schemaRef": "result_frames.protection_selectivity",
+          "description": "主后备动作时间、级差和选择性判断。",
+          "recommended": false
+        },
+        {
+          "id": "minimum_margins",
+          "name": "minimum_margins",
+          "schemaRef": "result_frames.protection_minimum_margins",
+          "description": "每组主后备设备的最小级差汇总。",
+          "recommended": false
+        },
+        {
+          "id": "misoperations",
+          "name": "misoperations",
+          "schemaRef": "result_frames.protection_selectivity",
+          "description": "从选择性明细筛出的误动记录。",
+          "recommended": false
+        },
+        {
+          "id": "uncovered",
+          "name": "uncovered",
+          "schemaRef": "result_frames.protection_selectivity",
+          "description": "从选择性明细筛出的保护未覆盖记录。",
+          "recommended": false
+        },
+        {
+          "id": "action_diagnostics",
+          "name": "action_diagnostics",
+          "schemaRef": "result_frames.action_diagnostics",
+          "description": "预测动作与观测动作的逐项对照诊断。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "operations"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fault_location",
+      "function": "ds_fault_location",
+      "family": "fault_location",
+      "title": "故障定位",
+      "description": "由相量量测和可选网络假设对候选故障线路、位置及阻抗排序。",
+      "differences": [
+        "measurement 是复相量列表，不是状态估计的标量 measurement schema。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "measurement",
+          "alias": "measurement",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.fault_location_measurement",
+          "required": true,
+          "position": 21,
+          "description": "至少一行的端口电流及可选电压复相量量测。"
+        },
+        {
+          "id": "hypothesis_switch",
+          "alias": "hypothesis_switch",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.fault_location_hypothesis_switch",
+          "required": true,
+          "position": 22,
+          "description": "按假设分组的候选开关状态行。"
+        },
+        {
+          "id": "hypothesis_line",
+          "alias": "hypothesis_line",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.fault_location_hypothesis_line",
+          "required": true,
+          "position": 23,
+          "description": "按假设分组的候选线路参数倍率行。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "analysis_inputs.fault_location_para",
+          "required": true,
+          "position": 24,
+          "description": "零行或单行候选范围、损失函数和求解配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "result",
+          "name": "result",
+          "schemaRef": "result_frames.fault_location",
+          "description": "按目标函数排序的故障位置、阻抗和可辨识性候选。",
+          "recommended": true
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "fixed_results",
+          "results": [
+            "result"
+          ],
+          "bindingCount": 1
+        }
+      ]
+    },
+    {
+      "id": "network_dynamics",
+      "function": "ds_network_dynamics",
+      "family": "dynamics",
+      "title": "网络动态 V12",
+      "description": "执行支持 Storage、Generator、PV、电机、故障、保护、控制和 FRT 的完整 RMS/phasor 网络动态研究。",
+      "differences": [
+        "返回 15 张带 time_s 与 sequence 的 V12 结果并接受独立 fault 生命周期数据。",
+        "与兼容电机入口不同，本门面允许非空 Storage 并提供完整设备与保护审计结果。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "timeline",
+          "alias": "timeline",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_timeline",
+          "required": true,
+          "position": 21,
+          "description": "必须非空且严格递增的外部采样时间与源缩放数据。"
+        },
+        {
+          "id": "event",
+          "alias": "event",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_event",
+          "required": true,
+          "position": 22,
+          "description": "按明确时刻排列的故障、拓扑、保护、储能或可用性事件。"
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "frames.tcc_curve",
+          "required": true,
+          "position": 23,
+          "description": "保护曲线的电流与时间采样数据。"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "frames.fuse",
+          "required": true,
+          "position": 24,
+          "description": "动态研究中的熔断器保护装置模型。"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "frames.recloser",
+          "required": true,
+          "position": 25,
+          "description": "动态研究中的重合器保护装置模型。"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "frames.relay",
+          "required": true,
+          "position": 26,
+          "description": "动态研究中的继电器保护装置模型。"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_fault",
+          "required": true,
+          "position": 27,
+          "description": "带稳定名称和投退生命周期的动态故障对象数据。"
+        },
+        {
+          "id": "spec",
+          "alias": "spec",
+          "inputKind": "struct",
+          "schemaRef": "analysis_inputs.dynamic_spec",
+          "required": true,
+          "position": 28,
+          "description": "零行或单行电机与网络动态积分配置。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 29,
+          "description": "零行或单行潮流参数、基频和结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "bus_voltage",
+          "name": "bus_voltage",
+          "schemaRef": "result_frames.network_dynamic_v12_bus_voltage",
+          "description": "网络动态 V12 bus_voltage 长表。",
+          "recommended": true
+        },
+        {
+          "id": "branch_current",
+          "name": "branch_current",
+          "schemaRef": "result_frames.network_dynamic_v12_branch_current",
+          "description": "网络动态 V12 branch_current 长表。",
+          "recommended": false
+        },
+        {
+          "id": "source_flow",
+          "name": "source_flow",
+          "schemaRef": "result_frames.network_dynamic_v12_source_flow",
+          "description": "网络动态 V12 source_flow 长表。",
+          "recommended": false
+        },
+        {
+          "id": "pvsystem_state",
+          "name": "pvsystem_state",
+          "schemaRef": "result_frames.network_dynamic_v12_pvsystem_state",
+          "description": "网络动态 V12 pvsystem_state 长表。",
+          "recommended": false
+        },
+        {
+          "id": "storage_state",
+          "name": "storage_state",
+          "schemaRef": "result_frames.network_dynamic_v12_storage_state",
+          "description": "网络动态 V12 storage_state 长表。",
+          "recommended": false
+        },
+        {
+          "id": "motor_state",
+          "name": "motor_state",
+          "schemaRef": "result_frames.network_dynamic_v12_motor_state",
+          "description": "网络动态 V12 motor_state 长表。",
+          "recommended": false
+        },
+        {
+          "id": "event",
+          "name": "event",
+          "schemaRef": "result_frames.network_dynamic_v12_event",
+          "description": "网络动态 V12 event 长表。",
+          "recommended": false
+        },
+        {
+          "id": "solver_trace",
+          "name": "solver_trace",
+          "schemaRef": "result_frames.network_dynamic_v12_solver_trace",
+          "description": "网络动态 V12 solver_trace 长表。",
+          "recommended": false
+        },
+        {
+          "id": "fault_state",
+          "name": "fault_state",
+          "schemaRef": "result_frames.network_dynamic_v12_fault_state",
+          "description": "网络动态 V12 fault_state 长表。",
+          "recommended": false
+        },
+        {
+          "id": "protection_state",
+          "name": "protection_state",
+          "schemaRef": "result_frames.network_dynamic_v12_protection_state",
+          "description": "网络动态 V12 protection_state 长表。",
+          "recommended": false
+        },
+        {
+          "id": "frt_state",
+          "name": "frt_state",
+          "schemaRef": "result_frames.network_dynamic_v12_frt_state",
+          "description": "网络动态 V12 frt_state 长表。",
+          "recommended": false
+        },
+        {
+          "id": "control_state",
+          "name": "control_state",
+          "schemaRef": "result_frames.network_dynamic_v12_control_state",
+          "description": "网络动态 V12 control_state 长表。",
+          "recommended": false
+        },
+        {
+          "id": "device_state",
+          "name": "device_state",
+          "schemaRef": "result_frames.network_dynamic_v12_device_state",
+          "description": "网络动态 V12 device_state 长表。",
+          "recommended": false
+        },
+        {
+          "id": "generator_state",
+          "name": "generator_state",
+          "schemaRef": "result_frames.network_dynamic_v12_generator_state",
+          "description": "网络动态 V12 generator_state 长表。",
+          "recommended": false
+        },
+        {
+          "id": "device_protection_connection",
+          "name": "device_protection_connection",
+          "schemaRef": "result_frames.network_dynamic_v12_device_protection_connection",
+          "description": "网络动态 V12 device_protection_connection 长表。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "bus_voltage"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "motor_dynamics",
+      "function": "ds_motor_dynamics",
+      "family": "dynamics",
+      "title": "电机网络动态兼容入口",
+      "description": "执行以电机为中心的旧版 RMS/phasor 网络动态合同。",
+      "differences": [
+        "只返回 bus_voltage、motor_state、event 三张兼容结果，不接受独立 fault 参数。",
+        "拒绝非空 Storage；需要完整动态功能时应由用户明确选择 ds_network_dynamics。"
+      ],
+      "inputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "description": "母线、相别和电压约束模型。"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "description": "线路端点、导体映射和线路引用模型。"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "description": "线路阻抗与并联导纳参数模型。"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "description": "负荷设备及其稳态电气模型。"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "description": "变压器设备与基本额定参数模型。"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "description": "电压源设备及源阻抗模型。"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "description": "电动机设备及静态、动态基础参数模型。"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "description": "多绕组变压器绕组身份、连接和分接模型。"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "description": "多绕组变压器绕组对短路阻抗关系模型。"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "description": "电流源设备模型。"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "description": "同步发电机设备、限值和控制模型。"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "description": "逆变器资源设备及控制引用模型。"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "description": "开关设备、端点和初始状态模型。"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "description": "并联导纳设备模型。"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "description": "电容器设备、级数和状态模型。"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "description": "电抗器设备及连接模型。"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "description": "网络设备按名称引用的持久谐波频谱模型。"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "description": "IBR 按名称引用的持久控制配置模型。"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "description": "网络设备按名称引用的持久 XY 曲线模型。"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "description": "储能设备、电气限值和初始能量状态模型。"
+        },
+        {
+          "id": "timeline",
+          "alias": "timeline",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_timeline",
+          "required": true,
+          "position": 21,
+          "description": "必须非空且严格递增的外部采样时间与源缩放数据。"
+        },
+        {
+          "id": "event",
+          "alias": "event",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_event",
+          "required": true,
+          "position": 22,
+          "description": "按明确时刻排列的故障、拓扑、保护、储能或可用性事件。"
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "frames.tcc_curve",
+          "required": true,
+          "position": 23,
+          "description": "保护曲线的电流与时间采样数据。"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "frames.fuse",
+          "required": true,
+          "position": 24,
+          "description": "动态研究中的熔断器保护装置模型。"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "frames.recloser",
+          "required": true,
+          "position": 25,
+          "description": "动态研究中的重合器保护装置模型。"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "frames.relay",
+          "required": true,
+          "position": 26,
+          "description": "动态研究中的继电器保护装置模型。"
+        },
+        {
+          "id": "spec",
+          "alias": "spec",
+          "inputKind": "struct",
+          "schemaRef": "analysis_inputs.dynamic_spec",
+          "required": true,
+          "position": 27,
+          "description": "零行或单行电机与网络动态积分配置。"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 28,
+          "description": "零行或单行潮流参数和结果选择配置。"
+        }
+      ],
+      "results": [
+        {
+          "id": "bus_voltage",
+          "name": "bus_voltage",
+          "schemaRef": "result_frames.dynamic_bus_voltage",
+          "description": "兼容电机动态的逐时刻逐相母线电压。",
+          "recommended": false
+        },
+        {
+          "id": "motor_state",
+          "name": "motor_state",
+          "schemaRef": "result_frames.motor_state",
+          "description": "兼容入口的逐时刻逐电机状态。",
+          "recommended": true
+        },
+        {
+          "id": "event",
+          "name": "event",
+          "schemaRef": "result_frames.dynamic_event",
+          "description": "兼容入口的事件应用结果。",
+          "recommended": false
+        }
+      ],
+      "resultConstraints": [
+        {
+          "type": "ordered_unique_selection",
+          "selector": "para.result",
+          "minimum": 1,
+          "bindingCount": "selected_result_count"
+        },
+        {
+          "type": "default_results",
+          "results": [
+            "motor_state"
+          ]
+        }
+      ]
+    }
+  ]
+}
