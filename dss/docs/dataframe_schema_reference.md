@@ -227,6 +227,10 @@ charge_efficiency, discharge_efficiency
 逐相 `p_rated`, `p_min/p_max/q_min/q_max`, `s_max/i_max`，以及 `v_nom`,
 `sc_r_pct/sc_x_pct`, `spectrum`, `watt_priority`, `idling_loss`, `cut_in/cut_out`,
 `var_follow_inverter`, `voltage_model`, `v_min_pu/v_max_pu`, `limit_current` 均为可选。
+`p_min_no_vars/p_min_kvar_max` 必须成对给出并满足
+`0 <= p_min_no_vars <= p_min_kvar_max <= 1`；二者以 `p_rated` 为基准，因此给出阈值时
+也必须给出 `p_rated`。运行态有功低于前者时无功能力为零，在两阈值之间线性恢复，达到后者时
+使用完整 `q_min/q_max`。
 调度字段包括 `dispatch_mode`（`DEFAULT`, `FOLLOW`, `EXTERNAL`, `LOADLEVEL`, `PRICE`）、
 `dispatch_state`, `charge_rate/discharge_rate`, `charge_trigger/discharge_trigger` 和
 `time_charge_trigger`。QSTS 按潮流实际有功推进 SOC，并把 dispatch 状态跨时点保留。

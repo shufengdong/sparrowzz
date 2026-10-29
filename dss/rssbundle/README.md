@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 143 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合其余 4 个 StorageControllerTechNote 入口 |
-| 当前尚未发布的独立入口 | 116 | 259 个独立入口扣除 143 个已发布入口 |
+| 已转换并发布 bundle | 144 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 InverterTechNote 的 Storage kVA 阈值入口 |
+| 当前尚未发布的独立入口 | 115 | 259 个独立入口扣除 144 个已发布入口 |
 | 超时 | 0 | 无 |
 
-143 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+144 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 143 个发布入口；
-其余 116 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 144 个发布入口；
+其余 115 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -730,6 +730,20 @@ SOC/死区边界仍有状态及分配差异；`Support` 的 `InhibitTime` 生命
 未改变控制目标、SOC 边界或后续放电轨迹。四个正式 bundle 的默认 `bus_phase` 输出均为 264,912 行，
 已在独立结果目录自执行通过。发布总数由 139 增至 143，尚未发布数由 120 降至 116。
 
+### 第二十九轮 InverterTechNote Storage kVA 阈值闭环
+
+2026-10-29 发布未修改官方入口
+`Examples/InverterTechNote/kVA/11_1_kVAViolation.dss`。执行型导入现保留 Storage
+`%kWRated`、`%PMinNoVars` 和 `%PMinkvarMax`：`%kWRated` 限制额定有功范围，后两个阈值按
+`kWrated` 定义运行态无功能力的零值区和线性恢复区。Follow 调度在实际越过 `%CutIn` 前保持
+`IDLING`；EffCurve 空载损耗由电网承担，不改变电池能量，Storage Monitor 的逆变器、空载和
+充放电损耗也按相同 DC 侧功率边界分解。
+
+24 个逐时 Solve 全部收敛，Storage 状态位完全一致；连续状态通道最大归一化误差为
+`8.49630e-4`，全部连续通道 RMS 为 `9.44036e-5`，首端三相电压最大归一化误差为
+`1.40126e-5`，均通过 `1e-3` 门限。正式 portable bundle 的默认 `bus_phase` 输出为 72 行，
+已在独立结果目录自执行通过。发布总数由 143 增至 144，尚未发布数由 116 降至 115。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -791,7 +805,7 @@ SOC/死区边界仍有状态及分配差异；`Support` 的 `InhibitTime` 生命
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 116 个尚未发布入口中逐项验证。
+   当前 115 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -814,7 +828,7 @@ SOC/死区边界仍有状态及分配差异；`Support` 的 `InhibitTime` 生命
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 116 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 115 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -858,7 +872,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-143 个 `converted` 和 116 个 `unsupported`：
+144 个 `converted` 和 115 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
