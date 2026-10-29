@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterTechNote/kVA/11_1_kVAViolation.dss",
+    "root": "dss",
+    "tree_sha256": "9712fae2b7876a93a88ef1fe5bf8d4c0c6368aade71f752b2c9af45bdf296198"
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterTechNote/kVA/11_1_kVAViolation.dss",
+      "role": "dss-entry",
+      "sha256": "a0e6ed2c07abe0bf99923d7c223b677c73a762428a96daeb7644e0f4dac8ed2a"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "121a155e2b2e41156c400500fd5b7b34ba5905be88e0c3e1ee0f57821ca04ecc"
+    }
+  ],
+  "inputs": []
+}
