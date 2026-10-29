@@ -965,7 +965,9 @@ DSS C-API 0.14.5 的官方双路径探针分别保留和移除 `EnergyMeter.Feed
 `element`、`terminal`、`basefreq`、`enabled`，并发出
 `PSA.DSS.DYNAMIC.ENERGY_METER_INERT` Warning。无 Snapshot、Snapshot 后声明/电气修改、
 EnergyMeter Edit/Enable/Disable、`Action`、`ZoneList`、显式 Sample/AllocateLoads、meter export
-或寄存器保存/复位请求都继续 fail closed；没有新增 Dynamic meter 结果表。`47c0cfc37` 加入五行
+或寄存器保存/复位请求都继续 fail closed；没有新增 Dynamic meter 结果表。最终审阅提交
+`3647d118f` 又锁定 quoted 与 parser-variable meter export，避免它们在通用 Export 副作用省略前
+绕过请求校验。`47c0cfc37` 加入五行
 Native CSV、两个 DSS 输入、独立 generator 和 manifest 消费测试。generator/公共输入/动态输入/CSV
 SHA-256 依次为
 `80d4f4b1e109716e16c0e011d929a9019c095667f4ef94ee34420b29c131d7a8`、
@@ -976,7 +978,7 @@ SHA-256 依次为
 
 固定上游 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，使用 release
 `tensoreval`（SHA-256
-`2165393e8900c0b8bce328886ef067fe8c4220e2145789f55ab12036174b75fe`）重新检查
+`b6367a867cdc7789839c94948673fbf84f31e3b015754842f19320c591d24e11`）重新检查
 `Run_IEEE123Bus_GFLDaily.DSS`。退出码为 1，已经越过 `EnergyMeter.Feeder`；新的最深诊断为
 `PSA.DSS.DYNAMIC.MONITOR_MODE_UNSUPPORTED`。官方声明顺序中的首个边界是
 `Monitor.pvmonitor element=PVSystem.myPV mode=1 terminal=1`，其后还有 Storage mode 1 以及两类

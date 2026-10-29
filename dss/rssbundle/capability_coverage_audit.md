@@ -512,7 +512,9 @@ Dynamic 步内没有采样。独立五路径锁定参考给出相同结论，并
 标准边界才作为 provenance 保留并发出 `PSA.DSS.DYNAMIC.ENERGY_METER_INERT`。声明属性仅限
 `element/terminal/basefreq/enabled`；运行期变更、Action、ZoneList、Sample、AllocateLoads、
 meter export、保存和复位请求全部拒绝。代码复用既有 QSTS 边界解析，未增加 meter runtime、
-寄存器或结果 schema。`47c0cfc37` 加入五行 Native reference；四个 SHA-256 为
+寄存器或结果 schema。最终审阅提交 `3647d118f` 增加 quoted 和 parser-variable meter export 的
+RED→GREEN 回归，并把导出/持久化选择器切换到 tokenization 与变量替换后的参数，防止通用 Export
+省略隐藏显式 meter 请求。`47c0cfc37` 加入五行 Native reference；四个 SHA-256 为
 `80d4f4b1e109716e16c0e011d929a9019c095667f4ef94ee34420b29c131d7a8`、
 `cb4bee3633e5a859c504a338ed9932d6c73ffd1b837b7f0760e9a57baad6adcd`、
 `21f96b6f18d9359df6413fcdf33a311ec7e7f35e50600c7688c2496516e9f9b4`、
@@ -520,7 +522,7 @@ meter export、保存和复位请求全部拒绝。代码复用既有 QSTS 边�
 731/731，`--check` 和 40 项 manifest 测试通过。
 
 release `tensoreval` SHA-256 为
-`2165393e8900c0b8bce328886ef067fe8c4220e2145789f55ab12036174b75fe`。固定官方入口完整检查退出码
+`b6367a867cdc7789839c94948673fbf84f31e3b015754842f19320c591d24e11`。固定官方入口完整检查退出码
 为 1，最深诊断推进到 `PSA.DSS.DYNAMIC.MONITOR_MODE_UNSUPPORTED`；按源文件声明顺序，首个
 对象是 mode 1 的 `Monitor.pvmonitor`，后续是 `Monitor.pvvi`/`pvstatevars` 和对应 Storage
 mode 1/0/3。下一轮应分别锁定 mode 1 功率通道、mode 0 V/I 通道和 mode 3 状态通道的采样时刻、
