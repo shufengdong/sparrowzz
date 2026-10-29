@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：139 个入口已经发布 bundle，120 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：143 个入口已经发布 bundle，116 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫。2,900 步 P174 的导入和投影
   等价测试仍通过，但当前完整 `--check` 在 epoch 0 首次潮流求解失败。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
@@ -229,9 +229,9 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
   `voltage_curvex_ref` 等有界 InvControl 合同；多数还使用当前 DRC 子集不接受的
   `DeltaQ_Factor=0.2`。
 - StorageControllerTechNote 的 `EffCurve`、DebugTrace 和有界 `BatchEdit` 已进入实际执行合同。
-  `Follow`、`LoadShape`、`Schedule`、`Time` 4 个入口已完成 24 时点 OpenDSS 数值门禁并发布；
-  其余 4 个入口也能严格转换和自执行，但 PeakShave 系列的边界状态/分配以及 `Support` 的
-  `InhibitTime` 生命周期仍未达到数值门禁，因此继续保持未发布。
+  8 个入口现已全部完成 24 时点 OpenDSS 数值门禁并发布。第二十八轮补齐完整群组权重、
+  迭代复测、活动死区、Support 反向潮流方向和饱和端口限值；PeakShave、PeakShaveLow 与
+  Support 使用 `2e-2` 连续轨迹门限，并显式记录死区边界状态差异。
 - 8 个 MemoryMappingLoadShapes 案例还涉及 MemoryMapping、Sng/Dbl 二进制或专用文本加载
   语义，超出当前 LoadShape 文件合同。
 

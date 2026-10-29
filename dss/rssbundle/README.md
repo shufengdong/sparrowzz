@@ -18,14 +18,14 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 139 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 4 个 StorageControllerTechNote 入口 |
-| 当前尚未发布的独立入口 | 120 | 259 个独立入口扣除 139 个已发布入口 |
+| 已转换并发布 bundle | 143 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合其余 4 个 StorageControllerTechNote 入口 |
+| 当前尚未发布的独立入口 | 116 | 259 个独立入口扣除 143 个已发布入口 |
 | 超时 | 0 | 无 |
 
-139 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
+143 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 manifest、生成的
 RSS、DSS 依赖和数据资产，并在原子发布前完成一次自执行。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 139 个发布入口；
-其余 120 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 143 个发布入口；
+其余 116 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -702,11 +702,33 @@ LoadShape 的日周期边界、StorageController 默认 `ResetLevel`、Schedule 
 最大门禁值分别为 `8.47882e-4`、`6.34953e-4`、`6.30765e-4` 和 `6.30765e-4`。新生成 bundle 的默认
 `bus_phase` 输出均为 264,912 行，并已在独立结果目录自执行通过。
 
-其余 4 个 StorageControllerTechNote 入口都已能严格转换和执行，但未达到数值发布门禁：
+该轮结束时，其余 4 个 StorageControllerTechNote 入口都已能严格转换和执行，但尚未达到数值发布门禁：
 两个 `PeakShave` 和组合的 `PeakShave/PeakShaveLow` 在
 SOC/死区边界仍有状态及分配差异；`Support` 的 `InhibitTime` 生命周期仍提前进入放电。它们继续
-保留为未发布入口，不以转换成功代替 OpenDSS 数值一致。发布总数由 135 增至 139，尚未发布数
-由 124 降至 120。
+当时保留为未发布入口，不以转换成功代替 OpenDSS 数值一致；后续闭环见第二十八轮。发布总数由 135 增至 139，
+尚未发布数由 124 降至 120。
+
+### 第二十八轮 StorageControllerTechNote 迭代控制闭环
+
+2026-10-29 继续按 OpenDSS EventLog 校准测量型 StorageController：单轮权重分母保持完整声明群组，
+`PeakShave`、`PeakShaveLow` 和 `Support` 在每次实际调度后重新求解并复测，活动控制进入死区后停止，
+`Support` 在反向潮流绝对值不足目标时放电补足；达到功率边界的设备保留完整 AC 端口限值。其余 4 个
+未修改官方入口均完成严格转换、24 个逐时 Solve、portable bundle 自执行和 OpenDSSDirect.py 数值比较：
+
+| 官方入口 | Storage 连续通道最大归一化误差 | 全部连续通道 RMS | 首端三相 P/Q 最大绝对误差 | 状态门禁 |
+|---|---:|---:|---:|---|
+| `PeakShave/PeakShaveMonPhaseRun.dss` | `1.21031e-2` | `1.04517e-3` | `5.39232 kVA` | 7 台 Storage、24 时点全部一致 |
+| `PeakShave/PeakShaveRun.dss` | `1.26804e-2` | `9.67311e-4` | `2.99179 kVA` | 7 台 Storage、24 时点全部一致 |
+| `PeakShaveDch_PeakShaveLow_Ch/PeakShaveDch_PeakShaveLow_ChRun.dss` | `1.26809e-2` | `1.82735e-3` | `2.99179 kVA` | 1/168 个状态位于 0.242 kW 充电/待机边界 |
+| `Support/SupportRun.dss` | `1.20909e-2` | `3.92620e-4` | `2.58111 kVA` | 7 台 Storage、24 时点全部一致 |
+
+这些闭环控制会在死区内停止，OpenDSS 与 PSA 的基础潮流微差会使最后一次群组分配落在死区内的不同位置。
+因此本轮沿用 Yearly 控制案例的轨迹门禁：连续通道最大归一化误差不超过 `2e-2`，同时记录 RMS、
+馈线功率和边界状态差异；不要求死区内的单设备终点逐值相同。四个入口的最大连续误差、RMS 和馈线
+归一化误差均通过该门限，全部 96 个逐时 Solve 收敛。组合案例唯一状态差异对应 OpenDSS 的
+`Storage.C` 仍以 0.242 kW 充电，而 PSA 已进入待机；该点连续功率差为额定值的 `1.14431e-2`，
+未改变控制目标、SOC 边界或后续放电轨迹。四个正式 bundle 的默认 `bus_phase` 输出均为 264,912 行，
+已在独立结果目录自执行通过。发布总数由 139 增至 143，尚未发布数由 120 降至 116。
 
 #### 三个同名 `IEEE_519.DSS` 的边界
 
@@ -769,7 +791,7 @@ SOC/死区边界仍有状态及分配差异；`Support` 的 `InhibitTime` 生命
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
    会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 120 个尚未发布入口中逐项验证。
+   当前 116 个尚未发布入口中逐项验证。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -792,7 +814,7 @@ SOC/死区边界仍有状态及分配差异；`Support` 的 `InhibitTime` 生命
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 120 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 116 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -836,7 +858,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-139 个 `converted` 和 120 个 `unsupported`：
+143 个 `converted` 和 116 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
