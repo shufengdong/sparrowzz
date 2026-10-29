@@ -928,15 +928,21 @@ DSS、Dynamics DSS 与 CSV 的 SHA-256 分别为
 `8f35b46755f6a2ce7c7d00933c1c788d4e4fa48cd1d4566fb02c29335addbba6`；reference manifest
 现管理并消费 730 个输出，`--check` 字节一致。
 
+独立收尾审阅发现原始 Snapshot 布尔事实可能跨越后续声明。`ac06e0a68` 将它改为可失效证明：
+Snapshot 后的新建对象、一般 Edit/More/属性写入、Clear/BatchEdit、拓扑/启停命令及影响声明的
+Set 都会撤销证明，只有再次 Snapshot 才能恢复；官方已建模的
+`Edit Storage.mystorage State=Discharging` 初始状态动作保留。PV 在 Snapshot 后声明、编辑以及
+Clear 后重建三类回归均 fail closed。
+
 使用同一固定上游和 release `tensoreval`（SHA-256
-`daf73afce7802119167d34403c6816e1a7e04438554b7f29db76a563d7671e23`）再次执行官方入口。
+`7447540d8dca0a57998e2f3653578ebee20dab91d186f2fe87692f426a60c7f3`）再次执行官方入口。
 退出码仍为 1，但已越过 PV profile consumer；CLI 最深诊断为 `PSA.DSS.OBJECT.UNSUPPORTED`，
 完整 importer 诊断将首个目标定位为 `EnergyMeter.Feeder`。同一诊断批还明确列出 6 个 Monitor
 投影边界：mode 1 的 `pvmonitor`/`stomonitor`，以及面向 PVSystem/Storage 的 mode 0、mode 3
 目标均未映射到当前 V12 动态结果表。本轮按设计在这一新边界停止，没有把 EnergyMeter 或 Monitor
 当作输出副作用静默丢弃。
 
-聚焦门禁：Dynamic execution 22/22、Native 锁定 1/1、reference manifest 40/40、Snapshot
+聚焦门禁：Dynamic execution 23/23、Native 锁定 1/1、reference manifest 40/40、Snapshot
 初始化 4/4、MEMS 门面 1/1；宽过滤 `dynamic_profile_` 为 26/28，两个失败是既有 Relay 测试。
 完整 `dss_import` 为 460 通过、10 个既有失败；完整 DSA 库为 1,383 通过、5 个既有
 Generator/Harmonic 失败。官方入口仍未达到 portable 自执行，更未进入必须显式使用

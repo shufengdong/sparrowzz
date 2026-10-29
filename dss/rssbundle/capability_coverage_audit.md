@@ -471,15 +471,20 @@ OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 的隔离双路径参考锁定了同�
 `8f35b46755f6a2ce7c7d00933c1c788d4e4fa48cd1d4566fb02c29335addbba6`。manifest 计数由
 729 增至 730，且 generator `--check`、40 项 manifest 测试均通过。
 
+收尾代码审阅指出仅记录“曾经 Snapshot”会误准入 Snapshot 后才声明/编辑的 PV，或 Clear 后重建
+的网络。`ac06e0a68` 将该状态改为可失效证明：后续结构/电气声明变更会清除它，新的 Snapshot
+可重新建立；官方已有明确 importer 合同的 `Edit Storage state=Discharging` 初始状态动作不清除
+PV 证明。新增三类负测锁定 PV 后声明、后编辑和 Clear/rebuild 均返回原 profile consumer 诊断。
+
 固定 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，使用 release
 `tensoreval`（SHA-256
-`daf73afce7802119167d34403c6816e1a7e04438554b7f29db76a563d7671e23`）重新检查
+`7447540d8dca0a57998e2f3653578ebee20dab91d186f2fe87692f426a60c7f3`）重新检查
 `Run_IEEE123Bus_GFLDaily.DSS`。退出码为 1；PV profile consumer 已越过，新的首个阻断诊断是
 `PSA.DSS.OBJECT.UNSUPPORTED`，target 为 `EnergyMeter.Feeder`。完整诊断还包含 6 个后续 Monitor
 边界：两个 mode 1 功率 Monitor，以及 PVSystem/Storage 各自的 mode 0 电气 Monitor 和 mode 3
 状态 Monitor，当前均没有对应的 V12 动态结果投影。本轮不扩大设计去处理这些独立对象合同。
 
-聚焦测试为 Dynamic execution 22/22、Native 参考 1/1、manifest 40/40、Snapshot 初始化 4/4、
+聚焦测试为 Dynamic execution 23/23、Native 参考 1/1、manifest 40/40、Snapshot 初始化 4/4、
 MEMS 门面 1/1；宽 `dynamic_profile_` 过滤为 26/28，失败仍是两个既有 Relay 用例。完整
 `dss_import` 为 460/470，10 个既有失败；完整 DSA 库为 1,383/1,388，5 个既有
 Generator/Harmonic 失败。入口未通过 portable 自执行，也没有执行要求 `line_model=Exact` 的
