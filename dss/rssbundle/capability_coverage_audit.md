@@ -421,14 +421,45 @@ InvControl 作用域及 PV/Storage 各自的实际模式，再决定是否能安
 入口尚未生成可自执行 portable bundle，也未进入显式 `line_model=Exact` 的 OpenDSS V/I/P/Q
 数值门禁，因此 `conversion_report.csv` 保持 144 个 `converted`、115 个 `unsupported`。
 
+## 第三十四轮：Native 默认 GFL、惰性 GFM monitor 与 PV 曲线边界
+
+锁定的 DSS C-API 0.14.5 源码将 PVSystem/Storage `ControlMode` 表示为
+`GFL=false`、`GFM=true`，构造默认值为 `false`。OpenDSSDirect 最小探针在创建
+PVSystem/Storage 后均回读 `GFL`；创建
+`InvControl.ctrl DERList=[PVSystem.pv Storage.s] mode=GFM` 后，控制器回读 `GFM`，两个成员仍为
+`GFL`。源码中 GFM controller 分支还要求成员自身 `GFM_Mode` 为真。这三项证据共同证明：官方
+入口中省略的设备模式使用 Native 默认 GFL，`InvControl ... mode=GFM` 不会隐式改变成员模式，
+在所有成员保持 GFL 时没有电气动作。
+
+`eig-rs` master 的 `b14678959` 只为省略的 PVSystem/Storage `ControlMode` 提供 GFL 默认；显式
+GFM/非法值继续 fail closed。`ecfa1c75f` 将事件序列上的惰性证明复用于 Dynamic execution，
+保留 Warning `PSA.DSS.EXECUTION.INERT_GFM_MONITOR_IGNORED`。证明要求成员完整解析为已声明的
+PVSystem/Storage，控制器不可变，成员没有显式 `ControlMode=GFM`，且声明只含
+`DERList`、`mode`、`enabled`；控制器变更、成员转 GFM、未知成员或 `eventlog=yes` 都不省略。
+
+固定 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，使用 release
+`tensoreval`（SHA-256
+`016d399c82c93dd9778a9bd733fd64385421b0b136b0016b91b631098893cc95`）重新检查非 DynExp
+`Run_IEEE123Bus_GFLDaily.DSS`。退出码为 1；最深诊断从设备
+`PSA.DSS.PVSYSTEM.DYNAMIC_CONTROL_MODE_UNSUPPORTED` 推进为
+`PSA.DSS.DYNAMIC.PROFILE_CONSUMER_UNSUPPORTED`，具体边界是 PVSystem 的 `pvshape` LoadShape
+引用在当前 native dynamic runtime 没有采样输入。该入口因此已越过本轮默认值和控制器编排层，
+下一缺口是 PV 动态 profile consumer，而不是 GFM 设备方程。
+
+聚焦门禁全部通过：默认 GFL 1/1、惰性 GFM 3/3、动态快照初始化 4/4、MEMS 表达式门面 1/1。
+完整 `dss_import` 为 459 通过、10 个既有失败；完整 DSA 库为 1,379 通过、5 个既有
+Generator/Harmonic 失败、2 个忽略。本轮没有 portable bundle，也未进入显式
+`line_model=Exact` 的故障窗 V/I/P/Q 及 PVSystem/Storage 状态比较，故
+`conversion_report.csv` 仍为 144 个 `converted`、115 个 `unsupported`。
+
 ### 下一轮更新后的优先级
 
-1. 用 Native OpenDSS 锁定未显式填写 `ControlMode` 时 PVSystem 和 Storage 的实际动态控制模式，
-   同时核对 `InvControl mode=GFM` 是否改变设备模式或只提供控制器行为。
-2. 只有 Native 证据能证明该官方 deck 等价于现有 GFL adapter 时，才为默认值增加有界 importer
-   映射；若实际是混合 GFL/GFM，则转入 Storage/PV GFM 方程边界，不能把它强制标成 GFL。
-3. 映射通过后仍需生成 portable bundle，并以 `line_model=Exact` 比较故障窗 V/I/P/Q 以及
-   PVSystem/Storage 状态；这两层都通过前不改变发布计数。
+1. 用 Native OpenDSS 锁定 Dynamic Daily 中 PVSystem irradiance/temperature、P-T/EffCurve、
+   `pvshape` 与状态输出的采样时刻、插值和组合顺序，并保存故障窗轨迹。
+2. 只在上述证据覆盖的固定间隔 Daily 窗口内，为现有 GFL PV adapter 增加有界 profile consumer；
+   Yearly/Duty、启动后曲线切换、用户 `DynamicEq`/`DynOut` 继续 fail closed。
+3. 生成 portable bundle 后，以 `line_model=Exact` 比较故障窗 V/I/P/Q 以及 PVSystem/Storage
+   状态；两层发布门禁都通过前不改变 144/115 计数。
 
 ## 建议的实现门禁
 

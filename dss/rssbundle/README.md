@@ -873,6 +873,39 @@ Snapshot→Dynamic topology continuation 和 Storage GFM 方程合同。
 本轮没有达到 portable execution，也没有进入要求 `line_model=Exact` 的 OpenDSS 数值比较，
 因此不改 `conversion_report.csv`，不新增 bundle；发布总数保持 144，尚未发布数保持 115。
 
+### 第三十四轮 Native 默认 GFL 与惰性 GFM monitor
+
+2026-10-29 继续追踪同一非 DynExp IEEE123 GFL Daily 入口。锁定的 DSS C-API 0.14.5 源码把
+PVSystem/Storage 的 `ControlMode` 枚举定义为 `GFL=false`、`GFM=true`，默认值为 `false`。
+OpenDSSDirect 最小探针进一步确认：创建 PVSystem 和 Storage 后两者均回读为 `GFL`；再创建
+`InvControl.ctrl DERList=[PVSystem.pv Storage.s] mode=GFM` 后，控制器回读 `GFM`，两个设备仍回读
+`GFL`。Native `InvControl` 的 GFM 分支只在成员自身 `GFM_Mode` 为真时执行，因此该控制器不会
+把默认 GFL 成员切换为 GFM。
+
+`eig-rs` master 的 `b14678959` 据此只把**省略**的 PVSystem/Storage `ControlMode` 映射为 Native
+默认 GFL；显式 GFM 和非法值继续返回原有设备级拒绝。`ecfa1c75f` 把既有惰性 GFM monitor
+证明从 Snapshot 专属规则抽出并复用于 Dynamic execution：只有成员全部存在且属于
+PVSystem/Storage、控制器没有后续变更、成员没有显式转为 GFM、声明除 `DERList`/`mode`/`enabled`
+外没有活跃属性时才省略，并发出稳定 Warning
+`PSA.DSS.EXECUTION.INERT_GFM_MONITOR_IGNORED`。控制器 Edit、成员 GFM、未知成员和
+`eventlog=yes` 均由测试锁定为 fail closed。
+
+使用固定上游 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1` 和 release
+`tensoreval`（SHA-256
+`016d399c82c93dd9778a9bd733fd64385421b0b136b0016b91b631098893cc95`）重新执行
+`Examples/IBRDynamics_Cases/GFL_IEEE123/Run_IEEE123Bus_GFLDaily.DSS`。入口退出码仍为 1，
+但已越过设备 `ControlMode` 与惰性 `InvControl`；新的最深诊断是
+`PSA.DSS.DYNAMIC.PROFILE_CONSUMER_UNSUPPORTED`：PVSystem 的 `pvshape` LoadShape 引用在当前
+原生动态运行时没有采样输入。下一轮应先用 Native 轨迹锁定 Dynamic Daily 中 irradiance、
+temperature、P-T/EffCurve 与 PV 状态的采样时刻和组合顺序，再为现有 GFL PV adapter 增加有界
+profile consumer；不能把 PV 曲线当作 Load 倍率复用。
+
+聚焦门禁为 Native 默认 GFL 1/1、惰性 GFM 3/3、动态快照初始化 4/4、MEMS 门面 1/1。
+完整 `dss_import` 为 459 通过、10 个既有失败；完整 `psa --features dsa --lib` 为 1,379 通过、
+5 个既有 Generator/Harmonic 失败、2 个忽略。本轮仍未生成 portable bundle，也未进入显式
+`line_model=Exact` 的 OpenDSS 故障窗 V/I/P/Q 与 PVSystem/Storage 状态数值门禁，因此不改
+`conversion_report.csv`，不新增 bundle；发布总数保持 144，尚未发布数保持 115。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
