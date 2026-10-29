@@ -848,6 +848,30 @@ Snapshot→Dynamic topology continuation 和 Storage GFM 方程合同。
 2 个忽略，失败集合与上一轮相同。7 个入口尚未通过 portable execution 和 OpenDSS 数值门禁，
 因此仍不改 `conversion_report.csv`，不新增 bundle；发布总数保持 144，尚未发布数保持 115。
 
+### 第三十三轮 Native `SafeVoltage=0` 合同
+
+2026-10-29 继续使用 OpenDSS Native 语义推进非 DynExp IEEE123 GFL Daily。固定上游脚本同时为
+`Storage.mystorage` 和 `PVSystem.myPV` 设置 `SafeVoltage=0`；原生 OpenDSSDirect 属性回读保留零值，
+且该属性是以百分数表示的动态安全电压阈值。`eig-rs` master 的 `079a77dc2`、`bfc608a8c`
+据此把 PVSystem/Storage 设备合同和 DSS importer 的合法范围分别收紧为有限 `[0,1]` 与
+`[0,100]`，精确保留 `0 -> 0.0`、`100 -> 1.0`；负数、超过上界和非有限值仍稳定 fail closed。
+共享逆变器运行时没有改写，测试额外证明零阈值在正电压暂降时不会误触发安全停机。
+
+使用固定 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1` 和 release
+`tensoreval`（SHA-256
+`2478f9b31602a6aa5f21cd6d1044733e0512cf746dc2934f557f6e5a8a99c883`）重新执行
+`Examples/IBRDynamics_Cases/GFL_IEEE123/Run_IEEE123Bus_GFLDaily.DSS`。入口退出码仍为 1，
+但已经越过 `PSA.DSS.PVSYSTEM.DYNAMIC_VALUE_INVALID: safevoltage=0`；新的最深诊断是
+`PSA.DSS.PVSYSTEM.DYNAMIC_CONTROL_MODE_UNSUPPORTED`，具体要求动态 PVSystem 显式
+`ControlMode=GFL`。官方对象没有写该属性，后续必须先锁定 Native 默认值及其与脚本中
+`InvControl ... mode=GFM` 的关系，不能由转换器猜测补值。
+
+聚焦回归为 PV 4/4、Storage 3/3、共享逆变器 4/4、SafeVoltage importer 2/2、动态快照初始化
+4/4、MEMS 门面 1/1。完整 `dss_import` 集成为 454 通过、11 个既有失败；完整
+`psa --features dsa --lib` 为 1,378 通过、5 个既有 Generator/Harmonic 失败、2 个忽略。
+本轮没有达到 portable execution，也没有进入要求 `line_model=Exact` 的 OpenDSS 数值比较，
+因此不改 `conversion_report.csv`，不新增 bundle；发布总数保持 144，尚未发布数保持 115。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
