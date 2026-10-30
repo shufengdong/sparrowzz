@@ -27186,6 +27186,220 @@
         "shape": "uniform"
       }
     },
+    "para": {
+      "required": {
+        "line_model": "str"
+      },
+      "optional": {
+        "max_iter": "u32_semantics",
+        "max_control_iter": "u32_semantics",
+        "tol": "f64",
+        "result": "str"
+      },
+      "constraints": [
+        "exactly one row",
+        "line_model is modified or exact",
+        "max_iter and max_control_iter are positive integers when present",
+        "tol is finite and positive when present",
+        "result is a comma-separated list without empty, unknown or duplicate names"
+      ],
+      "row_count": 1,
+      "schema_source": "psa/src/dsa/parse/params.rs",
+      "dispatch_source": "mems/src/ml/expr_df/frame_ops.rs",
+      "contract": {
+        "kind": "struct",
+        "rowCount": "one",
+        "columnPolicy": {
+          "mode": "open",
+          "unknownColumns": "ignored"
+        },
+        "columns": [
+          {
+            "name": "line_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable",
+            "card": {
+              "default": {
+                "state": "required"
+              },
+              "unit": {
+                "state": "not_applicable"
+              },
+              "range": {
+                "state": "not_applicable"
+              },
+              "enum": {
+                "state": "values",
+                "values": [
+                  "modified",
+                  "exact"
+                ],
+                "caseInsensitive": true
+              },
+              "visibleWhen": {
+                "state": "always"
+              },
+              "enabledWhen": {
+                "state": "always"
+              }
+            }
+          },
+          {
+            "name": "max_iter",
+            "dtype": "u32_semantics",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable",
+            "card": {
+              "default": {
+                "state": "value",
+                "value": 100
+              },
+              "unit": {
+                "state": "not_applicable"
+              },
+              "range": {
+                "state": "bounded",
+                "minimum": 0,
+                "maximum": null,
+                "minimumInclusive": false,
+                "maximumInclusive": false
+              },
+              "enum": {
+                "state": "not_applicable"
+              },
+              "visibleWhen": {
+                "state": "always"
+              },
+              "enabledWhen": {
+                "state": "always"
+              }
+            }
+          },
+          {
+            "name": "max_control_iter",
+            "dtype": "u32_semantics",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable",
+            "card": {
+              "default": {
+                "state": "value",
+                "value": 30
+              },
+              "unit": {
+                "state": "not_applicable"
+              },
+              "range": {
+                "state": "bounded",
+                "minimum": 0,
+                "maximum": null,
+                "minimumInclusive": false,
+                "maximumInclusive": false
+              },
+              "enum": {
+                "state": "not_applicable"
+              },
+              "visibleWhen": {
+                "state": "always"
+              },
+              "enabledWhen": {
+                "state": "always"
+              }
+            }
+          },
+          {
+            "name": "tol",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable",
+            "card": {
+              "default": {
+                "state": "value",
+                "value": 1e-06
+              },
+              "unit": {
+                "state": "not_applicable"
+              },
+              "range": {
+                "state": "bounded",
+                "minimum": 0,
+                "maximum": null,
+                "minimumInclusive": false,
+                "maximumInclusive": false
+              },
+              "enum": {
+                "state": "not_applicable"
+              },
+              "visibleWhen": {
+                "state": "always"
+              },
+              "enabledWhen": {
+                "state": "always"
+              }
+            }
+          },
+          {
+            "name": "result",
+            "dtype": "str",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable",
+            "card": {
+              "default": {
+                "state": "omitted"
+              },
+              "unit": {
+                "state": "not_applicable"
+              },
+              "range": {
+                "state": "not_applicable"
+              },
+              "enum": {
+                "state": "not_applicable"
+              },
+              "visibleWhen": {
+                "state": "always"
+              },
+              "enabledWhen": {
+                "state": "always"
+              }
+            }
+          }
+        ],
+        "stableKeys": [],
+        "sortKeys": [],
+        "columnAliases": {},
+        "allowedConversions": [
+          "numeric_to_u32_semantics"
+        ],
+        "rules": [
+          {
+            "type": "positive",
+            "fields": [
+              "max_iter",
+              "max_control_iter",
+              "tol"
+            ],
+            "whenPresent": true
+          },
+          {
+            "type": "unique_csv_items",
+            "field": "result",
+            "delimiter": ",",
+            "allowEmpty": false
+          }
+        ],
+        "source": [
+          "psa/src/dsa/parse/params.rs",
+          "mems/src/ml/expr_df/frame_ops.rs"
+        ],
+        "shape": "uniform"
+      }
+    },
     "import_diagnostic": {
       "contract": {
         "kind": "data",

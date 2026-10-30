@@ -911,12 +911,16 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
             if item["schemaRef"].startswith("execution_inputs."):
                 schema_name = item["schemaRef"].split(".", 1)[1]
                 expected_kind = (
-                    "model"
-                    if schema_name in set(network_order) | {
-                        "shape_assignment", "storage_controller", "switch_control",
-                        "fuse", "recloser", "relay", "monitor", "energy_meter",
-                    }
-                    else "data"
+                    "struct"
+                    if schema_name == "para"
+                    else (
+                        "model"
+                        if schema_name in set(network_order) | {
+                            "shape_assignment", "storage_controller", "switch_control",
+                            "fuse", "recloser", "relay", "monitor", "energy_meter",
+                        }
+                        else "data"
+                    )
                 )
             if item["schemaRef"] == "harmonic_execution_inputs.monitor":
                 expected_kind = "model"
