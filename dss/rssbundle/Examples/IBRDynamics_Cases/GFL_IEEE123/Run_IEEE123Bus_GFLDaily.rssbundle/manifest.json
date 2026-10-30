@@ -1,0 +1,173 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "dynamic",
+    "compatibility": "opendss-native",
+    "results": [
+      "bus_voltage",
+      "branch_current",
+      "source_flow",
+      "pvsystem_state",
+      "storage_state",
+      "motor_state",
+      "event",
+      "solver_trace",
+      "fault_state",
+      "protection_state",
+      "frt_state",
+      "control_state",
+      "device_state",
+      "generator_state",
+      "device_protection_connection",
+      "monitor"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/IBRDynamics_Cases/GFL_IEEE123/Run_IEEE123Bus_GFLDaily.DSS",
+    "root": "dss",
+    "tree_sha256": "8fed974d946eb53e4d62e45586d9b2555d0ceacf0087a2d498f129f5c2fece94"
+  },
+  "projection": {
+    "source_function": "ds_dss_dynamic_plan",
+    "profile": "dss_dynamic_plan_v1",
+    "projector": "project_dss_dynamic_plan",
+    "target_function": "ds_network_dynamics",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "bus_voltage",
+        "target": "bus_voltage",
+        "binding": "result_bus_voltage"
+      },
+      {
+        "source": "branch_current",
+        "target": "branch_current",
+        "binding": "result_branch_current"
+      },
+      {
+        "source": "source_flow",
+        "target": "source_flow",
+        "binding": "result_source_flow"
+      },
+      {
+        "source": "pvsystem_state",
+        "target": "pvsystem_state",
+        "binding": "result_pvsystem_state"
+      },
+      {
+        "source": "storage_state",
+        "target": "storage_state",
+        "binding": "result_storage_state"
+      },
+      {
+        "source": "motor_state",
+        "target": "motor_state",
+        "binding": "result_motor_state"
+      },
+      {
+        "source": "event",
+        "target": "event",
+        "binding": "result_event"
+      },
+      {
+        "source": "solver_trace",
+        "target": "solver_trace",
+        "binding": "result_solver_trace"
+      },
+      {
+        "source": "fault_state",
+        "target": "fault_state",
+        "binding": "result_fault_state"
+      },
+      {
+        "source": "protection_state",
+        "target": "protection_state",
+        "binding": "result_protection_state"
+      },
+      {
+        "source": "frt_state",
+        "target": "frt_state",
+        "binding": "result_frt_state"
+      },
+      {
+        "source": "control_state",
+        "target": "control_state",
+        "binding": "result_control_state"
+      },
+      {
+        "source": "device_state",
+        "target": "device_state",
+        "binding": "result_device_state"
+      },
+      {
+        "source": "generator_state",
+        "target": "generator_state",
+        "binding": "result_generator_state"
+      },
+      {
+        "source": "device_protection_connection",
+        "target": "device_protection_connection",
+        "binding": "result_device_protection_connection"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/Examples/IBRDynamics_Cases/GFL_IEEE123/Run_IEEE123Bus_GFLDaily.DSS",
+      "role": "dss-entry",
+      "sha256": "038cd23ee23a5c60cfc9f0f722432fb31eab2feec0598116c0d2083be94181c0"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/BusCoords.dat",
+      "role": "data-asset",
+      "sha256": "0b409c0e5d99f365c0140bf38280c1d64932032f1ecb8ef83ae54d4ed0d2716f"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
+      "role": "dss-source",
+      "sha256": "fd28f52836205506a1980b52c5a7e12ca585aa626c52a6249502c1c3b2fc2255"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Master.dss",
+      "role": "dss-source",
+      "sha256": "c92a69d9b218b1b2646ec7911783826229309038e72f16b848304c0457c0a54d"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
+      "role": "dss-source",
+      "sha256": "cd6ad77980dc018631ce39faab528afce40b0b9a50a6bc1c9ac8049ffb8207d7"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
+    },
+    {
+      "path": "dss/IEEETestCases/123Bus/PVShape.dss",
+      "role": "dss-source",
+      "sha256": "12fb209be619df89709877591ffdc630096836b0c12ad314c4e32de626ab26fb"
+    },
+    {
+      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "aa83a9ae377223b5ee09a0adb59dcf7adddf11df11234f9dd9621c7812274c91"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "8817f8f2547c38f01b053e9460998c2aa18ff62a070c7a2be2b440a02e6c3084"
+    }
+  ],
+  "inputs": []
+}

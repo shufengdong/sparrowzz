@@ -18,16 +18,16 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 144 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 InverterTechNote 的 Storage kVA 阈值入口 |
-| 当前尚未发布的独立入口 | 115 | 259 个独立入口扣除 144 个已发布入口 |
+| 已转换并发布 bundle | 145 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 IEEE123 GFL Daily Dynamic V13 Monitor 入口 |
+| 当前尚未发布的独立入口 | 114 | 259 个独立入口扣除 145 个已发布入口 |
 | 超时 | 0 | 无 |
 
-144 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+145 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
-原子发布前完成一次自执行。catalog 审计确认 143 个路径型入口均能投影到 DataFrame 门面，
+原子发布前完成一次自执行。catalog 审计确认 144 个路径型入口均能投影到 DataFrame 门面，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 144 个发布入口；
-其余 115 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 145 个发布入口；
+其余 114 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -993,6 +993,26 @@ reference manifest 40/40。完整 `dss_import` 为 461 通过、10 个既有失�
 portable 自执行，也没有进入必须显式设置 `line_model=Exact` 的故障窗 V/I/P/Q 与设备状态比较，
 所以 `conversion_report.csv` 未改，不新增 bundle；发布总数保持 144，尚未发布数保持 115。
 
+### 第三十七轮 Dynamic V13 Monitor 与 IEEE123 GFL Daily 发布
+
+2026-10-30 为 PVSystem/Storage 的 mode 0、1、3 Monitor 建立 V13 动态投影，并将官方
+`Examples/IBRDynamics_Cases/GFL_IEEE123/Run_IEEE123Bus_GFLDaily.DSS` 生成为可搬移执行的
+schema v2 bundle。入口包含 Snapshot 初始化、200 ms 故障前、70 ms 故障中和 200 ms 清除后，
+共 470 个固定 1 ms 动态时点；6 个 Monitor 的原生参考共 31,960 行。
+
+数值门禁使用 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5，并显式设置
+`line_model=Exact`。mode 0 的复电压/复电流和 mode 1 的三相 P/Q 覆盖全部 470 个时点，
+最大额定值缩放误差分别为 `3.94205e-2` 和 `4.05983e-2`，低于 V13 的 `15%` 动态门限；
+mode 3 已建模状态最大缩放误差为 `3.46374e-2`，低于 `20%` 门限，Storage `kWh` 最大缩放误差
+为 `2.05525e-7`。未建模的 Native 状态严格输出 `validity=unmodeled` 与 `NaN`，不以端口量伪造；
+PVSystem/Storage 的 `it` 也按该合同修正。
+
+发布证据随 bundle 保存为 `native_reference.csv` 与 `numerical_comparison.csv`。release
+`tensoreval` SHA-256 为
+`55bdca12b96c001c27b01a51d25a22184a5e14df25dbb4e81d88da4430d09499`；严格检查验证 406 条
+DSS 语句、1 个 Dynamic epoch，搬移后的 bundle 自执行产生 16 张结果表和 31,960 行 Monitor。
+发布总数由 144 增至 145，尚未发布数由 115 降至 114。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1086,7 +1106,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 | 数量 | 分类 | 诊断码 | 原因 |
 |---:|---|---|---|
-| 14 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 保存的完整检查请求 Dynamic、Direct 等尚未完成入口合同的生命周期；第三十轮仅转换探针已把其中部分 Dynamic 入口推进到运行层诊断，Direct 仍未支持。 |
+| 13 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 保存的完整检查请求 Dynamic、Direct 等尚未完成入口合同的生命周期；IEEE123 GFL Daily 已发布，Direct 仍未支持。 |
 | 13 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
 | 9 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
 | 8 | `unsupported` | `REQUEST.SOURCE.ESCAPES_ROOT` | 数据资产引用越过本次允许的获取根。 |
@@ -1122,7 +1142,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-144 个 `converted` 和 115 个 `unsupported`：
+145 个 `converted` 和 114 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

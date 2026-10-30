@@ -5230,6 +5230,15 @@
           "required": true,
           "position": 29,
           "description": "零行或单行潮流参数、基频和结果选择配置。"
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor",
+          "inputKind": "model",
+          "schemaRef": "frames.monitor",
+          "required": true,
+          "position": 30,
+          "description": "Dynamic V13 的 PVSystem/Storage mode 0、1、3 Monitor 定义。"
         }
       ],
       "results": [
@@ -5337,6 +5346,13 @@
           "schemaRef": "result_frames.network_dynamic_v12_device_protection_connection",
           "description": "网络动态 V12 device_protection_connection 长表。",
           "recommended": false
+        },
+        {
+          "id": "monitor",
+          "name": "monitor",
+          "schemaRef": "result_frames.qsts_monitor",
+          "description": "网络动态 V13 Monitor 长表。",
+          "recommended": false
         }
       ],
       "sourceResults": [
@@ -5354,7 +5370,8 @@
         "control_state",
         "device_state",
         "generator_state",
-        "device_protection_connection"
+        "device_protection_connection",
+        "monitor"
       ],
       "resultMap": {
         "bus_voltage": "bus_voltage",
@@ -5371,7 +5388,8 @@
         "control_state": "control_state",
         "device_state": "device_state",
         "generator_state": "generator_state",
-        "device_protection_connection": "device_protection_connection"
+        "device_protection_connection": "device_protection_connection",
+        "monitor": "monitor"
       },
       "resultSelector": {
         "input": "para",
@@ -5393,7 +5411,8 @@
         "control_state": "control_state",
         "device_state": "device_state",
         "generator_state": "generator_state",
-        "device_protection_connection": "device_protection_connection"
+        "device_protection_connection": "device_protection_connection",
+        "monitor": "monitor"
       },
       "projectorOutputs": [
         {
@@ -5687,12 +5706,22 @@
           "targetInput": "para"
         },
         {
+          "id": "monitor",
+          "alias": "monitor",
+          "inputKind": "model",
+          "schemaRef": "frames.monitor",
+          "required": true,
+          "position": 30,
+          "disposition": "facade_input",
+          "targetInput": "monitor"
+        },
+        {
           "id": "import_diagnostic",
           "alias": "import_diagnostic",
           "inputKind": "data",
           "schemaRef": "execution_inputs.import_diagnostic",
           "required": true,
-          "position": 30,
+          "position": 31,
           "disposition": "diagnostic"
         }
       ]
