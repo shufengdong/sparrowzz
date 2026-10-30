@@ -4956,7 +4956,7 @@
           "id": "para",
           "alias": "para",
           "inputKind": "struct",
-          "schemaRef": "frames.para",
+          "schemaRef": "execution_inputs.para",
           "required": true,
           "position": 40,
           "description": "求解参数和有序结果选择。"
@@ -5583,7 +5583,7 @@
           "id": "para",
           "alias": "para",
           "inputKind": "struct",
-          "schemaRef": "frames.para",
+          "schemaRef": "execution_inputs.para",
           "required": true,
           "position": 40,
           "description": "求解参数和有序结果选择。"

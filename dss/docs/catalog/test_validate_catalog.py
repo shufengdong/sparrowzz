@@ -158,6 +158,54 @@ class CatalogValidatorTests(unittest.TestCase):
                 self.assertIsInstance(schema.get("contract"), dict, f"{section}.{name}")
                 self.assertIn("columns", schema["contract"], f"{section}.{name}")
 
+    def test_execution_plan_para_is_distinct_from_imported_network_para(self):
+        dataframes = self.read("dataframes.json")
+        self.assertIn("para", dataframes["execution_inputs"])
+
+        execution_para = dataframes["execution_inputs"]["para"]
+        execution_columns = {
+            column["name"]: column for column in execution_para["contract"]["columns"]
+        }
+        self.assertEqual(
+            set(execution_columns),
+            {"line_model", "max_iter", "max_control_iter", "tol", "result"},
+        )
+        self.assertTrue(execution_columns["line_model"]["required"])
+        self.assertEqual(execution_para["contract"]["rowCount"], "one")
+        self.assertNotIn("base_frequency_hz", execution_columns)
+        self.assertIn(
+            "base_frequency_hz",
+            dataframes["frames"]["para"]["required_for_imported_network"],
+        )
+
+    def test_execution_plan_facades_and_profiles_use_execution_para(self):
+        facades = self.read("study_facades.json")
+        projections = self.read("case_projections.json")
+
+        for function in (
+            "ds_radial_execution_plan",
+            "ds_newton_raphson_execution_plan",
+        ):
+            facade = self.facade(facades, function)
+            para = next(item for item in facade["inputs"] if item["id"] == "para")
+            self.assertEqual(para["schemaRef"], "execution_inputs.para")
+
+        for profile_id in (
+            "dss_execution_radial_v1",
+            "dss_execution_newton_v1",
+        ):
+            profile = next(
+                item for item in projections["profiles"] if item["id"] == profile_id
+            )
+            para_input = next(
+                item for item in profile["inputs"] if item["id"] == "para"
+            )
+            para_output = next(
+                item for item in profile["projectorOutputs"] if item["id"] == "para"
+            )
+            self.assertEqual(para_input["schemaRef"], "execution_inputs.para")
+            self.assertEqual(para_output["schemaRef"], "execution_inputs.para")
+
     def test_rejects_invalid_recursive_base_schema_reference(self):
         catalog = self.read("dataframes.json")
         catalog["result_frames"]["harmonic_monitor_save"]["base_schema"] = "result_frames.missing"
@@ -287,11 +335,12 @@ class CatalogValidatorTests(unittest.TestCase):
             self.assertIn("columnPolicy", contract, name)
             self.assertIn("rowCount", contract, name)
 
-    def test_seven_struct_schemas_are_parameter_card_contracts(self):
+    def test_eight_struct_schemas_are_parameter_card_contracts(self):
         catalog = self.read("dataframes.json")
         references = (
             "frames.para",
             "frames.solution",
+            "execution_inputs.para",
             "analysis_inputs.dynamic_spec",
             "analysis_inputs.fault_location_para",
             "analysis_inputs.harmonic_para",
@@ -412,7 +461,7 @@ class CatalogValidatorTests(unittest.TestCase):
         self.assertEqual(stats["facades"], len(facades["facades"]))
         self.assertEqual(stats["facades"], 18)
         self.assertEqual(stats["models"], 77)
-        self.assertEqual(stats["structs"], 8)
+        self.assertEqual(stats["structs"], 9)
         self.assertEqual(stats["results"], 119)
         self.assertEqual(stats["diagnostics"], 0)
 
