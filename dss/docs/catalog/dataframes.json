@@ -27346,7 +27346,7 @@
             "name": "result",
             "dtype": "str",
             "required": false,
-            "nullable": true,
+            "nullable": false,
             "unit": "not_applicable",
             "card": {
               "default": {

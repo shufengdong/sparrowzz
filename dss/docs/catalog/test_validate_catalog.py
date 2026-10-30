@@ -171,6 +171,7 @@ class CatalogValidatorTests(unittest.TestCase):
             {"line_model", "max_iter", "max_control_iter", "tol", "result"},
         )
         self.assertTrue(execution_columns["line_model"]["required"])
+        self.assertFalse(execution_columns["result"]["nullable"])
         self.assertEqual(execution_para["contract"]["rowCount"], "one")
         self.assertNotIn("base_frequency_hz", execution_columns)
         self.assertIn(
