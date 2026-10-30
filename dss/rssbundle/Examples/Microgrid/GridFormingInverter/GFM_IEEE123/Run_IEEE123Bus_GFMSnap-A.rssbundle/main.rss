@@ -2,6 +2,6 @@
 // dss2rss.mode=linked
 // dss2rss.study=execution_plan
 // dss2rss.source-entry=dss/Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-A.DSS
-// dss2rss.source-tree-sha256=6b4495d0ee6f2c674893bb5d474c46eb035738ddcfc90e0621db0f82ae69f8e5
+// dss2rss.source-tree-sha256=bd1e4dda64a1826a86158eb5a52e9b8a5e6765dded0f8d3960b9921fa634ba86
 // dss2rss.psa-contract-version=0.1.0
 voltage = ds_newton_raphson_dss_plan("dss/Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-A.DSS", "bus_phase");

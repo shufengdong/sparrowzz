@@ -15,7 +15,23 @@
   "source": {
     "entry": "dss/IEEETestCases/123Bus/SolarRamp-Mack.DSS",
     "root": "dss",
-    "tree_sha256": "b19735c50c384e6ebf9d69c4ed42acfb692f7ad1f1502f4b02da3fe40de5fa84"
+    "tree_sha256": "b1b07cedd419bd2ee546956953421c2202bbe72b69f124228eaab47c5507f97b"
+  },
+  "projection": {
+    "source_function": "ds_radial_dss_plan",
+    "profile": "dss_execution_radial_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_radial_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
   },
   "files": [
     {
@@ -51,7 +67,7 @@
     {
       "path": "dss/IEEETestCases/123Bus/SolarRamp-Mack.DSS",
       "role": "dss-entry",
-      "sha256": "73887e9d1b37af65995471d499dfc33bcbb32fd161d5f396efb04264a3ab6c7d"
+      "sha256": "05258a148c8807acbc334ec71bb45c841e604e17dc7b42dbd72d26dec2b3cae6"
     },
     {
       "path": "dss/IEEETestCases/123Bus/StorageRamp.CSV",
@@ -66,7 +82,7 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "93a62b069afefec8434cea3c97a9a43509414a17c38cdcc6e9f54ad74b34e727"
+      "sha256": "c009b2420d0ba516a476034c650cbbd4cae051701ed7cc7aa93baa6522ff8d34"
     },
     {
       "path": "managed.rss",
@@ -74,21 +90,5 @@
       "sha256": "c83b4ba973c111bd38c3328061de465cae9b1719991d98c134339d511ab676d0"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
-    "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "voltage",
-        "target": "bus_phase",
-        "binding": "result_voltage"
-      }
-    ]
-  }
+  "inputs": []
 }

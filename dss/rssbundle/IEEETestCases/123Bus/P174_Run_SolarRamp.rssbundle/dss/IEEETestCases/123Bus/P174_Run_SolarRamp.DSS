@@ -18,7 +18,7 @@ Set MaxControlIter=30
 solve
 
 ! 300-sec solar ramp screen
-New Loadshape.SolarRamp npts=300 Interval=(1 3600 /) mult=(file=solarramp.csv)
+New Loadshape.SolarRamp npts=300 Interval=(1 3600 /) mult=(file=SolarRamp.csv)
 
 ! define the generator
 New Generator.2MWGen   Bus1=450 kV=4.16  kW=2000  PF=1  Duty=SolarRamp 

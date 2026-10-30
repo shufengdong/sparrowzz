@@ -17,6 +17,22 @@
     "root": "dss",
     "tree_sha256": "5a3d0e24ce1cea3d29919742859300d3dc484619782ebf7d561fb2553f24a646"
   },
+  "projection": {
+    "source_function": "ds_newton_raphson_pf",
+    "profile": "dss_static_newton_v1",
+    "projector": "project_dss_static_model",
+    "target_function": "ds_newton_raphson_pf",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
   "files": [
     {
       "path": "dss/IEEETestCases/IEEE 30 Bus/Capacitors.DSS",
@@ -46,7 +62,7 @@
     {
       "path": "dss/IEEETestCases/IEEE 30 Bus/Run_IEEE30.DSS",
       "role": "dss-entry",
-      "sha256": "8e51b42250caeeb63d31a38ace6ced18066f728e50c46aa03899bb10e1698d61"
+      "sha256": "f8791a620f8438ea49a71fc2d65f42c83cab5e9bd647162a51f3da1899e39d9e"
     },
     {
       "path": "dss/IEEETestCases/IEEE 30 Bus/Transformers.DSS",
@@ -64,21 +80,5 @@
       "sha256": "f0c024478c0f6f5470baa24bedd5d77bebb400f5d55bfaafe7604ebda3965369"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_newton_raphson_pf",
-    "profile": "dss_static_newton_v1",
-    "projector": "project_dss_static_model",
-    "target_function": "ds_newton_raphson_pf",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "voltage",
-        "target": "bus_phase",
-        "binding": "result_voltage"
-      }
-    ]
-  }
+  "inputs": []
 }

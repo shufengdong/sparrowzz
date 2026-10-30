@@ -17,7 +17,7 @@ solve
 Buscoords BusCoords.dat   ! load in bus coordinates
 
 ! 4321 intervals, 5-sec PV ramp data
-New Loadshape.SolarRamp npts=4321 Interval=(5 3600 /) mult=(file=pv5sdata1.csv) action=normalize
+New Loadshape.SolarRamp npts=4321 Interval=(5 3600 /) mult=(file=PV5sdata1.csv) action=normalize
 
 ! define the generator
 New Generator.2MWGen   Bus1=450 kV=4.16  kW=2000  PF=1  Duty=SolarRamp 
@@ -50,7 +50,7 @@ Plot Monitor object=Reg1  Channels=(1)
 !**** NOW ADD SOME STORAGE WITH A DISPATCH CURVE
 
 ! 300-sec storage ramp 
-New Loadshape.StorageRamp npts=300 Interval=(1 3600 /) mult=(file=StorageRamp.csv)
+New Loadshape.StorageRamp npts=300 Interval=(1 3600 /) mult=(file=StorageRamp.CSV)
 New storage.2MWStorage Bus1=450 kV=4.16 Duty=storageramp  kwrated=2000 kWhRated= 500 dischargetrigger=.9
 
 ! Run 300-point dutycycle

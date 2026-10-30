@@ -1,7 +1,7 @@
 
 // Standard IEEE 30-Bus Transmission System Test Case
 
-Compile Master.DSS
+Compile Master.dss
 
 ! The compile builds the circuit model and sets the voltage bases
 

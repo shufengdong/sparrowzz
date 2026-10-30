@@ -17,6 +17,22 @@
     "root": "dss",
     "tree_sha256": "28e51fed850806436a8272755551929c566db636808d738ecb740da2058487ab"
   },
+  "projection": {
+    "source_function": "ds_radial_dss_plan",
+    "profile": "dss_execution_radial_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_radial_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
   "files": [
     {
       "path": "dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
@@ -41,7 +57,7 @@
     {
       "path": "dss/IEEETestCases/123Bus/P174_Run_SolarRamp.DSS",
       "role": "dss-entry",
-      "sha256": "830fc39e5df3898a96ccff6467c7cc3cbc89c9dcf34df7826ed20c6319633c33"
+      "sha256": "f31df8a93b47e2c06c15e4578e16500b8a599f57455240427256d0cfc2ad1486"
     },
     {
       "path": "dss/IEEETestCases/123Bus/SolarRamp.csv",
@@ -64,21 +80,5 @@
       "sha256": "c83b4ba973c111bd38c3328061de465cae9b1719991d98c134339d511ab676d0"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
-    "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "voltage",
-        "target": "bus_phase",
-        "binding": "result_voltage"
-      }
-    ]
-  }
+  "inputs": []
 }

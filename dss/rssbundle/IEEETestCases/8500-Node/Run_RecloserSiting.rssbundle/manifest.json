@@ -15,7 +15,23 @@
   "source": {
     "entry": "dss/Run_RecloserSiting.DSS",
     "root": "dss",
-    "tree_sha256": "6d5d7088ce1fd6a54bddef0fb97c8d62b77221f0082e7cc582ad792cae921306"
+    "tree_sha256": "d886dc93c62748d98f8bfc0f0eb3d5b21b2341e7d7e591b7dcef94d9f8590e42"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
   },
   "files": [
     {
@@ -71,7 +87,7 @@
     {
       "path": "dss/Run_RecloserSiting.DSS",
       "role": "dss-entry",
-      "sha256": "1bf21c4598fb8d5f15fb9e65c490001c30d948562b54128b4a4d7aebf84ab2c3"
+      "sha256": "d12b24a87249687269cc13a30107961d7692950b919dabd2bf10c33161423152"
     },
     {
       "path": "dss/TplxFaultrate.dss",
@@ -96,7 +112,7 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "6001db291a3c7bc2dfe86f6af32a148ecd0c7a6cd75f233f48586c1acec5588f"
+      "sha256": "5588aa2640a80c739bd5c3a24edaabcbb80b99a76d38ea4ff6294ca60591a01f"
     },
     {
       "path": "managed.rss",
@@ -104,21 +120,5 @@
       "sha256": "d3bd3d5d318b5cf3a2c6181be66fc1324a51cfadf44ef5ccfb14d47af58240d5"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_newton_raphson_dss_plan",
-    "profile": "dss_execution_newton_v1",
-    "projector": "project_dss_execution_plan",
-    "target_function": "ds_newton_raphson_execution_plan",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "voltage",
-        "target": "bus_phase",
-        "binding": "result_voltage"
-      }
-    ]
-  }
+  "inputs": []
 }
