@@ -29,7 +29,7 @@ class CatalogValidatorTests(unittest.TestCase):
     def setUp(self):
         self.temp_dir = tempfile.TemporaryDirectory()
         self.catalog_dir = Path(self.temp_dir.name)
-        for name in ("functions.json", "dataframes.json", "study_facades.json"):
+        for name in ("functions.json", "dataframes.json", "study_facades.json", "case_projections.json"):
             shutil.copy2(CATALOG_DIR / name, self.catalog_dir / name)
 
     def tearDown(self):
@@ -56,6 +56,7 @@ class CatalogValidatorTests(unittest.TestCase):
             FUNCTIONS=self.catalog_dir / "functions.json",
             DATAFRAMES=self.catalog_dir / "dataframes.json",
             STUDY_FACADES=self.catalog_dir / "study_facades.json",
+            CASE_PROJECTIONS=self.catalog_dir / "case_projections.json",
         ):
             with contextlib.redirect_stdout(io.StringIO()):
                 with self.assertRaisesRegex(AssertionError, pattern):
@@ -67,6 +68,95 @@ class CatalogValidatorTests(unittest.TestCase):
             catalog["result_frames"]["harmonic_monitor_save"]["base_schema"],
             "result_frames.harmonic_monitor",
         )
+
+    def test_five_path_lifecycles_have_fail_closed_dataframe_projections(self):
+        catalog = self.read("case_projections.json")
+        lifecycle_sources = {
+            "ds_radial_dss_plan", "ds_newton_raphson_dss_plan", "ds_dss_fault_study",
+            "ds_dss_harmonic_plan", "ds_dss_dynamic_plan",
+        }
+        path_profiles = [item for item in catalog["profiles"] if item["sourceFunction"] in lifecycle_sources]
+        self.assertEqual(len(path_profiles), 5)
+        self.assertEqual(
+            {item["sourceFunction"] for item in path_profiles},
+            {
+                "ds_radial_dss_plan",
+                "ds_newton_raphson_dss_plan",
+                "ds_dss_fault_study",
+                "ds_dss_harmonic_plan",
+                "ds_dss_dynamic_plan",
+            },
+        )
+        self.assertTrue(all(item["compatibility"]["failClosed"] for item in path_profiles))
+
+    def test_all_published_bundles_have_pathless_dataframe_projections(self):
+        count = self.validator.validate_rssbundles(
+            self.read("case_projections.json"),
+            self.read("study_facades.json"),
+            self.read("dataframes.json"),
+        )
+        self.assertEqual(count, 144)
+
+    def test_rejects_case_projection_contract_drift(self):
+        catalog = self.read("case_projections.json")
+        catalog["profiles"][0]["inputs"][0]["inputKind"] = "data"
+        self.write("case_projections.json", catalog)
+        self.assert_invalid("input contract differs")
+
+    def test_enabled_case_projections_publish_complete_ordered_outputs(self):
+        catalog = self.read("case_projections.json")
+        for profile in catalog["profiles"]:
+            if profile["compatibility"]["status"] != "enabled":
+                continue
+            outputs = profile.get("projectorOutputs")
+            self.assertIsInstance(outputs, list, profile["id"])
+            self.assertTrue(outputs, profile["id"])
+            self.assertEqual(
+                [item["position"] for item in outputs],
+                list(range(1, len(outputs) + 1)),
+                profile["id"],
+            )
+            facade_outputs = [item for item in outputs if item["disposition"] == "facade_input"]
+            self.assertEqual(
+                [item["targetInput"] for item in facade_outputs],
+                [item["id"] for item in profile["inputs"]],
+                profile["id"],
+            )
+
+    def test_rejects_case_projection_without_projector_outputs(self):
+        catalog = self.read("case_projections.json")
+        del catalog["profiles"][0]["projectorOutputs"]
+        self.write("case_projections.json", catalog)
+        self.assert_invalid("projectorOutputs must be a non-empty list")
+
+    def test_rejects_case_projection_output_position_gap(self):
+        catalog = self.read("case_projections.json")
+        catalog["profiles"][0]["projectorOutputs"][1]["position"] = 3
+        self.write("case_projections.json", catalog)
+        self.assert_invalid("projectorOutputs positions must be contiguous")
+
+    def test_rejects_case_projection_output_without_unique_facade_mapping(self):
+        catalog = self.read("case_projections.json")
+        catalog["profiles"][0]["projectorOutputs"][0]["targetInput"] = "line"
+        self.write("case_projections.json", catalog)
+        self.assert_invalid("differs from target input")
+
+    def test_rejects_case_projection_diagnostic_as_facade_input(self):
+        catalog = self.read("case_projections.json")
+        profile = next(item for item in catalog["profiles"] if item["id"] == "dss_fault_study_v1")
+        profile["projectorOutputs"][-1]["disposition"] = "facade_input"
+        profile["projectorOutputs"][-1]["targetInput"] = "para"
+        self.write("case_projections.json", catalog)
+        self.assert_invalid("differs from target input")
+
+    def test_execution_and_harmonic_plan_schemas_are_machine_complete(self):
+        dataframes = self.read("dataframes.json")
+        for section in ("execution_inputs", "execution_outputs", "harmonic_execution_inputs"):
+            self.assertIn(section, dataframes)
+            self.assertTrue(dataframes[section])
+            for name, schema in dataframes[section].items():
+                self.assertIsInstance(schema.get("contract"), dict, f"{section}.{name}")
+                self.assertIn("columns", schema["contract"], f"{section}.{name}")
 
     def test_rejects_invalid_recursive_base_schema_reference(self):
         catalog = self.read("dataframes.json")
@@ -220,6 +310,63 @@ class CatalogValidatorTests(unittest.TestCase):
                     f"{reference}.{column['name']}",
                 )
 
+    def test_non_struct_schemas_do_not_publish_parameter_cards(self):
+        catalog = self.read("dataframes.json")
+        for section, schemas in catalog.items():
+            if not isinstance(schemas, dict):
+                continue
+            for name, schema in schemas.items():
+                if not isinstance(schema, dict) or not isinstance(schema.get("contract"), dict):
+                    continue
+                contract = schema["contract"]
+                if contract.get("kind") == "struct":
+                    continue
+                for column in contract.get("columns", []):
+                    self.assertNotIn("card", column, f"{section}.{name}.{column.get('name')}")
+
+    def test_rejects_parameter_card_on_non_struct_schema(self):
+        catalog = self.read("dataframes.json")
+        card = copy.deepcopy(catalog["frames"]["para"]["contract"]["columns"][0]["card"])
+        catalog["frames"]["bus"]["contract"]["columns"][0]["card"] = card
+        self.write("dataframes.json", catalog)
+        self.assert_invalid(r"non-Struct schema cannot declare card.*frames\.bus")
+
+    def test_rejects_struct_column_without_complete_parameter_card(self):
+        catalog = self.read("dataframes.json")
+        del catalog["frames"]["para"]["contract"]["columns"][0]["card"]["range"]
+        self.write("dataframes.json", catalog)
+        self.assert_invalid(r"Struct card metadata incomplete.*frames\.para")
+
+    def test_contiguous_zero_based_rule_is_published_for_unsigned_fields(self):
+        catalog = self.read("dataframes.json")
+        for reference, field in (
+            ("execution_inputs.execution_epoch", "epoch_index"),
+            ("harmonic_snapshot_inputs.snapshot", "snapshot_index"),
+        ):
+            section, name = reference.split(".")
+            rules = catalog[section][name]["contract"]["rules"]
+            self.assertIn({"type": "contiguous_zero_based", "field": field}, rules)
+
+    def test_rejects_unknown_machine_rule(self):
+        catalog = self.read("dataframes.json")
+        catalog["frames"]["bus"]["contract"]["rules"].append({"type": "prose_rule"})
+        self.write("dataframes.json", catalog)
+        self.assert_invalid(r"unsupported rule type prose_rule.*frames\.bus")
+
+    def test_rejects_malformed_contiguous_zero_based_rule(self):
+        catalog = self.read("dataframes.json")
+        rule = catalog["harmonic_snapshot_inputs"]["snapshot"]["contract"]["rules"][0]
+        rule["start"] = 0
+        self.write("dataframes.json", catalog)
+        self.assert_invalid(r"contiguous_zero_based.*unknown fields.*start")
+
+    def test_rejects_contiguous_zero_based_rule_on_non_unsigned_field(self):
+        catalog = self.read("dataframes.json")
+        rule = catalog["harmonic_snapshot_inputs"]["snapshot"]["contract"]["rules"][0]
+        rule["field"] = "time_s"
+        self.write("dataframes.json", catalog)
+        self.assert_invalid(r"contiguous_zero_based.*unsigned integer.*time_s")
+
     def test_all_facade_result_schemas_resolve_to_complete_dtype_contracts(self):
         dataframes = self.read("dataframes.json")
         facades = self.read("study_facades.json")
@@ -263,10 +410,10 @@ class CatalogValidatorTests(unittest.TestCase):
         facades = self.read("study_facades.json")
         stats = self.validator.validate_catalog_contracts(dataframes, facades)
         self.assertEqual(stats["facades"], len(facades["facades"]))
-        self.assertEqual(stats["facades"], 15)
-        self.assertEqual(stats["models"], 28)
-        self.assertEqual(stats["structs"], 7)
-        self.assertEqual(stats["results"], 85)
+        self.assertEqual(stats["facades"], 18)
+        self.assertEqual(stats["models"], 77)
+        self.assertEqual(stats["structs"], 8)
+        self.assertEqual(stats["results"], 119)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):
@@ -290,6 +437,7 @@ class CatalogValidatorTests(unittest.TestCase):
             FUNCTIONS=self.catalog_dir / "functions.json",
             DATAFRAMES=self.catalog_dir / "dataframes.json",
             STUDY_FACADES=self.catalog_dir / "study_facades.json",
+            CASE_PROJECTIONS=self.catalog_dir / "case_projections.json",
         ):
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(self.validator.main(), 0)

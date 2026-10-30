@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "artifact": "mems.dss-rss-bundle",
   "generator": "mems/0.1.0",
   "psa_contract_version": "0.1.0",
@@ -51,7 +51,53 @@
       "path": "main.rss",
       "role": "main-rss",
       "sha256": "aea9395f4cb1809061eefc804dc45816ea18850f209e4e2eb936a04219544886"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "faccc0694d782c9980fde94c57cbdcfdf46ba62932e390dc992db5eeab2bd750"
     }
   ],
-  "inputs": []
+  "inputs": [],
+  "projection": {
+    "source_function": "ds_dss_harmonic_plan",
+    "profile": "dss_harmonic_plan_v1",
+    "projector": "project_dss_harmonic_plan",
+    "target_function": "ds_harmonic_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "bus_voltage",
+        "target": "bus_voltage",
+        "binding": "result_bus_voltage"
+      },
+      {
+        "source": "branch_flow",
+        "target": "branch_flow",
+        "binding": "result_branch_flow"
+      },
+      {
+        "source": "conductor_flow",
+        "target": "conductor_flow",
+        "binding": "result_conductor_flow"
+      },
+      {
+        "source": "bus_sequence",
+        "target": "bus_sequence",
+        "binding": "result_bus_sequence"
+      },
+      {
+        "source": "branch_sequence",
+        "target": "branch_sequence",
+        "binding": "result_branch_sequence"
+      },
+      {
+        "source": "monitor",
+        "target": "monitor",
+        "binding": "result_monitor"
+      }
+    ]
+  }
 }

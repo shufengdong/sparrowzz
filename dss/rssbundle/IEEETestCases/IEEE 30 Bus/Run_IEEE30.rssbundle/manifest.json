@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "artifact": "mems.dss-rss-bundle",
   "generator": "mems/0.1.0",
   "psa_contract_version": "0.1.0",
@@ -57,7 +57,28 @@
       "path": "main.rss",
       "role": "main-rss",
       "sha256": "86044d503b9ac8b8bf9b29b629fdfddef63b3bc32d80db4e5a6d727e4fc5df4f"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "f0c024478c0f6f5470baa24bedd5d77bebb400f5d55bfaafe7604ebda3965369"
     }
   ],
-  "inputs": []
+  "inputs": [],
+  "projection": {
+    "source_function": "ds_newton_raphson_pf",
+    "profile": "dss_static_newton_v1",
+    "projector": "project_dss_static_model",
+    "target_function": "ds_newton_raphson_pf",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  }
 }

@@ -13,9 +13,50 @@
     "New DSA scripts should use the complete network form instead of legacy compact arities."
   ],
   "frame_function_arity_contract": {
-    "zero_expressions_before_frame": ["height", "width", "drop_nulls", "dropnulls", "drop_nans", "dropnans", "count", "null_count", "nullcount", "first", "last", "reverse", "sum", "max", "min", "mean", "median"],
-    "minimum_one_expression_before_frame": ["select", "filter", "with_column", "withcolumn", "with_columns", "withcolumns", "group_by", "groupby", "fill_null", "fillnull", "fill_nan", "fillnan", "cast_all", "castall", "limit", "tail", "shift"],
-    "minimum_two_expressions_before_frame": ["agg", "aggregate", "shift_and_fill", "shiftandfill"],
+    "zero_expressions_before_frame": [
+      "height",
+      "width",
+      "drop_nulls",
+      "dropnulls",
+      "drop_nans",
+      "dropnans",
+      "count",
+      "null_count",
+      "nullcount",
+      "first",
+      "last",
+      "reverse",
+      "sum",
+      "max",
+      "min",
+      "mean",
+      "median"
+    ],
+    "minimum_one_expression_before_frame": [
+      "select",
+      "filter",
+      "with_column",
+      "withcolumn",
+      "with_columns",
+      "withcolumns",
+      "group_by",
+      "groupby",
+      "fill_null",
+      "fillnull",
+      "fill_nan",
+      "fillnan",
+      "cast_all",
+      "castall",
+      "limit",
+      "tail",
+      "shift"
+    ],
+    "minimum_two_expressions_before_frame": [
+      "agg",
+      "aggregate",
+      "shift_and_fill",
+      "shiftandfill"
+    ],
     "canonical_rule": "Use only the signature on frame_functions. Extra expressions accepted by the minimum-arity compatibility check can be ignored or change selection behavior."
   },
   "network_argument_order": [
@@ -41,134 +82,1088 @@
     "storage"
   ],
   "frame_functions": [
-    {"name": "height", "arity": 1, "signature": ["frame"], "behavior": "return the frame row count as a scalar"},
-    {"name": "width", "arity": 1, "signature": ["frame"], "behavior": "return the frame column count as a scalar"},
-    {"name": "select", "arity": ">=2", "signature": ["expr...", "frame"], "behavior": "select or compute one or more expressions"},
-    {"name": "filter", "arity": ">=3", "signature": ["select_expr...", "predicate", "frame"], "behavior": "filter by the final expression and select the preceding expressions"},
-    {"name": "with_column", "aliases": ["withcolumn"], "arity": 2, "signature": ["expr", "frame"], "behavior": "add or replace one column"},
-    {"name": "with_columns", "aliases": ["withcolumns"], "arity": ">=2", "signature": ["expr...", "frame"], "behavior": "add or replace multiple columns"},
-    {"name": "group_by", "aliases": ["groupby"], "arity": ">=2", "signature": ["key...", "frame"], "behavior": "group by keys and aggregate all columns"},
-    {"name": "agg", "aliases": ["aggregate"], "arity": ">=3", "signature": ["group_by_expr", "aggregate_expr...", "frame"], "behavior": "group by the keys inside group_by(...) and evaluate explicit aggregate expressions"},
-    {"name": "drop_nulls", "aliases": ["dropnulls"], "arity": 1, "signature": ["frame"], "behavior": "remove rows containing null values"},
-    {"name": "drop_nans", "aliases": ["dropnans"], "arity": 1, "signature": ["frame"], "behavior": "remove rows containing NaN values"},
-    {"name": "fill_null", "aliases": ["fillnull"], "arity": 2, "signature": ["value", "frame"], "behavior": "fill null values"},
-    {"name": "fill_nan", "aliases": ["fillnan"], "arity": 2, "signature": ["value", "frame"], "behavior": "fill NaN values"},
-    {"name": "count", "arity": 1, "signature": ["frame"], "behavior": "count values in every column"},
-    {"name": "null_count", "aliases": ["nullcount"], "arity": 1, "signature": ["frame"], "behavior": "count null values in every column"},
-    {"name": "first", "arity": 1, "signature": ["frame"], "behavior": "return the first value of every column"},
-    {"name": "last", "arity": 1, "signature": ["frame"], "behavior": "return the last value of every column"},
-    {"name": "reverse", "arity": 1, "signature": ["frame"], "behavior": "reverse frame row order"},
-    {"name": "cast_all", "aliases": ["castall"], "arity": 2, "signature": ["type", "frame"], "behavior": "cast every column to the requested type"},
-    {"name": "limit", "arity": 2, "signature": ["n", "frame"], "behavior": "take the first n rows"},
-    {"name": "tail", "arity": 2, "signature": ["n", "frame"], "behavior": "take the last n rows"},
-    {"name": "sum", "arity": 1, "signature": ["frame"], "behavior": "aggregate every column by sum"},
-    {"name": "min", "arity": 1, "signature": ["frame"], "behavior": "aggregate every column by minimum"},
-    {"name": "max", "arity": 1, "signature": ["frame"], "behavior": "aggregate every column by maximum"},
-    {"name": "mean", "arity": 1, "signature": ["frame"], "behavior": "aggregate every column by mean"},
-    {"name": "median", "arity": 1, "signature": ["frame"], "behavior": "aggregate every column by median"},
-    {"name": "shift", "arity": 2, "signature": ["periods", "frame"], "behavior": "shift every column by the requested periods"},
-    {"name": "shift_and_fill", "aliases": ["shiftandfill"], "arity": 3, "signature": ["fill", "periods", "frame"], "behavior": "shift every column and fill the vacated values"},
-    {"name": "join", "arity": 5, "signature": ["left", "right", "left_columns", "right_columns", "how"], "behavior": "join two frames on the requested columns", "how": ["inner", "left", "right", "full"]},
-    {"name": "sort", "arity": 4, "signature": ["by", "descending", "maintain_order", "frame"], "behavior": "sort a frame by one or more columns", "compatibility_arity": 3, "compatibility_note": "The three-argument form requires exactly one DataFrame in the evaluation context."},
-    {"name": "concat", "arity": ">=2", "signature": ["mode", "frame..."], "behavior": "concatenate frames vertically, diagonally, or horizontally", "recommended_modes": ["vertical", "diagonal", "horizontal"], "compatibility_forms": ["concat()", "concat(mode)"], "note": "Compatibility forms concatenate every context frame in name order. Only diagonal and horizontal have special branches; all other mode tokens use ordinary vertical concatenation."},
-    {"name": "pivot", "arity": 7, "signature": ["on", "index", "values", "aggregate", "maintain_order", "separator", "frame"], "behavior": "reshape a frame from long to wide form"},
-    {"name": "unpivot", "arity": 3, "signature": ["on", "index", "frame"], "behavior": "reshape selected value columns from wide to long form", "compatibility_note": "An implicit column-list form exists only when the evaluation context contains exactly one DataFrame; new scripts should use the explicit three-argument form."},
-    {"name": "import_df_url", "arity": 1, "signature": ["url"], "behavior": "download and parse a DataFrame source"}
+    {
+      "name": "height",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "return the frame row count as a scalar"
+    },
+    {
+      "name": "width",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "return the frame column count as a scalar"
+    },
+    {
+      "name": "select",
+      "arity": ">=2",
+      "signature": [
+        "expr...",
+        "frame"
+      ],
+      "behavior": "select or compute one or more expressions"
+    },
+    {
+      "name": "filter",
+      "arity": ">=3",
+      "signature": [
+        "select_expr...",
+        "predicate",
+        "frame"
+      ],
+      "behavior": "filter by the final expression and select the preceding expressions"
+    },
+    {
+      "name": "with_column",
+      "aliases": [
+        "withcolumn"
+      ],
+      "arity": 2,
+      "signature": [
+        "expr",
+        "frame"
+      ],
+      "behavior": "add or replace one column"
+    },
+    {
+      "name": "with_columns",
+      "aliases": [
+        "withcolumns"
+      ],
+      "arity": ">=2",
+      "signature": [
+        "expr...",
+        "frame"
+      ],
+      "behavior": "add or replace multiple columns"
+    },
+    {
+      "name": "group_by",
+      "aliases": [
+        "groupby"
+      ],
+      "arity": ">=2",
+      "signature": [
+        "key...",
+        "frame"
+      ],
+      "behavior": "group by keys and aggregate all columns"
+    },
+    {
+      "name": "agg",
+      "aliases": [
+        "aggregate"
+      ],
+      "arity": ">=3",
+      "signature": [
+        "group_by_expr",
+        "aggregate_expr...",
+        "frame"
+      ],
+      "behavior": "group by the keys inside group_by(...) and evaluate explicit aggregate expressions"
+    },
+    {
+      "name": "drop_nulls",
+      "aliases": [
+        "dropnulls"
+      ],
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "remove rows containing null values"
+    },
+    {
+      "name": "drop_nans",
+      "aliases": [
+        "dropnans"
+      ],
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "remove rows containing NaN values"
+    },
+    {
+      "name": "fill_null",
+      "aliases": [
+        "fillnull"
+      ],
+      "arity": 2,
+      "signature": [
+        "value",
+        "frame"
+      ],
+      "behavior": "fill null values"
+    },
+    {
+      "name": "fill_nan",
+      "aliases": [
+        "fillnan"
+      ],
+      "arity": 2,
+      "signature": [
+        "value",
+        "frame"
+      ],
+      "behavior": "fill NaN values"
+    },
+    {
+      "name": "count",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "count values in every column"
+    },
+    {
+      "name": "null_count",
+      "aliases": [
+        "nullcount"
+      ],
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "count null values in every column"
+    },
+    {
+      "name": "first",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "return the first value of every column"
+    },
+    {
+      "name": "last",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "return the last value of every column"
+    },
+    {
+      "name": "reverse",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "reverse frame row order"
+    },
+    {
+      "name": "cast_all",
+      "aliases": [
+        "castall"
+      ],
+      "arity": 2,
+      "signature": [
+        "type",
+        "frame"
+      ],
+      "behavior": "cast every column to the requested type"
+    },
+    {
+      "name": "limit",
+      "arity": 2,
+      "signature": [
+        "n",
+        "frame"
+      ],
+      "behavior": "take the first n rows"
+    },
+    {
+      "name": "tail",
+      "arity": 2,
+      "signature": [
+        "n",
+        "frame"
+      ],
+      "behavior": "take the last n rows"
+    },
+    {
+      "name": "sum",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "aggregate every column by sum"
+    },
+    {
+      "name": "min",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "aggregate every column by minimum"
+    },
+    {
+      "name": "max",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "aggregate every column by maximum"
+    },
+    {
+      "name": "mean",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "aggregate every column by mean"
+    },
+    {
+      "name": "median",
+      "arity": 1,
+      "signature": [
+        "frame"
+      ],
+      "behavior": "aggregate every column by median"
+    },
+    {
+      "name": "shift",
+      "arity": 2,
+      "signature": [
+        "periods",
+        "frame"
+      ],
+      "behavior": "shift every column by the requested periods"
+    },
+    {
+      "name": "shift_and_fill",
+      "aliases": [
+        "shiftandfill"
+      ],
+      "arity": 3,
+      "signature": [
+        "fill",
+        "periods",
+        "frame"
+      ],
+      "behavior": "shift every column and fill the vacated values"
+    },
+    {
+      "name": "join",
+      "arity": 5,
+      "signature": [
+        "left",
+        "right",
+        "left_columns",
+        "right_columns",
+        "how"
+      ],
+      "behavior": "join two frames on the requested columns",
+      "how": [
+        "inner",
+        "left",
+        "right",
+        "full"
+      ]
+    },
+    {
+      "name": "sort",
+      "arity": 4,
+      "signature": [
+        "by",
+        "descending",
+        "maintain_order",
+        "frame"
+      ],
+      "behavior": "sort a frame by one or more columns",
+      "compatibility_arity": 3,
+      "compatibility_note": "The three-argument form requires exactly one DataFrame in the evaluation context."
+    },
+    {
+      "name": "concat",
+      "arity": ">=2",
+      "signature": [
+        "mode",
+        "frame..."
+      ],
+      "behavior": "concatenate frames vertically, diagonally, or horizontally",
+      "recommended_modes": [
+        "vertical",
+        "diagonal",
+        "horizontal"
+      ],
+      "compatibility_forms": [
+        "concat()",
+        "concat(mode)"
+      ],
+      "note": "Compatibility forms concatenate every context frame in name order. Only diagonal and horizontal have special branches; all other mode tokens use ordinary vertical concatenation."
+    },
+    {
+      "name": "pivot",
+      "arity": 7,
+      "signature": [
+        "on",
+        "index",
+        "values",
+        "aggregate",
+        "maintain_order",
+        "separator",
+        "frame"
+      ],
+      "behavior": "reshape a frame from long to wide form"
+    },
+    {
+      "name": "unpivot",
+      "arity": 3,
+      "signature": [
+        "on",
+        "index",
+        "frame"
+      ],
+      "behavior": "reshape selected value columns from wide to long form",
+      "compatibility_note": "An implicit column-list form exists only when the evaluation context contains exactly one DataFrame; new scripts should use the explicit three-argument form."
+    },
+    {
+      "name": "import_df_url",
+      "arity": 1,
+      "signature": [
+        "url"
+      ],
+      "behavior": "download and parse a DataFrame source"
+    }
   ],
   "expression_functions_by_arity": {
-    "0": ["all", "pi", "element"],
+    "0": [
+      "all",
+      "pi",
+      "element"
+    ],
     "1": [
-      "col", "reverse", "count", "null_count", "len", "first", "last",
-      "n_unique", "unique", "arg_unique", "arg_min", "arg_max", "is_unique", "is_duplicated",
-      "not", "not_null", "is_null", "drop_nulls", "not_nan", "is_nan", "drop_nans",
-      "sum", "min", "max", "mean", "avg", "median", "nan_min", "nan_max",
-      "min_horizontal", "max_horizontal", "sum_horizontal", "any_horizontal",
-      "abs", "log1p", "exp", "sqrt", "cbrt", "sin", "cos", "tan", "cot",
-      "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh", "arcsinh", "arccosh", "arctanh",
-      "degrees", "radians", "sign", "floor", "ceil", "to_lowercase", "to_uppercase"
+      "col",
+      "reverse",
+      "count",
+      "null_count",
+      "len",
+      "first",
+      "last",
+      "n_unique",
+      "unique",
+      "arg_unique",
+      "arg_min",
+      "arg_max",
+      "is_unique",
+      "is_duplicated",
+      "not",
+      "not_null",
+      "is_null",
+      "drop_nulls",
+      "not_nan",
+      "is_nan",
+      "drop_nans",
+      "sum",
+      "min",
+      "max",
+      "mean",
+      "avg",
+      "median",
+      "nan_min",
+      "nan_max",
+      "min_horizontal",
+      "max_horizontal",
+      "sum_horizontal",
+      "any_horizontal",
+      "abs",
+      "log1p",
+      "exp",
+      "sqrt",
+      "cbrt",
+      "sin",
+      "cos",
+      "tan",
+      "cot",
+      "arcsin",
+      "arccos",
+      "arctan",
+      "sinh",
+      "cosh",
+      "tanh",
+      "arcsinh",
+      "arccosh",
+      "arctanh",
+      "degrees",
+      "radians",
+      "sign",
+      "floor",
+      "ceil",
+      "to_lowercase",
+      "to_uppercase"
     ],
     "2": [
-      "eq", "eq_missing", "neq", "neq_missing", "lt", "gt", "lt_eq", "gt_eq",
-      "alias", "cast", "sort", "filter", "head", "tail", "shift",
-      "cum_count", "cum_sum", "cum_min", "cum_max", "cum_prod",
-      "pow", "std", "var", "log", "round", "dot", "split", "starts_with", "ends_with"
+      "eq",
+      "eq_missing",
+      "neq",
+      "neq_missing",
+      "lt",
+      "gt",
+      "lt_eq",
+      "gt_eq",
+      "alias",
+      "cast",
+      "sort",
+      "filter",
+      "head",
+      "tail",
+      "shift",
+      "cum_count",
+      "cum_sum",
+      "cum_min",
+      "cum_max",
+      "cum_prod",
+      "pow",
+      "std",
+      "var",
+      "log",
+      "round",
+      "dot",
+      "split",
+      "starts_with",
+      "ends_with"
     ],
-    "3": ["shift_and_fill", "when_then_otherwise", "slice"]
+    "3": [
+      "shift_and_fill",
+      "when_then_otherwise",
+      "slice"
+    ]
   },
   "variable_arity_expression_functions": [
-    {"name": "cols", "min_arity": 1},
-    {"name": "arange", "min_arity": 2, "max_arity": 4},
-    {"name": "replace", "allowed_arities": [3, 4]},
-    {"name": "contains", "allowed_arities": [2, 3]},
-    {"name": "find", "allowed_arities": [2, 3]}
+    {
+      "name": "cols",
+      "min_arity": 1
+    },
+    {
+      "name": "arange",
+      "min_arity": 2,
+      "max_arity": 4
+    },
+    {
+      "name": "replace",
+      "allowed_arities": [
+        3,
+        4
+      ]
+    },
+    {
+      "name": "contains",
+      "allowed_arities": [
+        2,
+        3
+      ]
+    },
+    {
+      "name": "find",
+      "allowed_arities": [
+        2,
+        3
+      ]
+    }
   ],
   "special_expression_forms": [
     {
       "name": "group_by",
-      "aliases": ["groupby"],
-      "signature": ["key..."],
+      "aliases": [
+        "groupby"
+      ],
+      "signature": [
+        "key..."
+      ],
       "context": "Only the first argument of top-level agg/aggregate; it is not evaluated as an ordinary expression function."
     }
   ],
   "expression_function_contracts": [
-    {"names": ["all"], "signature": [], "behavior": "select every column"},
-    {"names": ["pi"], "signature": [], "behavior": "produce the pi literal"},
-    {"names": ["element"], "signature": [], "behavior": "current element in list or aggregation contexts"},
-    {"names": ["col"], "signature": ["name"], "constraints": ["name is a string literal"], "behavior": "select one column"},
-    {"names": ["cols"], "signature": ["name..."], "constraints": ["at least one string-literal name"], "behavior": "select multiple columns"},
-
-    {"names": ["reverse"], "signature": ["expr"], "behavior": "reverse row order"},
-    {"names": ["count"], "signature": ["expr"], "behavior": "count non-null values"},
-    {"names": ["null_count"], "signature": ["expr"], "behavior": "count null values"},
-    {"names": ["len"], "signature": ["expr"], "behavior": "return current context length"},
-    {"names": ["first", "last"], "signature": ["expr"], "behavior": "return the first or last value"},
-    {"names": ["n_unique"], "signature": ["expr"], "behavior": "count unique values"},
-    {"names": ["unique"], "signature": ["expr"], "behavior": "return unique values"},
-    {"names": ["arg_unique"], "signature": ["expr"], "behavior": "return first positions of unique values"},
-    {"names": ["arg_min", "arg_max"], "signature": ["expr"], "behavior": "return the position of the minimum or maximum"},
-    {"names": ["is_unique", "is_duplicated"], "signature": ["expr"], "behavior": "row-wise uniqueness or duplication mask"},
-    {"names": ["head", "tail"], "signature": ["expr", "n"], "constraints": ["n is a numeric literal"], "behavior": "take the first or last n values"},
-
-    {"names": ["not"], "signature": ["expr"], "behavior": "boolean negation"},
-    {"names": ["not_null", "is_null"], "signature": ["expr"], "behavior": "non-null or null mask"},
-    {"names": ["drop_nulls"], "signature": ["expr"], "behavior": "remove null values"},
-    {"names": ["not_nan", "is_nan"], "signature": ["expr"], "behavior": "non-NaN or NaN mask"},
-    {"names": ["drop_nans"], "signature": ["expr"], "behavior": "remove NaN values"},
-    {"names": ["any_horizontal"], "signature": ["selector_expr"], "behavior": "horizontal any over columns expanded by the selector"},
-
-    {"names": ["eq", "neq", "lt", "gt", "lt_eq", "gt_eq"], "signature": ["left", "right"], "behavior": "comparison selected by function name"},
-    {"names": ["eq_missing", "neq_missing"], "signature": ["left", "right"], "behavior": "equality comparison with missing-value semantics"},
-    {"names": ["alias"], "signature": ["expr", "name"], "constraints": ["name is a string literal"], "behavior": "rename an expression"},
-    {"names": ["cast"], "signature": ["expr", "type"], "constraints": ["type is a supported string literal"], "behavior": "cast an expression"},
-    {"names": ["when_then_otherwise"], "signature": ["predicate", "yes", "no"], "behavior": "conditional expression"},
-
-    {"names": ["sum", "min", "max"], "signature": ["expr"], "behavior": "aggregate; a bare string literal is interpreted as a column name"},
-    {"names": ["mean", "avg", "median"], "signature": ["expr"], "behavior": "mean or median aggregate; avg aliases mean"},
-    {"names": ["nan_min", "nan_max"], "signature": ["expr"], "behavior": "minimum or maximum with NaN-preserving semantics"},
-    {"names": ["min_horizontal", "max_horizontal"], "signature": ["selector_expr"], "behavior": "horizontal minimum or maximum over expanded columns"},
-    {"names": ["sum_horizontal"], "signature": ["selector_expr"], "behavior": "horizontal sum with ignore_nulls=false"},
-    {"names": ["std", "var"], "signature": ["expr", "ddof"], "constraints": ["ddof is a numeric literal convertible to u8"], "behavior": "standard deviation or variance"},
-    {"names": ["dot"], "signature": ["left", "right"], "behavior": "dot product"},
-
-    {"names": ["sort"], "signature": ["expr", "direction"], "constraints": ["direction is a literal; true/down/descending means descending, false/up/ascending means ascending, other values also mean descending"], "behavior": "sort one expression"},
-    {"names": ["filter"], "signature": ["expr", "predicate"], "behavior": "filter one expression"},
-    {"names": ["shift"], "signature": ["expr", "periods"], "constraints": ["periods is a numeric literal"], "behavior": "shift values"},
-    {"names": ["shift_and_fill"], "signature": ["expr", "periods", "fill"], "constraints": ["periods is a numeric literal"], "behavior": "shift and fill vacated values"},
-    {"names": ["cum_count", "cum_sum", "cum_min", "cum_max", "cum_prod"], "signature": ["expr", "reverse"], "constraints": ["reverse is a literal and only true selects reverse order"], "behavior": "cumulative operation selected by function name"},
-
-    {"names": ["abs", "sign", "exp", "log1p", "sqrt", "cbrt", "sin", "cos", "tan", "cot", "arcsin", "arccos", "arctan", "sinh", "cosh", "tanh", "arcsinh", "arccosh", "arctanh", "degrees", "radians", "floor", "ceil"], "signature": ["expr"], "behavior": "unary mathematical operation selected by function name"},
-    {"names": ["log"], "signature": ["expr", "base"], "behavior": "logarithm with expression base"},
-    {"names": ["pow"], "signature": ["expr", "exponent"], "constraints": ["exponent is a numeric literal"], "behavior": "power"},
-    {"names": ["round"], "signature": ["expr", "decimals"], "constraints": ["decimals is a numeric literal convertible to u32"], "behavior": "round using the default Polars round mode"},
-    {"names": ["arange"], "signature": ["start", "end", "step?", "dtype?"], "constraints": ["2 to 4 arguments", "step and dtype are literals when present"], "defaults": {"step": 1, "dtype": "i32"}, "behavior": "generate a range expression"},
-
-    {"names": ["split"], "signature": ["expr", "by"], "behavior": "split strings"},
-    {"names": ["starts_with", "ends_with"], "signature": ["expr", "pattern"], "behavior": "prefix or suffix mask"},
-    {"names": ["contains"], "signature": ["expr", "pattern", "literal?"], "defaults": {"literal": true}, "behavior": "string contains; literal=false enables pattern semantics"},
-    {"names": ["replace"], "signature": ["expr", "pattern", "value", "literal?"], "defaults": {"literal": true}, "behavior": "replace the first match"},
-    {"names": ["find"], "signature": ["expr", "pattern", "strict?"], "defaults": {"strict": true}, "behavior": "find a string match position"},
-    {"names": ["slice"], "signature": ["expr", "offset", "length"], "behavior": "slice strings, not DataFrame rows"},
-    {"names": ["to_lowercase", "to_uppercase"], "signature": ["expr"], "behavior": "change string case"}
+    {
+      "names": [
+        "all"
+      ],
+      "signature": [],
+      "behavior": "select every column"
+    },
+    {
+      "names": [
+        "pi"
+      ],
+      "signature": [],
+      "behavior": "produce the pi literal"
+    },
+    {
+      "names": [
+        "element"
+      ],
+      "signature": [],
+      "behavior": "current element in list or aggregation contexts"
+    },
+    {
+      "names": [
+        "col"
+      ],
+      "signature": [
+        "name"
+      ],
+      "constraints": [
+        "name is a string literal"
+      ],
+      "behavior": "select one column"
+    },
+    {
+      "names": [
+        "cols"
+      ],
+      "signature": [
+        "name..."
+      ],
+      "constraints": [
+        "at least one string-literal name"
+      ],
+      "behavior": "select multiple columns"
+    },
+    {
+      "names": [
+        "reverse"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "reverse row order"
+    },
+    {
+      "names": [
+        "count"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "count non-null values"
+    },
+    {
+      "names": [
+        "null_count"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "count null values"
+    },
+    {
+      "names": [
+        "len"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "return current context length"
+    },
+    {
+      "names": [
+        "first",
+        "last"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "return the first or last value"
+    },
+    {
+      "names": [
+        "n_unique"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "count unique values"
+    },
+    {
+      "names": [
+        "unique"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "return unique values"
+    },
+    {
+      "names": [
+        "arg_unique"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "return first positions of unique values"
+    },
+    {
+      "names": [
+        "arg_min",
+        "arg_max"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "return the position of the minimum or maximum"
+    },
+    {
+      "names": [
+        "is_unique",
+        "is_duplicated"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "row-wise uniqueness or duplication mask"
+    },
+    {
+      "names": [
+        "head",
+        "tail"
+      ],
+      "signature": [
+        "expr",
+        "n"
+      ],
+      "constraints": [
+        "n is a numeric literal"
+      ],
+      "behavior": "take the first or last n values"
+    },
+    {
+      "names": [
+        "not"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "boolean negation"
+    },
+    {
+      "names": [
+        "not_null",
+        "is_null"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "non-null or null mask"
+    },
+    {
+      "names": [
+        "drop_nulls"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "remove null values"
+    },
+    {
+      "names": [
+        "not_nan",
+        "is_nan"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "non-NaN or NaN mask"
+    },
+    {
+      "names": [
+        "drop_nans"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "remove NaN values"
+    },
+    {
+      "names": [
+        "any_horizontal"
+      ],
+      "signature": [
+        "selector_expr"
+      ],
+      "behavior": "horizontal any over columns expanded by the selector"
+    },
+    {
+      "names": [
+        "eq",
+        "neq",
+        "lt",
+        "gt",
+        "lt_eq",
+        "gt_eq"
+      ],
+      "signature": [
+        "left",
+        "right"
+      ],
+      "behavior": "comparison selected by function name"
+    },
+    {
+      "names": [
+        "eq_missing",
+        "neq_missing"
+      ],
+      "signature": [
+        "left",
+        "right"
+      ],
+      "behavior": "equality comparison with missing-value semantics"
+    },
+    {
+      "names": [
+        "alias"
+      ],
+      "signature": [
+        "expr",
+        "name"
+      ],
+      "constraints": [
+        "name is a string literal"
+      ],
+      "behavior": "rename an expression"
+    },
+    {
+      "names": [
+        "cast"
+      ],
+      "signature": [
+        "expr",
+        "type"
+      ],
+      "constraints": [
+        "type is a supported string literal"
+      ],
+      "behavior": "cast an expression"
+    },
+    {
+      "names": [
+        "when_then_otherwise"
+      ],
+      "signature": [
+        "predicate",
+        "yes",
+        "no"
+      ],
+      "behavior": "conditional expression"
+    },
+    {
+      "names": [
+        "sum",
+        "min",
+        "max"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "aggregate; a bare string literal is interpreted as a column name"
+    },
+    {
+      "names": [
+        "mean",
+        "avg",
+        "median"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "mean or median aggregate; avg aliases mean"
+    },
+    {
+      "names": [
+        "nan_min",
+        "nan_max"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "minimum or maximum with NaN-preserving semantics"
+    },
+    {
+      "names": [
+        "min_horizontal",
+        "max_horizontal"
+      ],
+      "signature": [
+        "selector_expr"
+      ],
+      "behavior": "horizontal minimum or maximum over expanded columns"
+    },
+    {
+      "names": [
+        "sum_horizontal"
+      ],
+      "signature": [
+        "selector_expr"
+      ],
+      "behavior": "horizontal sum with ignore_nulls=false"
+    },
+    {
+      "names": [
+        "std",
+        "var"
+      ],
+      "signature": [
+        "expr",
+        "ddof"
+      ],
+      "constraints": [
+        "ddof is a numeric literal convertible to u8"
+      ],
+      "behavior": "standard deviation or variance"
+    },
+    {
+      "names": [
+        "dot"
+      ],
+      "signature": [
+        "left",
+        "right"
+      ],
+      "behavior": "dot product"
+    },
+    {
+      "names": [
+        "sort"
+      ],
+      "signature": [
+        "expr",
+        "direction"
+      ],
+      "constraints": [
+        "direction is a literal; true/down/descending means descending, false/up/ascending means ascending, other values also mean descending"
+      ],
+      "behavior": "sort one expression"
+    },
+    {
+      "names": [
+        "filter"
+      ],
+      "signature": [
+        "expr",
+        "predicate"
+      ],
+      "behavior": "filter one expression"
+    },
+    {
+      "names": [
+        "shift"
+      ],
+      "signature": [
+        "expr",
+        "periods"
+      ],
+      "constraints": [
+        "periods is a numeric literal"
+      ],
+      "behavior": "shift values"
+    },
+    {
+      "names": [
+        "shift_and_fill"
+      ],
+      "signature": [
+        "expr",
+        "periods",
+        "fill"
+      ],
+      "constraints": [
+        "periods is a numeric literal"
+      ],
+      "behavior": "shift and fill vacated values"
+    },
+    {
+      "names": [
+        "cum_count",
+        "cum_sum",
+        "cum_min",
+        "cum_max",
+        "cum_prod"
+      ],
+      "signature": [
+        "expr",
+        "reverse"
+      ],
+      "constraints": [
+        "reverse is a literal and only true selects reverse order"
+      ],
+      "behavior": "cumulative operation selected by function name"
+    },
+    {
+      "names": [
+        "abs",
+        "sign",
+        "exp",
+        "log1p",
+        "sqrt",
+        "cbrt",
+        "sin",
+        "cos",
+        "tan",
+        "cot",
+        "arcsin",
+        "arccos",
+        "arctan",
+        "sinh",
+        "cosh",
+        "tanh",
+        "arcsinh",
+        "arccosh",
+        "arctanh",
+        "degrees",
+        "radians",
+        "floor",
+        "ceil"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "unary mathematical operation selected by function name"
+    },
+    {
+      "names": [
+        "log"
+      ],
+      "signature": [
+        "expr",
+        "base"
+      ],
+      "behavior": "logarithm with expression base"
+    },
+    {
+      "names": [
+        "pow"
+      ],
+      "signature": [
+        "expr",
+        "exponent"
+      ],
+      "constraints": [
+        "exponent is a numeric literal"
+      ],
+      "behavior": "power"
+    },
+    {
+      "names": [
+        "round"
+      ],
+      "signature": [
+        "expr",
+        "decimals"
+      ],
+      "constraints": [
+        "decimals is a numeric literal convertible to u32"
+      ],
+      "behavior": "round using the default Polars round mode"
+    },
+    {
+      "names": [
+        "arange"
+      ],
+      "signature": [
+        "start",
+        "end",
+        "step?",
+        "dtype?"
+      ],
+      "constraints": [
+        "2 to 4 arguments",
+        "step and dtype are literals when present"
+      ],
+      "defaults": {
+        "step": 1,
+        "dtype": "i32"
+      },
+      "behavior": "generate a range expression"
+    },
+    {
+      "names": [
+        "split"
+      ],
+      "signature": [
+        "expr",
+        "by"
+      ],
+      "behavior": "split strings"
+    },
+    {
+      "names": [
+        "starts_with",
+        "ends_with"
+      ],
+      "signature": [
+        "expr",
+        "pattern"
+      ],
+      "behavior": "prefix or suffix mask"
+    },
+    {
+      "names": [
+        "contains"
+      ],
+      "signature": [
+        "expr",
+        "pattern",
+        "literal?"
+      ],
+      "defaults": {
+        "literal": true
+      },
+      "behavior": "string contains; literal=false enables pattern semantics"
+    },
+    {
+      "names": [
+        "replace"
+      ],
+      "signature": [
+        "expr",
+        "pattern",
+        "value",
+        "literal?"
+      ],
+      "defaults": {
+        "literal": true
+      },
+      "behavior": "replace the first match"
+    },
+    {
+      "names": [
+        "find"
+      ],
+      "signature": [
+        "expr",
+        "pattern",
+        "strict?"
+      ],
+      "defaults": {
+        "strict": true
+      },
+      "behavior": "find a string match position"
+    },
+    {
+      "names": [
+        "slice"
+      ],
+      "signature": [
+        "expr",
+        "offset",
+        "length"
+      ],
+      "behavior": "slice strings, not DataFrame rows"
+    },
+    {
+      "names": [
+        "to_lowercase",
+        "to_uppercase"
+      ],
+      "signature": [
+        "expr"
+      ],
+      "behavior": "change string case"
+    }
   ],
   "arity_only_unimplemented_names": [
     "sum_col",
@@ -180,186 +1175,750 @@
   ],
   "dsa_functions": [
     {
-      "names": ["import_dss", "import_dss_url", "import_bmopf", "import_bmopf_url"],
+      "names": [
+        "import_dss",
+        "import_dss_url",
+        "import_bmopf",
+        "import_bmopf_url"
+      ],
       "arity": 1,
-      "arguments": ["path_or_url"],
+      "arguments": [
+        "path_or_url"
+      ],
       "behavior": "import a DSS or BMOPF network into the ordered network frames and parameter frame",
       "returns": [
-        "bus", "line", "linecode", "load", "transformer", "voltage_source",
-        "motor", "transformer_winding", "transformer_impedance", "current_source",
-        "generator", "ibr", "switch", "shunt", "capacitor", "reactor", "spectrum",
-        "control_profile", "xy_curve", "storage", "para"
+        "bus",
+        "line",
+        "linecode",
+        "load",
+        "transformer",
+        "voltage_source",
+        "motor",
+        "transformer_winding",
+        "transformer_impedance",
+        "current_source",
+        "generator",
+        "ibr",
+        "switch",
+        "shunt",
+        "capacitor",
+        "reactor",
+        "spectrum",
+        "control_profile",
+        "xy_curve",
+        "storage",
+        "para"
       ]
     },
     {
-      "names": ["import_dss_execution", "import_dss_execution_url"],
+      "names": [
+        "import_dss_execution",
+        "import_dss_execution_url"
+      ],
       "arity": 1,
-      "arguments": ["path_or_url"],
+      "arguments": [
+        "path_or_url"
+      ],
       "behavior": "import one DSS ExecutionStudy profile into the QSTS input frames plus diagnostics and events",
       "returns": [
-        "bus", "line", "linecode", "load", "transformer", "voltage_source",
-        "motor", "transformer_winding", "transformer_impedance", "current_source",
-        "generator", "ibr", "switch", "shunt", "capacitor", "reactor", "spectrum",
-        "control_profile", "xy_curve", "storage", "solution", "load_shape",
-        "shape_assignment", "storage_controller", "switch_control", "tcc_curve", "fuse",
-        "recloser", "relay", "monitor", "energy_meter", "fault", "para", "diagnostics",
+        "bus",
+        "line",
+        "linecode",
+        "load",
+        "transformer",
+        "voltage_source",
+        "motor",
+        "transformer_winding",
+        "transformer_impedance",
+        "current_source",
+        "generator",
+        "ibr",
+        "switch",
+        "shunt",
+        "capacitor",
+        "reactor",
+        "spectrum",
+        "control_profile",
+        "xy_curve",
+        "storage",
+        "solution",
+        "load_shape",
+        "shape_assignment",
+        "storage_controller",
+        "switch_control",
+        "tcc_curve",
+        "fuse",
+        "recloser",
+        "relay",
+        "monitor",
+        "energy_meter",
+        "fault",
+        "para",
+        "diagnostics",
         "events"
       ],
       "restriction": "The profile contains exactly one Solve. The URL form downloads one source and cannot resolve remote relative includes."
     },
     {
-      "names": ["ds_radial_dss_plan", "ds_newton_raphson_dss_plan", "ds_radial_dss_plan_url", "ds_newton_raphson_dss_plan_url"],
-      "allowed_arities": [1, 2],
-      "arguments": ["path_or_url", "para_or_result_selector?"],
+      "names": [
+        "ds_radial_dss_plan",
+        "ds_newton_raphson_dss_plan",
+        "ds_radial_dss_plan_url",
+        "ds_newton_raphson_dss_plan_url"
+      ],
+      "allowed_arities": [
+        1,
+        2
+      ],
+      "arguments": [
+        "path_or_url",
+        "para_or_result_selector?"
+      ],
       "behavior": "import and execute a DSS command plan containing one or more Solve epochs while preserving runtime state between epochs",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "bus_phase", "load_state", "generator_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary", "storage_state", "storage_controller_state", "switch_control_state", "fuse_state", "recloser_state", "relay_state", "fault_state", "monitor", "monitor_save", "energy_meter", "meter_loss_breakdown", "reliability", "meter_zone", "meter_phase_voltage", "meter_save", "load_duration", "execution_trace", "diagnostics", "events"],
-      "appended_columns": ["epoch_index", "solve_event_sequence"],
+      "results": [
+        "bus_voltage",
+        "bus_phase",
+        "load_state",
+        "generator_state",
+        "branch_flow",
+        "source_flow",
+        "transformer_winding_flow",
+        "conductor_flow",
+        "regulator_state",
+        "capacitor_state",
+        "reactor_state",
+        "ibr_state",
+        "gfm_state",
+        "violations",
+        "summary",
+        "storage_state",
+        "storage_controller_state",
+        "switch_control_state",
+        "fuse_state",
+        "recloser_state",
+        "relay_state",
+        "fault_state",
+        "monitor",
+        "monitor_save",
+        "energy_meter",
+        "meter_loss_breakdown",
+        "reliability",
+        "meter_zone",
+        "meter_phase_voltage",
+        "meter_save",
+        "load_duration",
+        "execution_trace",
+        "diagnostics",
+        "events"
+      ],
+      "appended_columns": [
+        "epoch_index",
+        "solve_event_sequence"
+      ],
       "restriction": "The optional second argument is either a parameter DataFrame or a comma-separated result string. The URL form downloads one source and cannot resolve remote relative includes."
     },
     {
-      "names": ["ds_dss_fault_study"],
-      "allowed_arities": [2, 3],
-      "arguments": ["local_dss_path", "source_root?", "para_or_result_selector"],
+      "names": [
+        "ds_dss_fault_study"
+      ],
+      "allowed_arities": [
+        2,
+        3
+      ],
+      "arguments": [
+        "local_dss_path",
+        "source_root?",
+        "para_or_result_selector"
+      ],
       "behavior": "import and execute one bounded local DSS FaultStudy lifecycle",
       "default_result": "fault_result",
-      "results": ["fault_result"],
+      "results": [
+        "fault_result"
+      ],
       "restriction": "The first argument is a local path. The optional source root confines dependencies. Mixed lifecycles and URL sources are rejected."
     },
     {
-      "names": ["ds_dss_harmonic_plan"],
+      "names": [
+        "ds_dss_harmonic_plan"
+      ],
       "arity": 2,
-      "arguments": ["local_dss_path", "para_or_result_selector"],
+      "arguments": [
+        "local_dss_path",
+        "para_or_result_selector"
+      ],
       "behavior": "import and execute one bounded local DSS Harmonic or HarmonicT lifecycle",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "branch_flow", "conductor_flow", "bus_sequence", "branch_sequence", "monitor", "monitor_save"],
+      "results": [
+        "bus_voltage",
+        "branch_flow",
+        "conductor_flow",
+        "bus_sequence",
+        "branch_sequence",
+        "monitor",
+        "monitor_save"
+      ],
       "restriction": "The first argument is a local path. The second argument is a parameter DataFrame or a comma-separated result string. Mixed lifecycles and URL sources are rejected."
     },
     {
-      "names": ["ds_dss_auto_add"],
+      "names": [
+        "ds_dss_auto_add"
+      ],
       "arity": 2,
-      "arguments": ["local_dss_path", "para_or_result_selector"],
+      "arguments": [
+        "local_dss_path",
+        "para_or_result_selector"
+      ],
       "behavior": "import and execute one bounded radial fixed-rating DSS AutoAdd search",
       "default_result": "ranking",
-      "results": ["ranking", "selection", "final_voltage", "summary"],
+      "results": [
+        "ranking",
+        "selection",
+        "final_voltage",
+        "summary"
+      ],
       "restriction": "The first argument is a local path. The second argument is a parameter DataFrame or a comma-separated result string. Mixed lifecycles and URL sources are rejected."
     },
     {
-      "names": ["ds_dss_relcalc"],
+      "names": [
+        "ds_dss_relcalc"
+      ],
       "arity": 2,
-      "arguments": ["local_dss_path", "para_or_result_selector"],
+      "arguments": [
+        "local_dss_path",
+        "para_or_result_selector"
+      ],
       "behavior": "import and execute one bounded DSS RelCalc study after its Snapshot preparation",
       "default_result": "meter",
-      "results": ["meter", "section", "branch", "bus"],
+      "results": [
+        "meter",
+        "section",
+        "branch",
+        "bus"
+      ],
       "restriction": "The first argument is a local path. The second argument is a parameter DataFrame or a comma-separated result string. Mixed lifecycles and URL sources are rejected."
     },
     {
-      "names": ["ds_dss_dynamic_plan"],
-      "allowed_arities": [2, 3],
-      "arguments": ["local_dss_path", "source_root?", "para_or_result_selector"],
+      "names": [
+        "ds_dss_dynamic_plan"
+      ],
+      "allowed_arities": [
+        2,
+        3
+      ],
+      "arguments": [
+        "local_dss_path",
+        "source_root?",
+        "para_or_result_selector"
+      ],
       "behavior": "import and execute one bounded fixed-step local DSS Dynamic or Dynamics lifecycle through the protected V12 runtime",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "branch_current", "source_flow", "pvsystem_state", "storage_state", "motor_state", "event", "solver_trace", "fault_state", "protection_state", "frt_state", "control_state", "device_state", "generator_state", "device_protection_connection"],
+      "results": [
+        "bus_voltage",
+        "branch_current",
+        "source_flow",
+        "pvsystem_state",
+        "storage_state",
+        "motor_state",
+        "event",
+        "solver_trace",
+        "fault_state",
+        "protection_state",
+        "frt_state",
+        "control_state",
+        "device_state",
+        "generator_state",
+        "device_protection_connection"
+      ],
       "restriction": "Snapshot initialization may precede Dynamic. Dynamic solves must keep one positive step and a continuous clock. Runtime model mutations, unsupported Set options, DynamicEq/DynOut, VCCS, user DLLs and EMT content are rejected."
     },
     {
-      "names": ["ds_radial_pf", "ds_newton_raphson_pf"],
+      "names": [
+        "ds_radial_pf",
+        "ds_newton_raphson_pf"
+      ],
       "complete_arity": 21,
-      "legacy_arities": [6, 7, 8, 9, 10, 11],
-      "arguments": ["network[20]", "para"],
+      "legacy_arities": [
+        6,
+        7,
+        8,
+        9,
+        10,
+        11
+      ],
+      "arguments": [
+        "network[20]",
+        "para"
+      ],
       "behavior": "solve a static power flow with the radial or Newton-Raphson solver",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "bus_phase", "load_state", "generator_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary"]
+      "results": [
+        "bus_voltage",
+        "bus_phase",
+        "load_state",
+        "generator_state",
+        "branch_flow",
+        "source_flow",
+        "transformer_winding_flow",
+        "conductor_flow",
+        "regulator_state",
+        "capacitor_state",
+        "reactor_state",
+        "ibr_state",
+        "gfm_state",
+        "violations",
+        "summary"
+      ]
     },
     {
-      "names": ["ds_radial_qsts", "ds_newton_raphson_qsts"],
+      "names": [
+        "ds_radial_qsts",
+        "ds_newton_raphson_qsts"
+      ],
       "arity": 33,
       "arguments": [
-        "network[20]", "solution", "load_shape", "shape_assignment", "storage_controller",
-        "switch_control", "tcc_curve", "fuse", "recloser", "relay", "monitor",
-        "energy_meter", "fault", "para"
+        "network[20]",
+        "solution",
+        "load_shape",
+        "shape_assignment",
+        "storage_controller",
+        "switch_control",
+        "tcc_curve",
+        "fuse",
+        "recloser",
+        "relay",
+        "monitor",
+        "energy_meter",
+        "fault",
+        "para"
       ],
       "behavior": "run a quasi-static time-series study with schedules, controls, protection, monitoring, and metering",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "bus_phase", "load_state", "generator_state", "branch_flow", "source_flow", "transformer_winding_flow", "conductor_flow", "regulator_state", "capacitor_state", "reactor_state", "ibr_state", "gfm_state", "violations", "summary", "storage_state", "storage_controller_state", "switch_control_state", "fuse_state", "recloser_state", "relay_state", "fault_state", "monitor", "monitor_save", "energy_meter", "meter_loss_breakdown", "reliability", "meter_zone", "meter_phase_voltage", "meter_save", "load_duration", "execution_trace"],
-      "appended_columns": ["time", "load_multiplier", "generation_multiplier"]
+      "results": [
+        "bus_voltage",
+        "bus_phase",
+        "load_state",
+        "generator_state",
+        "branch_flow",
+        "source_flow",
+        "transformer_winding_flow",
+        "conductor_flow",
+        "regulator_state",
+        "capacitor_state",
+        "reactor_state",
+        "ibr_state",
+        "gfm_state",
+        "violations",
+        "summary",
+        "storage_state",
+        "storage_controller_state",
+        "switch_control_state",
+        "fuse_state",
+        "recloser_state",
+        "relay_state",
+        "fault_state",
+        "monitor",
+        "monitor_save",
+        "energy_meter",
+        "meter_loss_breakdown",
+        "reliability",
+        "meter_zone",
+        "meter_phase_voltage",
+        "meter_save",
+        "load_duration",
+        "execution_trace"
+      ],
+      "appended_columns": [
+        "time",
+        "load_multiplier",
+        "generation_multiplier"
+      ]
     },
     {
-      "names": ["ds_harmonic_study"],
+      "names": [
+        "ds_harmonic_study"
+      ],
       "complete_arity": 22,
-      "legacy_arities": [8, 14],
-      "arguments": ["network[20]", "monitor", "para"],
+      "legacy_arities": [
+        8,
+        14
+      ],
+      "arguments": [
+        "network[20]",
+        "monitor",
+        "para"
+      ],
       "behavior": "run a harmonic network study",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "branch_flow", "conductor_flow", "bus_sequence", "branch_sequence", "monitor", "monitor_save"]
+      "results": [
+        "bus_voltage",
+        "branch_flow",
+        "conductor_flow",
+        "bus_sequence",
+        "branch_sequence",
+        "monitor",
+        "monitor_save"
+      ]
     },
     {
-      "names": ["ds_fault_study"],
+      "names": [
+        "ds_fault_study"
+      ],
       "complete_arity": 22,
-      "legacy_arities": [8, 13],
-      "arguments": ["network[20]", "fault", "para"],
+      "legacy_arities": [
+        8,
+        13
+      ],
+      "arguments": [
+        "network[20]",
+        "fault",
+        "para"
+      ],
       "behavior": "solve explicit network fault cases",
       "default_result": "fault",
-      "results": ["fault", "branch_flow"]
+      "results": [
+        "fault",
+        "branch_flow"
+      ]
     },
     {
-      "names": ["ds_wls_se", "ds_mnmr_se", "ds_mce_se"],
+      "names": [
+        "ds_wls_se",
+        "ds_mnmr_se",
+        "ds_mce_se"
+      ],
       "complete_arity": 22,
-      "legacy_arities": [11, 12],
-      "arguments": ["network[20]", "measurement", "para"],
+      "legacy_arities": [
+        11,
+        12
+      ],
+      "arguments": [
+        "network[20]",
+        "measurement",
+        "para"
+      ],
       "behavior": "estimate network state with WLS, MNMR, or MCE",
-      "returns": ["result"]
+      "returns": [
+        "result"
+      ]
     },
     {
-      "names": ["ds_monte_carlo"],
+      "names": [
+        "ds_monte_carlo"
+      ],
       "arity": 23,
-      "arguments": ["network[20]", "spec", "multipliers", "para"],
+      "arguments": [
+        "network[20]",
+        "spec",
+        "multipliers",
+        "para"
+      ],
       "behavior": "run generated or replayed Monte Carlo power-flow scenarios",
       "default_result": "voltage_statistics",
-      "results": ["voltage_statistics", "scenario_voltage", "scenario_load_power", "summary"],
+      "results": [
+        "voltage_statistics",
+        "scenario_voltage",
+        "scenario_load_power",
+        "summary"
+      ],
       "restriction": "non-empty storage is rejected"
     },
     {
-      "names": ["ds_restore"],
+      "names": [
+        "ds_restore"
+      ],
       "complete_arity": 22,
-      "legacy_arities": [9],
-      "arguments": ["network[20]", "fault", "para"],
+      "legacy_arities": [
+        9
+      ],
+      "arguments": [
+        "network[20]",
+        "fault",
+        "para"
+      ],
       "behavior": "find a switch plan that restores load after faults",
       "default_result": "switches",
-      "results": ["switches", "restored_loads", "bus_voltage", "objective"]
+      "results": [
+        "switches",
+        "restored_loads",
+        "bus_voltage",
+        "objective"
+      ]
     },
     {
-      "names": ["ds_protection_coordination"],
+      "names": [
+        "ds_protection_coordination"
+      ],
       "arity": 9,
-      "arguments": ["tcc_curve", "fuse", "recloser", "relay", "fault_case", "current_sample", "pair", "observed_action", "para"],
+      "arguments": [
+        "tcc_curve",
+        "fuse",
+        "recloser",
+        "relay",
+        "fault_case",
+        "current_sample",
+        "pair",
+        "observed_action",
+        "para"
+      ],
       "behavior": "audit protection operations, selectivity, margins, coverage, and observed actions",
       "default_result": "operations",
-      "results": ["operations", "selectivity", "minimum_margins", "misoperations", "uncovered", "action_diagnostics"]
+      "results": [
+        "operations",
+        "selectivity",
+        "minimum_margins",
+        "misoperations",
+        "uncovered",
+        "action_diagnostics"
+      ]
     },
     {
-      "names": ["ds_fault_location"],
+      "names": [
+        "ds_fault_location"
+      ],
       "arity": 24,
-      "arguments": ["network[20]", "measurement", "hypothesis_switch", "hypothesis_line", "para"],
+      "arguments": [
+        "network[20]",
+        "measurement",
+        "hypothesis_switch",
+        "hypothesis_line",
+        "para"
+      ],
       "behavior": "rank candidate fault locations from measurements and topology hypotheses",
-      "returns": ["result"],
+      "returns": [
+        "result"
+      ],
       "restriction": "non-empty storage is rejected"
     },
     {
-      "names": ["ds_network_dynamics"],
+      "names": [
+        "ds_network_dynamics"
+      ],
       "arity": 29,
-      "arguments": ["network[20]", "timeline", "event", "tcc_curve", "fuse", "recloser", "relay", "fault", "spec", "para"],
+      "arguments": [
+        "network[20]",
+        "timeline",
+        "event",
+        "tcc_curve",
+        "fuse",
+        "recloser",
+        "relay",
+        "fault",
+        "spec",
+        "para"
+      ],
       "behavior": "run the protected RMS/phasor network dynamic V12 study from DataFrames",
       "default_result": "bus_voltage",
-      "results": ["bus_voltage", "branch_current", "source_flow", "pvsystem_state", "storage_state", "motor_state", "event", "solver_trace", "fault_state", "protection_state", "frt_state", "control_state", "device_state", "generator_state", "device_protection_connection"]
+      "results": [
+        "bus_voltage",
+        "branch_current",
+        "source_flow",
+        "pvsystem_state",
+        "storage_state",
+        "motor_state",
+        "event",
+        "solver_trace",
+        "fault_state",
+        "protection_state",
+        "frt_state",
+        "control_state",
+        "device_state",
+        "generator_state",
+        "device_protection_connection"
+      ]
     },
     {
-      "names": ["ds_motor_dynamics"],
+      "names": [
+        "ds_motor_dynamics"
+      ],
       "arity": 28,
-      "arguments": ["network[20]", "timeline", "event", "tcc_curve", "fuse", "recloser", "relay", "spec", "para"],
+      "arguments": [
+        "network[20]",
+        "timeline",
+        "event",
+        "tcc_curve",
+        "fuse",
+        "recloser",
+        "relay",
+        "spec",
+        "para"
+      ],
       "behavior": "simulate motor and network dynamics over a timeline with events and protection",
       "default_result": "motor_state",
-      "results": ["bus_voltage", "motor_state", "event"],
+      "results": [
+        "bus_voltage",
+        "motor_state",
+        "event"
+      ],
       "restriction": "non-empty storage is rejected"
+    },
+    {
+      "names": [
+        "ds_radial_execution_plan",
+        "ds_newton_raphson_execution_plan"
+      ],
+      "arity": 40,
+      "arguments": [
+        "bus",
+        "line",
+        "linecode",
+        "load",
+        "transformer",
+        "voltage_source",
+        "motor",
+        "transformer_winding",
+        "transformer_impedance",
+        "current_source",
+        "generator",
+        "ibr",
+        "switch",
+        "shunt",
+        "capacitor",
+        "reactor",
+        "spectrum",
+        "control_profile",
+        "xy_curve",
+        "storage",
+        "solution",
+        "load_shape",
+        "shape_assignment",
+        "storage_controller",
+        "switch_control",
+        "tcc_curve",
+        "fuse",
+        "recloser",
+        "relay",
+        "monitor",
+        "energy_meter",
+        "fault",
+        "execution_epoch",
+        "execution_setting",
+        "execution_mutation",
+        "post_solve_action",
+        "execution_reference",
+        "execution_event",
+        "projection_diagnostic",
+        "para"
+      ],
+      "behavior": "execute a path-independent projected DSS plan while preserving ordered Solve epochs, typed mutations and continuation state",
+      "default_result": "bus_voltage",
+      "results": [
+        "bus_voltage",
+        "bus_phase",
+        "load_state",
+        "generator_state",
+        "branch_flow",
+        "source_flow",
+        "transformer_winding_flow",
+        "conductor_flow",
+        "regulator_state",
+        "capacitor_state",
+        "reactor_state",
+        "ibr_state",
+        "gfm_state",
+        "violations",
+        "summary",
+        "storage_state",
+        "storage_controller_state",
+        "switch_control_state",
+        "fuse_state",
+        "recloser_state",
+        "relay_state",
+        "fault_state",
+        "monitor",
+        "monitor_save",
+        "energy_meter",
+        "meter_loss_breakdown",
+        "reliability",
+        "meter_zone",
+        "meter_phase_voltage",
+        "meter_save",
+        "load_duration",
+        "execution_trace",
+        "diagnostics",
+        "events"
+      ],
+      "appended_columns": [
+        "epoch_index",
+        "solve_event_sequence"
+      ]
+    },
+    {
+      "names": [
+        "ds_harmonic_execution_plan"
+      ],
+      "arity": 58,
+      "arguments": [
+        "bus",
+        "line",
+        "linecode",
+        "load",
+        "transformer",
+        "voltage_source",
+        "motor",
+        "transformer_winding",
+        "transformer_impedance",
+        "current_source",
+        "generator",
+        "ibr",
+        "switch",
+        "shunt",
+        "capacitor",
+        "reactor",
+        "spectrum",
+        "control_profile",
+        "xy_curve",
+        "storage",
+        "solution",
+        "load_shape",
+        "shape_assignment",
+        "storage_controller",
+        "switch_control",
+        "tcc_curve",
+        "fuse",
+        "recloser",
+        "relay",
+        "monitor",
+        "energy_meter",
+        "fault",
+        "frequency_axis",
+        "frequency_spectrum",
+        "harmonic_monitor",
+        "harmonic_plan",
+        "snapshot_bus",
+        "snapshot_line",
+        "snapshot_linecode",
+        "snapshot_load",
+        "snapshot_transformer",
+        "snapshot_voltage_source",
+        "snapshot_motor",
+        "snapshot_transformer_winding",
+        "snapshot_transformer_impedance",
+        "snapshot_current_source",
+        "snapshot_generator",
+        "snapshot_ibr",
+        "snapshot_switch",
+        "snapshot_shunt",
+        "snapshot_capacitor",
+        "snapshot_reactor",
+        "snapshot_spectrum",
+        "snapshot_control_profile",
+        "snapshot_xy_curve",
+        "snapshot_storage",
+        "harmonic_snapshot",
+        "para"
+      ],
+      "behavior": "execute a path-independent Harmonic or HarmonicT plan including arbitrary fractional frequency orders",
+      "default_result": "bus_voltage",
+      "results": [
+        "bus_voltage",
+        "branch_flow",
+        "conductor_flow",
+        "bus_sequence",
+        "branch_sequence",
+        "monitor",
+        "monitor_save"
+      ]
     }
   ]
 }

@@ -57,6 +57,9 @@ RSDss DataFrame 的执行路径。
 `--dataframe` 与 `--df` 等价。多个 RSS 文件按命令行顺序拼接后解析；局部 `#include` 在解析前
 展开。`.dss` 和 `.rssbundle` 必须独占位置参数，不能和其他脚本一起执行。
 
+`main.rss` 是 CLI 的原始 DSS 生命周期复放入口。schema v2 bundle 另含只接收 DataFrame 的
+`managed.rss`，供 V4 宿主按 `manifest.projection` 注入资源后运行；CLI 不把它误当作原始入口。
+
 `--df` 的顶层程序必须只包含以分号结束的具名声明。声明绑定本身参与依赖图和输出选择，禁止
 追加裸变量表达式；完整规则和正反例见
 [RSDss 顶层程序约束](rss_language_reference.md#11-顶层程序约束must)。
