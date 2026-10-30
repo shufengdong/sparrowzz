@@ -40,6 +40,11 @@ tensoreval path/to/case.rssbundle
 依赖根目录推断不符合项目布局，应使用
 `tensoreval --dss-to-rss --mode bundle --source-root DIR INPUT.dss` 重新生成。
 
+manifest schema v2 还会校验 `projection` 和 `managed.rss` 的哈希。命令行直接复放 bundle 时
+执行 `main.rss`；zjudss V4 应读取 `projection.profile`、导入 DataFrame 资源后执行
+`managed.rss`。受管入口出现 `.dss`、`import_dss`、`source_root` 或 URL 表示 bundle 合同损坏，
+必须重新生成，禁止在服务器上补路径。
+
 ## 2. 当前案例的对照规则
 
 发布前集成测试直接执行 `sparrowzz/dss/*.rss`，并复用

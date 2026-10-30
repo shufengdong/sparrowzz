@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "artifact": "mems.dss-rss-bundle",
   "generator": "mems/0.1.0",
   "psa_contract_version": "0.1.0",
@@ -40,7 +40,98 @@
       "path": "main.rss",
       "role": "main-rss",
       "sha256": "2b7248f52995c9321ece1f05cd7625e91c37ffedf4df9bca7968b1b04e59ec23"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "4d589f9637d2e36302e3e0b714e6c6bec987b28cc57ab31fa7fbab70826f5f00"
     }
   ],
-  "inputs": []
+  "inputs": [],
+  "projection": {
+    "source_function": "ds_dss_dynamic_plan",
+    "profile": "dss_dynamic_plan_v1",
+    "projector": "project_dss_dynamic_plan",
+    "target_function": "ds_network_dynamics",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "bus_voltage",
+        "target": "bus_voltage",
+        "binding": "result_bus_voltage"
+      },
+      {
+        "source": "branch_current",
+        "target": "branch_current",
+        "binding": "result_branch_current"
+      },
+      {
+        "source": "source_flow",
+        "target": "source_flow",
+        "binding": "result_source_flow"
+      },
+      {
+        "source": "pvsystem_state",
+        "target": "pvsystem_state",
+        "binding": "result_pvsystem_state"
+      },
+      {
+        "source": "storage_state",
+        "target": "storage_state",
+        "binding": "result_storage_state"
+      },
+      {
+        "source": "motor_state",
+        "target": "motor_state",
+        "binding": "result_motor_state"
+      },
+      {
+        "source": "event",
+        "target": "event",
+        "binding": "result_event"
+      },
+      {
+        "source": "solver_trace",
+        "target": "solver_trace",
+        "binding": "result_solver_trace"
+      },
+      {
+        "source": "fault_state",
+        "target": "fault_state",
+        "binding": "result_fault_state"
+      },
+      {
+        "source": "protection_state",
+        "target": "protection_state",
+        "binding": "result_protection_state"
+      },
+      {
+        "source": "frt_state",
+        "target": "frt_state",
+        "binding": "result_frt_state"
+      },
+      {
+        "source": "control_state",
+        "target": "control_state",
+        "binding": "result_control_state"
+      },
+      {
+        "source": "device_state",
+        "target": "device_state",
+        "binding": "result_device_state"
+      },
+      {
+        "source": "generator_state",
+        "target": "generator_state",
+        "binding": "result_generator_state"
+      },
+      {
+        "source": "device_protection_connection",
+        "target": "device_protection_connection",
+        "binding": "result_device_protection_connection"
+      }
+    ]
+  }
 }

@@ -1,0 +1,2 @@
+// Managed V4 entry: every input alias is injected by the host.
+result_fault = ds_fault_study(bus, line, linecode, load, transformer, voltage_source, motor, transformer_winding, transformer_impedance, current_source, generator, ibr, switch, shunt, capacitor, reactor, spectrum, control_profile, xy_curve, storage, fault, para);

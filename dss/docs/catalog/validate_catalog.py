@@ -2,6 +2,7 @@
 """Validate the public RSDss documentation catalogs against the dispatch source."""
 
 import json
+import hashlib
 import re
 import sys
 from pathlib import Path
@@ -13,6 +14,8 @@ DOCS = ROOT / "sparrowzz/dss/docs"
 FUNCTIONS = DOCS / "catalog/functions.json"
 DATAFRAMES = DOCS / "catalog/dataframes.json"
 STUDY_FACADES = DOCS / "catalog/study_facades.json"
+CASE_PROJECTIONS = DOCS / "catalog/case_projections.json"
+RSSBUNDLES = ROOT / "sparrowzz/dss/rssbundle"
 TENSOREVAL = next(ROOT.glob("*/src/bin/tensoreval.rs"))
 RUNTIME_SRC = TENSOREVAL.parents[1]
 TRANSLATE = RUNTIME_SRC / "ml/expr_df/translate.rs"
@@ -27,11 +30,13 @@ RESULT_CONSTANTS = {
         "ds_newton_raphson_dss_plan",
         "ds_radial_dss_plan_url",
         "ds_newton_raphson_dss_plan_url",
+        "ds_radial_execution_plan",
+        "ds_newton_raphson_execution_plan",
     },
     "QSTS_RESULT_NAMES": {"ds_radial_qsts", "ds_newton_raphson_qsts"},
     "MONTE_CARLO_RESULT_NAMES": {"ds_monte_carlo"},
     "RESTORE_RESULT_NAMES": {"ds_restore"},
-    "HARMONIC_RESULT_NAMES": {"ds_harmonic_study"},
+    "HARMONIC_RESULT_NAMES": {"ds_harmonic_study", "ds_harmonic_execution_plan"},
     "FAULT_RESULT_NAMES": {"ds_fault_study"},
     "POWER_FLOW_RESULT_NAMES": {"ds_radial_pf", "ds_newton_raphson_pf"},
 }
@@ -75,6 +80,38 @@ INPUT_KIND_BY_SCHEMA = {
     "analysis_inputs.restore_fault": "data",
     "analysis_inputs.dynamic_fault": "data",
 }
+
+SUPPORTED_RULE_TYPES = {
+    "compare",
+    "conditional_compare",
+    "conditional_empty_input",
+    "conditional_enabled",
+    "conditional_ignored",
+    "conditional_required",
+    "contiguous_zero_based",
+    "cross_table_dense_matrix",
+    "enum",
+    "equal_length",
+    "exactly_one_variant",
+    "finite",
+    "forbidden",
+    "length",
+    "length_equal",
+    "mutually_exclusive",
+    "mutually_exclusive_groups",
+    "nonnegative",
+    "paired_presence",
+    "positive",
+    "positive_contiguous",
+    "range",
+    "requires",
+    "strictly_increasing",
+    "unique",
+    "unique_csv_items",
+    "unique_items",
+}
+
+UNSIGNED_INTEGER_DTYPES = {"u32", "u64", "u32_semantics"}
 
 QSTS_RESULT_BUILDERS = {
     "storage_state": ("qsts_storage_state_frame", []),
@@ -451,6 +488,37 @@ def _validate_card(reference, column, all_fields, affected):
                 _contract_error(affected, reference, f"{key} references unknown field at {reference}.{name}")
 
 
+def _validate_rule(reference, rule, rule_index, columns_by_name, affected):
+    kind = rule.get("type")
+    if kind not in SUPPORTED_RULE_TYPES:
+        _contract_error(affected, reference, f"unsupported rule type {kind} at rule {rule_index}")
+    if kind != "contiguous_zero_based":
+        return
+    unknown = set(rule) - {"type", "field"}
+    if unknown:
+        _contract_error(
+            affected,
+            reference,
+            f"contiguous_zero_based rule {rule_index} has unknown fields {sorted(unknown)}",
+        )
+    field = rule.get("field")
+    if not isinstance(field, str) or not field:
+        _contract_error(affected, reference, f"contiguous_zero_based rule {rule_index} requires field")
+    column = columns_by_name.get(field)
+    if column is None:
+        _contract_error(
+            affected,
+            reference,
+            f"contiguous_zero_based rule {rule_index} references unknown field {field}",
+        )
+    if column.get("dtype") not in UNSIGNED_INTEGER_DTYPES:
+        _contract_error(
+            affected,
+            reference,
+            f"contiguous_zero_based requires an unsigned integer field, got {field}:{column.get('dtype')}",
+        )
+
+
 def _validate_contract(dataframes, reference, expected_kind, grammar, affected):
     schema = _top_level_schema(dataframes, reference)
     contract = schema.get("contract")
@@ -493,6 +561,7 @@ def _validate_contract(dataframes, reference, expected_kind, grammar, affected):
     if not columns:
         _contract_error(affected, reference, "prose-only or incomplete schema has no resolved columns")
     names = [column["name"] for column in columns]
+    columns_by_name = {column["name"]: column for column in columns}
     for index, column in enumerate(columns):
         name = column["name"]
         for key in ("dtype", "required", "nullable", "unit"):
@@ -506,6 +575,12 @@ def _validate_contract(dataframes, reference, expected_kind, grammar, affected):
             parse_dtype(column["dtype"], grammar, f"{reference}.{name}")
         except AssertionError as error:
             _contract_error(affected, reference, str(error))
+        if expected_kind != "struct" and "card" in column:
+            _contract_error(
+                affected,
+                reference,
+                f"non-Struct schema cannot declare card at {reference}.{name}",
+            )
     for key in ("stableKeys", "sortKeys"):
         unknown = set(contract[key]) - set(names)
         if unknown:
@@ -523,6 +598,7 @@ def _validate_contract(dataframes, reference, expected_kind, grammar, affected):
     for rule_index, rule in enumerate(contract["rules"]):
         if not isinstance(rule, dict) or not isinstance(rule.get("type"), str):
             _contract_error(affected, reference, f"rule {rule_index} must have a machine type")
+        _validate_rule(reference, rule, rule_index, columns_by_name, affected)
         unknown = set(_rule_field_references(rule)) - set(names) - virtual_fields
         if unknown:
             _contract_error(affected, reference, f"rule {rule_index} references unknown fields {sorted(unknown)}")
@@ -576,7 +652,7 @@ def _validate_contract(dataframes, reference, expected_kind, grammar, affected):
     return columns
 
 
-def validate_catalog_contracts(dataframes, study_facades):
+def validate_catalog_contracts(dataframes, study_facades, case_projections=None):
     grammar = validate_dtype_grammar(dataframes)
     direct = _facade_references(study_facades)
     affected = {reference: set(rows) for reference, rows in direct.items()}
@@ -602,6 +678,15 @@ def validate_catalog_contracts(dataframes, study_facades):
             if reference in expected and expected[reference] != kind:
                 _contract_error(affected, reference, f"schema used as both {expected[reference]} and {kind}")
             expected[reference] = kind
+    if case_projections is not None:
+        for profile in case_projections["profiles"]:
+            for output in profile.get("projectorOutputs", []):
+                reference = output["schemaRef"]
+                kind = output["inputKind"]
+                affected.setdefault(reference, set()).add((profile["sourceFunction"], "projector output"))
+                if reference in expected and expected[reference] != kind:
+                    _contract_error(affected, reference, f"schema used as both {expected[reference]} and {kind}")
+                expected[reference] = kind
     # Include base schemas using the consuming schema kind; incompatible use is rejected.
     queue = list(expected)
     while queue:
@@ -616,7 +701,16 @@ def validate_catalog_contracts(dataframes, study_facades):
         if base not in expected:
             expected[base] = kind
             queue.append(base)
-    for reference in sorted(expected):
+    def inheritance_depth(reference, active=None):
+        active = set() if active is None else active
+        if reference in active:
+            return 0
+        base = _top_level_schema(dataframes, reference).get("base_schema")
+        return 0 if not base else 1 + inheritance_depth(base, active | {reference})
+
+    # Validate roots before derived contracts so an invalid shared base is
+    # diagnosed at its authoritative schema and names every affected facade.
+    for reference in sorted(expected, key=lambda value: (inheritance_depth(value), value)):
         _validate_contract(dataframes, reference, expected[reference], grammar, affected)
     return {
         "facades": len(study_facades["facades"]),
@@ -814,6 +908,31 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
             expected_kind = INPUT_KIND_BY_SCHEMA.get(item["schemaRef"])
             if item["schemaRef"].startswith("frames.") and item["schemaRef"].split(".", 1)[1] in network_order:
                 expected_kind = "model"
+            if item["schemaRef"].startswith("execution_inputs."):
+                schema_name = item["schemaRef"].split(".", 1)[1]
+                expected_kind = (
+                    "model"
+                    if schema_name in set(network_order) | {
+                        "shape_assignment", "storage_controller", "switch_control",
+                        "fuse", "recloser", "relay", "monitor", "energy_meter",
+                    }
+                    else "data"
+                )
+            if item["schemaRef"] == "harmonic_execution_inputs.monitor":
+                expected_kind = "model"
+            if item["schemaRef"] in {
+                "harmonic_execution_inputs.frequency_axis",
+                "harmonic_execution_inputs.frequency_spectrum",
+            }:
+                expected_kind = "data"
+            if item["schemaRef"] == "harmonic_execution_inputs.plan":
+                expected_kind = "struct"
+            if item["schemaRef"].startswith("harmonic_snapshot_inputs."):
+                expected_kind = (
+                    "data"
+                    if item["schemaRef"] == "harmonic_snapshot_inputs.snapshot"
+                    else "model"
+                )
             if expected_kind is None:
                 fail(f"{function}.{item['id']} has no audited inputKind for {item['schemaRef']}")
             if item["inputKind"] != expected_kind:
@@ -863,6 +982,225 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
     ]:
         if len({by_function[name]["id"] for name in group}) != len(group):
             fail(f"related algorithms must remain separate facades: {group}")
+
+
+def validate_case_projections(case_projections, study_facades, dataframes, dsa_by_name, frame_ops, translate):
+    if case_projections.get("schema_version") != 2:
+        fail("case_projections.json must use schema_version 2")
+    profiles = case_projections.get("profiles")
+    if not isinstance(profiles, list) or not profiles:
+        fail("case_projections.profiles must be a non-empty list")
+    facade_by_function = {facade["function"]: facade for facade in study_facades["facades"]}
+    expected_sources = {
+        "ds_radial_pf",
+        "ds_newton_raphson_pf",
+        "ds_radial_dss_plan",
+        "ds_newton_raphson_dss_plan",
+        "ds_dss_fault_study",
+        "ds_dss_harmonic_plan",
+        "ds_dss_dynamic_plan",
+        "ds_dss_auto_add",
+        "ds_dss_relcalc",
+    }
+    ids = [profile.get("id") for profile in profiles]
+    sources = [profile.get("sourceFunction") for profile in profiles]
+    if any(not isinstance(value, str) or not value for value in ids) or len(ids) != len(set(ids)):
+        fail("case projection profile ids must be non-empty and unique")
+    if len(sources) != len(set(sources)):
+        fail("each path study function must have exactly one case projection profile")
+    if set(sources) != expected_sources:
+        fail(
+            "case projection source mismatch: "
+            f"missing={sorted(expected_sources - set(sources))}, "
+            f"extra={sorted(set(sources) - expected_sources)}"
+        )
+    for profile in profiles:
+        source = profile["sourceFunction"]
+        target = profile.get("targetFunction")
+        projector = profile.get("projector")
+        if source not in dsa_by_name:
+            fail(f"case projection {profile['id']} references unknown source function {source}")
+        compatibility = profile.get("compatibility")
+        if not isinstance(compatibility, dict) or compatibility.get("failClosed") is not True:
+            fail(f"case projection {profile['id']} must be fail-closed")
+        if compatibility.get("status") not in {"enabled", "disabled"}:
+            fail(f"case projection {profile['id']} has invalid compatibility status")
+        if not isinstance(compatibility.get("stableDiagnostic"), str) or not compatibility["stableDiagnostic"]:
+            fail(f"case projection {profile['id']} lacks a stable diagnostic")
+        if profile.get("managedEntry") != "managed.rss":
+            fail(f"case projection {profile['id']} must publish managed.rss")
+        if compatibility["status"] == "disabled":
+            if (
+                target
+                or projector != "unsupported"
+                or profile.get("inputs")
+                or profile.get("results")
+                or profile.get("projectorOutputs")
+            ):
+                fail(f"disabled case projection {profile['id']} cannot advertise an executable target")
+            continue
+        if target not in facade_by_function:
+            fail(f"case projection {profile['id']} references unknown DataFrame facade {target}")
+        if not isinstance(projector, str) or f'"{projector}"' not in frame_ops or f'"{projector}"' not in translate:
+            fail(f"case projection {profile['id']} references unknown projector {projector}")
+        facade = facade_by_function[target]
+        if profile.get("inputs") != facade["inputs"]:
+            fail(f"case projection {profile['id']} input contract differs from {target}")
+        if profile.get("results") != facade["results"]:
+            fail(f"case projection {profile['id']} result contract differs from {target}")
+        projector_outputs = profile.get("projectorOutputs")
+        if not isinstance(projector_outputs, list) or not projector_outputs:
+            fail(f"case projection {profile['id']} projectorOutputs must be a non-empty list")
+        positions = [item.get("position") for item in projector_outputs]
+        if positions != list(range(1, len(projector_outputs) + 1)):
+            fail(f"case projection {profile['id']} projectorOutputs positions must be contiguous from 1")
+        output_ids = [item.get("id") for item in projector_outputs]
+        output_aliases = [item.get("alias") for item in projector_outputs]
+        if (
+            any(not isinstance(value, str) or not value for value in output_ids + output_aliases)
+            or len(output_ids) != len(set(output_ids))
+            or len(output_aliases) != len(set(output_aliases))
+        ):
+            fail(f"case projection {profile['id']} projectorOutputs ids and aliases must be unique")
+        inputs_by_id = {item["id"]: item for item in facade["inputs"]}
+        facade_mappings = []
+        for output in projector_outputs:
+            required_fields = {
+                "id", "alias", "inputKind", "schemaRef", "required", "position", "disposition",
+            }
+            missing = required_fields - set(output)
+            if missing:
+                fail(
+                    f"case projection {profile['id']} projector output {output.get('id')} "
+                    f"lacks fields {sorted(missing)}"
+                )
+            if output["inputKind"] not in {"model", "data", "struct"}:
+                fail(
+                    f"case projection {profile['id']} projector output {output['id']} "
+                    f"has invalid inputKind {output['inputKind']}"
+                )
+            schema = _top_level_schema(dataframes, output["schemaRef"])
+            contract = schema.get("contract")
+            if not isinstance(contract, dict) or contract.get("kind") != output["inputKind"]:
+                fail(
+                    f"case projection {profile['id']} projector output {output['id']} schema kind differs"
+                )
+            if not isinstance(output["required"], bool):
+                fail(f"case projection {profile['id']} projector output {output['id']} required must be boolean")
+            disposition = output["disposition"]
+            if disposition == "facade_input":
+                if set(output) != required_fields | {"targetInput"}:
+                    fail(
+                        f"case projection {profile['id']} facade_input {output['id']} "
+                        "must contain exactly the projector output fields plus targetInput"
+                    )
+                target_input = output.get("targetInput")
+                target_contract = inputs_by_id.get(target_input)
+                if target_contract is None:
+                    fail(
+                        f"case projection {profile['id']} facade_input {output['id']} "
+                        f"references unknown targetInput {target_input}"
+                    )
+                for key in ("id", "alias", "inputKind", "schemaRef", "required"):
+                    if output[key] != target_contract[key]:
+                        fail(
+                            f"case projection {profile['id']} facade_input {output['id']} "
+                            f"differs from target input {target_input} at {key}"
+                        )
+                facade_mappings.append(target_input)
+            elif disposition == "diagnostic":
+                if set(output) != required_fields:
+                    fail(
+                        f"case projection {profile['id']} diagnostic {output['id']} "
+                        "must not declare targetInput or unknown fields"
+                    )
+            else:
+                fail(
+                    f"case projection {profile['id']} projector output {output['id']} "
+                    f"has unknown disposition {disposition}"
+                )
+        expected_mappings = [item["id"] for item in facade["inputs"]]
+        if facade_mappings != expected_mappings:
+            fail(f"case projection {profile['id']} must map each facade input exactly once and in facade order")
+        source_results = profile.get("sourceResults")
+        result_map = profile.get("resultMap")
+        if not isinstance(source_results, list) or not source_results or len(source_results) != len(set(source_results)):
+            fail(f"case projection {profile['id']} sourceResults must be non-empty and unique")
+        if not isinstance(result_map, dict) or set(result_map) != set(source_results):
+            fail(f"case projection {profile['id']} resultMap must cover every source result")
+        target_results = {result["name"] for result in facade["results"]}
+        unknown = set(result_map.values()) - target_results
+        if unknown:
+            fail(f"case projection {profile['id']} maps unknown target results {sorted(unknown)}")
+        bundle_result_map = profile.get("bundleResultMap")
+        if not isinstance(bundle_result_map, dict) or not bundle_result_map:
+            fail(f"case projection {profile['id']} must declare bundleResultMap")
+        unknown = set(bundle_result_map.values()) - target_results
+        if unknown:
+            fail(f"case projection {profile['id']} bundleResultMap references unknown target results {sorted(unknown)}")
+        selector = profile.get("resultSelector")
+        if selector != {"input": "para", "field": "result", "valueSource": "profile.resultMap(manifest.study.results)"}:
+            fail(f"case projection {profile['id']} must declare the para.result manifest mapping")
+
+
+def validate_rssbundles(case_projections, study_facades, dataframes):
+    profiles = {profile["id"]: profile for profile in case_projections["profiles"]}
+    facades = {facade["function"]: facade for facade in study_facades["facades"]}
+    manifests = sorted(RSSBUNDLES.glob("**/manifest.json"))
+    if not manifests:
+        fail("rssbundle library contains no manifests")
+    for path in manifests:
+        manifest = load_json(path)
+        label = str(path.relative_to(RSSBUNDLES))
+        if manifest.get("schema_version") != 2:
+            fail(f"{label} must use bundle schema_version 2")
+        projection = manifest.get("projection")
+        if not isinstance(projection, dict):
+            fail(f"{label} lacks a projection contract")
+        profile = profiles.get(projection.get("profile"))
+        if profile is None:
+            fail(f"{label} references unknown projection profile {projection.get('profile')}")
+        for manifest_key, profile_key in (
+            ("source_function", "sourceFunction"),
+            ("projector", "projector"),
+            ("target_function", "targetFunction"),
+            ("managed_entry", "managedEntry"),
+        ):
+            if projection.get(manifest_key) != profile.get(profile_key):
+                fail(f"{label} projection {manifest_key} differs from {profile['id']}")
+        if projection.get("status") != "enabled" or projection.get("stable_diagnostic") != profile["compatibility"]["stableDiagnostic"]:
+            fail(f"{label} projection must publish the enabled fail-closed profile status")
+        facade = facades[profile["targetFunction"]]
+        for item in facade["inputs"] + facade["results"]:
+            schema_at(dataframes, item["schemaRef"])
+        source_results = manifest.get("study", {}).get("results")
+        projected_results = projection.get("results")
+        if not isinstance(source_results, list) or not isinstance(projected_results, list) or len(source_results) != len(projected_results):
+            fail(f"{label} projection results differ from study.results")
+        expected_map = profile["bundleResultMap"]
+        for source, result in zip(source_results, projected_results):
+            if result.get("source") != source or result.get("target") != expected_map.get(source):
+                fail(f"{label} cannot map published result {source} through {profile['id']}")
+            if result.get("binding") != f"result_{source}":
+                fail(f"{label} uses a non-canonical managed result binding for {source}")
+        managed = path.parent / projection["managed_entry"]
+        if not managed.is_file():
+            fail(f"{label} is missing {projection['managed_entry']}")
+        script = managed.read_text(encoding="utf-8")
+        if any(token in script.lower() for token in (".dss", "import_dss", "source_root", "http://", "https://")):
+            fail(f"{label} managed entry contains a forbidden path or import token")
+        expected_arguments = ", ".join(item["alias"] for item in facade["inputs"])
+        expected_bindings = ", ".join(result["binding"] for result in projected_results)
+        expected_left = expected_bindings if len(projected_results) == 1 else f"[{expected_bindings}]"
+        if f"{expected_left} = {profile['targetFunction']}({expected_arguments});" not in script:
+            fail(f"{label} managed entry differs from its DataFrame facade contract")
+        declared = [item for item in manifest.get("files", []) if item.get("path") == projection["managed_entry"]]
+        if len(declared) != 1 or declared[0].get("role") != "managed-rss":
+            fail(f"{label} must declare managed.rss with role managed-rss")
+        actual_hash = hashlib.sha256(managed.read_bytes()).hexdigest()
+        if declared[0].get("sha256") != actual_hash:
+            fail(f"{label} managed entry hash is stale")
+    return len(manifests)
 
 
 def result_constant(source, name):
@@ -926,10 +1264,11 @@ def main():
     functions = load_json(FUNCTIONS)
     dataframes = load_json(DATAFRAMES)
     study_facades = load_json(STUDY_FACADES)
+    case_projections = load_json(CASE_PROJECTIONS)
     if functions.get("schema_version") != 2:
         fail("functions.json must use schema_version 2")
-    if dataframes.get("schema_version") != 3:
-        fail("dataframes.json must use schema_version 3")
+    if dataframes.get("schema_version") != 4:
+        fail("dataframes.json must use schema_version 4")
 
     translate = TRANSLATE.read_text(encoding="utf-8")
     frame_ops = FRAME_OPS.read_text(encoding="utf-8")
@@ -949,7 +1288,9 @@ def main():
 
     validate_base_schemas(dataframes)
     validate_study_facades(functions, dataframes, study_facades, dsa_by_name)
-    contract_stats = validate_catalog_contracts(dataframes, study_facades)
+    contract_stats = validate_catalog_contracts(dataframes, study_facades, case_projections)
+    validate_case_projections(case_projections, study_facades, dataframes, dsa_by_name, frame_ops, translate)
+    bundle_count = validate_rssbundles(case_projections, study_facades, dataframes)
 
     for name in sorted(registered_dsa):
         quoted = f'"{name}"'
@@ -1051,7 +1392,7 @@ def main():
         f"{contract_stats['models']} model, {contract_stats['data']} data, "
         f"{contract_stats['structs']} struct and {contract_stats['results']} direct "
         f"result schemas ({contract_stats['resolvedResults']} including inherited bases), "
-        "zero completeness diagnostics"
+        f"{bundle_count} projected bundles, zero completeness diagnostics"
     )
     return 0
 

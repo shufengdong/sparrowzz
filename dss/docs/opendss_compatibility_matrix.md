@@ -45,7 +45,9 @@ OpenDSS 语言兼容。状态含义如下：
 “显式表”不表示该对象无法由 PSA 的 `ExecutionStudy` 导入器降低。静态
 `import_dss()` 只调用 `StaticPowerFlow` 并返回固定 21 项，因此这条路径要求 RSS 显式
 传入第 21–32 位的研究表；`import_dss_execution()` 可从受支持的单 `Solve` 命令流返回
-完整 33 项 QSTS bundle。
+完整 33 项 QSTS bundle。V4 案例导入使用 `project_dss_execution_plan` 展开多 Solve 生命周期为
+40 张注入表，并由 `ds_radial_execution_plan` 或 `ds_newton_raphson_execution_plan` 执行；该路径
+保留 epoch、continuation state、mutation、Monitor/保护/计量和诊断，不再读取 DSS 路径。
 
 ## 2. DSS 命令流
 
@@ -58,7 +60,7 @@ OpenDSS 语言兼容。状态含义如下：
 | `Redirect`, `Compile` | 本地入口支持相对 include 树 | 支持保留的 include | 使用本地 `import_dss` |
 | `Set DefaultBaseFrequency` | 支持 | 支持 | 导入为 `para.base_frequency_hz` |
 | 其他运行时 `Set` | fail-closed | 在执行契约内有界支持；`CaseName` 作为输出命名省略，`Maxi`/`MaxControli` 归一化为求解迭代参数 | 在 `solution`/`para` 中显式设置 |
-| `Solve` | fail-closed | 单 Solve profile 和多 Solve execution plan 均有 PSA API | 单 Solve 可用 `import_dss_execution` 展开；多 Solve 用 `ds_radial_dss_plan` / `ds_newton_raphson_dss_plan` |
+| `Solve` | fail-closed | 单 Solve profile 和多 Solve execution plan 均有 PSA API | 单 Solve 可用 `import_dss_execution`；多 Solve 可投影到 `ds_radial_execution_plan` / `ds_newton_raphson_execution_plan`，路径入口只负责首次导入 |
 | `Open`, `Close` | 静态最终状态必须可表示 | 显式开关的整设备动作及 epoch mutation 有界支持 | 修改显式开关表或使用 QSTS 控制表 |
 | `Enable`, `Disable` | 已支持对象的最终静态状态必须可表示 | 当前 execution profile 明确为 unsupported，遇到即 fail-closed | 在 RSS 中显式构造所需设备表 |
 | `CalcVoltageBases` | fail-closed | 在已声明执行契约中有界支持 | 降低为网络基准计算，不产生独立结果表 |
@@ -82,7 +84,7 @@ Snapshot `Solve` 和 `BusCoords` 可分别降低为网络基准、潮流调用�
 | Snapshot 潮流 | `ds_radial_pf` | 直接 | 适合辐射状/弱网状配电网，支持完整 20 表 |
 | Snapshot Newton 潮流 | `ds_newton_raphson_pf` | 直接 | 需要 MUMPS 或 MKL feature |
 | Daily/Yearly/Duty/PeakDay/LD1/LD2 | `ds_radial_qsts`, `ds_newton_raphson_qsts` | 显式表 | 固定 33 参数；时间、曲线、控制和计量独立成表 |
-| Harmonic / HarmonicT | `ds_harmonic_study`, `ds_dss_harmonic_plan` | 直接/有界 | 支持显式频谱、整数谐波和 Spectrum 驱动的非整数频率集合；执行计划保留基波初始化、控制终态、跨 Solve mutation 和 Monitor |
+| Harmonic / HarmonicT | `ds_harmonic_study`, `ds_dss_harmonic_plan`, `ds_harmonic_execution_plan` | 直接/有界 | 支持显式频谱、整数谐波和 Spectrum 驱动的非整数频率集合；DataFrame 执行计划保留基波初始化、逐 Solve 网络快照、跨 Solve mutation、Monitor 和 MonitorSave |
 | FaultStudy / 单故障求解 | `ds_fault_study` | 显式表 | 故障位置、类型和阻抗放在 `fault` |
 | 状态估计 | `ds_wls_se`, `ds_mnmr_se`, `ds_mce_se` | 显式表 | 需要 measurement；需要稀疏后端 |
 | Monte Carlo | `ds_monte_carlo` | 显式表 | 随机或 replay；当前拒绝非空独立 storage |
@@ -91,13 +93,14 @@ Snapshot `Solve` 和 `BusCoords` 可分别降低为网络基准、潮流调用�
 | 故障定位 | `ds_fault_location` | 显式表 | measurement 与候选表；当前拒绝非空 storage |
 | 电机网络动态 | `ds_motor_dynamics` | 显式表 | timeline/event/保护/spec；当前拒绝非空 storage |
 | 完整网络动态 V12 | `ds_network_dynamics` | 显式表 | timeline/event/故障/保护/spec；支持 Storage、PVSystem、Generator、电机、FRT、普通控制和设备保护连接审计 |
-| Dynamic/Dynamics 命令流 | `ds_dss_dynamic_plan` | 直接/有界 | 可选 Snapshot 初始化、固定正步长和连续时钟；运行期模型修改、未映射设置、DynamicEq/DynOut、VCCS、用户 DLL 与 EMT fail closed |
-| 多个 `Solve` 连续命令流 | `ds_radial_dss_plan`, `ds_newton_raphson_dss_plan` | 有界 | 保留 typed continuation state；结果按 epoch 合并并携带全局 trace |
+| Dynamic/Dynamics 命令流 | `ds_dss_dynamic_plan` → `ds_network_dynamics` | 直接/有界 | 投影 timeline、typed event、fault、保护模型、spec/para 和可选 Snapshot 初始化；固定正步长和连续时钟；运行期模型修改、未映射设置、DynamicEq/DynOut、VCCS、用户 DLL 与 EMT fail closed |
+| 多个 `Solve` 连续命令流 | 路径导入 `ds_*_dss_plan` → DataFrame `ds_*_execution_plan` | 有界 | 保留 typed continuation state；结果按 epoch 合并并携带全局 trace；受管执行不读取路径 |
 
 QSTS 可直接选择 PSA 当前的 typed continuation state：`storage_state`,
 `storage_controller_state`, `switch_control_state`, `fuse_state`, `recloser_state`,
 `relay_state`, `fault_state`。这些结果用于观察一个 `ds_*_qsts` 调用内部的跨时点状态；
-它们不等同于尚未公开的多 `Solve` execution-plan adapter。
+多 `Solve` 案例必须使用独立的 execution-plan 投影表；不能只把一次 QSTS 调用的状态结果
+反向当作完整 DSS 命令生命周期。
 
 ## 4. 数值语义差异
 
