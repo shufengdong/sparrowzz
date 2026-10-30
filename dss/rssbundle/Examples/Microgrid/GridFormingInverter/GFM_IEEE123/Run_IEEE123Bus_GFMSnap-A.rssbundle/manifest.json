@@ -15,13 +15,29 @@
   "source": {
     "entry": "dss/Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-A.DSS",
     "root": "dss",
-    "tree_sha256": "6b4495d0ee6f2c674893bb5d474c46eb035738ddcfc90e0621db0f82ae69f8e5"
+    "tree_sha256": "bd1e4dda64a1826a86158eb5a52e9b8a5e6765dded0f8d3960b9921fa634ba86"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
   },
   "files": [
     {
       "path": "dss/Examples/Microgrid/GridFormingInverter/GFM_IEEE123/BusCoords.dat",
       "role": "data-asset",
-      "sha256": "0b409c0e5d99f365c0140bf38280c1d64932032f1ecb8ef83ae54d4ed0d2716f"
+      "sha256": "da66aceb7ce5b652b69d3a5db8fb7783eb64eaf8c7429581e74aa1cd2f80fb76"
     },
     {
       "path": "dss/Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-A.DSS",
@@ -61,7 +77,7 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "684e3657cb270edd2bc195f14c49147752e234c56ef5fe33daca83041cc6658f"
+      "sha256": "380ae9aceeee8c628c36f7d5832d095a9b8ccba60af743bea24c559aaacb5ed2"
     },
     {
       "path": "managed.rss",
@@ -69,21 +85,5 @@
       "sha256": "d3bd3d5d318b5cf3a2c6181be66fc1324a51cfadf44ef5ccfb14d47af58240d5"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_newton_raphson_dss_plan",
-    "profile": "dss_execution_newton_v1",
-    "projector": "project_dss_execution_plan",
-    "target_function": "ds_newton_raphson_execution_plan",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "voltage",
-        "target": "bus_phase",
-        "binding": "result_voltage"
-      }
-    ]
-  }
+  "inputs": []
 }

@@ -2,6 +2,6 @@
 // dss2rss.mode=linked
 // dss2rss.study=execution_plan
 // dss2rss.source-entry=dss/IEEETestCases/123Bus/SolarRamp.DSS
-// dss2rss.source-tree-sha256=93e53206cda6c332066223d5b5f4a5aaaf7281f8eeedcf0ab4b413cb5209e619
+// dss2rss.source-tree-sha256=8b518b548b5f761e18c327aaea4ab0653f6c4a8fc0af83ce8b3f716bd71e304a
 // dss2rss.psa-contract-version=0.1.0
 voltage = ds_radial_dss_plan("dss/IEEETestCases/123Bus/SolarRamp.DSS", "bus_phase");

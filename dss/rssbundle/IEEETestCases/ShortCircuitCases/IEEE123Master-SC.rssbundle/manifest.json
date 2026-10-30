@@ -16,6 +16,22 @@
     "root": "dss",
     "tree_sha256": "85910bfdbfd49d58323e29e32bd76f63b5e9583de40acc35f7aa8feace6f5471"
   },
+  "projection": {
+    "source_function": "ds_dss_fault_study",
+    "profile": "dss_fault_study_v1",
+    "projector": "project_dss_fault_study",
+    "target_function": "ds_fault_study",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "fault",
+        "target": "fault",
+        "binding": "result_fault"
+      }
+    ]
+  },
   "files": [
     {
       "path": "dss/IEEETestCases/IEEELineCodes.DSS",
@@ -25,7 +41,7 @@
     {
       "path": "dss/IEEETestCases/ShortCircuitCases/IEEE123Master-SC.dss",
       "role": "dss-entry",
-      "sha256": "0649f9100bc781410553f7aa73d1f8f4f1965911869954186dc5b7f701378e4d"
+      "sha256": "c1900f8ee0d72353cff06197ecad4a6f3ebdfbccf63e78f4803723352648c666"
     },
     {
       "path": "dss/IEEETestCases/ShortCircuitCases/IEEE123Regulators.DSS",
@@ -48,21 +64,5 @@
       "sha256": "e3516154047ae27dcd296f923912c512209438c309676061eea036314784a9d8"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_dss_fault_study",
-    "profile": "dss_fault_study_v1",
-    "projector": "project_dss_fault_study",
-    "target_function": "ds_fault_study",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "fault",
-        "target": "fault",
-        "binding": "result_fault"
-      }
-    ]
-  }
+  "inputs": []
 }

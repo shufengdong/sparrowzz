@@ -15,7 +15,23 @@
   "source": {
     "entry": "dss/IEEETestCases/8500-Node/Run_8500Node.dss",
     "root": "dss",
-    "tree_sha256": "7c1ad9c0971f800957c6067908abb85659f1118abe820b9e879f462976915d39"
+    "tree_sha256": "71cc44d85a65ca2cac0eb24d624b42e38dca43fe6c419faa2caac92e3dc940a9"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
   },
   "files": [
     {
@@ -66,7 +82,7 @@
     {
       "path": "dss/IEEETestCases/8500-Node/Run_8500Node.dss",
       "role": "dss-entry",
-      "sha256": "6f7049134ab22835173d0b1a5be6f0f8d270be55643c594afcf9e458d6fe1b52"
+      "sha256": "fcae0bae83c57bae8d690f23a0493b7a3f4b1af3774623711e6a7ac00b49c4af"
     },
     {
       "path": "dss/IEEETestCases/8500-Node/Transformers.dss",
@@ -86,7 +102,7 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "ac1893b9cef2b1d7e6e0b2a23fa947b965f96f92a0f0994e522a3ea5501b9da9"
+      "sha256": "82c9551b5a5fcdc60949219e6ad43dbac4a91e66831889774c503ae56065b929"
     },
     {
       "path": "managed.rss",
@@ -94,21 +110,5 @@
       "sha256": "d3bd3d5d318b5cf3a2c6181be66fc1324a51cfadf44ef5ccfb14d47af58240d5"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_newton_raphson_dss_plan",
-    "profile": "dss_execution_newton_v1",
-    "projector": "project_dss_execution_plan",
-    "target_function": "ds_newton_raphson_execution_plan",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "voltage",
-        "target": "bus_phase",
-        "binding": "result_voltage"
-      }
-    ]
-  }
+  "inputs": []
 }

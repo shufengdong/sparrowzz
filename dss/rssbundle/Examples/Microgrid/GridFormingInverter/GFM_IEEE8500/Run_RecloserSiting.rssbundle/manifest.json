@@ -15,7 +15,23 @@
   "source": {
     "entry": "dss/Run_RecloserSiting.DSS",
     "root": "dss",
-    "tree_sha256": "ed4ed1826229c8ab5d09a8eb3ee5fc0842f7d351f126ec922e4c62993fc95ad4"
+    "tree_sha256": "d20680a05ef1857aac6738adb103654dddd90186ca3a194208b5a266ed0dfd6b"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
   },
   "files": [
     {
@@ -81,7 +97,7 @@
     {
       "path": "dss/Run_RecloserSiting.DSS",
       "role": "dss-entry",
-      "sha256": "1bf21c4598fb8d5f15fb9e65c490001c30d948562b54128b4a4d7aebf84ab2c3"
+      "sha256": "d12b24a87249687269cc13a30107961d7692950b919dabd2bf10c33161423152"
     },
     {
       "path": "dss/TplxFaultrate.dss",
@@ -106,7 +122,7 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "32776b4ef8a2897033dc6e7b7e4c29c548cf1d8d5fb60a4d3d682ae958b6d821"
+      "sha256": "9c1b427b15626ed23a3cad458997fedaddc062c500bf8f3f2c9530278c5ac51a"
     },
     {
       "path": "managed.rss",
@@ -114,21 +130,5 @@
       "sha256": "d3bd3d5d318b5cf3a2c6181be66fc1324a51cfadf44ef5ccfb14d47af58240d5"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_newton_raphson_dss_plan",
-    "profile": "dss_execution_newton_v1",
-    "projector": "project_dss_execution_plan",
-    "target_function": "ds_newton_raphson_execution_plan",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "voltage",
-        "target": "bus_phase",
-        "binding": "result_voltage"
-      }
-    ]
-  }
+  "inputs": []
 }

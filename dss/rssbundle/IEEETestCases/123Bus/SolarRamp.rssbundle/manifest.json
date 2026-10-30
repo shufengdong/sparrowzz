@@ -15,13 +15,29 @@
   "source": {
     "entry": "dss/IEEETestCases/123Bus/SolarRamp.DSS",
     "root": "dss",
-    "tree_sha256": "93e53206cda6c332066223d5b5f4a5aaaf7281f8eeedcf0ab4b413cb5209e619"
+    "tree_sha256": "8b518b548b5f761e18c327aaea4ab0653f6c4a8fc0af83ce8b3f716bd71e304a"
+  },
+  "projection": {
+    "source_function": "ds_radial_dss_plan",
+    "profile": "dss_execution_radial_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_radial_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
   },
   "files": [
     {
       "path": "dss/IEEETestCases/123Bus/BusCoords.dat",
       "role": "data-asset",
-      "sha256": "0b409c0e5d99f365c0140bf38280c1d64932032f1ecb8ef83ae54d4ed0d2716f"
+      "sha256": "da66aceb7ce5b652b69d3a5db8fb7783eb64eaf8c7429581e74aa1cd2f80fb76"
     },
     {
       "path": "dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
@@ -66,7 +82,7 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "8761a29fea4d1b50beb5a9789e10845479e216138bb8565302ff7dfcd2af2540"
+      "sha256": "4d00f00b5dda0573d743703f734a329ccab971a7b0b262dfbf9c459bd3ca8330"
     },
     {
       "path": "managed.rss",
@@ -74,21 +90,5 @@
       "sha256": "c83b4ba973c111bd38c3328061de465cae9b1719991d98c134339d511ab676d0"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
-    "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "voltage",
-        "target": "bus_phase",
-        "binding": "result_voltage"
-      }
-    ]
-  }
+  "inputs": []
 }
