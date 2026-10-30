@@ -20,7 +20,9 @@ ohm、时间 s、频率 Hz、角度 rad。DSS 导入器负责把 OpenDSS 常用�
 
 DSS/rssbundle 的投影还必须读取
 [`catalog/case_projections.json`](catalog/case_projections.json)。它不新增猜测规则，而是把
-来源函数绑定到已有 facade 和 schema。manifest 只保存 profile 引用及本案例的结果绑定。
+来源函数绑定到已有 facade 和 schema，并以 `projectorOutputs` 给出导入器每张返回表的顺序、
+角色、schema 和去向。manifest 只保存 profile 引用及本案例的结果绑定。调用方必须保存
+`disposition=diagnostic` 的投影诊断，但不得把它注入目标门面。
 
 分类语义固定为：
 
@@ -58,13 +60,16 @@ execution-plan 投影中的 `execution_inputs.bus`…`storage` 与 Solve epoch �
 `shape_assignment`、控制器、保护装置、Monitor 和 EnergyMeter 仍为 `model`。`solution`、
 `load_shape`、`tcc_curve`、`fault`、epoch/setting/mutation/action/reference/event/diagnostic 为
 `data`，末尾 `para` 为 `struct`。这里的 `solution` 是逐 epoch 已物化日程行，因此不同于
-普通 QSTS 门面中单配置对象的 `frames.solution` 分类。
+普通 QSTS 门面中单配置对象的 `frames.solution` 分类。它不声明 Struct `card`，必须作为普通
+Data 资源整体提供。
 
 谐波计划的基础网络和 `snapshot_*` 20 表均为 `model`；`frequency_axis`、
 `frequency_spectrum`、`harmonic_monitor`、`harmonic_snapshot` 为 `data`；`harmonic_plan` 与
 `para` 为 `struct`。`harmonic_snapshot` 用连续 `snapshot_index`、`time_s` 和
 `base_frequency_hz` 选择同索引的快照模型行。空快照集合表示直接使用基础模型；非空集合
-必须完整提供全部 20 个固定位置，不能只覆盖发生变化的列。
+必须完整提供全部 20 个固定位置，不能只覆盖发生变化的列。`snapshot_index` 的
+`contiguous_zero_based` 规则要求非空时从 0 开始并逐行连续递增；是否允许空表仍由
+`rowCount` 决定。
 
 同名 alias 不建立 schema 等价关系。状态估计和故障定位的 `measurement`、短路/QSTS、恢复
 重构和网络动态的 `fault` 都必须按所选 facade 的 `schemaRef` 分别处理。

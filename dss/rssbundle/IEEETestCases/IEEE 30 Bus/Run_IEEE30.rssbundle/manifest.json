@@ -68,7 +68,7 @@
   "projection": {
     "source_function": "ds_newton_raphson_pf",
     "profile": "dss_static_newton_v1",
-    "projector": "import_dss",
+    "projector": "project_dss_static_model",
     "target_function": "ds_newton_raphson_pf",
     "managed_entry": "managed.rss",
     "status": "enabled",

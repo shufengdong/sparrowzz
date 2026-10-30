@@ -1,5 +1,5 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source_of_truth": [
     "mems/src/bin/dss2rss",
     "mems/src/ml/expr_df/frame_ops.rs",
@@ -14,7 +14,7 @@
     {
       "id": "dss_static_newton_v1",
       "sourceFunction": "ds_newton_raphson_pf",
-      "projector": "import_dss",
+      "projector": "project_dss_static_model",
       "targetFunction": "ds_newton_raphson_pf",
       "managedEntry": "managed.rss",
       "compatibility": {
@@ -333,12 +333,224 @@
       },
       "bundleResultMap": {
         "voltage": "bus_phase"
-      }
+      },
+      "projectorOutputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "disposition": "facade_input",
+          "targetInput": "bus"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "disposition": "facade_input",
+          "targetInput": "line"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "disposition": "facade_input",
+          "targetInput": "linecode"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "disposition": "facade_input",
+          "targetInput": "load"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "disposition": "facade_input",
+          "targetInput": "transformer"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "disposition": "facade_input",
+          "targetInput": "voltage_source"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "disposition": "facade_input",
+          "targetInput": "motor"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "disposition": "facade_input",
+          "targetInput": "transformer_winding"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "disposition": "facade_input",
+          "targetInput": "transformer_impedance"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "disposition": "facade_input",
+          "targetInput": "current_source"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "disposition": "facade_input",
+          "targetInput": "generator"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "disposition": "facade_input",
+          "targetInput": "ibr"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "disposition": "facade_input",
+          "targetInput": "switch"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "disposition": "facade_input",
+          "targetInput": "shunt"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "disposition": "facade_input",
+          "targetInput": "capacitor"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "disposition": "facade_input",
+          "targetInput": "reactor"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "disposition": "facade_input",
+          "targetInput": "spectrum"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "disposition": "facade_input",
+          "targetInput": "control_profile"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "disposition": "facade_input",
+          "targetInput": "xy_curve"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "disposition": "facade_input",
+          "targetInput": "storage"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 21,
+          "disposition": "facade_input",
+          "targetInput": "para"
+        }
+      ]
     },
     {
       "id": "dss_static_radial_v1",
       "sourceFunction": "ds_radial_pf",
-      "projector": "import_dss",
+      "projector": "project_dss_static_model",
       "targetFunction": "ds_radial_pf",
       "managedEntry": "managed.rss",
       "compatibility": {
@@ -657,7 +869,219 @@
       },
       "bundleResultMap": {
         "voltage": "bus_phase"
-      }
+      },
+      "projectorOutputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "disposition": "facade_input",
+          "targetInput": "bus"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "disposition": "facade_input",
+          "targetInput": "line"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "disposition": "facade_input",
+          "targetInput": "linecode"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "disposition": "facade_input",
+          "targetInput": "load"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "disposition": "facade_input",
+          "targetInput": "transformer"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "disposition": "facade_input",
+          "targetInput": "voltage_source"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "disposition": "facade_input",
+          "targetInput": "motor"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "disposition": "facade_input",
+          "targetInput": "transformer_winding"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "disposition": "facade_input",
+          "targetInput": "transformer_impedance"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "disposition": "facade_input",
+          "targetInput": "current_source"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "disposition": "facade_input",
+          "targetInput": "generator"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "disposition": "facade_input",
+          "targetInput": "ibr"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "disposition": "facade_input",
+          "targetInput": "switch"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "disposition": "facade_input",
+          "targetInput": "shunt"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "disposition": "facade_input",
+          "targetInput": "capacitor"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "disposition": "facade_input",
+          "targetInput": "reactor"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "disposition": "facade_input",
+          "targetInput": "spectrum"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "disposition": "facade_input",
+          "targetInput": "control_profile"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "disposition": "facade_input",
+          "targetInput": "xy_curve"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "disposition": "facade_input",
+          "targetInput": "storage"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 21,
+          "disposition": "facade_input",
+          "targetInput": "para"
+        }
+      ]
     },
     {
       "id": "dss_execution_radial_v1",
@@ -1351,7 +1775,409 @@
       },
       "bundleResultMap": {
         "voltage": "bus_phase"
-      }
+      },
+      "projectorOutputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.bus",
+          "required": true,
+          "position": 1,
+          "disposition": "facade_input",
+          "targetInput": "bus"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.line",
+          "required": true,
+          "position": 2,
+          "disposition": "facade_input",
+          "targetInput": "line"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.linecode",
+          "required": true,
+          "position": 3,
+          "disposition": "facade_input",
+          "targetInput": "linecode"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.load",
+          "required": true,
+          "position": 4,
+          "disposition": "facade_input",
+          "targetInput": "load"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.transformer",
+          "required": true,
+          "position": 5,
+          "disposition": "facade_input",
+          "targetInput": "transformer"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.voltage_source",
+          "required": true,
+          "position": 6,
+          "disposition": "facade_input",
+          "targetInput": "voltage_source"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.motor",
+          "required": true,
+          "position": 7,
+          "disposition": "facade_input",
+          "targetInput": "motor"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.transformer_winding",
+          "required": true,
+          "position": 8,
+          "disposition": "facade_input",
+          "targetInput": "transformer_winding"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "disposition": "facade_input",
+          "targetInput": "transformer_impedance"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.current_source",
+          "required": true,
+          "position": 10,
+          "disposition": "facade_input",
+          "targetInput": "current_source"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.generator",
+          "required": true,
+          "position": 11,
+          "disposition": "facade_input",
+          "targetInput": "generator"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.ibr",
+          "required": true,
+          "position": 12,
+          "disposition": "facade_input",
+          "targetInput": "ibr"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.switch",
+          "required": true,
+          "position": 13,
+          "disposition": "facade_input",
+          "targetInput": "switch"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.shunt",
+          "required": true,
+          "position": 14,
+          "disposition": "facade_input",
+          "targetInput": "shunt"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.capacitor",
+          "required": true,
+          "position": 15,
+          "disposition": "facade_input",
+          "targetInput": "capacitor"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.reactor",
+          "required": true,
+          "position": 16,
+          "disposition": "facade_input",
+          "targetInput": "reactor"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.spectrum",
+          "required": true,
+          "position": 17,
+          "disposition": "facade_input",
+          "targetInput": "spectrum"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.control_profile",
+          "required": true,
+          "position": 18,
+          "disposition": "facade_input",
+          "targetInput": "control_profile"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.xy_curve",
+          "required": true,
+          "position": 19,
+          "disposition": "facade_input",
+          "targetInput": "xy_curve"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.storage",
+          "required": true,
+          "position": 20,
+          "disposition": "facade_input",
+          "targetInput": "storage"
+        },
+        {
+          "id": "solution",
+          "alias": "solution",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.solution",
+          "required": true,
+          "position": 21,
+          "disposition": "facade_input",
+          "targetInput": "solution"
+        },
+        {
+          "id": "load_shape",
+          "alias": "load_shape",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.load_shape",
+          "required": true,
+          "position": 22,
+          "disposition": "facade_input",
+          "targetInput": "load_shape"
+        },
+        {
+          "id": "shape_assignment",
+          "alias": "shape_assignment",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.shape_assignment",
+          "required": true,
+          "position": 23,
+          "disposition": "facade_input",
+          "targetInput": "shape_assignment"
+        },
+        {
+          "id": "storage_controller",
+          "alias": "storage_controller",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.storage_controller",
+          "required": true,
+          "position": 24,
+          "disposition": "facade_input",
+          "targetInput": "storage_controller"
+        },
+        {
+          "id": "switch_control",
+          "alias": "switch_control",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.switch_control",
+          "required": true,
+          "position": 25,
+          "disposition": "facade_input",
+          "targetInput": "switch_control"
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.tcc_curve",
+          "required": true,
+          "position": 26,
+          "disposition": "facade_input",
+          "targetInput": "tcc_curve"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.fuse",
+          "required": true,
+          "position": 27,
+          "disposition": "facade_input",
+          "targetInput": "fuse"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.recloser",
+          "required": true,
+          "position": 28,
+          "disposition": "facade_input",
+          "targetInput": "recloser"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.relay",
+          "required": true,
+          "position": 29,
+          "disposition": "facade_input",
+          "targetInput": "relay"
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.monitor",
+          "required": true,
+          "position": 30,
+          "disposition": "facade_input",
+          "targetInput": "monitor"
+        },
+        {
+          "id": "energy_meter",
+          "alias": "energy_meter",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.energy_meter",
+          "required": true,
+          "position": 31,
+          "disposition": "facade_input",
+          "targetInput": "energy_meter"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.fault",
+          "required": true,
+          "position": 32,
+          "disposition": "facade_input",
+          "targetInput": "fault"
+        },
+        {
+          "id": "execution_epoch",
+          "alias": "execution_epoch",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_epoch",
+          "required": true,
+          "position": 33,
+          "disposition": "facade_input",
+          "targetInput": "execution_epoch"
+        },
+        {
+          "id": "execution_setting",
+          "alias": "execution_setting",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_setting",
+          "required": true,
+          "position": 34,
+          "disposition": "facade_input",
+          "targetInput": "execution_setting"
+        },
+        {
+          "id": "execution_mutation",
+          "alias": "execution_mutation",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_mutation",
+          "required": true,
+          "position": 35,
+          "disposition": "facade_input",
+          "targetInput": "execution_mutation"
+        },
+        {
+          "id": "post_solve_action",
+          "alias": "post_solve_action",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.post_solve_action",
+          "required": true,
+          "position": 36,
+          "disposition": "facade_input",
+          "targetInput": "post_solve_action"
+        },
+        {
+          "id": "execution_reference",
+          "alias": "execution_reference",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_reference",
+          "required": true,
+          "position": 37,
+          "disposition": "facade_input",
+          "targetInput": "execution_reference"
+        },
+        {
+          "id": "execution_event",
+          "alias": "execution_event",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_event",
+          "required": true,
+          "position": 38,
+          "disposition": "facade_input",
+          "targetInput": "execution_event"
+        },
+        {
+          "id": "projection_diagnostic",
+          "alias": "projection_diagnostic",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.projection_diagnostic",
+          "required": true,
+          "position": 39,
+          "disposition": "facade_input",
+          "targetInput": "projection_diagnostic"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 40,
+          "disposition": "facade_input",
+          "targetInput": "para"
+        }
+      ]
     },
     {
       "id": "dss_execution_newton_v1",
@@ -2045,7 +2871,409 @@
       },
       "bundleResultMap": {
         "voltage": "bus_phase"
-      }
+      },
+      "projectorOutputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.bus",
+          "required": true,
+          "position": 1,
+          "disposition": "facade_input",
+          "targetInput": "bus"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.line",
+          "required": true,
+          "position": 2,
+          "disposition": "facade_input",
+          "targetInput": "line"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.linecode",
+          "required": true,
+          "position": 3,
+          "disposition": "facade_input",
+          "targetInput": "linecode"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.load",
+          "required": true,
+          "position": 4,
+          "disposition": "facade_input",
+          "targetInput": "load"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.transformer",
+          "required": true,
+          "position": 5,
+          "disposition": "facade_input",
+          "targetInput": "transformer"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.voltage_source",
+          "required": true,
+          "position": 6,
+          "disposition": "facade_input",
+          "targetInput": "voltage_source"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.motor",
+          "required": true,
+          "position": 7,
+          "disposition": "facade_input",
+          "targetInput": "motor"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.transformer_winding",
+          "required": true,
+          "position": 8,
+          "disposition": "facade_input",
+          "targetInput": "transformer_winding"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "disposition": "facade_input",
+          "targetInput": "transformer_impedance"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.current_source",
+          "required": true,
+          "position": 10,
+          "disposition": "facade_input",
+          "targetInput": "current_source"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.generator",
+          "required": true,
+          "position": 11,
+          "disposition": "facade_input",
+          "targetInput": "generator"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.ibr",
+          "required": true,
+          "position": 12,
+          "disposition": "facade_input",
+          "targetInput": "ibr"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.switch",
+          "required": true,
+          "position": 13,
+          "disposition": "facade_input",
+          "targetInput": "switch"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.shunt",
+          "required": true,
+          "position": 14,
+          "disposition": "facade_input",
+          "targetInput": "shunt"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.capacitor",
+          "required": true,
+          "position": 15,
+          "disposition": "facade_input",
+          "targetInput": "capacitor"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.reactor",
+          "required": true,
+          "position": 16,
+          "disposition": "facade_input",
+          "targetInput": "reactor"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.spectrum",
+          "required": true,
+          "position": 17,
+          "disposition": "facade_input",
+          "targetInput": "spectrum"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.control_profile",
+          "required": true,
+          "position": 18,
+          "disposition": "facade_input",
+          "targetInput": "control_profile"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.xy_curve",
+          "required": true,
+          "position": 19,
+          "disposition": "facade_input",
+          "targetInput": "xy_curve"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.storage",
+          "required": true,
+          "position": 20,
+          "disposition": "facade_input",
+          "targetInput": "storage"
+        },
+        {
+          "id": "solution",
+          "alias": "solution",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.solution",
+          "required": true,
+          "position": 21,
+          "disposition": "facade_input",
+          "targetInput": "solution"
+        },
+        {
+          "id": "load_shape",
+          "alias": "load_shape",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.load_shape",
+          "required": true,
+          "position": 22,
+          "disposition": "facade_input",
+          "targetInput": "load_shape"
+        },
+        {
+          "id": "shape_assignment",
+          "alias": "shape_assignment",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.shape_assignment",
+          "required": true,
+          "position": 23,
+          "disposition": "facade_input",
+          "targetInput": "shape_assignment"
+        },
+        {
+          "id": "storage_controller",
+          "alias": "storage_controller",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.storage_controller",
+          "required": true,
+          "position": 24,
+          "disposition": "facade_input",
+          "targetInput": "storage_controller"
+        },
+        {
+          "id": "switch_control",
+          "alias": "switch_control",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.switch_control",
+          "required": true,
+          "position": 25,
+          "disposition": "facade_input",
+          "targetInput": "switch_control"
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.tcc_curve",
+          "required": true,
+          "position": 26,
+          "disposition": "facade_input",
+          "targetInput": "tcc_curve"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.fuse",
+          "required": true,
+          "position": 27,
+          "disposition": "facade_input",
+          "targetInput": "fuse"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.recloser",
+          "required": true,
+          "position": 28,
+          "disposition": "facade_input",
+          "targetInput": "recloser"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.relay",
+          "required": true,
+          "position": 29,
+          "disposition": "facade_input",
+          "targetInput": "relay"
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.monitor",
+          "required": true,
+          "position": 30,
+          "disposition": "facade_input",
+          "targetInput": "monitor"
+        },
+        {
+          "id": "energy_meter",
+          "alias": "energy_meter",
+          "inputKind": "model",
+          "schemaRef": "execution_inputs.energy_meter",
+          "required": true,
+          "position": 31,
+          "disposition": "facade_input",
+          "targetInput": "energy_meter"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.fault",
+          "required": true,
+          "position": 32,
+          "disposition": "facade_input",
+          "targetInput": "fault"
+        },
+        {
+          "id": "execution_epoch",
+          "alias": "execution_epoch",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_epoch",
+          "required": true,
+          "position": 33,
+          "disposition": "facade_input",
+          "targetInput": "execution_epoch"
+        },
+        {
+          "id": "execution_setting",
+          "alias": "execution_setting",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_setting",
+          "required": true,
+          "position": 34,
+          "disposition": "facade_input",
+          "targetInput": "execution_setting"
+        },
+        {
+          "id": "execution_mutation",
+          "alias": "execution_mutation",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_mutation",
+          "required": true,
+          "position": 35,
+          "disposition": "facade_input",
+          "targetInput": "execution_mutation"
+        },
+        {
+          "id": "post_solve_action",
+          "alias": "post_solve_action",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.post_solve_action",
+          "required": true,
+          "position": 36,
+          "disposition": "facade_input",
+          "targetInput": "post_solve_action"
+        },
+        {
+          "id": "execution_reference",
+          "alias": "execution_reference",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_reference",
+          "required": true,
+          "position": 37,
+          "disposition": "facade_input",
+          "targetInput": "execution_reference"
+        },
+        {
+          "id": "execution_event",
+          "alias": "execution_event",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.execution_event",
+          "required": true,
+          "position": 38,
+          "disposition": "facade_input",
+          "targetInput": "execution_event"
+        },
+        {
+          "id": "projection_diagnostic",
+          "alias": "projection_diagnostic",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.projection_diagnostic",
+          "required": true,
+          "position": 39,
+          "disposition": "facade_input",
+          "targetInput": "projection_diagnostic"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 40,
+          "disposition": "facade_input",
+          "targetInput": "para"
+        }
+      ]
     },
     {
       "id": "dss_fault_study_v1",
@@ -2287,7 +3515,238 @@
       },
       "bundleResultMap": {
         "fault": "fault"
-      }
+      },
+      "projectorOutputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "disposition": "facade_input",
+          "targetInput": "bus"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "disposition": "facade_input",
+          "targetInput": "line"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "disposition": "facade_input",
+          "targetInput": "linecode"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "disposition": "facade_input",
+          "targetInput": "load"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "disposition": "facade_input",
+          "targetInput": "transformer"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "disposition": "facade_input",
+          "targetInput": "voltage_source"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "disposition": "facade_input",
+          "targetInput": "motor"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "disposition": "facade_input",
+          "targetInput": "transformer_winding"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "disposition": "facade_input",
+          "targetInput": "transformer_impedance"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "disposition": "facade_input",
+          "targetInput": "current_source"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "disposition": "facade_input",
+          "targetInput": "generator"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "disposition": "facade_input",
+          "targetInput": "ibr"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "disposition": "facade_input",
+          "targetInput": "switch"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "disposition": "facade_input",
+          "targetInput": "shunt"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "disposition": "facade_input",
+          "targetInput": "capacitor"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "disposition": "facade_input",
+          "targetInput": "reactor"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "disposition": "facade_input",
+          "targetInput": "spectrum"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "disposition": "facade_input",
+          "targetInput": "control_profile"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "disposition": "facade_input",
+          "targetInput": "xy_curve"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "disposition": "facade_input",
+          "targetInput": "storage"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "frames.fault",
+          "required": true,
+          "position": 21,
+          "disposition": "facade_input",
+          "targetInput": "fault"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 22,
+          "disposition": "facade_input",
+          "targetInput": "para"
+        },
+        {
+          "id": "import_diagnostic",
+          "alias": "import_diagnostic",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.import_diagnostic",
+          "required": true,
+          "position": 23,
+          "disposition": "diagnostic"
+        }
+      ]
     },
     {
       "id": "dss_harmonic_plan_v1",
@@ -2906,7 +4365,598 @@
         "branch_sequence": "branch_sequence",
         "monitor": "monitor",
         "monitor_save": "monitor_save"
-      }
+      },
+      "projectorOutputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "disposition": "facade_input",
+          "targetInput": "bus"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "disposition": "facade_input",
+          "targetInput": "line"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "disposition": "facade_input",
+          "targetInput": "linecode"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "disposition": "facade_input",
+          "targetInput": "load"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "disposition": "facade_input",
+          "targetInput": "transformer"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "disposition": "facade_input",
+          "targetInput": "voltage_source"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "disposition": "facade_input",
+          "targetInput": "motor"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "disposition": "facade_input",
+          "targetInput": "transformer_winding"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "disposition": "facade_input",
+          "targetInput": "transformer_impedance"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "disposition": "facade_input",
+          "targetInput": "current_source"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "disposition": "facade_input",
+          "targetInput": "generator"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "disposition": "facade_input",
+          "targetInput": "ibr"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "disposition": "facade_input",
+          "targetInput": "switch"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "disposition": "facade_input",
+          "targetInput": "shunt"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "disposition": "facade_input",
+          "targetInput": "capacitor"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "disposition": "facade_input",
+          "targetInput": "reactor"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "disposition": "facade_input",
+          "targetInput": "spectrum"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "disposition": "facade_input",
+          "targetInput": "control_profile"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "disposition": "facade_input",
+          "targetInput": "xy_curve"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "disposition": "facade_input",
+          "targetInput": "storage"
+        },
+        {
+          "id": "solution",
+          "alias": "solution",
+          "inputKind": "struct",
+          "schemaRef": "frames.solution",
+          "required": true,
+          "position": 21,
+          "disposition": "facade_input",
+          "targetInput": "solution"
+        },
+        {
+          "id": "load_shape",
+          "alias": "load_shape",
+          "inputKind": "data",
+          "schemaRef": "frames.load_shape",
+          "required": true,
+          "position": 22,
+          "disposition": "facade_input",
+          "targetInput": "load_shape"
+        },
+        {
+          "id": "shape_assignment",
+          "alias": "shape_assignment",
+          "inputKind": "model",
+          "schemaRef": "frames.shape_assignment",
+          "required": true,
+          "position": 23,
+          "disposition": "facade_input",
+          "targetInput": "shape_assignment"
+        },
+        {
+          "id": "storage_controller",
+          "alias": "storage_controller",
+          "inputKind": "model",
+          "schemaRef": "frames.storage_controller",
+          "required": true,
+          "position": 24,
+          "disposition": "facade_input",
+          "targetInput": "storage_controller"
+        },
+        {
+          "id": "switch_control",
+          "alias": "switch_control",
+          "inputKind": "model",
+          "schemaRef": "frames.switch_control",
+          "required": true,
+          "position": 25,
+          "disposition": "facade_input",
+          "targetInput": "switch_control"
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "frames.tcc_curve",
+          "required": true,
+          "position": 26,
+          "disposition": "facade_input",
+          "targetInput": "tcc_curve"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "frames.fuse",
+          "required": true,
+          "position": 27,
+          "disposition": "facade_input",
+          "targetInput": "fuse"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "frames.recloser",
+          "required": true,
+          "position": 28,
+          "disposition": "facade_input",
+          "targetInput": "recloser"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "frames.relay",
+          "required": true,
+          "position": 29,
+          "disposition": "facade_input",
+          "targetInput": "relay"
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor",
+          "inputKind": "model",
+          "schemaRef": "frames.monitor",
+          "required": true,
+          "position": 30,
+          "disposition": "facade_input",
+          "targetInput": "monitor"
+        },
+        {
+          "id": "energy_meter",
+          "alias": "energy_meter",
+          "inputKind": "model",
+          "schemaRef": "frames.energy_meter",
+          "required": true,
+          "position": 31,
+          "disposition": "facade_input",
+          "targetInput": "energy_meter"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "frames.fault",
+          "required": true,
+          "position": 32,
+          "disposition": "facade_input",
+          "targetInput": "fault"
+        },
+        {
+          "id": "frequency_axis",
+          "alias": "frequency_axis",
+          "inputKind": "data",
+          "schemaRef": "harmonic_execution_inputs.frequency_axis",
+          "required": true,
+          "position": 33,
+          "disposition": "facade_input",
+          "targetInput": "frequency_axis"
+        },
+        {
+          "id": "frequency_spectrum",
+          "alias": "frequency_spectrum",
+          "inputKind": "data",
+          "schemaRef": "harmonic_execution_inputs.frequency_spectrum",
+          "required": true,
+          "position": 34,
+          "disposition": "facade_input",
+          "targetInput": "frequency_spectrum"
+        },
+        {
+          "id": "harmonic_monitor",
+          "alias": "harmonic_monitor",
+          "inputKind": "model",
+          "schemaRef": "harmonic_execution_inputs.monitor",
+          "required": true,
+          "position": 35,
+          "disposition": "facade_input",
+          "targetInput": "harmonic_monitor"
+        },
+        {
+          "id": "harmonic_plan",
+          "alias": "harmonic_plan",
+          "inputKind": "struct",
+          "schemaRef": "harmonic_execution_inputs.plan",
+          "required": true,
+          "position": 36,
+          "disposition": "facade_input",
+          "targetInput": "harmonic_plan"
+        },
+        {
+          "id": "snapshot_bus",
+          "alias": "snapshot_bus",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.bus",
+          "required": true,
+          "position": 37,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_bus"
+        },
+        {
+          "id": "snapshot_line",
+          "alias": "snapshot_line",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.line",
+          "required": true,
+          "position": 38,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_line"
+        },
+        {
+          "id": "snapshot_linecode",
+          "alias": "snapshot_linecode",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.linecode",
+          "required": true,
+          "position": 39,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_linecode"
+        },
+        {
+          "id": "snapshot_load",
+          "alias": "snapshot_load",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.load",
+          "required": true,
+          "position": 40,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_load"
+        },
+        {
+          "id": "snapshot_transformer",
+          "alias": "snapshot_transformer",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.transformer",
+          "required": true,
+          "position": 41,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_transformer"
+        },
+        {
+          "id": "snapshot_voltage_source",
+          "alias": "snapshot_voltage_source",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.voltage_source",
+          "required": true,
+          "position": 42,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_voltage_source"
+        },
+        {
+          "id": "snapshot_motor",
+          "alias": "snapshot_motor",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.motor",
+          "required": true,
+          "position": 43,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_motor"
+        },
+        {
+          "id": "snapshot_transformer_winding",
+          "alias": "snapshot_transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.transformer_winding",
+          "required": true,
+          "position": 44,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_transformer_winding"
+        },
+        {
+          "id": "snapshot_transformer_impedance",
+          "alias": "snapshot_transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.transformer_impedance",
+          "required": true,
+          "position": 45,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_transformer_impedance"
+        },
+        {
+          "id": "snapshot_current_source",
+          "alias": "snapshot_current_source",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.current_source",
+          "required": true,
+          "position": 46,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_current_source"
+        },
+        {
+          "id": "snapshot_generator",
+          "alias": "snapshot_generator",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.generator",
+          "required": true,
+          "position": 47,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_generator"
+        },
+        {
+          "id": "snapshot_ibr",
+          "alias": "snapshot_ibr",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.ibr",
+          "required": true,
+          "position": 48,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_ibr"
+        },
+        {
+          "id": "snapshot_switch",
+          "alias": "snapshot_switch",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.switch",
+          "required": true,
+          "position": 49,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_switch"
+        },
+        {
+          "id": "snapshot_shunt",
+          "alias": "snapshot_shunt",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.shunt",
+          "required": true,
+          "position": 50,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_shunt"
+        },
+        {
+          "id": "snapshot_capacitor",
+          "alias": "snapshot_capacitor",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.capacitor",
+          "required": true,
+          "position": 51,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_capacitor"
+        },
+        {
+          "id": "snapshot_reactor",
+          "alias": "snapshot_reactor",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.reactor",
+          "required": true,
+          "position": 52,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_reactor"
+        },
+        {
+          "id": "snapshot_spectrum",
+          "alias": "snapshot_spectrum",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.spectrum",
+          "required": true,
+          "position": 53,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_spectrum"
+        },
+        {
+          "id": "snapshot_control_profile",
+          "alias": "snapshot_control_profile",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.control_profile",
+          "required": true,
+          "position": 54,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_control_profile"
+        },
+        {
+          "id": "snapshot_xy_curve",
+          "alias": "snapshot_xy_curve",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.xy_curve",
+          "required": true,
+          "position": 55,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_xy_curve"
+        },
+        {
+          "id": "snapshot_storage",
+          "alias": "snapshot_storage",
+          "inputKind": "model",
+          "schemaRef": "harmonic_snapshot_inputs.storage",
+          "required": true,
+          "position": 56,
+          "disposition": "facade_input",
+          "targetInput": "snapshot_storage"
+        },
+        {
+          "id": "harmonic_snapshot",
+          "alias": "harmonic_snapshot",
+          "inputKind": "data",
+          "schemaRef": "harmonic_snapshot_inputs.snapshot",
+          "required": true,
+          "position": 57,
+          "disposition": "facade_input",
+          "targetInput": "harmonic_snapshot"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 58,
+          "disposition": "facade_input",
+          "targetInput": "para"
+        },
+        {
+          "id": "import_diagnostic",
+          "alias": "import_diagnostic",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.import_diagnostic",
+          "required": true,
+          "position": 59,
+          "disposition": "diagnostic"
+        }
+      ]
     },
     {
       "id": "dss_dynamic_plan_v1",
@@ -3344,7 +5394,308 @@
         "device_state": "device_state",
         "generator_state": "generator_state",
         "device_protection_connection": "device_protection_connection"
-      }
+      },
+      "projectorOutputs": [
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "frames.bus",
+          "required": true,
+          "position": 1,
+          "disposition": "facade_input",
+          "targetInput": "bus"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "frames.line",
+          "required": true,
+          "position": 2,
+          "disposition": "facade_input",
+          "targetInput": "line"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "frames.linecode",
+          "required": true,
+          "position": 3,
+          "disposition": "facade_input",
+          "targetInput": "linecode"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "frames.load",
+          "required": true,
+          "position": 4,
+          "disposition": "facade_input",
+          "targetInput": "load"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer",
+          "required": true,
+          "position": 5,
+          "disposition": "facade_input",
+          "targetInput": "transformer"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "frames.voltage_source",
+          "required": true,
+          "position": 6,
+          "disposition": "facade_input",
+          "targetInput": "voltage_source"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "frames.motor",
+          "required": true,
+          "position": 7,
+          "disposition": "facade_input",
+          "targetInput": "motor"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_winding",
+          "required": true,
+          "position": 8,
+          "disposition": "facade_input",
+          "targetInput": "transformer_winding"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "frames.transformer_impedance",
+          "required": true,
+          "position": 9,
+          "disposition": "facade_input",
+          "targetInput": "transformer_impedance"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "frames.current_source",
+          "required": true,
+          "position": 10,
+          "disposition": "facade_input",
+          "targetInput": "current_source"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "frames.generator",
+          "required": true,
+          "position": 11,
+          "disposition": "facade_input",
+          "targetInput": "generator"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "frames.ibr",
+          "required": true,
+          "position": 12,
+          "disposition": "facade_input",
+          "targetInput": "ibr"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "frames.switch",
+          "required": true,
+          "position": 13,
+          "disposition": "facade_input",
+          "targetInput": "switch"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "frames.shunt",
+          "required": true,
+          "position": 14,
+          "disposition": "facade_input",
+          "targetInput": "shunt"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "frames.capacitor",
+          "required": true,
+          "position": 15,
+          "disposition": "facade_input",
+          "targetInput": "capacitor"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "frames.reactor",
+          "required": true,
+          "position": 16,
+          "disposition": "facade_input",
+          "targetInput": "reactor"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "frames.spectrum",
+          "required": true,
+          "position": 17,
+          "disposition": "facade_input",
+          "targetInput": "spectrum"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "frames.control_profile",
+          "required": true,
+          "position": 18,
+          "disposition": "facade_input",
+          "targetInput": "control_profile"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "frames.xy_curve",
+          "required": true,
+          "position": 19,
+          "disposition": "facade_input",
+          "targetInput": "xy_curve"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "frames.storage",
+          "required": true,
+          "position": 20,
+          "disposition": "facade_input",
+          "targetInput": "storage"
+        },
+        {
+          "id": "timeline",
+          "alias": "timeline",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_timeline",
+          "required": true,
+          "position": 21,
+          "disposition": "facade_input",
+          "targetInput": "timeline"
+        },
+        {
+          "id": "event",
+          "alias": "event",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_event",
+          "required": true,
+          "position": 22,
+          "disposition": "facade_input",
+          "targetInput": "event"
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "frames.tcc_curve",
+          "required": true,
+          "position": 23,
+          "disposition": "facade_input",
+          "targetInput": "tcc_curve"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "frames.fuse",
+          "required": true,
+          "position": 24,
+          "disposition": "facade_input",
+          "targetInput": "fuse"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "frames.recloser",
+          "required": true,
+          "position": 25,
+          "disposition": "facade_input",
+          "targetInput": "recloser"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "frames.relay",
+          "required": true,
+          "position": 26,
+          "disposition": "facade_input",
+          "targetInput": "relay"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_fault",
+          "required": true,
+          "position": 27,
+          "disposition": "facade_input",
+          "targetInput": "fault"
+        },
+        {
+          "id": "spec",
+          "alias": "spec",
+          "inputKind": "struct",
+          "schemaRef": "analysis_inputs.dynamic_spec",
+          "required": true,
+          "position": 28,
+          "disposition": "facade_input",
+          "targetInput": "spec"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "frames.para",
+          "required": true,
+          "position": 29,
+          "disposition": "facade_input",
+          "targetInput": "para"
+        },
+        {
+          "id": "import_diagnostic",
+          "alias": "import_diagnostic",
+          "inputKind": "data",
+          "schemaRef": "execution_inputs.import_diagnostic",
+          "required": true,
+          "position": 30,
+          "disposition": "diagnostic"
+        }
+      ]
     },
     {
       "id": "dss_auto_add_unavailable_v1",

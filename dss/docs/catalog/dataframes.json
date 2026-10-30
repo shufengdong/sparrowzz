@@ -1,5 +1,5 @@
 {
-  "schema_version": 3,
+  "schema_version": 4,
   "source_of_truth": [
     "psa/src/dsa/parse",
     "psa/src/dsa/parse/dss_import.rs",
@@ -21,7 +21,8 @@
     "u32_semantics",
     "f64_or_list",
     "f64_or_matrix",
-    "str_or_list"
+    "str_or_list",
+    "u32_or_list_bool"
   ],
   "unit_convention": {
     "voltage": "V",
@@ -182,7 +183,8 @@
         "v_min": "f64",
         "v_max": "f64",
         "v_min_phase": "f64_or_list",
-        "v_max_phase": "f64_or_list"
+        "v_max_phase": "f64_or_list",
+        "voltage_base_v": "f64"
       },
       "contract": {
         "kind": "model",
@@ -240,6 +242,13 @@
             "required": false,
             "nullable": true,
             "unit": "V"
+          },
+          {
+            "name": "voltage_base_v",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "V"
           }
         ],
         "stableKeys": [
@@ -291,7 +300,9 @@
         "r_neutral_from": "f64",
         "x_neutral_from": "f64",
         "r_neutral_to": "f64",
-        "x_neutral_to": "f64"
+        "x_neutral_to": "f64",
+        "enabled": "bool",
+        "i_seasonal": "list<f64>"
       },
       "contract": {
         "kind": "model",
@@ -414,6 +425,13 @@
             "unit": "not_applicable"
           },
           {
+            "name": "i_seasonal",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
             "name": "r_neutral_from",
             "dtype": "f64",
             "required": false,
@@ -439,6 +457,13 @@
             "dtype": "f64",
             "required": false,
             "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "enabled",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
             "unit": "not_applicable"
           }
         ],
@@ -480,7 +505,12 @@
         "i_emergency": "list<f64>",
         "s_normal": "list<f64>",
         "s_emergency": "list<f64>",
-        "line_geometry": "str"
+        "i_seasonal": "list<f64>",
+        "line_geometry": "str",
+        "open_dss_rg_ohm_per_m": "f64",
+        "open_dss_xg_ohm_per_m": "f64",
+        "open_dss_rho_ohm_m": "f64",
+        "open_dss_earth_base_frequency_hz": "f64"
       },
       "contract": {
         "kind": "model",
@@ -589,11 +619,46 @@
             "unit": "not_applicable"
           },
           {
+            "name": "i_seasonal",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
             "name": "line_geometry",
             "dtype": "str",
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_rg_ohm_per_m",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "ohm/m"
+          },
+          {
+            "name": "open_dss_xg_ohm_per_m",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "ohm/m"
+          },
+          {
+            "name": "open_dss_rho_ohm_m",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "ohm*m"
+          },
+          {
+            "name": "open_dss_earth_base_frequency_hz",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "Hz"
           }
         ],
         "stableKeys": [
@@ -645,7 +710,11 @@
         "spectrum": "str",
         "pct_series_rl": "f64",
         "pu_x_harm": "f64",
-        "xr_harm": "f64"
+        "xr_harm": "f64",
+        "enabled": "bool",
+        "open_dss_status": "str",
+        "cvr_watts": "f64",
+        "cvr_vars": "f64"
       },
       "defaults": {
         "model": "constant_power"
@@ -835,6 +904,34 @@
           },
           {
             "name": "xr_harm",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "enabled",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_status",
+            "dtype": "str",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "cvr_watts",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "cvr_vars",
             "dtype": "f64",
             "required": false,
             "nullable": true,
@@ -1642,6 +1739,7 @@
         "v_angle": "list<f64>"
       },
       "optional": {
+        "enabled": "bool",
         "bus2": "str",
         "terminal_map2": "list<str>",
         "sc_va": "f64",
@@ -1670,6 +1768,13 @@
             "name": "name",
             "dtype": "str",
             "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "enabled",
+            "dtype": "bool",
+            "required": false,
             "nullable": false,
             "unit": "not_applicable"
           },
@@ -2366,7 +2471,15 @@
         "dispatch_kw_limit": "f64",
         "dispatch_kvar_limit": "f64",
         "dispatch_kw_band": "f64",
-        "dispatch_weight": "f64"
+        "dispatch_weight": "f64",
+        "enabled": "bool",
+        "open_dss_model": "u32",
+        "open_dss_v_nom": "list<f64>",
+        "open_dss_v_min_pu": "f64",
+        "open_dss_v_max_pu": "f64",
+        "open_dss_status_fixed": "bool",
+        "open_dss_q_fixed": "bool",
+        "open_dss_balanced": "bool"
       },
       "enums": {
         "execution_mode": [
@@ -2661,6 +2774,62 @@
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "enabled",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_model",
+            "dtype": "u32",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_v_nom",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": true,
+            "unit": "V"
+          },
+          {
+            "name": "open_dss_v_min_pu",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "pu"
+          },
+          {
+            "name": "open_dss_v_max_pu",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "pu"
+          },
+          {
+            "name": "open_dss_status_fixed",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_q_fixed",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_balanced",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
           }
         ],
         "stableKeys": [
@@ -2735,7 +2904,14 @@
         "cut_in": "f64",
         "cut_out": "f64",
         "var_follow_inverter": "bool",
-        "spectrum": "str"
+        "spectrum": "str",
+        "enabled": "bool",
+        "open_dss_p_available_reference": "f64",
+        "open_dss_voltage_model": "u32",
+        "open_dss_v_min_pu": "f64",
+        "open_dss_v_max_pu": "f64",
+        "open_dss_limit_current": "bool",
+        "open_dss_balanced": "bool"
       },
       "enums": {
         "topology": [
@@ -3101,6 +3277,55 @@
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "enabled",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_p_available_reference",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "W"
+          },
+          {
+            "name": "open_dss_voltage_model",
+            "dtype": "u32",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_v_min_pu",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "pu"
+          },
+          {
+            "name": "open_dss_v_max_pu",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "pu"
+          },
+          {
+            "name": "open_dss_limit_current",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_balanced",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
           }
         ],
         "stableKeys": [
@@ -3137,7 +3362,10 @@
         "i_normal": "list<f64>",
         "i_emergency": "list<f64>",
         "s_normal": "list<f64>",
-        "s_emergency": "list<f64>"
+        "s_emergency": "list<f64>",
+        "enabled": "bool",
+        "r_closed": "f64",
+        "x_closed": "f64"
       },
       "contract": {
         "kind": "model",
@@ -3223,6 +3451,27 @@
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "enabled",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "r_closed",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "ohm"
+          },
+          {
+            "name": "x_closed",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "ohm"
           }
         ],
         "stableKeys": [
@@ -3295,6 +3544,55 @@
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
+          },
+          {
+            "name": "enabled",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "i_normal",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "i_emergency",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "dss_reactor_kind",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "reactor_enabled",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "kv",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "kV"
+          },
+          {
+            "name": "kvar",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "kvar"
           }
         ],
         "stableKeys": [
@@ -3315,6 +3613,15 @@
           "psa/src/dsa/parse/devices.rs"
         ],
         "shape": "uniform"
+      },
+      "optional": {
+        "enabled": "bool",
+        "i_normal": "f64",
+        "i_emergency": "f64",
+        "dss_reactor_kind": "str",
+        "reactor_enabled": "bool",
+        "kv": "f64",
+        "kvar": "f64"
       }
     },
     "capacitor": {
@@ -3328,8 +3635,32 @@
       },
       "optional": {
         "steps": "u32",
-        "states": "list<bool>",
-        "enabled": "bool"
+        "states": "u32_or_list_bool",
+        "enabled": "bool",
+        "i_normal": "f64",
+        "i_emergency": "f64",
+        "source_order": "u32",
+        "control_name": "str",
+        "control_mode": "str",
+        "on_setting": "f64",
+        "off_setting": "f64",
+        "delay": "f64",
+        "delay_off": "f64",
+        "dead_time": "f64",
+        "ptratio": "f64",
+        "ctratio": "f64",
+        "pct_min_kvar": "f64",
+        "voltage_override": "bool",
+        "v_min": "f64",
+        "v_max": "f64",
+        "v_bus": "str",
+        "monitored_bus": "str",
+        "monitored_bus_from": "str",
+        "monitored_bus_to": "str",
+        "monitored_terminal": "u32",
+        "monitored_phase": "str",
+        "monitored_phase_count": "u32",
+        "monitored_phase_to": "str"
       },
       "contract": {
         "kind": "model",
@@ -3390,7 +3721,7 @@
           },
           {
             "name": "states",
-            "dtype": "list<bool>",
+            "dtype": "u32_or_list_bool",
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
@@ -3398,6 +3729,174 @@
           {
             "name": "enabled",
             "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "i_normal",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "i_emergency",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "source_order",
+            "dtype": "u32",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "control_name",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "control_mode",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "on_setting",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "off_setting",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "delay",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "s"
+          },
+          {
+            "name": "delay_off",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "s"
+          },
+          {
+            "name": "dead_time",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "s"
+          },
+          {
+            "name": "ptratio",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "ctratio",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "pct_min_kvar",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "%"
+          },
+          {
+            "name": "voltage_override",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "v_min",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "V"
+          },
+          {
+            "name": "v_max",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "V"
+          },
+          {
+            "name": "v_bus",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "monitored_bus",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "monitored_bus_from",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "monitored_bus_to",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "monitored_terminal",
+            "dtype": "u32",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "monitored_phase",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "monitored_phase_count",
+            "dtype": "u32",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "monitored_phase_to",
+            "dtype": "str",
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
@@ -3890,7 +4389,10 @@
         "exp_q_max_lead": "f64",
         "exp_q_max_lag": "f64",
         "exp_t_response": "f64",
-        "prefer_q": "bool"
+        "prefer_q": "bool",
+        "drc_average_method": "str",
+        "monitored_nodes": "list<str>",
+        "monitored_v_bases": "list<f64>"
       },
       "enums": {
         "mode": [
@@ -4322,6 +4824,27 @@
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "drc_average_method",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "monitored_nodes",
+            "dtype": "list<str>",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "monitored_v_bases",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": true,
+            "unit": "V"
           }
         ],
         "stableKeys": [
@@ -4448,7 +4971,11 @@
         "discharge_rate": "f64",
         "charge_trigger": "f64",
         "discharge_trigger": "f64",
-        "time_charge_trigger": "f64"
+        "time_charge_trigger": "f64",
+        "enabled": "bool",
+        "dss_initial_state": "str",
+        "dss_initial_p_w": "f64",
+        "power_factor": "f64"
       },
       "note": "RSDss import_dss currently returns this frame empty",
       "contract": {
@@ -4755,6 +5282,34 @@
           },
           {
             "name": "time_charge_trigger",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "enabled",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "dss_initial_state",
+            "dtype": "str",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "dss_initial_p_w",
+            "dtype": "f64",
+            "required": false,
+            "nullable": false,
+            "unit": "W"
+          },
+          {
+            "name": "power_factor",
             "dtype": "f64",
             "required": false,
             "nullable": true,
@@ -5908,7 +6463,8 @@
       "optional": {
         "daily": "str",
         "yearly": "str",
-        "duty": "str"
+        "duty": "str",
+        "cvr_curve": "str"
       },
       "contract": {
         "kind": "model",
@@ -5948,6 +6504,13 @@
           },
           {
             "name": "duty",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "cvr_curve",
             "dtype": "str",
             "required": false,
             "nullable": true,
@@ -7852,7 +8415,14 @@
         "on_time": "f64",
         "action_param": "str",
         "param": "f64",
-        "reduce_pct": "f64"
+        "reduce_pct": "f64",
+        "losses": "bool",
+        "line_losses": "bool",
+        "xfmr_losses": "bool",
+        "seq_losses": "bool",
+        "three_phase_losses": "bool",
+        "vbase_losses": "bool",
+        "phase_voltage_report": "bool"
       },
       "additional_optional_pattern": "aux1..aux30",
       "contract": {
@@ -7987,6 +8557,55 @@
             "dtype": "f64",
             "required": false,
             "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "losses",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "line_losses",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "xfmr_losses",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "seq_losses",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "three_phase_losses",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "vbase_losses",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "phase_voltage_report",
+            "dtype": "bool",
+            "required": false,
+            "nullable": false,
             "unit": "not_applicable"
           }
         ],
@@ -12514,7 +13133,7 @@
         "stall_slip_threshold": "f64",
         "max_corrector_iterations": "u64",
         "tolerance": "f64",
-        "max_network_iterations": "u64",
+        "max_network_iterations": "u32",
         "voltage_tolerance": "f64",
         "relaxation": "f64",
         "max_same_time_action_rounds": "u64",
@@ -12903,7 +13522,7 @@
           },
           {
             "name": "max_network_iterations",
-            "dtype": "u64",
+            "dtype": "u32",
             "required": false,
             "nullable": true,
             "unit": "not_applicable",
@@ -24636,6 +25255,17 @@
         "constraints": [
           "scalar is a one-element logical list"
         ]
+      },
+      "u32_or_list_bool": {
+        "accepts": [
+          "u32",
+          "list<bool>"
+        ],
+        "canonicalArrow": "DenseUnion<UInt32,List<Boolean>>",
+        "canonicalParquet": "one physical representation per uploaded column",
+        "constraints": [
+          "u32 is the count of energized steps; list<bool> is the ordered per-step state"
+        ]
       }
     },
     "upload_conversions": {
@@ -25429,566 +26059,147 @@
             "dtype": "str",
             "required": true,
             "nullable": false,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "required"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "values",
-                "values": [
-                  "DSSSNAPSHOT",
-                  "SNAPSHOT",
-                  "SNAP",
-                  "DAILY",
-                  "YEARLY",
-                  "DUTY",
-                  "DUTYCYCLE",
-                  "PEAKDAY",
-                  "LOADDURATION",
-                  "LOADDURATION1",
-                  "LD1",
-                  "LOADDURATION2",
-                  "LD2",
-                  "DSSPEAKDAY",
-                  "DSSLD1",
-                  "DSSLD2"
-                ],
-                "caseInsensitive": true
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "number",
             "dtype": "u32_semantics",
             "required": true,
             "nullable": false,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "required"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "bounded",
-                "minimum": 0,
-                "maximum": null,
-                "minimumInclusive": false,
-                "maximumInclusive": false
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "step_size_s",
             "dtype": "f64",
             "required": true,
             "nullable": false,
-            "unit": "s",
-            "card": {
-              "default": {
-                "state": "required"
-              },
-              "unit": {
-                "state": "value",
-                "value": "s"
-              },
-              "range": {
-                "state": "bounded",
-                "minimum": 0,
-                "maximum": null,
-                "minimumInclusive": false,
-                "maximumInclusive": false
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "s"
           },
           {
             "name": "hour",
             "dtype": "f64",
             "required": false,
             "nullable": true,
-            "unit": "s",
-            "card": {
-              "default": {
-                "state": "value",
-                "value": 0.0
-              },
-              "unit": {
-                "state": "value",
-                "value": "s"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "s"
           },
           {
             "name": "seconds",
             "dtype": "f64",
             "required": false,
             "nullable": true,
-            "unit": "s",
-            "card": {
-              "default": {
-                "state": "value",
-                "value": 0.0
-              },
-              "unit": {
-                "state": "value",
-                "value": "s"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "s"
           },
           {
             "name": "load_multiplier",
             "dtype": "f64",
             "required": false,
             "nullable": true,
-            "unit": "pu",
-            "card": {
-              "default": {
-                "state": "value",
-                "value": 1.0
-              },
-              "unit": {
-                "state": "value",
-                "value": "pu"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "pu"
           },
           {
             "name": "generation_multiplier",
             "dtype": "f64",
             "required": false,
             "nullable": true,
-            "unit": "pu",
-            "card": {
-              "default": {
-                "state": "value",
-                "value": 1.0
-              },
-              "unit": {
-                "state": "value",
-                "value": "pu"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "pu"
           },
           {
             "name": "control_mode",
             "dtype": "str",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "value",
-                "value": "STATIC"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "values",
-                "values": [
-                  "STATIC",
-                  "EVENT",
-                  "TIME",
-                  "MULTIRATE",
-                  "OFF"
-                ],
-                "caseInsensitive": true
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "trapezoidal",
             "dtype": "bool",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "value",
-                "value": false
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "sample_energy_meters",
             "dtype": "bool",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "value",
-                "value": true
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "default_daily",
             "dtype": "str",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "omitted"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "default_yearly",
             "dtype": "str",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "omitted"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "default_duty",
             "dtype": "str",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "omitted"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "price_curve",
             "dtype": "str",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "omitted"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "price_signal",
             "dtype": "f64",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "value",
-                "value": 25.0
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "peak_day",
             "dtype": "u32",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "value",
-                "value": 0
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "bounded",
-                "minimum": 0,
-                "maximum": 364,
-                "minimumInclusive": true,
-                "maximumInclusive": true
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "load_duration_curve",
             "dtype": "str",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "omitted"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "rating_season",
             "dtype": "u32_semantics",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "omitted"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
           },
           {
             "name": "rating_seasons",
             "dtype": "list<f64>",
             "required": false,
             "nullable": true,
-            "unit": "not_applicable",
-            "card": {
-              "default": {
-                "state": "omitted"
-              },
-              "unit": {
-                "state": "not_applicable"
-              },
-              "range": {
-                "state": "not_applicable"
-              },
-              "enum": {
-                "state": "not_applicable"
-              },
-              "visibleWhen": {
-                "state": "always"
-              },
-              "enabledWhen": {
-                "state": "always"
-              }
-            }
+            "unit": "not_applicable"
+          },
+          {
+            "name": "year",
+            "dtype": "u32",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "voltage_bases_kv",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": false,
+            "unit": "kV"
           }
         ],
         "stableKeys": [
@@ -26004,6 +26215,10 @@
           "psa/src/dsa/parse/dss_projection.rs"
         ],
         "shape": "uniform"
+      },
+      "optional": {
+        "year": "u32",
+        "voltage_bases_kv": "list<f64>"
       }
     },
     "load_shape": {
@@ -26967,6 +27182,67 @@
         "rules": [],
         "source": [
           "psa/src/dsa/parse/dss_projection.rs"
+        ],
+        "shape": "uniform"
+      }
+    },
+    "import_diagnostic": {
+      "contract": {
+        "kind": "data",
+        "rowCount": "zero_or_more",
+        "columnPolicy": {
+          "mode": "closed",
+          "unknownColumns": "forbidden"
+        },
+        "columns": [
+          {
+            "name": "category",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "severity",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "code",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "target",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "message",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          }
+        ],
+        "stableKeys": [
+          "code",
+          "target"
+        ],
+        "sortKeys": [
+          "code"
+        ],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [],
+        "source": [
+          "mems/src/ml/expr_df/frame_ops.rs::dss_projection_diagnostics_frame"
         ],
         "shape": "uniform"
       }

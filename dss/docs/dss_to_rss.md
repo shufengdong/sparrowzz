@@ -80,7 +80,9 @@ schema v2 中，`main.rss` 是原始 DSS 生命周期的便携复放入口；`ma
 后者只调用 `projection.target_function`，参数只能是宿主注入的 DataFrame 别名，禁止包含
 `.dss` 路径、URL、`source_root` 或 `import_dss(...)`。`manifest.projection.profile` 指向
 [`catalog/case_projections.json`](catalog/case_projections.json)，其中机器可读地声明每个输入的
-`model|data|struct` 角色、schema、位置、结果映射和稳定诊断。DSS 文件只用于首次投影和审计；
+`model|data|struct` 角色、schema、位置、结果映射和稳定诊断，并通过有序
+`projectorOutputs` 覆盖 projector 返回的全部 DataFrame。`facade_input` 按 `targetInput` 注入；
+`diagnostic` 作为普通诊断资源保存，不传给研究门面。DSS 文件只用于首次投影和审计；
 模型、普通 Data/Struct 资源建立后，受管执行不再读取 `dss/`。
 
 当前五类路径生命周期的映射为：

@@ -290,7 +290,9 @@ Open/Close/Enable/Disable、未映射 `Set`、DynamicEq/DynOut、VCCS、用户 D
 路径入口与受管门面的权威映射位于
 [`catalog/case_projections.json`](catalog/case_projections.json)。bundle manifest schema v2
 引用 profile 并提供有序 `source → target → binding` 结果映射；最终 `managed.rss` 只调用
-DataFrame 门面，禁止包含 DSS 路径、URL、`source_root` 或导入函数。
+DataFrame 门面，禁止包含 DSS 路径、URL、`source_root` 或导入函数。profile 的
+`projectorOutputs` 完整描述导入阶段返回的每一张表；`facade_input.targetInput` 才会注入门面，
+`diagnostic` 只保存为导入诊断资源。调用方禁止使用 `take(22/58/29)` 等硬编码截断。
 
 Harmonic/HarmonicT 的每张非空结果表都含 `step_index:UInt32,time_s:Float64`；含
 `harmonic` 的表还含 `frequency_hz:Float64`。角度单位为度，电压为 V，电流为 A，功率

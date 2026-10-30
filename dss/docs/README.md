@@ -26,7 +26,8 @@
   把每个函数的每个位置参数映射到精确 `schemaRef`，并用 `inputKind=model|data|struct`
   声明输入类别。
 - [`catalog/case_projections.json`](catalog/case_projections.json) 把 DSS/rssbundle 来源函数映射到
-  路径无关的 DataFrame 门面、投影器、结果映射和稳定 fail-closed 诊断。
+  路径无关的 DataFrame 门面，以 `projectorOutputs` 声明投影器全部有序返回表及其
+  `facade_input|diagnostic` 去向，并发布结果映射和稳定 fail-closed 诊断。
 
 生成器必须联合读取四者。禁止根据函数名、参数名或对 PSA 源码的猜测推断输入类别；同名
 参数在不同门面可以引用不同 schema，例如两类 `measurement` 和恢复重构、短路研究使用的
