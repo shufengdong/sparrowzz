@@ -20,7 +20,7 @@
   "source": {
     "entry": "dss/Examples/FreqScan/Run_Scan.dss",
     "root": "dss",
-    "tree_sha256": "99ef57c5097c1e01beac9858ce29a389afb2046be29966ec453f0c804b10389f"
+    "tree_sha256": "ff311a2b978f30099b63fb4209dbd91107407a2d2fe15223d4fb3471e5f1ea22"
   },
   "projection": {
     "source_function": "ds_dss_harmonic_plan",
@@ -72,7 +72,7 @@
     {
       "path": "dss/Examples/FreqScan/BusCoords.dat",
       "role": "data-asset",
-      "sha256": "da66aceb7ce5b652b69d3a5db8fb7783eb64eaf8c7429581e74aa1cd2f80fb76"
+      "sha256": "0b409c0e5d99f365c0140bf38280c1d64932032f1ecb8ef83ae54d4ed0d2716f"
     },
     {
       "path": "dss/Examples/FreqScan/Run_Scan.dss",
@@ -112,12 +112,12 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "465fdd1c219f57dace66740f50bb83370be50be92f8e5f4585db034b3c6b0de8"
+      "sha256": "4dae960b23ffaab480e5cee613ea0de1039615523c4d0dc12c5694cfb89cc199"
     },
     {
       "path": "managed.rss",
       "role": "managed-rss",
-      "sha256": "072f4d452813529448a730bc4a0a355dd1bb859c1f0891f60056c615312cbacd"
+      "sha256": "ce5f039cc77e02dee73481618f0cac3850b853c93d5122f39c9a03b94afae5c0"
     }
   ],
   "inputs": []

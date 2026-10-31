@@ -935,7 +935,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,
@@ -944,7 +944,7 @@
         },
         {
           "id": "energy_meter",
-          "alias": "energy_meter",
+          "alias": "energy_meter_input",
           "inputKind": "model",
           "schemaRef": "frames.energy_meter",
           "required": true,
@@ -1493,7 +1493,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,
@@ -1502,7 +1502,7 @@
         },
         {
           "id": "energy_meter",
-          "alias": "energy_meter",
+          "alias": "energy_meter_input",
           "inputKind": "model",
           "schemaRef": "frames.energy_meter",
           "required": true,
@@ -1969,7 +1969,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,
@@ -2244,7 +2244,7 @@
         },
         {
           "id": "fault",
-          "alias": "fault",
+          "alias": "fault_input",
           "inputKind": "data",
           "schemaRef": "frames.fault",
           "required": true,
@@ -4095,7 +4095,7 @@
         },
         {
           "id": "event",
-          "alias": "event",
+          "alias": "event_input",
           "inputKind": "data",
           "schemaRef": "analysis_inputs.dynamic_event",
           "required": true,
@@ -4490,7 +4490,7 @@
         },
         {
           "id": "event",
-          "alias": "event",
+          "alias": "event_input",
           "inputKind": "data",
           "schemaRef": "analysis_inputs.dynamic_event",
           "required": true,
@@ -4864,7 +4864,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "execution_inputs.monitor",
           "required": true,
@@ -4873,7 +4873,7 @@
         },
         {
           "id": "energy_meter",
-          "alias": "energy_meter",
+          "alias": "energy_meter_input",
           "inputKind": "model",
           "schemaRef": "execution_inputs.energy_meter",
           "required": true,
@@ -5491,7 +5491,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "execution_inputs.monitor",
           "required": true,
@@ -5500,7 +5500,7 @@
         },
         {
           "id": "energy_meter",
-          "alias": "energy_meter",
+          "alias": "energy_meter_input",
           "inputKind": "model",
           "schemaRef": "execution_inputs.energy_meter",
           "required": true,
@@ -6118,7 +6118,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,
@@ -6382,49 +6382,49 @@
         {
           "id": "bus_voltage",
           "name": "bus_voltage",
-          "schemaRef": "result_frames.harmonic_bus_voltage",
+          "schemaRef": "result_frames.harmonic_execution_bus_voltage",
           "description": "逐母线逐相谐波电压和 THD。",
           "recommended": true
         },
         {
           "id": "branch_flow",
           "name": "branch_flow",
-          "schemaRef": "result_frames.harmonic_branch_flow",
+          "schemaRef": "result_frames.harmonic_execution_branch_flow",
           "description": "逐支路端口谐波电压、电流和功率。",
           "recommended": false
         },
         {
           "id": "conductor_flow",
           "name": "conductor_flow",
-          "schemaRef": "result_frames.conductor_flow",
+          "schemaRef": "result_frames.harmonic_execution_conductor_flow",
           "description": "按物理导体展开的谐波电压与电流。",
           "recommended": false
         },
         {
           "id": "bus_sequence",
           "name": "bus_sequence",
-          "schemaRef": "result_frames.harmonic_bus_sequence",
+          "schemaRef": "result_frames.harmonic_execution_bus_sequence",
           "description": "母线零、正、负序谐波电压。",
           "recommended": false
         },
         {
           "id": "branch_sequence",
           "name": "branch_sequence",
-          "schemaRef": "result_frames.harmonic_branch_sequence",
+          "schemaRef": "result_frames.harmonic_execution_branch_sequence",
           "description": "支路零、正、负序谐波电气量。",
           "recommended": false
         },
         {
           "id": "monitor",
           "name": "monitor",
-          "schemaRef": "result_frames.harmonic_monitor",
+          "schemaRef": "result_frames.harmonic_execution_monitor",
           "description": "谐波 Monitor 通道长表。",
           "recommended": false
         },
         {
           "id": "monitor_save",
           "name": "monitor_save",
-          "schemaRef": "result_frames.harmonic_monitor_save",
+          "schemaRef": "result_frames.harmonic_execution_monitor_save",
           "description": "谐波 Monitor 保存快照。",
           "recommended": false
         }

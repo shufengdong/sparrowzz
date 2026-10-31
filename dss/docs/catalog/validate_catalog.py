@@ -157,6 +157,48 @@ PSA_RESULT_BUILDERS = {
     "meter_phase_voltage": ("psa/src/dsa/pf/metering.rs", "meter_phase_voltage_frame"),
 }
 
+HARMONIC_EXECUTION_RESULT_COLUMNS = {
+    "harmonic_execution_bus_voltage": [
+        "bus", "phase", "harmonic", "voltage_mag", "voltage_angle", "thd",
+    ],
+    "harmonic_execution_branch_flow": [
+        "kind", "element", "terminal", "bus", "phase", "harmonic",
+        "voltage_re", "voltage_im", "voltage_mag", "voltage_angle",
+        "current_re", "current_im", "current_mag", "current_angle", "p", "q",
+    ],
+    "harmonic_execution_conductor_flow": [
+        "element", "kind", "conductor", "terminal_from", "terminal_to",
+        "bus_from", "bus_to", "harmonic", "v_from_re", "v_from_im",
+        "v_from_mag", "v_to_re", "v_to_im", "v_to_mag", "i_from_re",
+        "i_from_im", "i_from_mag", "i_to_re", "i_to_im", "i_to_mag",
+    ],
+    "harmonic_execution_bus_sequence": [
+        "bus", "harmonic", "sequence", "voltage_re", "voltage_im",
+        "voltage_mag", "voltage_angle",
+    ],
+    "harmonic_execution_branch_sequence": [
+        "kind", "element", "terminal", "bus", "harmonic", "sequence",
+        "voltage_re", "voltage_im", "voltage_mag", "voltage_angle",
+        "current_re", "current_im", "current_mag", "current_angle", "p", "q",
+    ],
+    "harmonic_execution_monitor": [
+        "monitor", "harmonic", "mode", "element", "terminal", "phase",
+        "channel", "value", "v_re", "v_im", "v_mag", "v_angle_deg",
+        "i_re", "i_im", "i_mag", "i_angle_deg", "p", "q", "s_va",
+        "s_angle_deg", "p_loss", "q_loss",
+    ],
+    "harmonic_execution_monitor_save": [
+        "save_harmonic", "save_frequency_hz", "monitor", "harmonic", "mode",
+        "element", "terminal", "phase", "channel", "value", "v_re", "v_im",
+        "v_mag", "v_angle_deg", "i_re", "i_im", "i_mag", "i_angle_deg",
+        "p", "q", "s_va", "s_angle_deg", "p_loss", "q_loss",
+    ],
+}
+
+HARMONIC_EXECUTION_IDENTITY_COLUMNS = [
+    "frequency_order", "frequency_hz", "step_index", "time_s",
+]
+
 
 def fail(message):
     raise AssertionError(message)
@@ -891,12 +933,14 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
         if positions != list(range(1, len(inputs) + 1)):
             fail(f"{function} input positions must be contiguous from 1")
         aliases = [item.get("alias") for item in inputs]
-        if aliases != expected_arguments:
-            fail(f"{function} input aliases differ: expected={expected_arguments}, facade={aliases}")
-        if "network[20]" in contract.get("arguments", []):
-            if aliases[:20] != network_order or "network[20]" in aliases:
-                fail(f"{function} must expand network[20] in canonical order")
+        if len(aliases) != len(set(aliases)) or any(not isinstance(value, str) or not value for value in aliases):
+            fail(f"{function} input aliases must be non-empty and unique")
         input_ids = [item.get("id") for item in inputs]
+        if input_ids != expected_arguments:
+            fail(f"{function} input ids differ: expected={expected_arguments}, facade={input_ids}")
+        if "network[20]" in contract.get("arguments", []):
+            if input_ids[:20] != network_order or "network[20]" in input_ids:
+                fail(f"{function} must expand network[20] in canonical order")
         if len(input_ids) != len(set(input_ids)) or any(not isinstance(value, str) or not value for value in input_ids):
             fail(f"{function} input ids must be non-empty and unique")
         for item in inputs:
@@ -974,6 +1018,8 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
             schema_at(dataframes, item["schemaRef"])
         if not recommended:
             fail(f"{function} must recommend at least one result")
+        for alias in sorted(set(aliases) & set(names)):
+            fail(f"{function} input alias {alias} collides with a result name")
 
         validate_result_constraints(function, facade, dataframes, names, recommended)
 
@@ -1371,6 +1417,47 @@ def main():
                 f"{result_name} columns differ from {function_name}: "
                 f"catalog={catalog_columns}, rust={rust_columns}"
             )
+
+    harmonic_execution_refs = [
+        f"result_frames.{name}" for name in HARMONIC_EXECUTION_RESULT_COLUMNS
+    ]
+    harmonic_execution_facade = next(
+        facade for facade in study_facades["facades"]
+        if facade["function"] == "ds_harmonic_execution_plan"
+    )
+    if [result["schemaRef"] for result in harmonic_execution_facade["results"]] != harmonic_execution_refs:
+        fail("ds_harmonic_execution_plan must use the dedicated ordered execution result schemas")
+    harmonic_projection = next(
+        profile for profile in case_projections["profiles"]
+        if profile["id"] == "dss_harmonic_plan_v1"
+    )
+    if [result["schemaRef"] for result in harmonic_projection["results"]] != harmonic_execution_refs:
+        fail("dss_harmonic_plan_v1 results must match the harmonic execution facade schemas")
+    for result_name, base_columns in HARMONIC_EXECUTION_RESULT_COLUMNS.items():
+        reference = f"result_frames.{result_name}"
+        schema = _top_level_schema(dataframes, reference)
+        contract = schema.get("contract", {})
+        columns = contract.get("columns", [])
+        actual_names = [column.get("name") for column in columns]
+        expected_names = base_columns + HARMONIC_EXECUTION_IDENTITY_COLUMNS
+        if actual_names != expected_names or schema.get("columns") != expected_names:
+            fail(f"{reference} must publish the stable execution column order {expected_names}")
+        if contract.get("columnPolicy") != {"mode": "closed", "unknownColumns": "forbidden"}:
+            fail(f"{reference} must remain a closed result contract")
+        by_name = {column["name"]: column for column in columns}
+        harmonic = by_name.get("harmonic", {})
+        if harmonic.get("dtype") != "u32" or harmonic.get("nullable") is not True:
+            fail(f"{reference}.harmonic must be nullable u32")
+        expected_identity = {
+            "frequency_order": ("f64", False, "not_applicable"),
+            "frequency_hz": ("f64", False, "Hz"),
+            "step_index": ("u32", False, "not_applicable"),
+            "time_s": ("f64", False, "s"),
+        }
+        for column_name, (dtype, nullable, unit) in expected_identity.items():
+            column = by_name.get(column_name, {})
+            if (column.get("dtype"), column.get("nullable"), column.get("unit")) != (dtype, nullable, unit):
+                fail(f"{reference}.{column_name} has an invalid execution identity contract")
 
     network_order = [row["name"] for row in dataframes["network_order"]]
     if network_order != functions["network_argument_order"]:

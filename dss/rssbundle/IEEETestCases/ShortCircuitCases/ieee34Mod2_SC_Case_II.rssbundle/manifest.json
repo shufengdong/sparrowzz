@@ -16,6 +16,22 @@
     "root": "dss",
     "tree_sha256": "4b1eaef5df638d2c806085344c9ad56ee9d86f06aa20c0105df528854d7edf75"
   },
+  "projection": {
+    "source_function": "ds_dss_fault_study",
+    "profile": "dss_fault_study_v1",
+    "projector": "project_dss_fault_study",
+    "target_function": "ds_fault_study",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "fault",
+        "target": "fault",
+        "binding": "result_fault"
+      }
+    ]
+  },
   "files": [
     {
       "path": "dss/IEEETestCases/IEEELineCodes.DSS",
@@ -40,24 +56,8 @@
     {
       "path": "managed.rss",
       "role": "managed-rss",
-      "sha256": "e3516154047ae27dcd296f923912c512209438c309676061eea036314784a9d8"
+      "sha256": "b068a6f876d334ed0daa952d739eac486d34e8f5ff73555b2bd2918d6b65df70"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_dss_fault_study",
-    "profile": "dss_fault_study_v1",
-    "projector": "project_dss_fault_study",
-    "target_function": "ds_fault_study",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "fault",
-        "target": "fault",
-        "binding": "result_fault"
-      }
-    ]
-  }
+  "inputs": []
 }
