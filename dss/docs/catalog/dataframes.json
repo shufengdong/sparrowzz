@@ -19027,7 +19027,7 @@
           },
           {
             "name": "v_mag",
-            "dtype": "list<f64>",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "V"
@@ -19437,7 +19437,7 @@
           },
           {
             "name": "v_mag",
-            "dtype": "list<f64>",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "V"
