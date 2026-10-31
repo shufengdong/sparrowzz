@@ -3469,7 +3469,7 @@
         },
         {
           "id": "fault",
-          "alias": "fault",
+          "alias": "fault_input",
           "inputKind": "data",
           "schemaRef": "frames.fault",
           "required": true,
@@ -3719,7 +3719,7 @@
         },
         {
           "id": "fault",
-          "alias": "fault",
+          "alias": "fault_input",
           "inputKind": "data",
           "schemaRef": "frames.fault",
           "required": true,

@@ -23,6 +23,11 @@
 - `facade_input` 必须另带 `targetInput`，并与 `inputs` 中一个输入唯一、同 schema、同角色地映射；
 - `diagnostic` 是导入诊断资源，不声明 `targetInput`，也禁止注入目标研究门面。
 
+`inputs[].id` 是与函数参数位置对应的稳定身份，`alias` 是宿主注入脚本时使用的默认变量名；
+两者允许不同。`targetInput` 始终引用稳定 `id`，不能引用 alias。默认 alias 必须唯一，并且禁止与
+门面的推荐结果名冲突。例如 `ds_fault_study` 的故障输入保持 `id=fault`、
+`schemaRef=frames.fault` 和第 21 位不变，但使用 `alias=fault_input`，结果名仍为 `fault`。
+
 `projectorOutputs` 必须覆盖 projector 的每一张返回表，包括零行表和尾部诊断表。宿主禁止按
 固定数量截断、根据列名猜测，或把诊断表伪装成研究输入。例如 fault projector 的第 23 张表为：
 

@@ -83,6 +83,29 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             ["monitor", "time"],
         )
 
+    def test_facade_input_aliases_do_not_collide_with_result_names(self):
+        catalog = self.read("study_facades.json")
+        for facade in catalog["facades"]:
+            aliases = {item["alias"] for item in facade["inputs"]}
+            result_names = {
+                item["name"] for item in facade["results"] if item["recommended"]
+            }
+            self.assertFalse(
+                aliases & result_names,
+                f"{facade['function']} input aliases collide with result names",
+            )
+        fault_study = self.facade(catalog, "ds_fault_study")
+        fault_input = next(item for item in fault_study["inputs"] if item["id"] == "fault")
+        self.assertEqual(fault_input["alias"], "fault_input")
+
+    def test_rejects_recommended_result_name_colliding_with_input_alias(self):
+        catalog = self.read("study_facades.json")
+        facade = self.facade(catalog, "ds_radial_pf")
+        recommended = next(item["name"] for item in facade["results"] if item["recommended"])
+        facade["inputs"][0]["alias"] = recommended
+        self.write("study_facades.json", catalog)
+        self.assert_invalid(r"ds_radial_pf input alias bus_voltage collides with a recommended result name")
+
     def test_five_path_lifecycles_have_fail_closed_dataframe_projections(self):
         catalog = self.read("case_projections.json")
         lifecycle_sources = {

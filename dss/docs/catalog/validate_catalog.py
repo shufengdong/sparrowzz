@@ -891,12 +891,14 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
         if positions != list(range(1, len(inputs) + 1)):
             fail(f"{function} input positions must be contiguous from 1")
         aliases = [item.get("alias") for item in inputs]
-        if aliases != expected_arguments:
-            fail(f"{function} input aliases differ: expected={expected_arguments}, facade={aliases}")
-        if "network[20]" in contract.get("arguments", []):
-            if aliases[:20] != network_order or "network[20]" in aliases:
-                fail(f"{function} must expand network[20] in canonical order")
+        if len(aliases) != len(set(aliases)) or any(not isinstance(value, str) or not value for value in aliases):
+            fail(f"{function} input aliases must be non-empty and unique")
         input_ids = [item.get("id") for item in inputs]
+        if input_ids != expected_arguments:
+            fail(f"{function} input ids differ: expected={expected_arguments}, facade={input_ids}")
+        if "network[20]" in contract.get("arguments", []):
+            if input_ids[:20] != network_order or "network[20]" in input_ids:
+                fail(f"{function} must expand network[20] in canonical order")
         if len(input_ids) != len(set(input_ids)) or any(not isinstance(value, str) or not value for value in input_ids):
             fail(f"{function} input ids must be non-empty and unique")
         for item in inputs:
@@ -974,6 +976,8 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
             schema_at(dataframes, item["schemaRef"])
         if not recommended:
             fail(f"{function} must recommend at least one result")
+        for alias in sorted(set(aliases) & recommended):
+            fail(f"{function} input alias {alias} collides with a recommended result name")
 
         validate_result_constraints(function, facade, dataframes, names, recommended)
 
