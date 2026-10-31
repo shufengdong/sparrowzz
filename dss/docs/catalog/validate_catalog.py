@@ -1018,8 +1018,8 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
             schema_at(dataframes, item["schemaRef"])
         if not recommended:
             fail(f"{function} must recommend at least one result")
-        for alias in sorted(set(aliases) & recommended):
-            fail(f"{function} input alias {alias} collides with a recommended result name")
+        for alias in sorted(set(aliases) & set(names)):
+            fail(f"{function} input alias {alias} collides with a result name")
 
         validate_result_constraints(function, facade, dataframes, names, recommended)
 

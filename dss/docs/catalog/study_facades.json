@@ -935,7 +935,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,
@@ -944,7 +944,7 @@
         },
         {
           "id": "energy_meter",
-          "alias": "energy_meter",
+          "alias": "energy_meter_input",
           "inputKind": "model",
           "schemaRef": "frames.energy_meter",
           "required": true,
@@ -1493,7 +1493,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,
@@ -1502,7 +1502,7 @@
         },
         {
           "id": "energy_meter",
-          "alias": "energy_meter",
+          "alias": "energy_meter_input",
           "inputKind": "model",
           "schemaRef": "frames.energy_meter",
           "required": true,
@@ -1969,7 +1969,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,
@@ -4095,7 +4095,7 @@
         },
         {
           "id": "event",
-          "alias": "event",
+          "alias": "event_input",
           "inputKind": "data",
           "schemaRef": "analysis_inputs.dynamic_event",
           "required": true,
@@ -4490,7 +4490,7 @@
         },
         {
           "id": "event",
-          "alias": "event",
+          "alias": "event_input",
           "inputKind": "data",
           "schemaRef": "analysis_inputs.dynamic_event",
           "required": true,
@@ -4864,7 +4864,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "execution_inputs.monitor",
           "required": true,
@@ -4873,7 +4873,7 @@
         },
         {
           "id": "energy_meter",
-          "alias": "energy_meter",
+          "alias": "energy_meter_input",
           "inputKind": "model",
           "schemaRef": "execution_inputs.energy_meter",
           "required": true,
@@ -5491,7 +5491,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "execution_inputs.monitor",
           "required": true,
@@ -5500,7 +5500,7 @@
         },
         {
           "id": "energy_meter",
-          "alias": "energy_meter",
+          "alias": "energy_meter_input",
           "inputKind": "model",
           "schemaRef": "execution_inputs.energy_meter",
           "required": true,
@@ -6118,7 +6118,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,
