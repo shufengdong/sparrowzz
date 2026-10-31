@@ -69,6 +69,20 @@ class CatalogValidatorTests(unittest.TestCase):
             "result_frames.harmonic_monitor",
         )
 
+    def test_dataframe_builder_columns_accepts_direct_df_result(self):
+        source = '''
+pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
+    df![
+        "monitor" => ["m1"],
+        "time" => [0.0],
+    ]
+}
+'''
+        self.assertEqual(
+            self.validator.dataframe_builder_columns(source, "monitor_output_frame"),
+            ["monitor", "time"],
+        )
+
     def test_five_path_lifecycles_have_fail_closed_dataframe_projections(self):
         catalog = self.read("case_projections.json")
         lifecycle_sources = {

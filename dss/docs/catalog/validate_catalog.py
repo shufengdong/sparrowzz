@@ -125,7 +125,7 @@ QSTS_RESULT_BUILDERS = {
 }
 
 QSTS_METER_RESULT_BUILDERS = {
-    "qsts_monitor": ("psa/src/dsa/pf/metering.rs", "monitor_frame"),
+    "qsts_monitor": ("psa/src/dsa/monitor_output.rs", "monitor_output_frame"),
     "qsts_monitor_save": ("psa/src/dsa/pf/metering.rs", "monitor_save_frame"),
     "qsts_energy_meter": ("psa/src/dsa/pf/metering.rs", "meter_frame"),
     "qsts_meter_loss_breakdown": ("psa/src/dsa/pf/metering.rs", "meter_loss_frame"),
@@ -1232,6 +1232,7 @@ def dataframe_builder_columns(source, function_name):
         for position in (
             body.find("\n    .map_err", frame_start),
             body.find("\n    .ok()", frame_start),
+            body.find("\n    ]\n}", frame_start),
         )
         if position >= 0
     ]
