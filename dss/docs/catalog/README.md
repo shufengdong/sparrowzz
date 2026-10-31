@@ -9,6 +9,11 @@
 
 `study_facades.json` 是研究门面的入口索引，`dataframes.json` 是它引用的类型库。调用方禁止从函数名、参数名、Rust 源码、样例或说明段落推断执行事实。
 
+`ds_harmonic_execution_plan` 的七类结果必须引用专用的
+`result_frames.harmonic_execution_*` schema。它们把任意频率次数、实际频率、Solve 序号和连续
+时钟发布为固定尾部列 `frequency_order`、`frequency_hz`、`step_index`、`time_s`；静态
+`result_frames.harmonic_*` schema 仅属于 `ds_harmonic_study`，禁止混用。
+
 ## rssbundle 投影合同
 
 `case_projections.json` 是案例导入的权威机器合同。启用 profile 的 `inputs` 和 `results`
