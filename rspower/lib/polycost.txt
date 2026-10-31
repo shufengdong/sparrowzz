@@ -1,44 +1,41 @@
-// POLYCOST  Evaluates polynomial generator costs and derivatives.
-//
-//   F = POLYCOST(GENCOST, PG, DER) returns the vector of polynomial costs
-//   (DER = 0), first derivatives (DER = 1), or second derivatives (DER = 2)
-//   evaluated at PG. PG is in MW or MVAr, not per unit.
-//
-//   Unlike MATLAB, DER is explicit because Sparrowzz functions do not expose
-//   nargin. GENCOST must contain polynomial cost rows. The implementation uses
-//   Horner evaluation and supports different NCOST values in the same matrix.
-//
-//   MATPOWER
-//   Copyright (c) 2009-2016, Power Systems Engineering Research Center (PSERC)
-//   Covered by the 3-clause BSD License. See https://matpower.org.
-
+// POLYCOST  Evaluates polynomial generator cost and derivatives.
+// MATPOWER7.1, Copyright (c) 2009-2016 PSERC, Ray Zimmerman.
+// Covered by the 3-clause BSD License; see LICENSE-MATPOWER.
+// DER is explicit; indices are 0-based. Preserve the input vector shape.
 fn polycost(gencost, Pg, der) {
-    ng = length(Pg);
-    f = zeros(size(Pg));
-
-    for i in 0..ng {
-        ncost = get(gencost, i, NCOST - 1);
-        value = 0;
-        if ndim(Pg) > 1 {
-            p = get(Pg, i, 0);
-        } else {
-            p = get(Pg, i);
-        }
-
-        // Coefficients are stored from highest to lowest power. Evaluate the
-        // requested derivative directly, retaining MATPOWER's ragged rows.
-        for j in 0..ncost {
-            degree = ncost - j - 1;
-            if degree >= der {
-                multiplier = 1;
-                for d in 0..der {
-                    multiplier = multiplier * (degree - d);
-                }
-                value = value + get(gencost, i, COST - 1 + j)
-                    * multiplier * p ^ (degree - der);
-            }
-        }
-        f = set(f, [i], value);
+    if sum(slice(gencost,[0],[MODEL-1,MODEL])==PW_LINEAR)>0 {
+        error(`polycost: all costs must be polynomial`);
     }
+    ng=length(Pg); vector=ndim(Pg)==1;
+    if ng==0 { return zeros(size(Pg)); }
+    if vector { Pg=transpose(Pg); }
+    ncost=slice(gencost,[0],[NCOST-1,NCOST]);
+    maxN=max(ncost); minN=min(ncost);
+
+    // Form coefficient matrix: constant term, linear term, etc.
+    c=zeros(ng,maxN);
+    for n in minN..maxN+1 {
+        k=find(ncost==n);
+        if length(k)>0 {
+            coefficients=select(gencost,k,range(COST+n-2,COST-2,-1));
+            c=select_assign(c,coefficients,k,range(0,n));
+        }
+    }
+
+    // Differentiate coefficient columns, as in MATPOWER polycost.
+    for d in 0..der {
+        if size(c,1)>=2 { c=slice(c,[0],[1,maxN-d]); }
+        else { c=zeros(ng,1); break; }
+        for k in 1..maxN-d-1 {
+            c=assign(c,(k+1)*slice(c,[0],[k,k+1]),[0],[k,k+1]);
+        }
+    }
+
+    if is_empty(c) { f=zeros(ng,1); }
+    else {
+        f=slice(c,[0],[0,1]);
+        for k in 1..size(c,1) { f=f+slice(c,[0],[k,k+1]).*Pg.^k; }
+    }
+    if vector { return get_multi(f,range(0,ng)); }
     return f;
 }

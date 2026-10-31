@@ -1,0 +1,14 @@
+// D2ABR_DV2  Sparse Hessian blocks of mu.' * abs(F(V)).^2.
+// d2F is a function object returning the four weighted Hessian blocks of F.
+// MATPOWER 7.1, Copyright (c) 2008-2019 PSERC, Ray Zimmerman.
+// Covered by the 3-clause BSD License; see LICENSE-MATPOWER.
+fn d2Abr_dV2(d2F,dF_dV1,dF_dV2,F,V,mu) {
+    nl=length(mu);
+    diagmu=sparse(range(0,nl),range(0,nl),mu,nl,nl);
+    [F11,F12,F21,F22]=d2F(V,conj(F).*mu);
+    H11=2*real(F11+transpose(dF_dV1)*diagmu*conj(dF_dV1));
+    H21=2*real(F21+transpose(dF_dV2)*diagmu*conj(dF_dV1));
+    H12=2*real(F12+transpose(dF_dV1)*diagmu*conj(dF_dV2));
+    H22=2*real(F22+transpose(dF_dV2)*diagmu*conj(dF_dV2));
+    return (H11,H12,H21,H22);
+}

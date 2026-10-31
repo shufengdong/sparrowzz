@@ -1,0 +1,17 @@
+// D2IBR_DV2  Sparse Hessian blocks of mu.' * Ibr(V), for one branch end.
+// MATPOWER 7.1, Copyright (c) 2008-2019 PSERC, Ray Zimmerman.
+// Covered by the 3-clause BSD License; see LICENSE-MATPOWER.
+fn d2Ibr_dV2(Ybr,V,mu,vcart) {
+    nb=length(V);
+    H22=sparse([],[],[],nb,nb);
+    if vcart {
+        H11=H22; H12=H22; H21=H22;
+    } else {
+        index=range(0,nb);
+        diagInvVm=sparse(index,index,ones(nb,1)./abs(V),nb,nb);
+        H11=sparse(index,index,-(transpose(Ybr)*mu).*V,nb,nb);
+        H21=-1j*H11*diagInvVm;
+        H12=H21;
+    }
+    return (H11,H12,H21,H22);
+}

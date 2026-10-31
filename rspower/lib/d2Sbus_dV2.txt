@@ -1,0 +1,31 @@
+// D2SBUS_DV2  Sparse Hessian blocks of lambda.' * Sbus(V).
+// Polar: [Va,Vm]; Cartesian: [Vr,Vi]. Ordinary transpose is explicit;
+// ctranspose is used only where MATPOWER uses the conjugate transpose.
+// MATPOWER 7.1, Copyright (c) 2008-2019 PSERC, Ray Zimmerman and Baljinnyam Sereeter.
+// Covered by the 3-clause BSD License; see LICENSE-MATPOWER.
+fn d2Sbus_dV2(Ybus,V,lam,vcart) {
+    n=length(V);
+    index=range(0,n);
+    diaglam=sparse(index,index,lam,n,n);
+    if vcart {
+        E=diaglam*conj(Ybus);
+        F=E+transpose(E);
+        G=1j*(E-transpose(E));
+        G11=F; G21=G; G12=transpose(G21); G22=F;
+    } else {
+        Ibus=Ybus*V;
+        diagV=sparse(index,index,V,n,n);
+        A=sparse(index,index,lam.*V,n,n);
+        B=Ybus*diagV;
+        C=A*conj(B);
+        D=ctranspose(Ybus)*diagV;
+        E=conj(diagV)*(D*diaglam-sparse(index,index,D*lam,n,n));
+        F=C-A*sparse(index,index,conj(Ibus),n,n);
+        G=sparse(index,index,ones(n,1)./abs(V),n,n);
+        G11=E+F;
+        G21=1j*G*(E-F);
+        G12=transpose(G21);
+        G22=G*(C+transpose(C))*G;
+    }
+    return (G11,G12,G21,G22);
+}

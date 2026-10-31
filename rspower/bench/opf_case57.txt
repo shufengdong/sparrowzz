@@ -1,0 +1,7 @@
+#include opf_bench_common.txt
+#include ../data/case57.txt
+
+benchmark_case=`case57`;
+benchmark_warmups=20;
+benchmark_samples=21;
+#include opf_bench_run.txt

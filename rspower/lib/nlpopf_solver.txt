@@ -1,0 +1,90 @@
+// NLPOPF_SOLVER  Connect numeric AC OPF functions to the shared fmincon backend.
+// All callback data is captured once. Objective, balance and branch limits stay
+// separate functions; MATLAB n-by-m constraint gradients are returned only here.
+fn opf_callbacks(model) {
+    nb=getfield(model,`nb`); ng=getfield(model,`ng`); baseMVA=getfield(model,`baseMVA`);
+    bus=getfield(model,`bus`); gen=getfield(model,`gen`); branch=getfield(model,`branch`);
+    Q=getfield(model,`Q`); c=getfield(model,`c`); k=getfield(model,`k`);
+    pcost=getfield(model,`pcost`); qcost=getfield(model,`qcost`);
+    ip3=getfield(model,`ip3`); iq3=getfield(model,`iq3`); n=2*nb+2*ng;
+    Ybus=getfield(model,`Ybus`); Yf_all=getfield(model,`Yf`); Yt_all=getfield(model,`Yt`);
+    limited=getfield(model,`limited`);
+    Yf=sparse([],[],[],0,nb); Yt=sparse([],[],[],0,nb);
+    if length(limited)>0 { Yf=select(Yf_all,limited); Yt=select(Yt_all,limited); }
+    zero_vg=sparse([],[],[],2*nb,2*ng); zero_g=sparse([],[],[],2*ng,2*ng);
+
+    fn cost_at(x) {
+        // MATPOWER eval_quad_cost + higher-order opf_gen_cost_fcn blocks.
+        Qx=Q*x;
+        value=sum_all(c.*x)+sum_all(x.*Qx)/2+k;
+        gradient=c+Qx; hessian=Q;
+        if length(ip3)>0 {
+            Pg=slice(x,[2*nb,2*nb+ng],[0]);
+            [fp,dfp,Hp]=opf_gen_cost_fcn(Pg,baseMVA,pcost,ip3);
+            value=value+fp;
+            gradient=assign(gradient,slice(gradient,[2*nb,2*nb+ng],[0])+dfp,[2*nb,2*nb+ng],[0]);
+            index=range(2*nb,2*nb+ng);
+            hessian=hessian+sparse(index,index,get_multi(Hp,range(0,ng*ng,ng+1)),n,n);
+        }
+        if length(iq3)>0 {
+            Qg=slice(x,[2*nb+ng,n],[0]);
+            [fq,dfq,Hq]=opf_gen_cost_fcn(Qg,baseMVA,qcost,iq3);
+            value=value+fq;
+            gradient=assign(gradient,slice(gradient,[2*nb+ng,n],[0])+dfq,[2*nb+ng,n],[0]);
+            index=range(2*nb+ng,n);
+            hessian=hessian+sparse(index,index,get_multi(Hq,range(0,ng*ng,ng+1)),n,n);
+        }
+        return (value,gradient,hessian);
+    }
+    fn objective(x) {
+        [value,gradient,cost_hessian]=cost_at(x);
+        return (value,gradient);
+    }
+    fn constraints(x) {
+        Va=slice(x,[0,nb],[0]); Vm=slice(x,[nb,2*nb],[0]);
+        Pg=slice(x,[2*nb,2*nb+ng],[0]); Qg=slice(x,[2*nb+ng,2*nb+2*ng],[0]);
+        [ceq,Jg]=opf_power_balance_fcn(Va,Vm,Pg,Qg,baseMVA,bus,gen,Ybus,0);
+        [c,Jh]=opf_branch_flow_fcn(Va,Vm,baseMVA,branch,Yf,Yt,limited,0,0);
+        Jh=horzcat(Jh,sparse([],[],[],2*length(limited),2*ng));
+        GC=transpose(Jh); GCeq=transpose(Jg);
+        return (c,ceq,GC,GCeq);
+    }
+    fn hessian(x,lambda) {
+        Va=slice(x,[0,nb],[0]); Vm=slice(x,[nb,2*nb],[0]);
+        balance_weights=getfield(lambda,`eqnonlin`); flow_weights=getfield(lambda,`ineqnonlin`);
+        balance_weights=transpose(balance_weights); flow_weights=transpose(flow_weights);
+        [value,gradient,Hcost]=cost_at(x);
+        // 二参数 Hessian 适配会用零乘子单独取得目标 Hessian。
+        // 这里直接返回成本块，避免再次计算零权重的网络二阶导数。
+        if sum(abs(balance_weights))+sum(abs(flow_weights))==0 {
+            return Hcost;
+        }
+        Hp=opf_power_balance_hess(Va,Vm,ng,balance_weights,Ybus,0);
+        Hf=opf_branch_flow_hess(Va,Vm,branch,Yf,Yt,limited,flow_weights,0,0);
+        Hextra=vertcat(horzcat(Hf,zero_vg),horzcat(transpose(zero_vg),zero_g));
+        // 等式乘子较大时，等价公式的浮点舍入可能产生微小偏斜。
+        total=Hp+Hextra+Hcost;
+        return (total+transpose(total))*0.5;
+    }
+    return struct(`objective`,objective,`constraints`,constraints,`hessian`,hessian);
+}
+
+fn nlpopf_solver(model) {
+    callbacks=opf_callbacks(model);
+    objective=getfield(callbacks,`objective`); constraints=getfield(callbacks,`constraints`);
+    hessian=getfield(callbacks,`hessian`);
+    options=getfield(model,`options`);
+    jacobian_pattern=getfield(model,`jacobian_pattern`); hessian_pattern=getfield(model,`hessian_pattern`);
+    options=setfield(options,`HessianFcn`,hessian);
+    options=setfield(options,`ConstraintJacobianPattern`,jacobian_pattern);
+    options=setfield(options,`HessianPattern`,hessian_pattern);
+    angles=getfield(model,`angles`);
+    A=getfield(angles,`A`); b=getfield(angles,`b`);
+    Aeq=getfield(angles,`Aeq`); beq=getfield(angles,`beq`);
+    x0=getfield(model,`x0`); lower=getfield(model,`lower`); upper=getfield(model,`upper`);
+    [x,fval,exitflag,output,lambda]=fmincon(objective,x0,A,b,Aeq,beq,lower,upper,constraints,options);
+    output=setfield(output,`gradient_source`,`analytic`);
+    output=setfield(output,`constraint_gradient_source`,`analytic`);
+    output=setfield(output,`hessian_source`,`analytic`);
+    return (x,fval,exitflag,output,lambda);
+}

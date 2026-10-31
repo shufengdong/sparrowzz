@@ -1,0 +1,5 @@
+// OPF  Build and solve the supported generic polar AC OPF model.
+fn opf(baseMVA,bus,gen,branch,gencost,options) {
+    model=opf_setup(baseMVA,bus,gen,branch,gencost,options);
+    return opf_execute(model);
+}

@@ -1,0 +1,16 @@
+// Production PF dependencies, shared by the CLI examples and Rust benchmark.
+Inf=INF;
+#include ../lib/idx_gen.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_brch.txt
+#include ../lib/ext2int.txt
+#include ../lib/int2ext.txt
+#include ../lib/bustypes.txt
+#include ../lib/makeYbus.txt
+#include ../lib/dSbus_dV.txt
+#include ../lib/make_sdzip.txt
+#include ../lib/makeSbus.txt
+#include ../lib/newtonpf.txt
+#include ../lib/pfsoln.txt
+#include ../lib/total_load.txt
+#include ../lib/runpf.txt

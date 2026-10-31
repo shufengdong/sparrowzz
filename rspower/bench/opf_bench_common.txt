@@ -1,0 +1,34 @@
+// Shared OPF bench dependencies and solver settings. Run entry files from this directory.
+#include ../lib/idx_bus.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_brch.txt
+#include ../lib/idx_cost.txt
+#include ../lib/ext2int.txt
+#include ../lib/int2ext.txt
+#include ../lib/make_sdzip.txt
+#include ../lib/makeSbus.txt
+#include ../lib/makeYbus.txt
+#include ../lib/dSbus_dV.txt
+#include ../lib/dSbr_dV.txt
+#include ../lib/dIbr_dV.txt
+#include ../lib/dAbr_dV.txt
+#include ../lib/polycost.txt
+#include ../lib/totcost.txt
+#include ../lib/opf_gen_cost_fcn.txt
+#include ../lib/opf_power_balance_fcn.txt
+#include ../lib/opf_branch_flow_fcn.txt
+#include ../lib/d2Sbus_dV2.txt
+#include ../lib/d2Sbr_dV2.txt
+#include ../lib/d2Ibr_dV2.txt
+#include ../lib/d2Abr_dV2.txt
+#include ../lib/opf_power_balance_hess.txt
+#include ../lib/opf_branch_flow_hess.txt
+#include ../lib/opf_setup.txt
+#include ../lib/nlpopf_solver.txt
+#include ../lib/opf_execute.txt
+#include ../lib/opf.txt
+#include ../lib/runopf.txt
+
+Inf=INF;
+options=optimoptions(`fmincon`,`MaxIterations`,300,`OptimalityTolerance`,1e-9,`ConstraintTolerance`,1e-9,
+    `bound_relax_factor`,0,`acceptable_iter`,0,`mu_strategy`,`adaptive`);

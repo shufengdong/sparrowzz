@@ -1,0 +1,19 @@
+// Entry supplies benchmark_warmups and benchmark_samples. Input loading is untimed.
+fn benchmark_runpf() {
+    samples=zeros(benchmark_samples,2);
+    for sample in 0..benchmark_warmups+benchmark_samples {
+        started=monotonic_ms();
+        [V,solved_bus,solved_gen,solved_branch,success,iterations]=runpf_case(baseMVA,bus,gen,branch);
+        finished=monotonic_ms();
+        assert_eq(success,1);
+        if sample>=benchmark_warmups {
+            position=sample-benchmark_warmups;
+            elapsed=finished-started;
+            samples=set(samples,[2*position,2*position+1],[elapsed,iterations]);
+        }
+    }
+    return (samples,baseMVA,solved_bus,solved_gen,solved_branch,success,iterations);
+}
+[samples,base,solved_bus,solved_gen,solved_branch,success,iterations]=benchmark_runpf();
+println(samples);
+return (samples,base,solved_bus,solved_gen,solved_branch,success,iterations);

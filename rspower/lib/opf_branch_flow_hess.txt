@@ -1,0 +1,46 @@
+// OPF_BRANCH_FLOW_HESS  Hessian of weighted limits at both branch ends.
+// Returns a sparse 2*nb square voltage block. Arguments and lim_type match
+// opf_branch_flow_fcn; Yf/Yt contain only constrained branch rows il.
+// MATPOWER 7.1, Copyright (c) 1996-2018 PSERC, Ray Zimmerman and Carlos E. Murillo-Sanchez.
+// Covered by the 3-clause BSD License; see LICENSE-MATPOWER.
+fn opf_branch_flow_hess(V1,V2,branch,Yf,Yt,il,lambda,vcart,lim_type) {
+    if vcart { V=V1+1j*V2; } else { V=V2.*exp(1j*V1); }
+    nb=length(V); nl=length(il);
+    if nl==0 { return sparse([],[],[],2*nb,2*nb); }
+    muF=slice(lambda,[0,nl],[0]);
+    muT=slice(lambda,[nl,2*nl],[0]);
+    limited=select(branch,il);
+    if lim_type==3 {
+        [dF1,dF2,dT1,dT2,F,T]=dIbr_dV(limited,Yf,Yt,V,vcart);
+    } else {
+        f=slice(limited,[0],[F_BUS-1,F_BUS])-1;
+        t=slice(limited,[0],[T_BUS-1,T_BUS])-1;
+        Cf=sparse(range(0,nl),f,1,nl,nb);
+        Ct=sparse(range(0,nl),t,1,nl,nb);
+        [dF1,dF2,dT1,dT2,F,T]=dSbr_dV(limited,Yf,Yt,V,vcart);
+    }
+    fn from_hessian(voltage,weight) {
+        if lim_type==3 { [A,B,C,D]=d2Ibr_dV2(Yf,voltage,weight,vcart); }
+        else { [A,B,C,D]=d2Sbr_dV2(Cf,Yf,voltage,weight,vcart); }
+        return (A,B,C,D);
+    }
+    fn to_hessian(voltage,weight) {
+        if lim_type==3 { [A,B,C,D]=d2Ibr_dV2(Yt,voltage,weight,vcart); }
+        else { [A,B,C,D]=d2Sbr_dV2(Ct,Yt,voltage,weight,vcart); }
+        return (A,B,C,D);
+    }
+    if lim_type==1 {
+        [F11,F12,F21,F22]=from_hessian(V,muF);
+        [T11,T12,T21,T22]=to_hessian(V,muT);
+        hessian=real(vertcat(horzcat(F11+T11,F12+T12),horzcat(F21+T21,F22+T22)));
+    } else {
+        if lim_type==2 {
+            dF1=real(dF1); dF2=real(dF2); dT1=real(dT1); dT2=real(dT2);
+            F=real(F); T=real(T);
+        }
+        [F11,F12,F21,F22]=d2Abr_dV2(from_hessian,dF1,dF2,F,V,muF);
+        [T11,T12,T21,T22]=d2Abr_dV2(to_hessian,dT1,dT2,T,V,muT);
+        hessian=vertcat(horzcat(F11+T11,F12+T12),horzcat(F21+T21,F22+T22));
+    }
+    return hessian;
+}
