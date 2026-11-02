@@ -584,8 +584,9 @@ V/I 和 mode 1 P/Q 的最大额定值缩放误差为 `4.05983e-2`，低于 `15%`
 未修改的官方 `Examples/Stevenson/StevensonPflow-3ph.dss` 使用 Generator Model 3 和
 `PVFactor=0.5`。本轮只接受单个全新 Snapshot epoch，并要求 `line_model=Exact` 与 Newton；
 `PVFactor` 作为 provenance 保留，不扩展为 time-series 控制状态，也不外推到未经审计的取值。
-OpenDSS reference `stevenson_model3_snapshot` 覆盖全部 15 个节点电压、58 行端子电流、58 行端子
-功率、Generator 聚合功率、11 行元件损耗和全网复损耗；最大归一化复数误差分别为
+OpenDSS reference `stevenson_model3_snapshot` 导出全部 15 个节点电压、58 行端子电流和 58 行
+端子功率；consumer 比较 42 行非接地 Line/Vsource/Generator 电流与 42 行对应功率，并比较
+Generator 聚合功率、11 行元件损耗和全网复损耗；最大归一化复数误差分别为
 `4.7449e-5`、`5.0376e-4`、`5.2226e-4`、`2.6188e-4`、`9.8037e-4` 和
 `9.6221e-5`，均低于 `1e-3`。
 

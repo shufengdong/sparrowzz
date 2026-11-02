@@ -24,8 +24,10 @@
 
 146 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
-原子发布前完成一次自执行。catalog 清单包含 145 个路径型入口的 DataFrame 投影，
-另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0。已经位于 `sparrowzz/dss/models` 的
+原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
+另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
+路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
+`tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
 静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 146 个发布入口；
 其余 113 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
@@ -1023,8 +1025,9 @@ DSS 语句、1 个 Dynamic epoch，搬移后的 bundle 自执行产生 16 张结
 PVFactor 以及 ADiakoptics IEEE30 仍不在本次范围内。
 
 锁定参考为 `stevenson_model3_snapshot`，由 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5
-在固定上游提交 `3b208397160213cae4a9e2d0a7d1aa3528ce26e1` 生成。15 个节点电压、58 行
-端子电流、58 行端子功率、Generator 聚合功率、11 行元件损耗和全网复损耗的最大归一化复数
+在固定上游提交 `3b208397160213cae4a9e2d0a7d1aa3528ce26e1` 生成。原生参考导出 15 个节点电压、
+58 行端子电流和 58 行端子功率；consumer 比较其中 42 行非接地 Line/Vsource/Generator 电流与
+42 行对应功率，并比较 Generator 聚合功率、11 行元件损耗和全网复损耗。最大归一化复数
 误差依次为 `4.7449e-5`、`5.0376e-4`、`5.2226e-4`、`2.6188e-4`、`9.8037e-4`
 和 `9.6221e-5`，均低于 `1e-3` 发布门限。
 
