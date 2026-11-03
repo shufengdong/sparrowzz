@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 147 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 IEEE8500 P174 2,900 步 Duty 入口 |
-| 当前尚未发布的独立入口 | 112 | 259 个独立入口扣除 147 个已发布入口 |
+| 已转换并发布 bundle | 148 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 AutoHLT 8-epoch 三绕组变压器入口 |
+| 当前尚未发布的独立入口 | 111 | 259 个独立入口扣除 148 个已发布入口 |
 | 超时 | 0 | 无 |
 
-147 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+148 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 147 个发布入口；
-其余 112 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 148 个发布入口；
+其余 111 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -773,7 +773,7 @@ OpenDSS 数值门禁通过。
 - `Examples/AutoTrans/AutoHLT.dss` 已能生成 8 个 execution epoch，运行时在第一个三相短路工作点
   返回 fault-study protection measurement 求解失败。原脚本只使用现有三绕组变压器、Fault、Load
   和源/线路切换，且注释给出电流、损耗和满载电压参考，是一个边界集中的 Snapshot fault
-  continuation 候选。
+  continuation 候选。该历史候选已在第四十轮完成闭合并发布，见下文。
 - `IEEETestCases/NEVTestCase/Run_NEV.dss` 的主模型只包含现有线路、变压器、负荷、接地和电容；
   当前唯一首层阻断是同一入口依次执行 Snapshot、FaultStudy、Harmonic。三个 adapter 已分别存在，
   后续工作是定义多 study bundle 的结果命名和 continuation，而不能把生命周期简单改名。
@@ -1062,6 +1062,22 @@ LoadShape、12 个 RegControl 的单档步进限制和 Monitor 声明均由 exec
 `conversion_report.csv` 已由 `unsupported` 改为 `converted`，发布总数由 146 增至 147，尚未发布数
 由 113 降至 112。
 
+### 第四十轮 AutoHLT 8-epoch 三绕组变压器发布
+
+2026-11-03 将未修改命令语义的官方入口 `Examples/AutoTrans/AutoHLT.dss` 发布为 schema v2
+portable bundle。现成 release `tensoreval`（SHA-256
+`bd81fbc8a0634f56e845327d67cd428e002fa172925b6ecf6c5e48bfd307b5d3`）以 `--check` 验证
+46 条 DSS 语句和 8 个 solve epoch；Export 仅作为无副作用输出请求保留。bundle 搬移到独立临时
+目录后自执行成功，`voltage.csv` 为 96 行、11 列，包含全部 8 个 `epoch_index`，closure 不含来源树
+绝对路径。
+
+OpenDSS 对标显式使用 `line_model=exact`。5 个非故障 epoch 的 60 个母线相复电压全部匹配，最大
+相对误差 `2.94510954372887e-5`、RMS 相对误差 `6.7477168074739e-6`、最大绝对误差
+`2.73751317027705 V`，通过 `0.5%` 门限。PSA 回归测试另锁定 3 个故障 epoch 的 HL/HT/LT 三相
+短路电流，以及非故障 epoch 的绕组端口量、复损耗和满载电压；普通 `bus_phase` 按保护故障合同
+保留故障前潮流状态，不将其误作故障电压。`conversion_report.csv` 已由 `unsupported` 改为
+`converted`，发布总数由 147 增至 148，尚未发布数由 112 降至 111。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1190,7 +1206,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-147 个 `converted` 和 112 个 `unsupported`：
+148 个 `converted` 和 111 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
