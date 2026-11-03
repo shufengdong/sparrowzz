@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：144 个入口已经发布 bundle，115 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：146 个入口已经发布 bundle，113 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫。2,900 步 P174 的导入和投影
   等价测试仍通过，但当前完整 `--check` 在 epoch 0 首次潮流求解失败。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
@@ -561,6 +561,42 @@ MEMS façade 1/1、manifest 40/40；完整 `dss_import` 461 通过、10 个既�
 3. 两个发布门禁完成前继续保持 144/115；EnergyMeter 的显式采样、寄存器导出和 QSTS 累计仍是
    独立运行时合同，不属于本轮惰性准入。
 
+## 第三十七轮：Dynamic V13 Monitor 闭合与 GFL IEEE123 发布
+
+PVSystem/Storage mode 0、1、3 的 Native 通道、单位、终端方向和每步采样顺序已由
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 锁定。V13 投影保持 470 个 1 ms 动态时点，覆盖
+200 ms 故障前、70 ms 故障中和 200 ms 清除后；6 个 Monitor 共 31,960 行。未建模 mode 3
+状态统一标记 `validity=unmodeled` 并输出 `NaN`，PVSystem/Storage 的 Native `it` 不再由端口
+电流幅值替代。
+
+固定官方入口已通过 406 条 DSS 语句的严格检查，生成 schema v2 portable bundle，并从原目录
+搬移到独立临时目录自执行，得到 16 张结果表。数值比较显式使用 `line_model=Exact`：mode 0
+V/I 和 mode 1 P/Q 的最大额定值缩放误差为 `4.05983e-2`，低于 `15%` 门限；mode 3 已建模状态
+最大缩放误差为 `3.46374e-2`，低于 `20%` 门限；Storage `kWh` 最大缩放误差为
+`2.05525e-7`。逐点原生参考、比较摘要、版本和 release SHA-256 均随 bundle 发布并由 PSA 测试消费。
+
+两个发布门禁均已闭合，`conversion_report.csv` 已把该入口改为 `converted`。发布计数由
+144/115 更新为 145/114；剩余 GFL DynExp 和 GFM 入口仍需各自的 DynamicEq/GFM 运行时合同，
+不能由本次普通 GFL V13 结果外推。
+
+## 2026-11-02 Stevenson Generator Model 3 Snapshot 闭合
+
+未修改的官方 `Examples/Stevenson/StevensonPflow-3ph.dss` 使用 Generator Model 3 和
+`PVFactor=0.5`。本轮只接受单个全新 Snapshot epoch，并要求 `line_model=Exact` 与 Newton；
+`PVFactor` 作为 provenance 保留，不扩展为 time-series 控制状态，也不外推到未经审计的取值。
+OpenDSS reference `stevenson_model3_snapshot` 导出全部 15 个节点电压、58 行端子电流和 58 行
+端子功率；consumer 比较 42 行非接地 Line/Vsource/Generator 电流与 42 行对应功率，并比较
+Generator 聚合功率、11 行元件损耗和全网复损耗；最大归一化复数误差分别为
+`4.7449e-5`、`5.0376e-4`、`5.2226e-4`、`2.6188e-4`、`9.8037e-4` 和
+`9.6221e-5`，均低于 `1e-3`。
+
+schema v2 bundle 只暴露 `bus_phase` 电压结果，详细 I/P/Q/loss 由 PSA reference test 保留。
+使用现成 release `tensoreval`（SHA-256
+`ddda420b926d0e080127bcc93efc462fb64b50cab1b9e3df08df4ad02a914198`）将完整 bundle 搬移到独立
+临时目录后自执行成功，输出 15 行、11 列，且 closure 中没有来源树绝对路径。报告状态已由
+`unsupported` 改为 `converted`，当前计数由 145/114 更新为 146/113。ADiakoptics IEEE30、
+time-series Model 3、未经审计的 PVFactor 和 multi-epoch continuation 继续保持 unsupported。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -569,7 +605,7 @@ MEMS façade 1/1、manifest 40/40；完整 `dss_import` 461 通过、10 个既�
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
    需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 115 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 113 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

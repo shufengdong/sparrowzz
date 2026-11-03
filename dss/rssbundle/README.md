@@ -18,16 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 144 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 InverterTechNote 的 Storage kVA 阈值入口 |
-| 当前尚未发布的独立入口 | 115 | 259 个独立入口扣除 144 个已发布入口 |
+| 已转换并发布 bundle | 146 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 Stevenson Generator Model 3 Snapshot 入口 |
+| 当前尚未发布的独立入口 | 113 | 259 个独立入口扣除 146 个已发布入口 |
 | 超时 | 0 | 无 |
 
-144 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+146 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
-原子发布前完成一次自执行。catalog 审计确认 143 个路径型入口均能投影到 DataFrame 门面，
-另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 144 个发布入口；
-其余 115 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
+另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
+路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
+`tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 146 个发布入口；
+其余 113 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -993,6 +995,48 @@ reference manifest 40/40。完整 `dss_import` 为 461 通过、10 个既有失�
 portable 自执行，也没有进入必须显式设置 `line_model=Exact` 的故障窗 V/I/P/Q 与设备状态比较，
 所以 `conversion_report.csv` 未改，不新增 bundle；发布总数保持 144，尚未发布数保持 115。
 
+### 第三十七轮 Dynamic V13 Monitor 与 IEEE123 GFL Daily 发布
+
+2026-10-30 为 PVSystem/Storage 的 mode 0、1、3 Monitor 建立 V13 动态投影，并将官方
+`Examples/IBRDynamics_Cases/GFL_IEEE123/Run_IEEE123Bus_GFLDaily.DSS` 生成为可搬移执行的
+schema v2 bundle。入口包含 Snapshot 初始化、200 ms 故障前、70 ms 故障中和 200 ms 清除后，
+共 470 个固定 1 ms 动态时点；6 个 Monitor 的原生参考共 31,960 行。
+
+数值门禁使用 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5，并显式设置
+`line_model=Exact`。mode 0 的复电压/复电流和 mode 1 的三相 P/Q 覆盖全部 470 个时点，
+最大额定值缩放误差分别为 `3.94205e-2` 和 `4.05983e-2`，低于 V13 的 `15%` 动态门限；
+mode 3 已建模状态最大缩放误差为 `3.46374e-2`，低于 `20%` 门限，Storage `kWh` 最大缩放误差
+为 `2.05525e-7`。未建模的 Native 状态严格输出 `validity=unmodeled` 与 `NaN`，不以端口量伪造；
+PVSystem/Storage 的 `it` 也按该合同修正。
+
+发布证据随 bundle 保存为 `native_reference.csv` 与 `numerical_comparison.csv`。release
+`tensoreval` SHA-256 为
+`55bdca12b96c001c27b01a51d25a22184a5e14df25dbb4e81d88da4430d09499`；严格检查验证 406 条
+DSS 语句、1 个 Dynamic epoch，搬移后的 bundle 自执行产生 16 张结果表和 31,960 行 Monitor。
+发布总数由 144 增至 145，尚未发布数由 115 降至 114。
+
+### 第三十八轮 Stevenson Generator Model 3 Snapshot 发布
+
+2026-11-02 将未修改的官方入口
+`Examples/Stevenson/StevensonPflow-3ph.dss` 发布为 schema v2 portable bundle。该案例的
+`Generator.Bus3` 使用 `Model=3` 和 `PVFactor=0.5`；PSA 将 `PVFactor` 保留为来源语义，
+不把它解释为新的设备状态或跨时点控制器。发布边界严格限定为单个全新 Snapshot epoch、
+`line_model=Exact` 和 Newton 后端；time-series Model 3、多 epoch continuation、未经审计的
+PVFactor 以及 ADiakoptics IEEE30 仍不在本次范围内。
+
+锁定参考为 `stevenson_model3_snapshot`，由 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5
+在固定上游提交 `3b208397160213cae4a9e2d0a7d1aa3528ce26e1` 生成。原生参考导出 15 个节点电压、
+58 行端子电流和 58 行端子功率；consumer 比较其中 42 行非接地 Line/Vsource/Generator 电流与
+42 行对应功率，并比较 Generator 聚合功率、11 行元件损耗和全网复损耗。最大归一化复数
+误差依次为 `4.7449e-5`、`5.0376e-4`、`5.2226e-4`、`2.6188e-4`、`9.8037e-4`
+和 `9.6221e-5`，均低于 `1e-3` 发布门限。
+
+bundle 只发布 `bus_phase` 电压表面；详细 I/P/Q/loss 继续由 PSA reference test 消费。
+手工构建的 release `tensoreval` SHA-256 为
+`ddda420b926d0e080127bcc93efc462fb64b50cab1b9e3df08df4ad02a914198`。完整 bundle 搬移到独立
+临时目录后自执行成功，生成 15 行、11 列的 `voltage.csv`，且 manifest、RSS 和 DSS closure
+没有来源树绝对路径。发布总数由 145 增至 146，尚未发布数由 114 降至 113。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1086,7 +1130,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 | 数量 | 分类 | 诊断码 | 原因 |
 |---:|---|---|---|
-| 14 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 保存的完整检查请求 Dynamic、Direct 等尚未完成入口合同的生命周期；第三十轮仅转换探针已把其中部分 Dynamic 入口推进到运行层诊断，Direct 仍未支持。 |
+| 13 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 保存的完整检查请求 Dynamic、Direct 等尚未完成入口合同的生命周期；IEEE123 GFL Daily 已发布，Direct 仍未支持。 |
 | 13 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
 | 9 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
 | 8 | `unsupported` | `REQUEST.SOURCE.ESCAPES_ROOT` | 数据资产引用越过本次允许的获取根。 |
@@ -1112,7 +1156,6 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 1 | `unsupported` | `PSA.DSS.CONTROL.REQUIRED_PROPERTY_MISSING` | 控制对象缺少当前有界合同要求的显式属性。 |
 | 1 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage `AmpLimit` 尚无当前运行时映射。 |
 | 1 | `unsupported` | `PSA.DSS.TRANSFORMER.PROPERTY_UNSUPPORTED` | Transformer 属性尚无当前 owned table 的无损映射。 |
-| 1 | `unsupported` | `PSA.DSS.GENERATOR.MODEL3.PV_FACTOR_UNSUPPORTED` | Generator Model 3 的 PV factor 超出当前静态执行合同。 |
 | 1 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.POST_SOLVE_MUTATION` | 独立入口在首次 Solve 后修改模型，尚无 execution-plan 映射。 |
 | 1 | `unsupported` | `READINESS.SOURCE.DEFAULTED` | 关键源参数需要默认值，严格 profile 不能证明等价。 |
 | 1 | `unsupported` | `PSA.DSS.GENERATOR.USER_MODEL_UNSUPPORTED` | Generator 用户模型依赖外部实现，PSA 无法无损执行。 |
@@ -1122,7 +1165,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-144 个 `converted` 和 115 个 `unsupported`：
+146 个 `converted` 和 113 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
