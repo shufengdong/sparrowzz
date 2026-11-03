@@ -69,6 +69,84 @@ class CatalogValidatorTests(unittest.TestCase):
             "result_frames.harmonic_monitor",
         )
 
+    def test_harmonic_execution_facade_uses_dedicated_stable_result_schemas(self):
+        facades = self.read("study_facades.json")
+        facade = self.facade(facades, "ds_harmonic_execution_plan")
+        references = [result["schemaRef"] for result in facade["results"]]
+        self.assertEqual(
+            references,
+            [f"result_frames.{name}" for name in self.validator.HARMONIC_EXECUTION_RESULT_COLUMNS],
+        )
+        catalog = self.read("dataframes.json")
+        for name, base_columns in self.validator.HARMONIC_EXECUTION_RESULT_COLUMNS.items():
+            schema = catalog["result_frames"][name]
+            expected = base_columns + self.validator.HARMONIC_EXECUTION_IDENTITY_COLUMNS
+            self.assertEqual(schema["columns"], expected)
+            self.assertEqual(
+                [column["name"] for column in schema["contract"]["columns"]],
+                expected,
+            )
+
+    def test_rejects_harmonic_execution_result_schema_drift(self):
+        catalog = self.read("dataframes.json")
+        schema = catalog["result_frames"]["harmonic_execution_bus_voltage"]
+        schema["contract"]["columns"][-1]["unit"] = "not_applicable"
+        self.write("dataframes.json", catalog)
+        self.assert_invalid(
+            r"result_frames\.harmonic_execution_bus_voltage\.time_s has an invalid execution identity contract"
+        )
+
+    def test_rejects_non_nullable_harmonic_execution_identity(self):
+        catalog = self.read("dataframes.json")
+        schema = catalog["result_frames"]["harmonic_execution_branch_flow"]
+        harmonic = next(column for column in schema["contract"]["columns"] if column["name"] == "harmonic")
+        harmonic["nullable"] = False
+        self.write("dataframes.json", catalog)
+        self.assert_invalid(r"result_frames\.harmonic_execution_branch_flow\.harmonic must be nullable u32")
+
+    def test_dataframe_builder_columns_accepts_direct_df_result(self):
+        source = '''
+pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
+    df![
+        "monitor" => ["m1"],
+        "time" => [0.0],
+    ]
+}
+'''
+        self.assertEqual(
+            self.validator.dataframe_builder_columns(source, "monitor_output_frame"),
+            ["monitor", "time"],
+        )
+
+    def test_facade_input_aliases_do_not_collide_with_result_names(self):
+        catalog = self.read("study_facades.json")
+        for facade in catalog["facades"]:
+            aliases = {item["alias"] for item in facade["inputs"]}
+            result_names = {item["name"] for item in facade["results"]}
+            self.assertFalse(
+                aliases & result_names,
+                f"{facade['function']} input aliases collide with result names",
+            )
+        fault_study = self.facade(catalog, "ds_fault_study")
+        fault_input = next(item for item in fault_study["inputs"] if item["id"] == "fault")
+        self.assertEqual(fault_input["alias"], "fault_input")
+
+    def test_rejects_recommended_result_name_colliding_with_input_alias(self):
+        catalog = self.read("study_facades.json")
+        facade = self.facade(catalog, "ds_radial_pf")
+        recommended = next(item["name"] for item in facade["results"] if item["recommended"])
+        facade["inputs"][0]["alias"] = recommended
+        self.write("study_facades.json", catalog)
+        self.assert_invalid(r"ds_radial_pf input alias bus_voltage collides with a result name")
+
+    def test_rejects_non_recommended_result_name_colliding_with_input_alias(self):
+        catalog = self.read("study_facades.json")
+        facade = self.facade(catalog, "ds_motor_dynamics")
+        self.assertFalse(next(item for item in facade["results"] if item["name"] == "bus_voltage")["recommended"])
+        facade["inputs"][0]["alias"] = "bus_voltage"
+        self.write("study_facades.json", catalog)
+        self.assert_invalid(r"ds_motor_dynamics input alias bus_voltage collides with a result name")
+
     def test_five_path_lifecycles_have_fail_closed_dataframe_projections(self):
         catalog = self.read("case_projections.json")
         lifecycle_sources = {
@@ -463,7 +541,7 @@ class CatalogValidatorTests(unittest.TestCase):
         self.assertEqual(stats["facades"], 18)
         self.assertEqual(stats["models"], 77)
         self.assertEqual(stats["structs"], 9)
-        self.assertEqual(stats["results"], 119)
+        self.assertEqual(stats["results"], 126)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):

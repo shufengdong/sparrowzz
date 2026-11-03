@@ -1,0 +1,22 @@
+// Shared runner. Entry files supply data, benchmark_case, warmups and sample count.
+// Each timed sample rebuilds and solves the model; compilation and printing are outside it.
+println(benchmark_case);
+println(`sample / execution ms / objective / iterations`);
+for sample in 0..benchmark_warmups+benchmark_samples {
+    started_ms=monotonic_ms();
+    result=runopf_case(baseMVA,bus,gen,branch,gencost,options);
+    ended_ms=monotonic_ms();
+    elapsed_ms=ended_ms-started_ms;
+    output=getfield(result,`output`);
+    success=getfield(result,`success`); violation=getfield(output,`constraint_violation`);
+    objective=getfield(result,`f`); iterations=getfield(output,`iterations`);
+    if success==0 { error(`OPF bench did not converge`); }
+    if violation>1e-7 { error(`OPF bench constraint violation`); }
+    if sample>=benchmark_warmups {
+        println([sample-benchmark_warmups+1,elapsed_ms,objective,iterations]);
+    }
+}
+rb=getfield(result,`bus`); rg=getfield(result,`gen`); rl=getfield(result,`branch`);
+f=getfield(result,`f`); success=getfield(result,`success`); flag=getfield(result,`exitflag`);
+violation=getfield(output,`constraint_violation`); iterations=getfield(output,`iterations`);
+return (rb,rg,rl,f,success,flag,violation,iterations);

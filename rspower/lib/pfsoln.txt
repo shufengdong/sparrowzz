@@ -26,7 +26,8 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     //取非PQ且GEN_STATUS=1的generators
     on_temp = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) > 0);    //which generators are on?
     index_gbus_type = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on_temp) - 1;    //得到GEN_STATUS=1的发电机母线节点索引
-    on = find(get_multi(slice(bus, [0], [BUS_TYPE-1, BUS_TYPE]), index_gbus_type) != PQ)'; // which generators are not at PQ buses
+    on_positions = find(get_multi(slice(bus, [0], [BUS_TYPE-1, BUS_TYPE]), index_gbus_type) != PQ);
+    on = get_multi(on_temp, on_positions)'; // which generators are not at PQ buses
     off = find(slice(gen, [0], [GEN_STATUS-1, GEN_STATUS]) <= 0)';       // which generators are off?
     gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on)';         // what buses are they at?(注意索引需-1)
 

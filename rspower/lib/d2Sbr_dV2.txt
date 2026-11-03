@@ -1,0 +1,27 @@
+// D2SBR_DV2  Sparse Hessian blocks of mu.' * Sbr(V), for one branch end.
+// Cbr selects end buses; Ybr maps bus voltages to end currents.
+// MATPOWER 7.1, Copyright (c) 2008-2019 PSERC, Ray Zimmerman and Baljinnyam Sereeter.
+// Covered by the 3-clause BSD License; see LICENSE-MATPOWER.
+fn d2Sbr_dV2(Cbr,Ybr,V,mu,vcart) {
+    nl=length(mu); nb=length(V);
+    A=ctranspose(Ybr)*sparse(range(0,nl),range(0,nl),mu,nl,nl)*Cbr;
+    if vcart {
+        H11=A+transpose(A);
+        H12=1j*(A-transpose(A));
+        H21=-H12;
+        H22=H11;
+    } else {
+        index=range(0,nb);
+        diagV=sparse(index,index,V,nb,nb);
+        B=conj(diagV)*A*diagV;
+        D=sparse(index,index,(A*V).*conj(V),nb,nb);
+        E=sparse(index,index,(transpose(A)*conj(V)).*V,nb,nb);
+        F=B+transpose(B);
+        G=sparse(index,index,ones(nb,1)./abs(V),nb,nb);
+        H11=F-D-E;
+        H21=1j*G*(B-transpose(B)-D+E);
+        H12=transpose(H21);
+        H22=G*F*G;
+    }
+    return (H11,H12,H21,H22);
+}

@@ -1,0 +1,79 @@
+// OPF_EXECUTE  Solve, convert units and restore original matrix row order.
+// Raw NLP multipliers remain available in lambda; MATPOWER matrix columns use
+// MW/MVAr/MVA and degrees, including the squared-flow chain-rule conversion.
+fn opf_execute(model) {
+    [x,fval,exitflag,output,lambda]=nlpopf_solver(model);
+    nb=getfield(model,`nb`); ng=getfield(model,`ng`); baseMVA=getfield(model,`baseMVA`);
+    bus=getfield(model,`bus`); gen=getfield(model,`gen`); branch=getfield(model,`branch`);
+    Va=slice(x,[0,nb],[0]); Vm=slice(x,[nb,2*nb],[0]);
+    Pg=slice(x,[2*nb,2*nb+ng],[0]); Qg=slice(x,[2*nb+ng,2*nb+2*ng],[0]);
+    bus=assign(bus,horzcat(Vm,Va*180/pi),[0],[VM-1,VA]);
+    gen=assign(gen,horzcat(Pg,Qg)*baseMVA,[0],[PG-1,QG]);
+    gbus=opf_column(gen,GEN_BUS); gbus=gbus-1;
+    gen=assign(gen,get_multi(Vm,gbus)',[0],[VG-1,VG]);
+    lower=getfield(lambda,`lower`); upper=getfield(lambda,`upper`);
+    balance=getfield(lambda,`eqnonlin`); balance=transpose(balance);
+    prices=slice(balance,[0,nb],[0])/baseMVA;
+    reactive_prices=slice(balance,[nb,2*nb],[0])/baseMVA;
+    vm_upper=slice(upper,[nb,2*nb],[0]); vm_lower=slice(lower,[nb,2*nb],[0]);
+    bus=assign(bus,horzcat(prices,reactive_prices,vm_upper,vm_lower),[0],[LAM_P-1,MU_VMIN]);
+    pg_upper=slice(upper,[2*nb,2*nb+ng],[0])/baseMVA;
+    pg_lower=slice(lower,[2*nb,2*nb+ng],[0])/baseMVA;
+    qg_upper=slice(upper,[2*nb+ng,2*nb+2*ng],[0])/baseMVA;
+    qg_lower=slice(lower,[2*nb+ng,2*nb+2*ng],[0])/baseMVA;
+    gen=assign(gen,horzcat(pg_upper,pg_lower,qg_upper,qg_lower),[0],[MU_PMAX-1,MU_QMIN]);
+
+    nl=size(branch,0);
+    if nl>0 {
+        Yf=getfield(model,`Yf`); Yt=getfield(model,`Yt`);
+        V=Vm.*exp(1j*Va);
+        from=opf_column(branch,F_BUS); to=opf_column(branch,T_BUS); from=from-1; to=to-1;
+        Sf=select(V,from,[0]).*conj(Yf*V)*baseMVA;
+        St=select(V,to,[0]).*conj(Yt*V)*baseMVA;
+        branch=assign(branch,horzcat(real(Sf),imag(Sf),real(St),imag(St)),[0],[PF-1,QT]);
+    }
+    flow_weights=getfield(lambda,`ineqnonlin`);
+    limited=getfield(model,`limited`); nlimited=length(limited);
+    mu_from=zeros(nl,1); mu_to=zeros(nl,1);
+    for row in 0..nlimited {
+        line=get(limited,row); rate=get(branch,line,RATE_A-1);
+        mu_from=set(mu_from,[line],2*get(flow_weights,row)*rate/(baseMVA^2));
+        mu_to=set(mu_to,[line],2*get(flow_weights,row+nlimited)*rate/(baseMVA^2));
+    }
+    angles=getfield(model,`angles`);
+    angle_lower=getfield(angles,`lower`); angle_upper=getfield(angles,`upper`); angle_equal=getfield(angles,`equal`);
+    linear=getfield(lambda,`ineqlin`); equality=getfield(lambda,`eqlin`);
+    mu_angle_lower=zeros(nl,1); mu_angle_upper=zeros(nl,1);
+    for row in 0..nl {
+        lo=get(angle_lower,row); hi=get(angle_upper,row); eq=get(angle_equal,row);
+        if lo>=0 { mu_angle_lower=set(mu_angle_lower,[row],get(linear,lo)*pi/180); }
+        if hi>=0 { mu_angle_upper=set(mu_angle_upper,[row],get(linear,hi)*pi/180); }
+        if eq>=0 {
+            weight=get(equality,eq)*pi/180;
+            if weight>=0 { mu_angle_upper=set(mu_angle_upper,[row],weight); }
+            else { mu_angle_lower=set(mu_angle_lower,[row],-weight); }
+        }
+    }
+    if nl>0 {
+        branch=assign(branch,horzcat(mu_from,mu_to,mu_angle_lower,mu_angle_upper),[0],[MU_SF-1,MU_ANGMAX]);
+    }
+    i2e=getfield(model,`i2e`);
+    [bus,gen,branch]=int2ext(i2e,bus,gen,branch);
+    original_bus=getfield(model,`original_bus`); original_gen=getfield(model,`original_gen`);
+    original_branch=getfield(model,`original_branch`);
+    original_bus=assign(original_bus,0,[0],[LAM_P-1,MU_VMIN]);
+    original_gen=assign(original_gen,0,[0],[PG-1,QG]);
+    original_gen=assign(original_gen,0,[0],[MU_PMAX-1,MU_QMIN]);
+    if size(original_branch,0)>0 { original_branch=assign(original_branch,0,[0],[PF-1,MU_ANGMAX]); }
+    order=getfield(model,`order`);
+    bus_rows=getfield(order,`bus`); gen_rows=getfield(order,`gen`); branch_rows=getfield(order,`branch`);
+    result_bus=select_assign(original_bus,bus,bus_rows,[]);
+    result_gen=select_assign(original_gen,gen,gen_rows,[]);
+    result_branch=original_branch;
+    if length(branch_rows)>0 { result_branch=select_assign(result_branch,branch,branch_rows,[]); }
+    gencost=getfield(model,`original_gencost`);
+    success=0; if exitflag>0 { success=1; }
+    return struct(`baseMVA`,baseMVA,`bus`,result_bus,`gen`,result_gen,`branch`,result_branch,
+        `gencost`,gencost,`f`,fval,`success`,success,`exitflag`,exitflag,
+        `output`,output,`lambda`,lambda,`x`,x,`order`,order);
+}

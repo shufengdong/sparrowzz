@@ -1,0 +1,164 @@
+#include ../data/case9.txt
+#include ../lib/idx_bus.txt
+#include ../lib/idx_gen.txt
+#include ../lib/idx_brch.txt
+#include ../lib/idx_cost.txt
+#include ../lib/ext2int.txt
+#include ../lib/int2ext.txt
+#include ../lib/make_sdzip.txt
+#include ../lib/makeSbus.txt
+#include ../lib/makeYbus.txt
+#include ../lib/dSbus_dV.txt
+#include ../lib/dSbr_dV.txt
+#include ../lib/dIbr_dV.txt
+#include ../lib/dAbr_dV.txt
+#include ../lib/polycost.txt
+#include ../lib/totcost.txt
+#include ../lib/opf_gen_cost_fcn.txt
+#include ../lib/opf_power_balance_fcn.txt
+#include ../lib/opf_branch_flow_fcn.txt
+#include ../lib/d2Sbus_dV2.txt
+#include ../lib/d2Sbr_dV2.txt
+#include ../lib/d2Ibr_dV2.txt
+#include ../lib/d2Abr_dV2.txt
+#include ../lib/opf_power_balance_hess.txt
+#include ../lib/opf_branch_flow_hess.txt
+#include ../lib/opf_setup.txt
+#include ../lib/nlpopf_solver.txt
+#include ../lib/opf_execute.txt
+#include ../lib/opf.txt
+#include ../lib/runopf.txt
+
+// MATLAB R2022a Update1 / MATPOWER7.1 MIPS, tolerance1e-9.
+options=optimoptions(`fmincon`,`MaxIterations`,300,`OptimalityTolerance`,1e-9,`ConstraintTolerance`,1e-9,
+    `bound_relax_factor`,0,`acceptable_iter`,0,`mu_strategy`,`adaptive`);
+result=runopf_case(baseMVA,bus,gen,branch,gencost,options);
+rb=getfield(result,`bus`); rg=getfield(result,`gen`); rl=getfield(result,`branch`);
+f=getfield(result,`f`); success=getfield(result,`success`); flag=getfield(result,`exitflag`);
+output=getfield(result,`output`); violation=getfield(output,`constraint_violation`); iterations=getfield(output,`iterations`);
+assert_eq(success,1);
+assert_abs_diff_eq(f,5296.6862042276953,0.001);
+
+// bus numbering
+actual=select(rb,[],[0]);
+assert_abs_diff_eq(actual,[
+    [1],
+    [2],
+    [3],
+    [4],
+    [5],
+    [6],
+    [7],
+    [8],
+    [9]
+],0);
+
+// voltage magnitude
+actual=select(rb,[],[7]);
+assert_abs_diff_eq(actual,[
+    [1.0999999904065296],
+    [1.0973546250960209],
+    [1.0866203035152346],
+    [1.094221508213826],
+    [1.0844484892340973],
+    [1.0999999989553357],
+    [1.0894894830204076],
+    [1.0999999989841711],
+    [1.0717554420121298]
+],0.0002);
+
+// voltage angle
+actual=select(rb,[],[8]);
+assert_abs_diff_eq(actual,[
+    [0],
+    [4.8936438573244097],
+    [3.249541576651263],
+    [-2.4629241179527481],
+    [-3.9819824411222644],
+    [0.60288906454662361],
+    [-1.1962721845341877],
+    [0.905633109308699],
+    [-4.615238709349148]
+],0.005);
+
+// bus multipliers
+actual=select(rb,[],[13,14,15,16]);
+assert_abs_diff_eq(actual,[
+    [24.755715711873677, 2.2747850092790124e-11, 8.2163492783952972, 0],
+    [24.034502122102396, 5.5341994553054782e-14, 0, 0],
+    [24.075908197916998, -3.9863010487550991e-11, 0, 0],
+    [24.755901574461856, 0.0043211042802996915, 0, 0],
+    [24.998474319416655, 0.026497145822141421, 0, 0],
+    [24.075908198412613, 2.7741044490460675e-09, 75.43063521487926, 0],
+    [24.253897329204687, 0.035515972972197725, 0, 0],
+    [24.034502124216989, 1.6624561606022233e-08, 77.568354434871068, 0],
+    [24.998486778060325, 0.11147991560506004, 0, 0]
+],0.06);
+
+// generator row order
+actual=select(rg,[],[0]);
+assert_abs_diff_eq(actual,[
+    [1],
+    [2],
+    [3]
+],0);
+
+// generation and voltage
+actual=select(rg,[],[1,2,5]);
+assert_abs_diff_eq(actual,[
+    [89.798707783496781, 12.965642701165308, 1.0999999904065296],
+    [134.32060071918013, 0.031846993513887228, 1.0973546250960209],
+    [94.187380401652263, -22.634204416575898, 1.0866203035152346]
+],0.03);
+
+// generator multipliers
+actual=select(rg,[],[21,22,23,24]);
+assert_abs_diff_eq(actual,[
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0]
+],0.06);
+
+// branch row order
+actual=select(rl,[],[0,1]);
+assert_abs_diff_eq(actual,[
+    [1, 4],
+    [4, 5],
+    [5, 6],
+    [3, 6],
+    [6, 7],
+    [7, 8],
+    [8, 2],
+    [8, 9],
+    [9, 4]
+],0);
+
+// branch flows
+actual=select(rl,[],[13,14,15,16]);
+assert_abs_diff_eq(actual,[
+    [89.798707783495459, 12.96564270116877, -89.798707783495473, -9.0469785776942899],
+    [35.221229729938152, -3.8900686189444498, -35.040690926275481, -13.882356810586819],
+    [-54.959309073723929, -16.117643189413204, 55.969060502929977, -22.190786792459125],
+    [94.187380401652263, -22.634204416576047, -94.187380401652263, 27.291245566697022],
+    [38.218319898722406, -5.1004587742378042, -38.069072996380541, -18.683849782860545],
+    [-61.930927003619509, -16.316150217140358, 62.20958152158866, 0.81896228000096649],
+    [-134.32060071918016, 9.3323662663905864, 134.32060071918016, 0.031846993513991173],
+    [72.111019197591602, -10.151328546390671, -70.717322232732116, -18.924127395451016],
+    [-54.282677767267131, -31.075872604549264, 54.577478053557506, 12.937047196638535]
+],0.03);
+
+// branch multipliers
+actual=select(rl,[],[17,18,19,20]);
+assert_abs_diff_eq(actual,[
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0],
+    [0, 0, 0, 0]
+],0.06);
+
+return (rb,rg,rl,f,success,flag,violation,iterations);

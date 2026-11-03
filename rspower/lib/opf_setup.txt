@@ -1,0 +1,210 @@
+// OPF_SETUP  Build a generic polar AC OPF from MATPOWER numeric matrices.
+// x=[Va;Vm;Pg;Qg], radians and per-unit powers. Each equation family retains
+// its own numeric matrix functions; only the solver boundary joins the blocks.
+// External row order is preserved. No per-variable symbolic names are generated.
+fn opf_column(data,column) {
+    return slice(data,[0],[column-1,column]);
+}
+
+fn opf_pad(data,columns) {
+    if size(data,1)<columns {
+        data=horzcat(data,zeros(size(data,0),columns-size(data,1)));
+    }
+    return data;
+}
+
+// Angle limits are linear in Va. Keep their row maps for multiplier restoration.
+fn opf_angles(branch,n) {
+    nl=size(branch,0);
+    ir=zeros(4*nl); ic=zeros(4*nl); iv=zeros(4*nl); rhs=zeros(2*nl,1);
+    er=zeros(2*nl); ec=zeros(2*nl); ev=zeros(2*nl); eqrhs=zeros(nl,1);
+    lower=zeros(nl)-1; upper=zeros(nl)-1; equal=zeros(nl)-1;
+    ni=0; ne=0;
+    for row in 0..nl {
+        from=get(branch,row,F_BUS-1)-1; to=get(branch,row,T_BUS-1)-1;
+        lo=get(branch,row,ANGMIN-1); hi=get(branch,row,ANGMAX-1);
+        if lo!=0 || hi!=0 {
+            if lo>hi { error(`OPF angle lower bound exceeds upper bound`); }
+            if lo==hi && lo>-360 && hi<360 {
+                er=set(er,[2*ne,2*ne+1],[ne,ne]);
+                ec=set(ec,[2*ne,2*ne+1],[from,to]);
+                ev=set(ev,[2*ne,2*ne+1],[1,-1]);
+                eqrhs=set(eqrhs,[ne],lo*pi/180); equal=set(equal,[row],ne); ne=ne+1;
+            } else {
+                if lo>-360 {
+                    ir=set(ir,[2*ni,2*ni+1],[ni,ni]); ic=set(ic,[2*ni,2*ni+1],[from,to]);
+                    iv=set(iv,[2*ni,2*ni+1],[-1,1]); rhs=set(rhs,[ni],-lo*pi/180);
+                    lower=set(lower,[row],ni); ni=ni+1;
+                }
+                if hi<360 {
+                    ir=set(ir,[2*ni,2*ni+1],[ni,ni]); ic=set(ic,[2*ni,2*ni+1],[from,to]);
+                    iv=set(iv,[2*ni,2*ni+1],[1,-1]); rhs=set(rhs,[ni],hi*pi/180);
+                    upper=set(upper,[row],ni); ni=ni+1;
+                }
+            }
+        }
+    }
+    A=sparse([],[],[],0,n); b=zeros(0,1);
+    Aeq=sparse([],[],[],0,n); beq=zeros(0,1);
+    if ni>0 {
+        A=sparse(slice(ir,[0,2*ni]),slice(ic,[0,2*ni]),slice(iv,[0,2*ni]),ni,n);
+        b=slice(rhs,[0,ni],[0]);
+    }
+    if ne>0 {
+        Aeq=sparse(slice(er,[0,2*ne]),slice(ec,[0,2*ne]),slice(ev,[0,2*ne]),ne,n);
+        beq=slice(eqrhs,[0,ne],[0]);
+    }
+    return struct(`A`,A,`b`,b,`Aeq`,Aeq,`beq`,beq,`lower`,lower,`upper`,upper,`equal`,equal);
+}
+
+fn opf_setup(baseMVA,bus,gen,branch,gencost,options) {
+    if isempty(options) { options=struct(); }
+    if isstruct(options) { } else { error(`OPF options must be a struct`); }
+    if length(baseMVA)!=1 || baseMVA<=0 || baseMVA/baseMVA!=1 {
+        error(`OPF baseMVA must be one positive finite scalar`);
+    }
+    if ndim(bus)!=2 || size(bus,0)==0 || size(bus,1)<VMIN { error(`OPF bus matrix requires 13 columns`); }
+    if ndim(gen)!=2 || size(gen,0)==0 || size(gen,1)<PMIN { error(`OPF gen matrix requires 10 columns`); }
+    if isempty(branch) { branch=zeros(0,13); }
+    if ndim(branch)!=2 || size(branch,1)<ANGMAX { error(`OPF branch matrix requires 13 columns`); }
+    if ndim(gencost)!=2 { error(`OPF requires polynomial gencost rows`); }
+    original_ng=size(gen,0);
+    if size(gencost,0)!=original_ng && size(gencost,0)!=2*original_ng {
+        error(`OPF gencost must have ng or 2*ng rows`);
+    }
+    ids=opf_column(bus,BUS_I);
+    if sum(ids./ids)!=length(ids) || sum(ids<1)>0 || sum(abs(ids-floor(ids)))!=0 {
+        error(`OPF bus numbers must be positive finite integers`);
+    }
+    gen_ids=opf_column(gen,GEN_BUS);
+    from_ids=opf_column(branch,F_BUS); to_ids=opf_column(branch,T_BUS);
+    all_ids=vertcat(gen_ids,from_ids,to_ids);
+    if sum(all_ids./all_ids)!=length(all_ids) || sum(all_ids<1)>0
+        || sum(all_ids>max(ids))>0 || sum(abs(all_ids-floor(all_ids)))!=0 {
+        error(`OPF generator or branch references an invalid bus`);
+    }
+    bus=opf_pad(bus,MU_VMIN); gen=opf_pad(gen,MU_QMIN); branch=opf_pad(branch,MU_ANGMAX);
+    [all_i2e,numbered_bus,numbered_gen,numbered_branch]=ext2int(bus,gen,branch);
+    numbered_ids=opf_column(numbered_bus,BUS_I);
+    if sum(abs(numbered_ids-range(1,size(bus,0)+1)'))!=0 { error(`OPF bus numbers must be unique`); }
+    gen_ids=opf_column(numbered_gen,GEN_BUS);
+    from_ids=opf_column(numbered_branch,F_BUS); to_ids=opf_column(numbered_branch,T_BUS);
+    if sum(gen_ids<1)+sum(from_ids<1)+sum(to_ids<1)>0 { error(`OPF references an unknown bus`); }
+
+    // Filter devices before building Ybus; keep original row positions and cost rows.
+    types=opf_column(bus,BUS_TYPE);
+    if sum(types<1)+sum(types>4)>0 || sum(abs(types-floor(types)))!=0 { error(`OPF bus type must be PQ, PV, REF or NONE`); }
+    bus_rows=find(types!=NONE);
+    active=set(zeros(size(bus,0)),bus_rows,1);
+    gen_status=opf_column(gen,GEN_STATUS); branch_status=opf_column(branch,BR_STATUS);
+    gen_rows=find((gen_status>0).*get_multi(active,gen_ids-1)');
+    branch_rows=find((branch_status>0).*get_multi(active,from_ids-1)'.*get_multi(active,to_ids-1)');
+    if length(bus_rows)==0 || length(gen_rows)==0 { error(`OPF requires active buses and generators`); }
+    ibus=select(bus,bus_rows); igen=select(gen,gen_rows);
+    ibranch=zeros(0,size(branch,1));
+    if length(branch_rows)>0 { ibranch=select(branch,branch_rows); }
+    [i2e,ibus,igen,ibranch]=ext2int(ibus,igen,ibranch);
+    costs=select(gencost,gen_rows);
+    if size(gencost,0)==2*original_ng { costs=vertcat(costs,select(gencost,gen_rows+original_ng)); }
+    model_type=opf_column(costs,MODEL); count=opf_column(costs,NCOST);
+    if sum(model_type!=POLYNOMIAL)>0 { error(`OPF currently supports polynomial costs only`); }
+    if sum(count<1)>0 || sum(abs(count-floor(count)))!=0 || size(costs,1)<COST-1+max(count) {
+        error(`OPF polynomial cost coefficient count is invalid`);
+    }
+    curve=slice(igen,[0],[PC1-1,QC2MAX]);
+    if sum_all(abs(curve))!=0 { error(`OPF generator capability curves are not supported yet`); }
+    pmin=opf_column(igen,PMIN); pmax=opf_column(igen,PMAX);
+    if sum((pmin<0).*(pmax==0))>0 { error(`OPF dispatchable loads are not supported yet`); }
+    vmin=opf_column(ibus,VMIN); vmax=opf_column(ibus,VMAX);
+    if sum(vmin<=0)>0 { error(`OPF polar voltage lower bounds must be positive`); }
+    rates=opf_column(ibranch,RATE_A);
+    if sum(rates<0)>0 { error(`OPF branch ratings must be nonnegative`); }
+
+    nb=size(ibus,0); ng=size(igen,0); nl=size(ibranch,0); n=2*nb+2*ng;
+    // MATPOWER opf_setup: split P/Q polynomial costs and prepare quadratic terms.
+    pcost=select(costs,range(0,ng)); qcost=[];
+    if size(costs,0)==2*ng { qcost=select(costs,range(ng,2*ng)); }
+    p_ncost=opf_column(pcost,NCOST);
+    ip0=find(p_ncost==1); ip1=find(p_ncost==2);
+    ip2=find(p_ncost==3); ip3=find(p_ncost>3);
+    Qpg=zeros(ng,1); cpg=zeros(ng,1); kpg=zeros(ng,1);
+    if length(ip2)>0 {
+        Qpg=set(Qpg,ip2,2*select(pcost,ip2,[COST-1])*baseMVA^2);
+        cpg=set(cpg,ip2,select(cpg,ip2)+select(pcost,ip2,[COST])*baseMVA);
+        kpg=set(kpg,ip2,select(kpg,ip2)+select(pcost,ip2,[COST+1]));
+    }
+    if length(ip1)>0 {
+        cpg=set(cpg,ip1,select(cpg,ip1)+select(pcost,ip1,[COST-1])*baseMVA);
+        kpg=set(kpg,ip1,select(kpg,ip1)+select(pcost,ip1,[COST]));
+    }
+    if length(ip0)>0 { kpg=set(kpg,ip0,select(kpg,ip0)+select(pcost,ip0,[COST-1])); }
+    Qqg=zeros(ng,1); cqg=zeros(ng,1); kqg=zeros(ng,1); iq3=[];
+    if is_empty(qcost) { } else {
+        q_ncost=opf_column(qcost,NCOST);
+        iq0=find(q_ncost==1); iq1=find(q_ncost==2);
+        iq2=find(q_ncost==3); iq3=find(q_ncost>3);
+        if length(iq2)>0 {
+            Qqg=set(Qqg,iq2,2*select(qcost,iq2,[COST-1])*baseMVA^2);
+            cqg=set(cqg,iq2,select(cqg,iq2)+select(qcost,iq2,[COST])*baseMVA);
+            kqg=set(kqg,iq2,select(kqg,iq2)+select(qcost,iq2,[COST+1]));
+        }
+        if length(iq1)>0 {
+            cqg=set(cqg,iq1,select(cqg,iq1)+select(qcost,iq1,[COST-1])*baseMVA);
+            kqg=set(kqg,iq1,select(kqg,iq1)+select(qcost,iq1,[COST]));
+        }
+        if length(iq0)>0 { kqg=set(kqg,iq0,select(kqg,iq0)+select(qcost,iq0,[COST-1])); }
+    }
+    // Assemble the global variable-set cost, as opt_model.params_quad_cost does.
+    Q=sparse(range(2*nb,n),range(2*nb,n),vertcat(Qpg,Qqg),n,n);
+    c=vertcat(zeros(2*nb,1),cpg,cqg); k=sum(kpg)+sum(kqg);
+    active_types=opf_column(ibus,BUS_TYPE); refs=find(active_types==REF);
+    if length(refs)==0 { error(`OPF requires a reference bus in each active island`); }
+    Va=opf_column(ibus,VA); Vm=opf_column(ibus,VM);
+    Pg=opf_column(igen,PG); Qg=opf_column(igen,QG);
+    Va=Va*pi/180;
+    initial=vertcat(Va,Vm,Pg/baseMVA,Qg/baseMVA);
+    qmin=opf_column(igen,QMIN); qmax=opf_column(igen,QMAX);
+    lower=vertcat(-INF*ones(nb,1),vmin,pmin/baseMVA,qmin/baseMVA);
+    upper=vertcat(INF*ones(nb,1),vmax,pmax/baseMVA,qmax/baseMVA);
+    lower=set(lower,refs,get_multi(Va,refs)); upper=set(upper,refs,get_multi(Va,refs));
+    below=find(initial<lower); above=find(initial>upper);
+    initial=set(initial,below,get_multi(lower,below)); initial=set(initial,above,get_multi(upper,above));
+    [Ybus,Yf,Yt]=makeYbus(baseMVA,ibus,ibranch);
+    limited=find((rates>0).*(rates<1e10));
+    angles=opf_angles(ibranch,n);
+
+    // Patterns come from connectivity, not from derivatives at the initial point.
+    f=opf_column(ibranch,F_BUS); t=opf_column(ibranch,T_BUS); f=f-1; t=t-1;
+    index=range(0,nb)';
+    connected=sparse(vertcat(f,t,index),vertcat(t,f,index),1,nb,nb);
+    reached=set(zeros(nb,1),refs,1);
+    for step in 0..nb {
+        next=(connected*reached)>0;
+        change=sum(abs(next-reached)); reached=next;
+        if change==0 { break; }
+    }
+    if sum(reached)==nb { } else { error(`OPF requires a reference bus in each active island`); }
+    gbus=opf_column(igen,GEN_BUS); gbus=gbus-1;
+    Cg=sparse(gbus,range(0,ng),1,nb,ng); Zg=sparse([],[],[],nb,ng);
+    power_pattern=vertcat(horzcat(connected,connected,Cg,Zg),horzcat(connected,connected,Zg,Cg));
+    nlimited=length(limited);
+    flow_pattern=sparse([],[],[],0,n);
+    if nlimited>0 {
+        flow=sparse(vertcat(range(0,nlimited)',range(0,nlimited)'),
+            vertcat(select(f,limited),select(t,limited)),1,nlimited,nb);
+        flow_pattern=horzcat(flow,flow,sparse([],[],[],nlimited,2*ng));
+    }
+    jacobian_pattern=vertcat(flow_pattern,flow_pattern,power_pattern);
+    voltage_pattern=vertcat(horzcat(connected,connected),horzcat(connected,connected));
+    generator_pattern=sparse(range(0,2*ng),range(0,2*ng),1,2*ng,2*ng);
+    hessian_pattern=vertcat(
+        horzcat(voltage_pattern,sparse([],[],[],2*nb,2*ng)),
+        horzcat(sparse([],[],[],2*ng,2*nb),generator_pattern));
+    order=struct(`bus`,bus_rows,`gen`,gen_rows,`branch`,branch_rows,`flow`,limited,`angles`,angles);
+    return struct(`baseMVA`,baseMVA,`bus`,ibus,`gen`,igen,`branch`,ibranch,`gencost`,costs,
+        `Q`,Q,`c`,c,`k`,k,`pcost`,pcost,`qcost`,qcost,`ip3`,ip3,`iq3`,iq3,
+        `original_bus`,bus,`original_gen`,gen,`original_branch`,branch,`original_gencost`,gencost,
+        `i2e`,i2e,`nb`,nb,`ng`,ng,`x0`,initial,`lower`,lower,`upper`,upper,
+        `Ybus`,Ybus,`Yf`,Yf,`Yt`,Yt,`limited`,limited,`angles`,angles,`order`,order,
+        `jacobian_pattern`,jacobian_pattern,`hessian_pattern`,hessian_pattern,`options`,options);
+}

@@ -1,81 +1,61 @@
-# PF 性能对比
+# PF/OPF 性能记录
 
-本目录记录 TensorEval/rspower 与 MATPOWER 7.1 的 PF 性能对比，以及相关 OPF/NLP 耗时。数据更新于 2026-09-14。
+2026-10-27～28，读取相同的 `rspower/data/*.txt`。现有[汇总CSV](pf_performance_tensoreval_vs_matpower.csv)的表头、列顺序保持原样。
 
-## 测试口径
+## 测量口径
 
-- 所有表格保存正式样本的中位数，不包含预热时间。
-- Rust 和 MATLAB 都固定到 Intel Core i9-14900 的同一个 P-core，BLAS/OpenMP 限制为单线程；MATLAB 使用 `-singleCompThread`。
-- PF 总耗时和分阶段测试：预热 5 次，正式测量 21 次。
-- TensorEval PF 使用 MUMPS + OpenBLAS；MATPOWER 总耗时使用 `runpf` 默认选项，分阶段对比固定使用 LU3。
-- TensorEval NLP 使用 Ipopt + MKL/PARDISO MKL。除 case13659pegase 使用 5 个正式样本外，其他 NLP 算例使用 21 个正式样本。
-- 拼接和索引测试预热 10 轮，记录 31 个批次平均耗时的中位数。
+i9-14900的CPU0 P-core（最高5.8GHz），Rust release、MUMPS/OpenBLAS；MATLAB R2022a Update1、MATPOWER7.1。固定同一核心，RAYON/OPENBLAS/OMP/MKL/BLIS/POLARS六个线程变量均为1，MATLAB使用 `-singleCompThread`。每个成功算例20次预热、21次正式样本，取中位数；原始样本全部保留。正式计时期间没有并行构建、测试或其他测量。
 
-## 总体结果
+- PF：NR极坐标，误差阈值1e-6标幺，最多100次迭代，无Q限切换；读取、编译和输入初始化在计时外，计时覆盖生产runpf的建模、求解与结果还原。
+- OPF：通用AC极坐标、双端S²限额，主要最优性/可行性容差1e-9，最多300次迭代。CSV的MATPOWER runopf列为MIPS，最后一列为Rust脚本/IPOPT3.14.20；两者均包含建模、求解、还原，排除源码编译和文件读取。Rust执行还包含输入字面量初始化。
+- NLP/MKL列保留2026-09-14的符号模型、Ipopt+MKL/PARDISO历史数据，未在本轮重测；case13659有5个样本，其余21个。“无算例”也是历史记录。该列与当前脚本OPF使用不同入口和后端。
 
-TensorEval PF 在 13 个算例中有 11 个快于 MATPOWER。case5 慢 6.8%，case118 慢 3.9%，其余算例持平或更快。
+## 当前PF
 
-| 算例 | MATPOWER PF（ms） | TensorEval PF/MUMPS（ms） | TensorEval/MATPOWER |
-| --- | ---: | ---: | ---: |
-| case300 | 3.634 | 3.401 | 0.936 |
-| case1354pegase | 10.777 | 9.374 | 0.870 |
-| case2737sop | 23.033 | 18.091 | 0.785 |
-| case13659pegase | 129.037 | 123.579 | 0.958 |
+单位ms，单元格为中位数/P90（21个样本的90百分位）。Rust改前/后使用相同新benchmark、相同输入和正确的发电机行映射；只切换本轮通用计算实现。
 
-全部算例及 OPF/NLP 结果见 [pf_performance_tensoreval_vs_matpower.csv](pf_performance_tensoreval_vs_matpower.csv)。`MATPOWER runopf` 与 `TensorEval NLP` 使用不同实现，该两列用于观察当前端到端耗时，不应解读为线性求解器的单项对比。
+| 算例 | Rust改前 | Rust当前/P90 | MATPOWER当前/P90 | NR迭代 |
+|---|---:|---:|---:|---:|
+| case5 | 0.558 | 0.556 / 0.568 | 0.566 / 0.827 | 3 |
+| case9 | 0.571 | 0.551 / 0.574 | 0.614 / 3.739 | 3 |
+| case14 | 0.521 | 0.522 / 0.537 | 0.551 / 0.713 | 2 |
+| case30 | 0.754 | 0.715 / 0.731 | 0.775 / 6.878 | 3 |
+| case39 | 0.531 | 0.511 / 0.529 | 0.559 / 6.600 | 1 |
+| case57 | 0.878 | 0.870 / 0.880 | 0.897 / 3.982 | 3 |
+| case118 | 1.197 | 1.175 / 1.183 | 1.219 / 5.988 | 3 |
+| case118zh | 0.957 | 0.956 / 0.977 | 0.935 / 0.954 | 3 |
+| case300 | 3.223 | 3.193 / 3.212 | 7.069 / 12.528 | 5 |
+| case1354pegase | 9.482 | 9.375 / 9.424 | 10.346 / 23.549 | 4 |
+| case2736sp | 17.861 | 17.757 / 18.134 | 18.846 / 18.989 | 4 |
+| case2737sop | 18.719 | 17.811 / 18.168 | 18.976 / 37.532 | 4 |
+| case13659pegase | 127.340 | 126.282 / 127.221 | 124.921 / 132.334 | 5 |
 
-## case13659pegase 分析
+13项PF均成功，两端迭代数相同；Rust独立节点功率平衡最大误差3.43e-7标幺。当前Rust中位数11项低于MATPOWER，case118zh及case13659略高；小差值不足以认定稳定优势。
 
-case13659pegase 的分阶段总耗时已基本一致：TensorEval 为 128.460 ms，MATPOWER 为 128.798 ms。两者的主要差异如下。
+MATLAB第一轮case300由3.4ms波动至16.9ms，追加完整13算例同协议复测。第一轮/复测的case300中位数为9.421/7.069ms，复测P90仍为12.528ms；本表统一采用整轮复测，未逐项挑选较小值。两轮都留档，这项差距不能解释为稳定的语言速度优势。MATLAB函数来源已核对为安装目录中的MATPOWER7.1。
 
-| 阶段 | TensorEval（ms） | MATPOWER（ms） | TensorEval/MATPOWER |
-| --- | ---: | ---: | ---: |
-| dSbus_dV | 7.988 | 20.028 | 0.399 |
-| 索引与拼接 | 10.705 | 14.307 | 0.748 |
-| 左除 | 86.388 | 65.817 | 1.313 |
-| makeSbus | 2.082 | 0.638 | 3.263 |
-| pfsoln | 5.493 | 3.024 | 1.816 |
+本轮还修复了 `pfsoln` 对停运发电机的行映射：原代码把“在线列表中的位置”当作“原发电机行号”，case2736虽然返回成功，输出平衡误差却达0.569标幺。现已修复，并增加在在线机组前插入停运机组的回归；改前/后性能均使用修正后的有效结果。
 
-左除占 TensorEval 总耗时的 67.2%，是当前最主要的单项差距。MUMPS 完整调用为 16.616 ms，MATPOWER LU3 为 13.030 ms，MUMPS 慢 27.5%。MUMPS 内部约包括 7.423 ms 符号分析、8.354 ms 数值分解和 1.039 ms 回代。详细数据见 [pf_linear_solver_performance_mumps_vs_matpower.csv](pf_linear_solver_performance_mumps_vs_matpower.csv)。
+## 当前OPF与内存
 
-makeSbus 的倍数较大，但绝对差值只有约 1.44 ms。`Cg * Sg` 稀疏乘法为 0.009 ms，MATPOWER 为 0.010 ms，乘法内核不是问题。其余差距主要来自索引向量构造、初始无功更新和结果写回：
+11项两端均成功，目标值绝对差小于2e-6。case118zh：MIPS第3次迭代失败，Rust第23次返回-2；case13659：MIPS第46次失败，Rust达到300次上限。失败状态不能当作成功耗时，也不据此断言模型不可行。逐项耗时已填写CSV末列，数值、P90、阶段和内存见[OPF记录](../../../eig-aoe/benches/opf_performance.md)。
 
-- pfsoln 支路索引：1.029 ms 对 0.103 ms。
-- pfsoln 初始无功更新：0.824 ms 对 0.160 ms。
-- pfsoln 支路结果写回：0.501 ms 对 0.207 ms。
-- int2ext 支路编号写回：0.915 ms 对 0.187 ms。
+本轮普通稀疏乘法去掉一次已拥有结果的深复制，4096阶算子快约11%～14%，累计申请少约13%～15%，峰值不变；tensor Jacobian中间数值仅在一次调用内复用。PSA单次F/J因此增加约0.3%～1.4%的释放成本。具体时间和内存见[通用算子记录](../../../eig-expr/benches/autodiff_performance.md)。
 
-完整分阶段数据见 [pf_stage_performance_tensoreval_vs_matpower.csv](pf_stage_performance_tensoreval_vs_matpower.csv)。
+## 复现与文件
 
-## 拼接、索引与稀疏格式
+```sh
+export RAYON_NUM_THREADS=1 OPENBLAS_NUM_THREADS=1 OMP_NUM_THREADS=1
+export MKL_NUM_THREADS=1 BLIS_NUM_THREADS=1 POLARS_MAX_THREADS=1
+taskset -c 0 cargo bench -p eig-expr --locked --features mumps-static --bench rspower_pf_benchmark -- all
+taskset -c 0 cargo bench -p eig-aoe --locked --features mumps-static --bench opf_benchmark -- case300 --normal-only
+taskset -c 0 matlab -singleCompThread -batch "addpath('sparrowzz/rspower/bench'); benchmark_matpower_pf();"
+```
 
-| 内核 | TensorEval（μs） | MATLAB（μs） | TensorEval/MATLAB |
-| --- | ---: | ---: | ---: |
-| 稠密块拼接，1024×1024 | 272.318 | 862.250 | 0.316 |
-| 稀疏块拼接，13659×13659 | 265.239 | 548.300 | 0.484 |
-| 稠密二维索引，取 75% 行列 | 199.611 | 281.650 | 0.709 |
-| 稀疏二维索引，取 75% 行列 | 356.496 | 523.100 | 0.682 |
+MATLAB的[PF](benchmark_matpower_pf.m)/[OPF](benchmark_matpower_opf.m)共用[TXT读取](read_rspower_case.m)。Rust基准分别为[rspower_pf_benchmark](../../../eig-expr/benches/rspower_pf_benchmark.rs)、[opf_benchmark](../../../eig-aoe/benches/opf_benchmark.rs)。命令中的数据名可替换；缩短检查用 `--warmups 1 --samples 1`，正式20/21为默认值。
 
-当前稀疏主表示是按 `(row, column)` 排序的规范三元组；稀疏乘法临时转为 CSR，行索引临时构造行偏移。二维索引和块拼接已快于 MATLAB，也不是 PF 主要瓶颈，因此暂不增加常驻 CSR。若以后的 profiling 显示行访问或 COO→CSR 转换成为热点，优先考虑可缓存的 `row_ptr` 视图。
+`pf_case30/141/145/1354pegase/13659pegase.txt`共用[函数清单](pf_bench_common.txt)和[预热/计时循环](pf_bench_run.txt)，直接调用生产runpf；删除了复制算法的旧诊断程序。
+[PF阶段CSV](pf_stage_performance_tensoreval_vs_matpower.csv)和[线性求解CSV](pf_linear_solver_performance_mumps_vs_matpower.csv)保留2026-09-14归档数据，未作为本轮重测结果。
 
-## 文件说明
-
-### 归档 CSV
-
-- [pf_performance_tensoreval_vs_matpower.csv](pf_performance_tensoreval_vs_matpower.csv)：各规模算例的 PF、MATPOWER runopf 和 TensorEval NLP 总耗时。
-- [pf_stage_performance_tensoreval_vs_matpower.csv](pf_stage_performance_tensoreval_vs_matpower.csv)：三个代表算例的 PF 核心阶段耗时。
-- [pf_linear_solver_performance_mumps_vs_matpower.csv](pf_linear_solver_performance_mumps_vs_matpower.csv)：MUMPS、MATPOWER LU3 和 MATLAB 默认左除的线性求解对比。
-
-### MATLAB 基准脚本
-
-- [benchmark_matpower_pf_opf.m](benchmark_matpower_pf_opf.m)：测量所有算例的 MATPOWER `runpf`/`runopf` 总耗时。
-- [benchmark_matpower_pf_breakdown.m](benchmark_matpower_pf_breakdown.m)：强制 LU3，测量 PF 分阶段耗时。
-- [benchmark_matpower_pf_solve_phases.m](benchmark_matpower_pf_solve_phases.m)：拆分 LU3 分解、回代和默认左除耗时。
-- [benchmark_matpower_remaining_breakdown.m](benchmark_matpower_remaining_breakdown.m)：进一步诊断 makeSbus、pfsoln 和 int2ext 的子阶段。
-- [benchmark_blockcat_select.m](benchmark_blockcat_select.m)：测量 MATLAB 块拼接、horzcat/vertcat 和二维索引内核。
-
-### Rust 基准入口
-
-- [benchmark_pf_breakdown.rs](../../../eig-expr/tests/benchmark_pf_breakdown.rs)：TensorEval PF 总耗时、分阶段耗时和 MUMPS 阶段耗时。
-- [benchmark_blockcat_select.rs](../../../eig-expr/tests/benchmark_blockcat_select.rs)：TensorEval 拼接与索引内核。
-- [benchmark_case2737_opf.rs](../../../eig-aoe/tests/benchmark_case2737_opf.rs)：TensorEval NLP 多样本耗时。
+本轮相关回归：eig-expr/eig-aoe682通过，PSA单元1384通过/2忽略、power_flow268通过。更广DSS导入仍有5项已确认改前也失败的测试，详见OPF记录；未删失败测试。
+证据：`/tmp/eig-generic-cleanup-20261027.ciga8gcp/`，before/after保存程序、样本和独立内存数据；matlab-formal.log、matlab-pf-repeat.log保存MATLAB两轮原始样本，summary.json为临时汇总。原始产物不提交。

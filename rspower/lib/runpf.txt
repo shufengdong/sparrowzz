@@ -56,7 +56,9 @@ fn runpf_case(case_baseMVA, case_bus, case_gen, case_branch) {
     return (V, result_bus, result_gen, result_branch, success, iterations);
 }
 
-// Backward-compatible entry point for scripts that load a case into globals.
+// Entry point for scripts that load a case into globals.
 fn runpf() {
-    return runpf_case(baseMVA, bus, gen, branch);
+    [V, result_bus, result_gen, result_branch, success, iterations] =
+        runpf_case(baseMVA, bus, gen, branch);
+    return (V, result_bus, result_gen, result_branch, success, iterations);
 }

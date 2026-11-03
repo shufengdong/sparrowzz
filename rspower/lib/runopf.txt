@@ -1,0 +1,11 @@
+// RUNOPF_CASE  Generic numeric AC OPF, with polynomial P and optional Q costs.
+// Returns a result struct with original bus/gen/branch row order, f, success,
+// exitflag, output, lambda, x and order. Unsupported options/models fail explicitly.
+fn runopf_case(case_baseMVA,case_bus,case_gen,case_branch,case_gencost,options) {
+    return opf(case_baseMVA,case_bus,case_gen,case_branch,case_gencost,options);
+}
+
+// Convenience entry point after loading a MATPOWER case into the script globals.
+fn runopf() {
+    return runopf_case(baseMVA,bus,gen,branch,gencost,[]);
+}

@@ -1,7 +1,8 @@
 # MATLAB 求解接口兼容与 MATPOWER OPF 移植方案
 
-本文记录架构设计与实施计划，不代表待规划的接口已经实现。OPF 公式以本机 MATPOWER 7.1
-为参照；MATLAB `fmincon` 的兼容范围以本文明确列出的能力为准。
+截至 2026-10-27，已实现函数式 `fmincon` 和基础通用极坐标 AC OPF，使用同一入口求解
+case9、case30，并与本机 MATLAB/MATPOWER 7.1 对照。第1–7节保留设计约定，第8节记录
+实际接口和范围；后续扩展不计入本次交付。
 
 ## 1. 目标与边界
 
@@ -24,7 +25,7 @@ OPF 脚本 → 平台 fmincon → 平台内部 IPOPT 后端
 
 ## 2. 现状与真正的接口差别
 
-当前平台 `fmincon` 读取目标表达式、约束表达式、变量名列表和边界，由现有自动微分生成
+原有表达式模式的 `fmincon` 读取目标表达式、约束表达式、变量名列表和边界，由现有自动微分生成
 梯度与 Hessian，再调用 IPOPT。输入中的数值数组并不等于一组已经登记的优化变量。
 
 例如，当前模型可以按下列方式表达：
@@ -324,6 +325,8 @@ OPF 参考解应注明 MATPOWER 版本、算例、模型选项、求解器与容
 - `opf_power_balance_fcn`：极坐标/直角坐标功率平衡及 Jacobian；
 - `dIbr_dV`、`dAbr_dV`、`opf_branch_flow_fcn`：`S`、`P`、`P²`、`I` 四种支路限值及 Jacobian；
 - `opf_branch_ang_fcn`、`opf_vlim_fcn`、`opf_veq_fcn`、`opf_vref_fcn`：直角坐标电压约束及一阶导数。
+- `d2Sbus_dV2`、`d2Sbr_dV2`、`d2Ibr_dV2`、`d2Abr_dV2`：乘子加权二阶导数；
+- `opf_power_balance_hess`、`opf_branch_flow_hess`：功率平衡和双端支路限值的 Hessian。
 
 当前这些移植函数未采用 MATLAB 的 struct 与 cell array 接口，`mpc`、`mpopt` 和 `x{:}` 被拆成
 显式矩阵参数。电压、功率等向量按 MATPOWER 习惯传入列向量；母线、发电机和支路的列号仍由
@@ -339,8 +342,91 @@ OPF 参考解应注明 MATPOWER 版本、算例、模型选项、求解器与容
 | 2 | `2` | 有功功率平方 |
 | 3 | `I` | 电流幅值平方 |
 
-回归入口是 `rspower/tests/test_opf_functions.txt`，覆盖两种坐标、四种支路限值、成本和电压约束。
-该组函数是 AC-OPF 模型的部分数值内核，不代表完整 OPF 主流程已经实现。现有
-`test_opf_fmincon_case30.txt` 是固定展开的 case30 模型，不能替代通用 `runopf`。
-功率平衡、支路等约束所需的完整二阶导数仍须补齐。已实现函数保持可用，并在新增的模型
-适配层中逐步接入本方案。
+数值函数回归覆盖两种坐标、四种支路限值、成本及电压约束；二阶公式同时与 MATLAB
+输出及一阶导数的中心差分比较。组装后的整套 OPF Hessian 另有差分检查。
+成本按MATPOWER原方法组织：`opf_setup` 将常数、一次、二次成本装配为固定Q/c/k，
+高阶P/Q成本交给 `opf_gen_cost_fcn`；`polycost` 使用原系数矩阵和求导列算法，`totcost` 批量处理多项式。
+原函数名、变量及公式保留，索引和向量形状按脚本约定适配。
+`test_opf_fmincon_case30.txt` 保留为旧表达式入口回归，其固定直角坐标模型与新通用模型不同。
+
+### 8.1 已实现的调用链
+
+```text
+runopf_case / runopf
+  → opf
+    → opf_setup：检查、筛选在线设备、内部编号、变量边界、Ybus、角差及稀疏结构
+    → opf_execute
+      → nlpopf_solver
+        → opf_callbacks：分别创建成本、约束、Hessian 函数
+        → fmincon：统一数值 NLP → IPOPT/MUMPS
+      → 恢复原编号与行顺序、MW/MVAr/角度及乘子单位
+```
+
+`x=[Va;Vm;Pg;Qg]` 使用数值列向量，网络矩阵和导数保持稀疏。Jacobian 的固定结构来自连接关系，
+不从初值处的数值非零推断；不同类型的方程各自计算，最后在边界组合。
+
+先加载 `rspower/data/case9.txt` 或 `case30.txt` 中的算例数据，以及上述数值函数和
+`opf_setup`、`nlpopf_solver`、`opf_execute`、`opf`、`runopf`，然后调用：
+
+```text
+options=optimoptions(`fmincon`,`MaxIterations`,300,
+    `OptimalityTolerance`,1e-9,`ConstraintTolerance`,1e-9);
+result=runopf_case(baseMVA,bus,gen,branch,gencost,options);
+objective=getfield(result,`f`);
+solved_bus=getfield(result,`bus`);
+```
+
+`runopf()` 使用已加载的同名算例全局变量和默认选项。结果结构包括 `bus/gen/branch/gencost`、
+`f/success/exitflag/output/lambda/x/order`。设备原行顺序、孤立母线、离线设备及成本行对应关系均有回归；
+求解失败保留最后点和真实状态，输入错误直接报错。
+
+测试和 benchmark 同样直接读取 `data/*.txt`；编号重排、离线设备和相角限制等测试在基础算例上修改。
+测试沿用 PF 的写法：`tests/test_runopf_case9.txt`、`test_runopf_case30.txt` 通过 `#include` 加载算例和函数，
+直接断言结果。导数检查的三母线模型位于 `data/case3bus_opf_derivatives.txt`，MATLAB 数值断言放在
+`tests/test_opf_functions.txt`，另有独立差分测试；不保存单独的参考数据文件。
+
+支持多项式 P 成本、可选 Q 成本、P/Q 平衡、电压及出力边界、S² 双端容量、线性相角差、参考角。
+分段线性成本、发电机能力曲线、可调负荷和其他坐标/限值形式的完整 OPF 建模后续再做，当前明确拒绝
+未支持的模型。数值内核支持其他形式不代表通用建模入口已经支持。
+
+### 8.2 平台接口
+
+Rust 使用 `solver_fn_names()` 编译并 `register_solver_fns()` 注册。`NlpSystem<E: NlpEvaluator>`
+统一接收数值、固定稀疏坐标与导数；表达式 AD 和函数回调均可使用该边界，PF 的 Newton 循环不变。
+`Vm::call_function` 同步调用同一 VM 的函数，返回数值副本，恢复调用帧并传播错误。
+Rust 的 `NlpWithVm::new`、`do_solve` 现在返回 `Result`，参数绑定失败会直接上报，仓内调用已迁移。
+
+函数式 `fmincon` 的目标返回 `(f,df)`，非线性约束返回 `(c,ceq,GC,GCeq)`，其中 `c<=0`、`ceq=0`，
+`GC/GCeq` 为 n×m；内部一次转置成 m×n。完整二参数 Hessian 返回 `Hf+ΣλHg`，适配器处理
+IPOPT 的目标权重；缺少完整 Hessian 使用 limited-memory。线性约束直接装配导数。
+函数模式返回 `(x,fval,exitflag,output,lambda)`；旧符号模式保持原返回格式。
+
+`ConstraintJacobianPattern` 按 `[c;ceq]` 行次序声明 m×n 结构，`HessianPattern` 声明 n×n 结构；
+大问题必须显式提供。小问题可用保守结构。`x0` 支持一维、行和列向量，并恢复原形状；矩阵型 `x0`
+当前拒绝。未知选项、缺少梯度或导数尺寸变化均报错，不自动假装使用差分或其他算法。
+同义选项（例如同时设置 `MaxIterations` 与 `max_iter`）会作为重复配置报错。
+
+运行时增加函数对象所需的结构操作；现有 `.txt` 仍使用0基索引和行优先线性展开。
+`get_multi` 的稀疏输入已统一为与稠密输入相同的“线性索引列表→向量”；坐标取单值使用 `get`。
+完整 MATLAB 语法、脚本语法句柄、生产有限差分和迭代回调留作后续扩展。
+
+### 8.3 验证与性能
+
+MATLAB R2022a Update 1、MATPOWER 7.1、MIPS，最优性/可行性容差1e-9，最大300次迭代。
+case9/30 独立目标值分别为5296.686204227695、576.892336862181；另测相角限制、Q成本和编号重排。
+MATLAB 对照数值直接写在测试断言中，与 PF 测试相同。当前 MATLAB/Rust 性能比较入口是
+`bench/benchmark_matpower_opf.m` 和 Rust `opf_benchmark`。
+串行比较同时运行 MATLAB/MIPS、MATLAB/IPOPT 和 Rust/IPOPT，汇总在
+[`bench/opf_performance_rs_vs_matpower.csv`](bench/opf_performance_rs_vs_matpower.csv)；
+版本、计时范围及波动见下方性能记录。
+同一IPOPT算法的成本、约束/Jacobian和网络Hessian阶段对照见
+[`bench/opf_stage_performance_rs_vs_matpower.csv`](bench/opf_stage_performance_rs_vs_matpower.csv)，
+可用 `benchmark_matpower_opf_breakdown.m` 复现；普通/诊断计时和内存分开运行。
+规模覆盖9/30/57/300/1354/2736母线，case145三端未收敛单列记录。
+可运行案例位于 `bench/opf_case30.txt`、`opf_case57.txt`、`opf_case300.txt`、
+`opf_case1354pegase.txt`、`opf_case2736sp.txt`，共用依赖/选项和执行代码。
+`tensoreval` 从bench目录运行；Rust bench也可用 `--script bench/opf_case300.txt` 执行，具体命令见性能记录。
+测试同时独立计算每个母线的 MW/MVAr 平衡，并比较电压、出力、双端潮流和已支持的乘子。
+
+[端到端测试及加载清单](../../eig-aoe/tests/test_rspower_opf.rs)、
+[串行耗时与内存记录](../../eig-aoe/benches/opf_performance.md)。

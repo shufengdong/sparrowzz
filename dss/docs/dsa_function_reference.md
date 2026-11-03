@@ -242,6 +242,10 @@ Monitor/保护/计量/故障状态、trace、diagnostics 和 events。事件来�
 Monitor、计划 Struct、20 张按 `snapshot_index` 分组的 Solve 快照模型表、快照索引和 `para`
 组成。`frequency_order:f64` 保留非整数值；`Run_Scan` 的 1.083333333、1.166666667 等频点
 会被实际执行。Harmonic/HarmonicT 的基波初始化和 Solve 间 mutation 通过快照表无损保留。
+该门面的七类结果使用独立的 `result_frames.harmonic_execution_*` closed schema，不复用静态
+`ds_harmonic_study` schema。所有结果固定以 `frequency_order`、`frequency_hz`、`step_index`、
+`time_s` 作为尾部身份列；`harmonic:u32` 可空，仅非整数频点为 null。整数 Harmonic/HarmonicT
+同样填写 `frequency_order = harmonic as f64`，因此不同执行 family 不会改变列集合或顺序。
 
 ### DSS 原生 FaultStudy、Harmonic、AutoAdd、RelCalc 和 Dynamic
 

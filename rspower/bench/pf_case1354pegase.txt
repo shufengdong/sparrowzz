@@ -1,0 +1,6 @@
+#include pf_bench_common.txt
+#include ../data/case1354pegase.txt
+
+benchmark_warmups=20;
+benchmark_samples=21;
+#include pf_bench_run.txt
