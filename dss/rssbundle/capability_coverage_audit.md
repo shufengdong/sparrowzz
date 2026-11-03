@@ -12,9 +12,9 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：146 个入口已经发布 bundle，113 个独立入口尚未发布；`conversion_report.csv`
-  的 `status` 已同步当前发布状态，未发布入口已用当前程序重扫。2,900 步 P174 的导入和投影
-  等价测试仍通过，但当前完整 `--check` 在 epoch 0 首次潮流求解失败。
+- 当前结果：147 个入口已经发布 bundle，112 个独立入口尚未发布；`conversion_report.csv`
+  的 `status` 已同步当前发布状态。2,900 步 P174 已完成严格检查、官方路径 bundle 生成、搬移后
+  独立自执行和 26,100 个锁定 OpenDSS 节点电压的全轨迹比较。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
 - 能力覆盖必须至少有 PSA 运行时 consumer 和测试；“参考覆盖”还要求锁定 OpenDSS 输出
@@ -24,7 +24,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
 
 下面 12 个入口已有直接或同入口等价投影的数值证据。基线失败点位于转换编排、研究适配、
 求解后端选择或严格导入门面，不需要先新增一种电气元件方程。2026-10-21 的定向复测中，
-11 个入口完成 bundle 自执行并按官方相对路径发布；2,900 步 P174 入口完成导入和官方输入到
+11 个入口当时完成 bundle 自执行并按官方相对路径发布；2,900 步 P174 入口完成导入和官方输入到
 锁定数值投影的逐表等价检查。当时完整 `--check` 在 release 构建运行 90 分钟后仍未结束，
 消除重复求解后再次运行 30 分钟仍未完成。这里的运行时限只用于控制扫描资源，不是发布标准。
 后续完整 8,760 时点运行和 OpenDSS 年度轨迹比较均已完成，
@@ -35,6 +35,11 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
 在 epoch 0、`1 s` 的首次潮流求解失败。该入口因此仍不发布，并从性能长门禁转为执行求解回退
 排查对象。
 
+2026-11-03 当前 release 已恢复该入口：7,616 条语句、5 个 epoch 和 2,900 步 Duty 均执行完成，
+径向 `line_model=Exact` bundle 搬移后独立自执行产生 32,054,352 行电压。全部 2,900 个时点的
+9 个锁定参考节点电压最大相对误差为 `2.41171923822849e-5`，入口现已发布；首批 12 个入口至此
+全部闭合。
+
 | 入口 | 已有能力证据 | 定向复测结果 |
 |---|---|---|
 | `IEEETestCases/4Bus-OYOD-Bal/4Bus-OYOD-Bal.DSS` | 两个 OYOD 工作点均有官方入口到 PSA 投影的逐输出证据；IEEE4 连接矩阵参考测试通过 | 严格转换和两项独立 study 自执行通过，bundle 已发布 |
@@ -43,7 +48,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
 | `IEEETestCases/8500-Node/Run_8500Node.dss` | 原始 balanced deck 的 execution profile、控制终态和电气量已有测试 | Newton 自执行通过，bundle 已发布；自动 EnergyMeter 区域以显式 approximation Warning 保留 |
 | `IEEETestCases/8500-Node/Run_8500Node_Unbal.dss` | 原始 unbalanced deck 的 execution profile、控制终态和电气量已有测试 | Newton 自执行通过，bundle 已发布；Monitor 标准位置参数已规范化 |
 | `IEEETestCases/8500-Node/P174_Run_Voltage_Profile.DSS` | 两个有序 epoch 和 100%/40% 工作点已有数值参考 | 7,598 条语句、2 个 epoch 自执行通过，bundle 已发布 |
-| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 2,900 步 Duty、曲线长度、调压器/电容状态及采样数值均有参考 | 7,616 条语句、5 个 epoch 导入和投影逐表等价通过；当前完整 `--check` 在 epoch 0 首次潮流求解失败，bundle 未发布 |
+| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 2,900 步 Duty、曲线长度、调压器/电容状态及采样数值均有参考 | 7,616 条语句、5 个 epoch、2,900 步严格检查和搬移自执行通过；26,100 个锁定节点电压门禁通过，bundle 已发布 |
 | `Examples/Microgrid/GridFormingInverter/GFM_IEEE8500/Run_8500Node_Unbal.dss` | 文件 SHA-256 与上面的官方 unbalanced 入口完全相同 | 与同内容 unbalanced 入口使用同一路径，自执行通过，bundle 已发布 |
 | `IEEETestCases/ShortCircuitCases/IEEE123Master-SC.dss` | IEEE123 全母线 414 个故障参考测试通过 | FaultStudy adapter 自执行通过，bundle 已发布 |
 | `IEEETestCases/ShortCircuitCases/ieee34Mod2_SC_Case_II.dss` | IEEE34 全母线 148 个故障参考测试通过 | FaultStudy adapter 自执行通过，bundle 已发布 |
@@ -597,15 +602,28 @@ schema v2 bundle 只暴露 `bus_phase` 电压结果，详细 I/P/Q/loss 由 PSA 
 `unsupported` 改为 `converted`，当前计数由 145/114 更新为 146/113。ADiakoptics IEEE30、
 time-series Model 3、未经审计的 PVFactor 和 multi-epoch continuation 继续保持 unsupported。
 
+## 2026-11-03 IEEE8500 P174 360 kW PV Duty 闭合
+
+未修改的官方 `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` 已使用现成 release
+`tensoreval`（SHA-256 `a4faa17d7990dec8bd5ebcf7d20a9dcbc37a44b1d6de4f9aa1207195b023801b`）
+完成 7,616 条语句、5 个 solve epoch 的严格检查。径向 execution plan 使用
+`line_model=Exact`，第 5 个 epoch 完整执行 2,900 个 1 秒 Duty 时点。
+
+schema v2 bundle 按官方相对路径生成，搬移到独立临时目录后自执行成功，输出 32,054,352 行、
+11 列的 `voltage.csv`，且 closure 不含来源树绝对路径。锁定 OpenDSS `p57_duty/trajectory.csv`
+中的 2,900 时点 × 9 节点电压全部匹配：最大相对误差 `2.41171923822849e-5`、RMS 相对误差
+`4.03956012716511e-6`、最大绝对误差 `0.178942628966979 V`，低于 `2%` 门限。
+`conversion_report.csv` 已由 `unsupported` 改为 `converted`，当前计数由 146/113 更新为 147/112。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
    避免只维护诊断码白名单。
-2. 首批 12 个入口已通过严格转换，11 个已发布 bundle；第二批 8 个候选中有 6 个完成
-   V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。未发布的 2,900 步 Duty
-   需要独立长任务预算；YYD 完整入口和 InductionMachine 则分别等待 Direct/Fault continuation
+2. 首批 12 个入口已通过严格转换并全部发布 bundle；第二批 8 个候选中有 6 个完成
+   V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD 完整入口和 InductionMachine
+   则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 113 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 112 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
@@ -613,6 +631,10 @@ time-series Model 3、未经审计的 PVFactor 和 multi-epoch continuation 继�
    普通 QSTS execution profile。
 
 ## 本次验证
+
+- `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` 使用现成 release 完成 7,616 条语句、5 个 epoch
+  和 2,900 步 Duty 的严格检查；官方路径 bundle 搬移后独立自执行，输出 32,054,352 行电压。
+  与锁定 OpenDSS 轨迹比较 26,100 个节点电压，最大相对误差 `2.41171923822849e-5`。
 
 - IEEE-TIA 三个完整分相入口均由未修改的官方文件生成 bundle，并复制到独立临时目录自执行；
   OpenDSS 数值比较覆盖全部节点、源端功率、三个绕组功率和全网复损耗。

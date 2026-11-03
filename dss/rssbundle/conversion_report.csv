@@ -785,7 +785,7 @@ IEEETestCases/8500-Node/LoadXfmrCodes.dss,not_standalone_entry,TENSOREVAL.DSS.CL
 IEEETestCases/8500-Node/LoadXfmrs.dss,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/8500-Node,source: a model-only deck requires an explicit --study
 IEEETestCases/8500-Node/Master-unbal.dss,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/8500-Node,source: a model-only deck requires an explicit --study
 IEEETestCases/8500-Node/Master.dss,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/8500-Node,source: a model-only deck requires an explicit --study
-IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS,unsupported,TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED,TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED,1,.,source: epoch 0 QSTS failed: QSTS step 0 at 1 s failed during power-flow solve
+IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS,converted,,,0,.,Five-epoch radial Exact conversion and 2900-step Duty bundle self-execution passed
 IEEETestCases/8500-Node/P174_Run_Voltage_Profile.DSS,converted,,,0,.,Two-epoch Newton conversion and bundle self-execution passed
 IEEETestCases/8500-Node/Regulators.dss,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/8500-Node,source: a model-only deck requires an explicit --study
 IEEETestCases/8500-Node/Run_8500Node.dss,converted,,,0,.,Newton conversion and bundle self-execution passed
