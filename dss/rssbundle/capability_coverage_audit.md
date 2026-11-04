@@ -12,9 +12,9 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：148 个入口已经发布 bundle，111 个独立入口尚未发布；`conversion_report.csv`
-  的 `status` 已同步当前发布状态。2,900 步 P174 与 8-epoch AutoHLT 均已完成严格检查、官方路径
-  bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
+- 当前结果：149 个入口已经发布 bundle，110 个独立入口尚未发布；`conversion_report.csv`
+  的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT 与 8,760 点 Ckt7 均已完成
+  严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
 - 能力覆盖必须至少有 PSA 运行时 consumer 和测试；“参考覆盖”还要求锁定 OpenDSS 输出
@@ -629,6 +629,19 @@ OpenDSS reference：最大相对误差 `2.94510954372887e-5`、RMS 相对误差
 电压；`bus_phase` 在故障 epoch 保留保护测量前潮流状态，此合同未被当作故障母线电压比较。
 `conversion_report.csv` 已由 `unsupported` 改为 `converted`，当前计数由 147/112 更新为 148/111。
 
+## 2026-11-04 Ckt7 8760 点 Yearly 闭合
+
+官方 `EPRITestCircuits/ckt7/RunDSS_ckt7.dss` 已使用 release `tensoreval`（SHA-256
+`46edf137c06179c1984c2aae269bc260b514c29b39e1ed9769f277a7a17dc177`）完成两个 Snapshot solve
+epoch 和全部 8,760 个 Yearly 时点。schema v2 bundle 在仓库内与独立临时目录均自执行成功；迁移前后
+原生参考 CSV 与比较 JSON 的 SHA-256 完全相同。
+
+数值门禁显式使用 `line_model=exact`，只比较最终 epoch 2、`31536000 s` 的结果，不把它扩大为
+中间轨迹对齐声明。2,452 个母线相复电压的最大/RMS 相对误差为
+`0.0005814825338454038` / `0.0003498953036292401`；14 个 Monitor 复数量的最大/RMS 相对误差为
+`0.0007173422750251094` / `0.0005788494690267307`，均通过 `1%` 门限。
+`conversion_report.csv` 已由 `unsupported` 改为 `converted`，当前计数由 148/111 更新为 149/110。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -637,7 +650,7 @@ OpenDSS reference：最大相对误差 `2.94510954372887e-5`、RMS 相对误差
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD 完整入口和 InductionMachine
    则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 111 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 110 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

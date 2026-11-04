@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 148 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 AutoHLT 8-epoch 三绕组变压器入口 |
-| 当前尚未发布的独立入口 | 111 | 259 个独立入口扣除 148 个已发布入口 |
+| 已转换并发布 bundle | 149 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 Ckt7 8760 点 Yearly 入口 |
+| 当前尚未发布的独立入口 | 110 | 259 个独立入口扣除 149 个已发布入口 |
 | 超时 | 0 | 无 |
 
-148 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+149 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 148 个发布入口；
-其余 111 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 149 个发布入口；
+其余 110 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -1078,6 +1078,24 @@ OpenDSS 对标显式使用 `line_model=exact`。5 个非故障 epoch 的 60 个�
 保留故障前潮流状态，不将其误作故障电压。`conversion_report.csv` 已由 `unsupported` 改为
 `converted`，发布总数由 147 增至 148，尚未发布数由 112 降至 111。
 
+### 第四十一轮 Ckt7 8760 点 Yearly 发布
+
+2026-11-04 将未修改电气命令语义的官方入口 `EPRITestCircuits/ckt7/RunDSS_ckt7.dss` 发布为
+schema v2 portable bundle。release `tensoreval`（SHA-256
+`46edf137c06179c1984c2aae269bc260b514c29b39e1ed9769f277a7a17dc177`）以
+`--no-default-features --features tensoreval-cli,with_dsa_mumps` 构建；严格执行完成两个 Snapshot
+solve epoch 和全部 8,760 个 Yearly 时点。bundle 在仓库内和独立临时目录各自执行成功，两次运行
+分别耗时约 957 秒和 967 秒，峰值 RSS 约 2.77 GiB 和 2.83 GiB；迁移前后原生参考与比较报告
+SHA-256 完全相同。
+
+OpenDSS 对标显式使用 `line_model=exact`，并按本入口发布合同只门禁最终结果，不声明中间轨迹等价。
+在最终 epoch 2、`31536000 s`，2,452 个母线相复电压全部匹配：最大/RMS 相对误差分别为
+`0.0005814825338454038` 和 `0.0003498953036292401`，最大绝对误差 `0.06685404009506069 V`。
+10 个 Monitor 行键中的 14 个复数量全部匹配：最大/RMS 相对误差分别为
+`0.0007173422750251094` 和 `0.0005788494690267307`，均通过 `1%` 门限。
+`conversion_report.csv` 已由 `unsupported` 改为 `converted`，发布总数由 148 增至 149，尚未发布数
+由 111 降至 110。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1206,7 +1224,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-148 个 `converted` 和 111 个 `unsupported`：
+149 个 `converted` 和 110 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
