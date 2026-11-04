@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 146 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 Stevenson Generator Model 3 Snapshot 入口 |
-| 当前尚未发布的独立入口 | 113 | 259 个独立入口扣除 146 个已发布入口 |
+| 已转换并发布 bundle | 148 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 AutoHLT 8-epoch 三绕组变压器入口 |
+| 当前尚未发布的独立入口 | 111 | 259 个独立入口扣除 148 个已发布入口 |
 | 超时 | 0 | 无 |
 
-146 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+148 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
-路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
+和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 146 个发布入口；
-其余 113 个入口记录当前转换或数值门禁诊断；2,900 步 P174 长任务保留已验证的未发布记录。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 148 个发布入口；
+其余 111 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -171,6 +171,11 @@ staging 自执行分别运行 90 分钟和 30 分钟仍未完成，因此该轮�
 现在稳定在 epoch 0、`1 s` 的首次潮流求解失败，不再记录为长任务超时。该变化把下一步范围收敛为
 执行求解回退排查；在恢复首个 Snapshot/QSTS 时刻并完成 2,900 步门禁前，发布状态保持不变。
 
+2026-11-03 使用现成 release 重新执行后，严格检查完成 7,616 条语句、5 个 epoch，官方路径 bundle
+生成及搬移后独立自执行均通过。`line_model=Exact` 的径向执行计划输出 32,054,352 行电压；与锁定
+OpenDSS 轨迹比较全部 2,900 个时点、9 个节点共 26,100 个值，最大相对误差为
+`2.41171923822849e-5`，低于 `2%` 门限。该入口现已发布。
+
 | 优先入口 | bundle 发布状态 | 验证状态 |
 |---|---|---|
 | `IEEETestCases/4Bus-OYOD-Bal/4Bus-OYOD-Bal.DSS` | 已发布 | 两项独立 study 自执行通过 |
@@ -184,7 +189,7 @@ staging 自执行分别运行 90 分钟和 30 分钟仍未完成，因此该轮�
 | `IEEETestCases/ShortCircuitCases/ieee34Mod2_SC_Case_II.dss` | 已发布 | FaultStudy 148 个故障，自执行通过 |
 | `Examples/HarmonicsTMode/IEEE_519.DSS` | 已发布 | HarmonicT 与跨 Solve 开关状态自执行通过 |
 | `Examples/HarmonicsVariableLoad/IEEE_519.DSS` | 已发布 | HarmonicT 与跨 Solve Load 状态自执行通过 |
-| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 未发布 | 导入和投影等价通过；当前完整 `--check` 在 epoch 0 首次潮流求解失败 |
+| `IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` | 已发布 | 7,616 条语句、5 个 epoch、2,900 步 Duty 自执行和全轨迹采样电压门禁通过 |
 
 ## 与 PSA 当前能力的交叉评估
 
@@ -768,7 +773,7 @@ OpenDSS 数值门禁通过。
 - `Examples/AutoTrans/AutoHLT.dss` 已能生成 8 个 execution epoch，运行时在第一个三相短路工作点
   返回 fault-study protection measurement 求解失败。原脚本只使用现有三绕组变压器、Fault、Load
   和源/线路切换，且注释给出电流、损耗和满载电压参考，是一个边界集中的 Snapshot fault
-  continuation 候选。
+  continuation 候选。该历史候选已在第四十轮完成闭合并发布，见下文。
 - `IEEETestCases/NEVTestCase/Run_NEV.dss` 的主模型只包含现有线路、变压器、负荷、接地和电容；
   当前唯一首层阻断是同一入口依次执行 Snapshot、FaultStudy、Harmonic。三个 adapter 已分别存在，
   后续工作是定义多 study bundle 的结果命名和 continuation，而不能把生命周期简单改名。
@@ -1037,6 +1042,42 @@ bundle 只发布 `bus_phase` 电压表面；详细 I/P/Q/loss 继续由 PSA refe
 临时目录后自执行成功，生成 15 行、11 列的 `voltage.csv`，且 manifest、RSS 和 DSS closure
 没有来源树绝对路径。发布总数由 145 增至 146，尚未发布数由 114 降至 113。
 
+### 第三十九轮 IEEE8500 P174 360 kW PV Duty 发布
+
+2026-11-03 将未修改的官方入口
+`IEEETestCases/8500-Node/P174_Run_360kW_PV.DSS` 发布为 schema v2 portable bundle。入口依次执行
+4 个单步初始化 epoch，并在第 5 个 epoch 以 1 秒步长运行 2,900 步 Duty；360 kW Generator、
+LoadShape、12 个 RegControl 的单档步进限制和 Monitor 声明均由 execution plan 保留。
+
+现成 release `tensoreval`（SHA-256
+`a4faa17d7990dec8bd5ebcf7d20a9dcbc37a44b1d6de4f9aa1207195b023801b`）首先以 `--check` 验证
+7,616 条 DSS 语句和 5 个 solve epoch，再生成径向 schema v2 bundle。DSS execution 默认参数显式
+使用 `line_model=Exact`；完整 bundle 搬移到独立临时目录后自执行成功，`voltage.csv` 为
+32,054,352 行、11 列，manifest、RSS 和 DSS closure 均没有来源树绝对路径。
+
+数值门禁使用锁定的 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 `p57_duty/trajectory.csv`，逐点比较
+全部 2,900 个时点的 `sourcebus`、`m1026866` 和 `regxfmr_190-8581` 三相电压，共 26,100 个值。
+最大相对误差 `2.41171923822849e-5`、RMS 相对误差 `4.03956012716511e-6`、最大绝对误差
+`0.178942628966979 V`，均通过既有 `2%` 门限；最差点为 `1198 s` 的 `m1026866.1`。
+`conversion_report.csv` 已由 `unsupported` 改为 `converted`，发布总数由 146 增至 147，尚未发布数
+由 113 降至 112。
+
+### 第四十轮 AutoHLT 8-epoch 三绕组变压器发布
+
+2026-11-03 将未修改命令语义的官方入口 `Examples/AutoTrans/AutoHLT.dss` 发布为 schema v2
+portable bundle。现成 release `tensoreval`（SHA-256
+`bd81fbc8a0634f56e845327d67cd428e002fa172925b6ecf6c5e48bfd307b5d3`）以 `--check` 验证
+46 条 DSS 语句和 8 个 solve epoch；Export 仅作为无副作用输出请求保留。bundle 搬移到独立临时
+目录后自执行成功，`voltage.csv` 为 96 行、11 列，包含全部 8 个 `epoch_index`，closure 不含来源树
+绝对路径。
+
+OpenDSS 对标显式使用 `line_model=exact`。5 个非故障 epoch 的 60 个母线相复电压全部匹配，最大
+相对误差 `2.94510954372887e-5`、RMS 相对误差 `6.7477168074739e-6`、最大绝对误差
+`2.73751317027705 V`，通过 `0.5%` 门限。PSA 回归测试另锁定 3 个故障 epoch 的 HL/HT/LT 三相
+短路电流，以及非故障 epoch 的绕组端口量、复损耗和满载电压；普通 `bus_phase` 按保护故障合同
+保留故障前潮流状态，不将其误作故障电压。`conversion_report.csv` 已由 `unsupported` 改为
+`converted`，发布总数由 147 增至 148，尚未发布数由 112 降至 111。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1165,7 +1206,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-146 个 `converted` 和 113 个 `unsupported`：
+148 个 `converted` 和 111 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
