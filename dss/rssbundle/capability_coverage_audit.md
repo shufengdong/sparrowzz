@@ -642,6 +642,24 @@ epoch 和全部 8,760 个 Yearly 时点。schema v2 bundle 在仓库内与独立
 `0.0007173422750251094` / `0.0005788494690267307`，均通过 `1%` 门限。
 `conversion_report.csv` 已由 `unsupported` 改为 `converted`，当前计数由 148/111 更新为 149/110。
 
+## 2026-11-04 发布后 110 个入口的有界复扫
+
+冻结报告 [`candidate_scan_2026-11-04.json`](candidate_scan_2026-11-04.json) 对当前 110 个
+`unsupported` 入口全部执行 30 秒 linked conversion，并只对 7 个转换成功者追加 60 秒
+`--check`。结果为 103 个转换诊断、7 个转换成功后检查诊断、0 个超时、0 个完整检查成功；扫描未
+修改 `conversion_report.csv`，也不构成任何新案例的发布声明。
+
+| 顺位 | 入口 | 有界证据 | 结论与剩余工作 |
+|---:|---|---|---|
+| 1 | `Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-B.DSS` | 自包含入口；linked conversion `0.09404 s` 成功，生成 RSS SHA-256 `39f434fd5020a1d633aa356beb16c2459dcf1a860cb568023bb98f258b66b71c`；check `0.202762 s` 后返回 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | **下一个正式候选**。闭合打开 `line.sw5` 后 epoch 1 的 QSTS 拓扑求解，再以 `line_model=exact` 对两个 Snapshot 的最终节点电压、控制终态及 GFM/Storage/PV 结果做 OpenDSS 门禁；随后仍须完成 portable bundle 自执行和搬移验证 |
+| 2 | `Examples/Paulo_Example/DSSFiles/solve_snapshot.dss` | linked conversion 成功；check 返回同类 `SOLVE_FAILED` | 文件仅含 `solve`，依赖既有会话电路，不是独立发布入口；应更正分类或与其主入口建立复合合同 |
+| 3 | `Examples/ExpControl/SolveAndExportMonitors.dss` | linked conversion 成功；check 返回同类 `SOLVE_FAILED` | 文件注释明确要求电路和基准解已存在，不是独立发布入口；不应直接发布 |
+
+首选源文件 SHA-256 为
+`b025cb063e83c8feadfb98ba2eac891b3534ee14849abb80268f577941067786`。即使修复当前唯一的深层
+求解诊断，也必须重新执行严格转换、完整检查、OpenDSS 数值对标和 bundle 迁移门禁，不能从本次
+有界扫描直接推导发布状态。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
