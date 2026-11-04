@@ -1105,9 +1105,11 @@ OpenDSS 对标显式使用 `line_model=exact`，并按本入口发布合同只�
 
 当前首选是
 `Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-B.DSS`。它是 7 个
-成功转换入口中唯一会自行加载模型的完整官方入口；linked conversion 用时 `0.09404 s`，生成 RSS
+成功转换入口中唯一具有已解析模型范围的完整官方入口：converter 展开 22 条本地命令和依赖闭包后
+报告 388 条 DSS 语句、2 个 solve epoch，其中 366 条来自依赖展开。linked conversion 用时
+`0.043327 s`，生成 RSS
 SHA-256 为 `39f434fd5020a1d633aa356beb16c2459dcf1a860cb568023bb98f258b66b71c`。
-`--check` 用时 `0.202762 s`，导入执行计划后在 epoch 1 返回
+`--check` 用时 `0.176875 s`，导入执行计划后在 epoch 1 返回
 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED`：所选 QSTS 方法不支持该网络拓扑。因此下一步是闭合第二个
 Snapshot（打开 `line.sw5` 后）的求解合同，再按 `line_model=exact` 对两个 Snapshot 的最终节点电压、
 控制终态和 GFM/Storage/PV 相关结果做 OpenDSS 数值门禁，最后才可生成、搬移和发布 bundle。

@@ -651,7 +651,7 @@ epoch 和全部 8,760 个 Yearly 时点。schema v2 bundle 在仓库内与独立
 
 | 顺位 | 入口 | 有界证据 | 结论与剩余工作 |
 |---:|---|---|---|
-| 1 | `Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-B.DSS` | 自包含入口；linked conversion `0.09404 s` 成功，生成 RSS SHA-256 `39f434fd5020a1d633aa356beb16c2459dcf1a860cb568023bb98f258b66b71c`；check `0.202762 s` 后返回 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | **下一个正式候选**。闭合打开 `line.sw5` 后 epoch 1 的 QSTS 拓扑求解，再以 `line_model=exact` 对两个 Snapshot 的最终节点电压、控制终态及 GFM/Storage/PV 结果做 OpenDSS 门禁；随后仍须完成 portable bundle 自执行和搬移验证 |
+| 1 | `Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-B.DSS` | converter 报告 388 条 DSS 语句、2 个 solve epoch、366 条依赖展开语句；linked conversion `0.043327 s` 成功，生成 RSS SHA-256 `39f434fd5020a1d633aa356beb16c2459dcf1a860cb568023bb98f258b66b71c`；check `0.176875 s` 后保留 1 个 fresh 阻断 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | **下一个正式候选**。闭合打开 `line.sw5` 后 epoch 1 的 QSTS 拓扑求解，再以 `line_model=exact` 对两个 Snapshot 的最终节点电压、控制终态及 GFM/Storage/PV 结果做 OpenDSS 门禁；随后仍须完成 portable bundle 自执行和搬移验证 |
 | 2 | `Examples/Paulo_Example/DSSFiles/solve_snapshot.dss` | linked conversion 成功；check 返回同类 `SOLVE_FAILED` | 文件仅含 `solve`，依赖既有会话电路，不是独立发布入口；应更正分类或与其主入口建立复合合同 |
 | 3 | `Examples/ExpControl/SolveAndExportMonitors.dss` | linked conversion 成功；check 返回同类 `SOLVE_FAILED` | 文件注释明确要求电路和基准解已存在，不是独立发布入口；不应直接发布 |
 
