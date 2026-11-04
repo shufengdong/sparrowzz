@@ -27070,6 +27070,13 @@
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
+          },
+          {
+            "name": "open_dss_pv_factor",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
           }
         ],
         "stableKeys": [
@@ -27992,6 +27999,20 @@
             "dtype": "u64",
             "required": true,
             "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "name",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "source_order",
+            "dtype": "u32",
+            "required": false,
+            "nullable": true,
             "unit": "not_applicable"
           }
         ],
