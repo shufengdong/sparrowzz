@@ -1142,6 +1142,21 @@ OpenDSS 对标显式使用 `line_model=exact`，并按本入口合同只门禁�
 残差最大 `0.005418309046707934 V`，低于 `0.01 V` 失电判据。`conversion_report.csv` 已由
 `unsupported` 改为 `converted`，发布总数由 149 增至 150，尚未发布数由 110 降至 109。
 
+### GFMSnap-B 发布后的候选扫描
+
+[`candidate_scan_2026-11-05.json`](candidate_scan_2026-11-05.json) 使用同一发布 binary 和固定上游提交，
+对剩余 109 个 `unsupported` 入口重新执行 30 秒 linked conversion，并只对 6 个转换成功者追加
+60 秒 `--check`。103 个入口在转换阶段返回诊断，6 个转换成功者均在检查阶段返回诊断；没有超时，
+也没有可直接发布的新入口。报告设置 `publishes_cases=false`，没有改变任何目录状态。
+
+形式排名最前的 6 个入口都依赖预置 OpenDSS 会话状态，不是独立发布案例。排除这些片段后，当前最小的
+完整工程候选是 `Examples/Dynamic_Expressions/Dynamic_KundurDynExp.dss`：它显式创建 Circuit，当前
+fresh 阻断只有 `PSA.DSS.DYNAMIC.MONITOR_REQUEST_UNSUPPORTED`，下一步需要把运行期 Monitor 的显式
+采样、指定缓冲区 Export/Show/Plot 映射到已发布的 Dynamic Monitor 结果合同，再做完整 5 秒动态轨迹
+与 OpenDSS 数值门禁。`Run_IEEE123Bus_GFMSnap-C.DSS` 是 GFM 系列的下一入口，但仍同时受
+`PSA.DSS.EXECUTION.ORDER_UNREPRESENTABLE` 和 `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` 阻断；它要求
+在执行开始后有序切换 Storage `ControlMode=GFM`，不能沿用 GFMSnap-B 的失电零输出语义。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
