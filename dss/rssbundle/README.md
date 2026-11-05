@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 148 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 AutoHLT 8-epoch 三绕组变压器入口 |
-| 当前尚未发布的独立入口 | 111 | 259 个独立入口扣除 148 个已发布入口 |
+| 已转换并发布 bundle | 149 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 Ckt7 8760 点 Yearly 入口 |
+| 当前尚未发布的独立入口 | 110 | 259 个独立入口扣除 149 个已发布入口 |
 | 超时 | 0 | 无 |
 
-148 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+149 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 148 个发布入口；
-其余 111 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 149 个发布入口；
+其余 110 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -1078,6 +1078,49 @@ OpenDSS 对标显式使用 `line_model=exact`。5 个非故障 epoch 的 60 个�
 保留故障前潮流状态，不将其误作故障电压。`conversion_report.csv` 已由 `unsupported` 改为
 `converted`，发布总数由 147 增至 148，尚未发布数由 112 降至 111。
 
+### 第四十一轮 Ckt7 8760 点 Yearly 发布
+
+2026-11-04 将未修改电气命令语义的官方入口 `EPRITestCircuits/ckt7/RunDSS_ckt7.dss` 发布为
+schema v2 portable bundle。release `tensoreval`（SHA-256
+`46edf137c06179c1984c2aae269bc260b514c29b39e1ed9769f277a7a17dc177`）以
+`--no-default-features --features tensoreval-cli,with_dsa_mumps` 构建；严格执行完成两个 Snapshot
+solve epoch 和全部 8,760 个 Yearly 时点。bundle 在仓库内和独立临时目录各自执行成功，两次运行
+分别耗时约 957 秒和 967 秒，峰值 RSS 约 2.77 GiB 和 2.83 GiB；迁移前后原生参考与比较报告
+SHA-256 完全相同。
+
+OpenDSS 对标显式使用 `line_model=exact`，并按本入口发布合同只门禁最终结果，不声明中间轨迹等价。
+在最终 epoch 2、`31536000 s`，2,452 个母线相复电压全部匹配：最大/RMS 相对误差分别为
+`0.0005814825338454038` 和 `0.0003498953036292401`，最大绝对误差 `0.06685404009506069 V`。
+10 个 Monitor 行键中的 14 个复数量全部匹配：最大/RMS 相对误差分别为
+`0.0007173422750251094` 和 `0.0005788494690267307`，均通过 `1%` 门限。
+`conversion_report.csv` 已由 `unsupported` 改为 `converted`，发布总数由 148 增至 149，尚未发布数
+由 111 降至 110。
+
+### Ckt7 发布后的候选扫描
+
+[`candidate_scan_2026-11-04.json`](candidate_scan_2026-11-04.json) 使用按相同发布 feature 构建并增加
+解析器证据输出的 release `tensoreval`（SHA-256
+`382ce2670964ccb5df9d8f7c4c6106ec93dbef5d3892aa6d2f527ce6febffb57`）和固定上游提交，对其余 110 个
+`unsupported` 独立入口逐一执行 30 秒 linked conversion；转换成功者
+再执行 60 秒 `--check`。扫描无超时：103 个入口在转换阶段返回稳定诊断，7 个生成 linked RSS，
+但这 7 个均在检查求解阶段返回诊断。本报告只排序候选，不发布案例，也未修改任何目录状态。
+
+当前首选是
+`Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-B.DSS`。它是 7 个
+成功转换入口中唯一由依赖展开后的解析器事件流明确确认创建 `Circuit` 的完整官方入口：converter
+展开 22 条本地命令和依赖闭包后报告 388 条 DSS 语句、2 个 solve epoch，其中 366 条来自依赖展开。
+linked conversion 用时 `0.043737 s`，生成 RSS
+SHA-256 为 `39f434fd5020a1d633aa356beb16c2459dcf1a860cb568023bb98f258b66b71c`。
+`--check` 用时 `0.179204 s`，导入执行计划后在 epoch 1 返回
+`TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED`：所选 QSTS 方法不支持该网络拓扑。因此下一步是闭合第二个
+Snapshot（打开 `line.sw5` 后）的求解合同，再按 `line_model=exact` 对两个 Snapshot 的最终节点电压、
+控制终态和 GFM/Storage/PV 相关结果做 OpenDSS 数值门禁，最后才可生成、搬移和发布 bundle。
+
+原始排序的第二、三名分别为 `Examples/Paulo_Example/DSSFiles/solve_snapshot.dss` 和
+`Examples/ExpControl/SolveAndExportMonitors.dss`；二者都能生成 linked RSS，但官方文件明确依赖调用者
+事先建立的电路状态，不是可独立发布入口，故不作为正式备选。它们应先更正 catalog 分类或定义包含
+主入口的复合执行合同，而不是直接发布当前脚本片段。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1206,7 +1249,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-148 个 `converted` 和 111 个 `unsupported`：
+149 个 `converted` 和 110 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

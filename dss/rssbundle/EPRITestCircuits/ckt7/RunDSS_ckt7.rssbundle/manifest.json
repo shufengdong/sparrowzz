@@ -1,0 +1,109 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/EPRITestCircuits/ckt7/RunDSS_ckt7.dss",
+    "root": "dss",
+    "tree_sha256": "2eb229325213a57d25f1350bfe6c469bf532052a5441b1847ecb1c84afe35196"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/EPRITestCircuits/ckt7/AllocationFactors.dss",
+      "role": "dss-source",
+      "sha256": "c7d572f533f84897b6cf7901aa989cf1ba5a3c94f49c1fb39afb2cd282bd9503"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/BusCoords_ckt7.dss",
+      "role": "data-asset",
+      "sha256": "45b72ad8562995fad79d185a167f12afbd49751a9611ef8e9b942dc8eb407d9a"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/Capacitors_ckt7.dss",
+      "role": "dss-source",
+      "sha256": "fd7878dd6868acf4fd1c3de3334d1da6a283ca257110ed193d116ee021301b95"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/LineCodes_ckt7.dss",
+      "role": "dss-source",
+      "sha256": "f42b7816967cc9993f0ebb3a3078efca78dc2256be9eb8c8c46b38d1d8281720"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/Lines_ckt7.dss",
+      "role": "dss-source",
+      "sha256": "1b5773e1852b2b8401e3216ac9244ed439f692c68bda8b09ca8d998322376260"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/Load_XFMR_ckt7.dss",
+      "role": "dss-source",
+      "sha256": "2786c9d323178e306d6174a00277bccfc24d56606d86977ca78e5f2cb3cdf758"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/Loads_ckt7.dss",
+      "role": "dss-source",
+      "sha256": "bb9133372f66943efb94db6dfbf6c1703e8287afd4f02f2a2e33f81741b6985c"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/Loadshapes_ckt7.dss",
+      "role": "dss-source",
+      "sha256": "cdc313c9470fa3a3317fa88d355499fafb94e023775903de49bf69976a28c20f"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/Master_ckt7.dss",
+      "role": "dss-source",
+      "sha256": "0013b0d7bf4cf8392fbfd439291ee5f283b63d917816abf17895600aabfa24c5"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/RunDSS_ckt7.dss",
+      "role": "dss-entry",
+      "sha256": "96ec156017386eec1bfd605bdd9d72128338efd5626b8718fa6bbebe5b996a8e"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/Services_ckt7.dss",
+      "role": "dss-source",
+      "sha256": "7bf17369192603b5a1d3f55b7ae70cd20867a970dd57af79214ec1c449ad5821"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt7/Substation_ckt7.dss",
+      "role": "dss-source",
+      "sha256": "f4e399c950fac4217f6660a3168e7cc3d2e7147b9f01b7d5e60afff7b2bbd353"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "4ce7b822846c06f98d2beb45f8c6da4e252cfd38b7c726ea55c3df5592546811"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b"
+    }
+  ],
+  "inputs": []
+}

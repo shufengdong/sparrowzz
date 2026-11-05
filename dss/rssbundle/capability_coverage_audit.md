@@ -12,9 +12,9 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：148 个入口已经发布 bundle，111 个独立入口尚未发布；`conversion_report.csv`
-  的 `status` 已同步当前发布状态。2,900 步 P174 与 8-epoch AutoHLT 均已完成严格检查、官方路径
-  bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
+- 当前结果：149 个入口已经发布 bundle，110 个独立入口尚未发布；`conversion_report.csv`
+  的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT 与 8,760 点 Ckt7 均已完成
+  严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
 - 能力覆盖必须至少有 PSA 运行时 consumer 和测试；“参考覆盖”还要求锁定 OpenDSS 输出
@@ -629,6 +629,39 @@ OpenDSS reference：最大相对误差 `2.94510954372887e-5`、RMS 相对误差
 电压；`bus_phase` 在故障 epoch 保留保护测量前潮流状态，此合同未被当作故障母线电压比较。
 `conversion_report.csv` 已由 `unsupported` 改为 `converted`，当前计数由 147/112 更新为 148/111。
 
+## 2026-11-04 Ckt7 8760 点 Yearly 闭合
+
+官方 `EPRITestCircuits/ckt7/RunDSS_ckt7.dss` 已使用 release `tensoreval`（SHA-256
+`46edf137c06179c1984c2aae269bc260b514c29b39e1ed9769f277a7a17dc177`）完成两个 Snapshot solve
+epoch 和全部 8,760 个 Yearly 时点。schema v2 bundle 在仓库内与独立临时目录均自执行成功；迁移前后
+原生参考 CSV 与比较 JSON 的 SHA-256 完全相同。
+
+数值门禁显式使用 `line_model=exact`，只比较最终 epoch 2、`31536000 s` 的结果，不把它扩大为
+中间轨迹对齐声明。2,452 个母线相复电压的最大/RMS 相对误差为
+`0.0005814825338454038` / `0.0003498953036292401`；14 个 Monitor 复数量的最大/RMS 相对误差为
+`0.0007173422750251094` / `0.0005788494690267307`，均通过 `1%` 门限。
+`conversion_report.csv` 已由 `unsupported` 改为 `converted`，当前计数由 148/111 更新为 149/110。
+
+## 2026-11-04 发布后 110 个入口的有界复扫
+
+冻结报告 [`candidate_scan_2026-11-04.json`](candidate_scan_2026-11-04.json) 对当前 110 个
+`unsupported` 入口全部执行 30 秒 linked conversion，并只对 7 个转换成功者追加 60 秒
+`--check`。结果为 103 个转换诊断、7 个转换成功后检查诊断、0 个超时、0 个完整检查成功；扫描未
+修改 `conversion_report.csv`，也不构成任何新案例的发布声明。扫描使用按发布 feature 构建并增加
+解析器证据输出的 release `tensoreval`，SHA-256 为
+`382ce2670964ccb5df9d8f7c4c6106ec93dbef5d3892aa6d2f527ce6febffb57`。
+
+| 顺位 | 入口 | 有界证据 | 结论与剩余工作 |
+|---:|---|---|---|
+| 1 | `Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-B.DSS` | 依赖展开后的解析器事件流明确确认 `Circuit` bootstrap；converter 报告 388 条 DSS 语句、2 个 solve epoch、366 条依赖展开语句；linked conversion `0.043737 s` 成功，生成 RSS SHA-256 `39f434fd5020a1d633aa356beb16c2459dcf1a860cb568023bb98f258b66b71c`；check `0.179204 s` 后保留 1 个 fresh 阻断 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | **下一个正式候选**。闭合打开 `line.sw5` 后 epoch 1 的 QSTS 拓扑求解，再以 `line_model=exact` 对两个 Snapshot 的最终节点电压、控制终态及 GFM/Storage/PV 结果做 OpenDSS 门禁；随后仍须完成 portable bundle 自执行和搬移验证 |
+| 2 | `Examples/Paulo_Example/DSSFiles/solve_snapshot.dss` | linked conversion 成功；check 返回同类 `SOLVE_FAILED` | 文件仅含 `solve`，依赖既有会话电路，不是独立发布入口；应更正分类或与其主入口建立复合合同 |
+| 3 | `Examples/ExpControl/SolveAndExportMonitors.dss` | linked conversion 成功；check 返回同类 `SOLVE_FAILED` | 文件注释明确要求电路和基准解已存在，不是独立发布入口；不应直接发布 |
+
+首选源文件 SHA-256 为
+`b025cb063e83c8feadfb98ba2eac891b3534ee14849abb80268f577941067786`。即使修复当前唯一的深层
+求解诊断，也必须重新执行严格转换、完整检查、OpenDSS 数值对标和 bundle 迁移门禁，不能从本次
+有界扫描直接推导发布状态。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -637,7 +670,7 @@ OpenDSS reference：最大相对误差 `2.94510954372887e-5`、RMS 相对误差
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD 完整入口和 InductionMachine
    则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 111 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 110 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
