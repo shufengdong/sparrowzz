@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 149 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 Ckt7 8760 点 Yearly 入口 |
-| 当前尚未发布的独立入口 | 110 | 259 个独立入口扣除 149 个已发布入口 |
+| 已转换并发布 bundle | 150 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 GFMSnap-B 两快照入口 |
+| 当前尚未发布的独立入口 | 109 | 259 个独立入口扣除 150 个已发布入口 |
 | 超时 | 0 | 无 |
 
-149 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+150 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 149 个发布入口；
-其余 110 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 150 个发布入口；
+其余 109 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -261,8 +261,8 @@ Snapshot 中不改变负荷倍率；`InvControl mode=GFM` 在列出的 DER 都�
 |---|---|---|
 | `Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-A.DSS` | 386 条语句，1 个 Newton Snapshot epoch | 284 个节点身份全部一致；浮置 Delta 母线按相间可观测量去共模后，复电压最大相对误差 `9.09e-7`、RMS `2.97e-7` |
 
-`Run_IEEE123Bus_GFMSnap-B.DSS` 在第二次求解前断开 `Line.SW5`，形成没有电压参考的孤岛，当前
-返回 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED`；`Run_IEEE123Bus_GFMSnap-C.DSS` 随后把
+`Run_IEEE123Bus_GFMSnap-B.DSS` 在第二次求解前断开 `Line.SW5`，形成没有电压参考的孤岛，当时
+返回 `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED`（现已在第四十二轮闭合并发布）；`Run_IEEE123Bus_GFMSnap-C.DSS` 随后把
 `Storage.mystorage` 切换为真正的 `ControlMode=GFM`，仍由 `PSA.DSS.OBJECT.UNSUPPORTED` 阻断。
 因此本轮只发布 A，未通过删除控制语句或静态化 B/C 来扩大成功数。
 
@@ -1121,6 +1121,27 @@ Snapshot（打开 `line.sw5` 后）的求解合同，再按 `line_model=exact` �
 事先建立的电路状态，不是可独立发布入口，故不作为正式备选。它们应先更正 catalog 分类或定义包含
 主入口的复合执行合同，而不是直接发布当前脚本片段。
 
+### 第四十二轮 GFMSnap-B 失电孤岛两快照发布
+
+2026-11-05 将未修改命令语义的官方入口
+`Examples/Microgrid/GridFormingInverter/GFM_IEEE123/Run_IEEE123Bus_GFMSnap-B.DSS` 发布为 schema v2
+portable bundle。入口共 388 条展开后 DSS 语句和 2 个 Snapshot epoch；第二次求解前打开
+`Line.SW5`，形成无电压参考但仅含无源网络及保持 GFL/IDLING 状态设备的失电孤岛。PSA 现在显式
+求解该拓扑：孤岛 32 个母线相电压以及 PVSystem、Storage 和支路终端输出均为精确零；含独立有源
+电压参考的孤岛仍按原合同拒绝。
+
+release `tensoreval` 使用
+`--no-default-features --features tensoreval-cli,with_dsa_mumps` 构建，SHA-256 为
+`1c6dd45ca03d2fb73214e7fb23f7ce3c064a7d6e9ca56a332bb71104755f3d50`。bundle 在仓库内和独立临时
+目录均自执行成功，输出 2×284=568 行电压；迁移前后电压 CSV、OpenDSS 参考、元数据和比较结果
+SHA-256 均逐字节相同，closure 不含来源树绝对路径。
+
+OpenDSS 对标显式使用 `line_model=exact`，并按本入口合同只门禁最终 epoch 1、`2 s`，不声明中间
+轨迹等价。252 个带电节点的最大/RMS 归一化复电压误差分别为 `4.112314026489773e-6` 和
+`2.3217050758919202e-6`，低于 `1e-5` 门限；32 个失电节点的 PSA 电压均为精确零，OpenDSS 数值
+残差最大 `0.005418309046707934 V`，低于 `0.01 V` 失电判据。`conversion_report.csv` 已由
+`unsupported` 改为 `converted`，发布总数由 149 增至 150，尚未发布数由 110 降至 109。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1249,7 +1270,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-149 个 `converted` 和 110 个 `unsupported`：
+150 个 `converted` 和 109 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
