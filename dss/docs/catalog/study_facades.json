@@ -3897,11 +3897,11 @@
       "id": "network_dynamics",
       "function": "ds_network_dynamics",
       "family": "dynamics",
-      "title": "网络动态 V12",
-      "description": "执行支持 Storage、Generator、PV、电机、故障、保护、控制和 FRT 的完整 RMS/phasor 网络动态研究。",
+      "title": "网络动态 V13",
+      "description": "执行支持 Storage、Generator、PV、电机、故障、保护、控制、FRT 和 Monitor 的完整 RMS/phasor 网络动态研究；Monitor 是 V13 的增量能力。",
       "differences": [
-        "返回 15 张带 time_s 与 sequence 的 V12 结果并接受独立 fault 生命周期数据。",
-        "与兼容电机入口不同，本门面允许非空 Storage 并提供完整设备与保护审计结果。"
+        "V13 规范入口使用 30 个输入并返回 16 类可选结果，末尾追加 monitor；运行时继续兼容 V12 的 29 输入与 15 结果入口。",
+        "与兼容电机入口不同，本门面允许非空 Storage，并提供完整设备、保护、Monitor 审计结果。"
       ],
       "inputs": [
         {
@@ -4164,6 +4164,15 @@
           "required": true,
           "position": 29,
           "description": "零行或单行潮流参数、基频和结果选择配置。"
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor_input",
+          "inputKind": "model",
+          "schemaRef": "frames.monitor",
+          "required": true,
+          "position": 30,
+          "description": "Dynamic V13 的 PVSystem/Storage mode 0、1、3 Monitor 定义。"
         }
       ],
       "results": [
@@ -4270,6 +4279,13 @@
           "name": "device_protection_connection",
           "schemaRef": "result_frames.network_dynamic_v12_device_protection_connection",
           "description": "网络动态 V12 device_protection_connection 长表。",
+          "recommended": false
+        },
+        {
+          "id": "monitor",
+          "name": "monitor",
+          "schemaRef": "result_frames.qsts_monitor",
+          "description": "网络动态 V13 Monitor 长表。",
           "recommended": false
         }
       ],

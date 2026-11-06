@@ -45,7 +45,7 @@ Radial/Newton、WLS/MNMR/MCE、网络动态/电机动态分别是独立门面。
 | `ds_restore` | 22；兼容 9 | `switches` | 由 `para.result` 决定 |
 | `ds_protection_coordination` | 9 | `operations` | 由 `para.result` 决定 |
 | `ds_fault_location` | 24 | 不适用 | 固定 1 |
-| `ds_network_dynamics` | 29 | `bus_voltage` | 由 `para.result` 决定 |
+| `ds_network_dynamics` | V12 兼容 29；V13 规范 30 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_motor_dynamics` | 28 | `motor_state` | 由 `para.result` 决定 |
 
 ## 1. 完整网络参数顺序
@@ -277,12 +277,12 @@ fault_result = ds_dss_fault_study("run.dss", "fault_result");
 | `ds_dss_harmonic_plan` | `Harmonic` / `HarmonicT` | `bus_voltage` | `bus_voltage,branch_flow,conductor_flow,bus_sequence,branch_sequence,monitor,monitor_save` |
 | `ds_dss_auto_add` | 有界 `AutoAdd` | `ranking` | `ranking,selection,final_voltage,summary` |
 | `ds_dss_relcalc` | Snapshot 后的有界 `RelCalc` | `meter` | `meter,section,branch,bus` |
-| `ds_dss_dynamic_plan` | 可选 Snapshot 初始化后的有界 `Dynamic/Dynamics` | `bus_voltage` | `bus_voltage,branch_current,source_flow,pvsystem_state,storage_state,motor_state,event,solver_trace,fault_state,protection_state,frt_state,control_state,device_state,generator_state,device_protection_connection` |
+| `ds_dss_dynamic_plan` | 可选 Snapshot 初始化后的有界 `Dynamic/Dynamics` | `bus_voltage` | V12 的 15 项结果，V13 追加 `monitor` |
 
 `ds_dss_dynamic_plan(path, para_or_results)` 读取本地入口；三参数形式
 `ds_dss_dynamic_plan(path, source_root, para_or_results)` 为 bundle 限定依赖根。第一个参数必须是
 本地字符串路径；最后一个参数必须是结果字符串或具名 DataFrame。直接运行
-`tensoreval run.dss` 时，自动分类为 Dynamic 后请求上述全部 15 张表；在 RSS 中调用函数时只返回
+`tensoreval run.dss` 时，自动分类为 Dynamic 后请求 V13 的全部 16 张表；在 RSS 中调用函数时只返回
 结果字符串或 `para.result` 指定的表，缺省为 `bus_voltage`。命令行模式、落盘文件和退出码见
 [tensoreval 命令行参考](tensoreval_cli_reference.md)。它把继承的
 `h/step/stepsize`、`number`、`hour` 和 `sec/seconds` 降为一条严格等间隔 timeline，多个
@@ -494,22 +494,26 @@ timeline、事件和保护表时用 `ds_network_dynamics`；`ds_motor_dynamics` 
 入口均由 `tensoreval --df` 执行，直接 `.dss/.rssbundle` 的命令行行为见
 [tensoreval 暂态参考](tensoreval_cli_reference.md#5-暂态仿真的三种入口)。
 
-完整 V12 DataFrame 门面为：
+规范 V13 DataFrame 门面为：
 
 ```text
 [results...] = ds_network_dynamics(
     network_1, ..., network_20,
-    timeline, event, tcc_curve, fuse, recloser, relay, fault, spec, para
+    timeline, event, tcc_curve, fuse, recloser, relay, fault, spec, para, monitor
 );
 ```
 
-固定 29 个参数。`timeline` 必需且不能是零行；`event`、四张保护表、`fault`、`spec`
-和 `para` 可使用对应 schema 的零行表。第 20 位 `storage` 可非空。`event` 描述明确时刻的操作，
+V13 固定 30 个参数，在 V12 的 29 个位置末尾追加 `monitor` model 表；运行时继续接受旧的
+29 参数 V12 调用并返回原有 15 类结果，不要求旧脚本升级。`timeline` 必需且不能是零行；
+`event`、四张保护表、`fault`、`spec`、`para` 和 `monitor` 可使用对应 schema 的零行表。
+第 20 位 `storage` 可非空。`event` 描述明确时刻的操作，
 `fault` 描述带投退生命周期的保护故障对象，两者位置和 schema 不可交换。默认返回
-`bus_voltage`，完整结果集合与 `ds_dss_dynamic_plan` 相同，统一采用 PSA V12 的
+`bus_voltage`。V13 前 15 项与 V12 完全同序，统一采用 PSA V12 的
 `time_s,sequence,...` 长表契约。内部事件边界可能在外部 timeline 之间产生额外时点；同刻多行
-用 `sequence` 确定动作前后顺序。输入列、事件种类、默认值和 15 张结果表见
-[网络动态输入与 V12 结果](dataframe_schema_reference.md#网络动态输入与-v12-结果)。
+用 `sequence` 确定动作前后顺序；第 16 项 `monitor` 使用 `result_frames.qsts_monitor`。
+managed bundle 可以从原生 V13 的 16 项结果中保持选择 V12 的前 15 项，Monitor 是增量能力。
+输入列、事件种类、默认值和结果表见
+[网络动态 V12/V13 输入与结果](dataframe_schema_reference.md#网络动态-v12v13-输入与结果)。
 
 原有电机兼容入口继续可用：
 

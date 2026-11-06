@@ -12,8 +12,9 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：149 个入口已经发布 bundle，110 个独立入口尚未发布；`conversion_report.csv`
-  的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT 与 8,760 点 Ckt7 均已完成
+- 当前结果：150 个入口已经发布 bundle，109 个独立入口尚未发布；`conversion_report.csv`
+  的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
+  GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
@@ -307,8 +308,8 @@ linked RSS，0 个超时。随后对其中 16 个非 Yearly、非 P174 入口执
 - `Examples/ExpControl/SolveAndExportMonitors.dss` 只含 Solve/Export，必须由 `Master.dss` 在同一
   OpenDSS 进程中先构网；把它当独立入口会得到无效拓扑。Paulo 的 `solve_snapshot.dss` 和
   `solve_daily.dss` 同样是父脚本片段。
-- `Run_IEEE123Bus_GFMSnap-B.DSS` 的 importer 已能表达两段 Snapshot，但第二段断开 SW5 后形成
-  无电压参考孤岛；当前求解失败与既有审计一致。
+- `Run_IEEE123Bus_GFMSnap-B.DSS` 的无电压参考被动孤岛已经闭合并发布；显式打开 SW5 后 32 个
+  母线相及设备终端输出为精确零，主动 GFM 孤岛仍 fail closed。
 - GIC、NCIM、VCCS、WindGen QSTS、Storage GFM/AmpLimit 等真实对象或方程缺口没有因为生成 RSS
   的数量变化而自动晋级为近期候选。
 
@@ -662,6 +663,27 @@ epoch 和全部 8,760 个 Yearly 时点。schema v2 bundle 在仓库内与独立
 求解诊断，也必须重新执行严格转换、完整检查、OpenDSS 数值对标和 bundle 迁移门禁，不能从本次
 有界扫描直接推导发布状态。
 
+## 2026-11-05 GFMSnap-B 发布与 109 个入口复扫
+
+GFMSnap-B 使用 release `tensoreval`（SHA-256
+`1c6dd45ca03d2fb73214e7fb23f7ce3c064a7d6e9ca56a332bb71104755f3d50`）完成 388 条语句、两个
+Snapshot epoch、正式 bundle 和迁移副本自执行。最终 epoch 1 显式使用 `line_model=exact`：252 个
+带电节点的最大/RMS 归一化复电压误差为 `4.112314026489773e-6` / `2.3217050758919202e-6`；32 个
+失电节点的 PSA 电压为精确零，OpenDSS 残差最大 `0.005418309046707934 V`，低于 `0.01 V` 判据。
+`conversion_report.csv` 计数由 149/110 更新为 150/109。
+
+冻结报告 [`candidate_scan_2026-11-05.json`](candidate_scan_2026-11-05.json)（SHA-256
+`c05a640861c1c86660f300adf6278d2959188ed721fdeeaf583514b199fd3dfb`）对剩余 109 个入口全部完成
+有界扫描：103 个 linked conversion 诊断、6 个转换成功后检查诊断、0 个超时、0 个完整检查成功。
+6 个转换成功者均依赖预置会话状态，不能作为独立 bundle 发布。
+
+排除会话片段后，当前最小的完整工程候选是
+`Examples/Dynamic_Expressions/Dynamic_KundurDynExp.dss`。它显式创建 Circuit，fresh 阻断仅为
+`PSA.DSS.DYNAMIC.MONITOR_REQUEST_UNSUPPORTED`；下一步应把运行期 Monitor 显式采样及指定缓冲区
+Export/Show/Plot 接入已有 Dynamic Monitor 结果合同，并以 OpenDSS 锁定 5 秒动态轨迹。
+GFMSnap-C 是同系列下一入口，但有两个 fresh 阻断：执行开始后的 Storage `ControlMode` 修改顺序无法
+由单一不可变 NetworkTables 表达，且 `Storage.ControlMode=GFM` 尚无无损导入映射。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -670,7 +692,7 @@ epoch 和全部 8,760 个 Yearly 时点。schema v2 bundle 在仓库内与独立
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD 完整入口和 InductionMachine
    则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 110 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 109 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
