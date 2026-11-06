@@ -23283,7 +23283,9 @@
       "result_name": "monitor",
       "context": [
         "ds_radial_qsts",
-        "ds_newton_raphson_qsts"
+        "ds_newton_raphson_qsts",
+        "ds_network_dynamics",
+        "ds_dss_dynamic_plan"
       ],
       "columns": [
         "monitor",
@@ -23311,7 +23313,7 @@
         "p_loss",
         "q_loss"
       ],
-      "schema_source": "psa/src/dsa/pf/metering.rs",
+      "schema_source": "psa/src/dsa/monitor_output.rs",
       "contract": {
         "kind": "result",
         "rowCount": "zero_or_more",
@@ -23505,7 +23507,7 @@
         "allowedConversions": [],
         "rules": [],
         "source": [
-          "psa/src/dsa/pf/metering.rs"
+          "psa/src/dsa/monitor_output.rs"
         ],
         "shape": "uniform"
       }
