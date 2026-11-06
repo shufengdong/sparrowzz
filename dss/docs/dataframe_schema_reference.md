@@ -43,7 +43,7 @@ DSS/rssbundle 的投影还必须读取
 | QSTS `storage_controller`、`switch_control` | `model` | `frames.storage_controller`、`frames.switch_control` | 有稳定控制器身份、受控设备引用和跨时点状态 |
 | QSTS/保护/动态 `tcc_curve` | `data` | `frames.tcc_curve` | 保存电流—时间曲线采样值；保护设备按名称引用它 |
 | QSTS/保护/动态 `fuse`、`recloser`、`relay` | `model` | `frames.fuse`、`frames.recloser`、`frames.relay` | 有保护装置身份、整定、曲线引用和动作目标 |
-| QSTS/谐波 `monitor`、QSTS `energy_meter` | `model` | `frames.monitor`、`frames.energy_meter` | 有持久表计身份、被测元件或区域引用及寄存器配置 |
+| QSTS/谐波/动态 V13 `monitor`、QSTS `energy_meter` | `model` | `frames.monitor`、`frames.energy_meter` | 有持久表计身份、被测元件或区域引用及寄存器配置 |
 | 短路/QSTS `fault` | `data` | `frames.fault` | 每行是可替换的故障位置、类型、阻抗或投退工况 |
 | 恢复重构 `fault` | `data` | `analysis_inputs.restore_fault` | 每行只声明必须保持断开的开关身份，不使用短路 fault schema |
 | 网络动态 `fault` | `data` | `analysis_inputs.dynamic_fault` | 在基础故障电气数据上增加稳定事件名和投退生命周期 |
@@ -526,9 +526,10 @@ resistance_min_ohm,resistance_max_ohm,reactance_min_ohm,reactance_max_ohm,loss,
 loss_parameter`，以及公共潮流列 `max_iter,max_control_iter,tol,line_model`。`loss` 仅接受
 `least_squares,huber,cauchy`。
 
-### 网络动态输入与 V12 结果
+### 网络动态 V12/V13 输入与结果
 
-`ds_network_dynamics` 的前 20 个参数是固定网络表，后 9 个位置为：
+`ds_network_dynamics` 的前 20 个参数是固定网络表。V12 后接 9 个位置，V13 在末尾增量追加
+第 30 个 `monitor`：
 
 | 位置 | 表 | 行数要求 |
 |---:|---|---|
@@ -541,8 +542,11 @@ loss_parameter`，以及公共潮流列 `max_iter,max_control_iter,tol,line_mode
 | 27 | `fault` | 零行或多行 |
 | 28 | `spec` | 零行或一行 |
 | 29 | `para` | 零行或一行；有 `result` 时必须恰好一行 |
+| 30 | `monitor` | V13；零行或多行，`frames.monitor` model schema |
 
-位置不可省略或交换。零行表只表示对应子系统未配置；任何非空表都会按该位置的 schema 解析。
+V12 的 29 个位置与 V13 的前 29 个位置完全相同，运行时继续接受旧调用；V13 只在末尾追加
+`monitor`。各版本内部位置不可省略或交换。零行表只表示对应子系统未配置；任何非空表都会按
+该位置的 schema 解析。
 
 `timeline` 必需 `time_s:f64`，可选 `source_scale_re:f64=1,source_scale_im:f64=0`。所有值必须
 有限，时刻必须严格递增。该表同时用于 `ds_network_dynamics` 和兼容入口
@@ -600,6 +604,12 @@ V12 固定返回以下 15 种可选结果。逐采样电气表均以 `time_s,seq
 | `device_state` | `time_s,sequence,class,name,bus,enabled,p_w,q_var,protection_connected,protection_owner,frt_connected,effective_connected,disconnect_reason,protection_owner_count,protection_connected_phase_count,protection_required_phase_count` |
 | `generator_state` | `time_s,sequence,generator,bus,phase,enabled,energized,voltage_re,voltage_im,current_re,current_im,current_mag,current_angle_deg,p_w,q_var,e1_mag_v,rotor_angle_deg,relative_speed_rad_s,speed_pu,shaft_power_w,electrical_power_w` |
 | `device_protection_connection` | `time_s,sequence,class,name,terminal,conductor,phase,owner_type,owner,owner_connected,effective_conductor_connected,aggregate_device_connected` |
+
+V13 保持上述 15 项名称、顺序和 schema 不变，并把 `monitor` 作为第 16 项增量结果。
+`monitor` 使用机器目录中的 `result_frames.qsts_monitor`：稳定键为
+`monitor,time,phase,channel`，包含 mode、element、terminal、复数电压/电流、P/Q、视在功率
+和损耗字段。原生 bundle 的 `manifest.study.results` 可声明完整 16 项；managed projection
+可以有序选择 V12 的 15 项而不投影 monitor，旧的 29 参数调用方无需升级。
 
 电压、电流、有功、无功和角度分别使用 V、A、W、var 和 degree。`branch_current` 的电流方向为
 从端口母线流入支路；PV/Storage 的 P/Q 正值表示向网络注入，Storage 充电 P 为负；电机 P/Q

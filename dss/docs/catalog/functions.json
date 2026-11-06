@@ -1411,7 +1411,7 @@
         "source_root?",
         "para_or_result_selector"
       ],
-      "behavior": "import and execute one bounded fixed-step local DSS Dynamic or Dynamics lifecycle through the protected V12 runtime",
+      "behavior": "import and execute one bounded fixed-step local DSS Dynamic or Dynamics lifecycle through the protected V13 runtime with additive Monitor output",
       "default_result": "bus_voltage",
       "results": [
         "bus_voltage",
@@ -1428,7 +1428,8 @@
         "control_state",
         "device_state",
         "generator_state",
-        "device_protection_connection"
+        "device_protection_connection",
+        "monitor"
       ],
       "restriction": "Snapshot initialization may precede Dynamic. Dynamic solves must keep one positive step and a continuous clock. Runtime model mutations, unsupported Set options, DynamicEq/DynOut, VCCS, user DLLs and EMT content are rejected."
     },
@@ -1694,7 +1695,7 @@
       "names": [
         "ds_network_dynamics"
       ],
-      "arity": 29,
+      "arity": 30,
       "arguments": [
         "network[20]",
         "timeline",
@@ -1705,9 +1706,10 @@
         "relay",
         "fault",
         "spec",
-        "para"
+        "para",
+        "monitor"
       ],
-      "behavior": "run the protected RMS/phasor network dynamic V12 study from DataFrames",
+      "behavior": "run the protected RMS/phasor network dynamic V13 study from 30 DataFrames with additive Monitor output; runtime remains backward compatible with the V12 29-argument, 15-result entry",
       "default_result": "bus_voltage",
       "results": [
         "bus_voltage",
@@ -1724,7 +1726,8 @@
         "control_state",
         "device_state",
         "generator_state",
-        "device_protection_connection"
+        "device_protection_connection",
+        "monitor"
       ]
     },
     {

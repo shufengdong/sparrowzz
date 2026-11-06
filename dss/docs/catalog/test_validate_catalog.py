@@ -47,6 +47,12 @@ class CatalogValidatorTests(unittest.TestCase):
     def facade(self, catalog, function):
         return next(item for item in catalog["facades"] if item["function"] == function)
 
+    def dsa_contract(self, catalog, function):
+        return next(
+            item for item in catalog["dsa_functions"]
+            if function in item["names"]
+        )
+
     def constraint(self, facade, kind):
         return next(item for item in facade["resultConstraints"] if item["type"] == kind)
 
@@ -173,7 +179,117 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             self.read("study_facades.json"),
             self.read("dataframes.json"),
         )
-        self.assertEqual(count, 144)
+        self.assertEqual(count, 150)
+
+    def test_network_dynamics_catalog_publishes_v13_monitor_additively(self):
+        functions = self.read("functions.json")
+        facades = self.read("study_facades.json")
+        projections = self.read("case_projections.json")
+
+        contract = self.dsa_contract(functions, "ds_network_dynamics")
+        facade = self.facade(facades, "ds_network_dynamics")
+        projection = next(
+            item for item in projections["profiles"]
+            if item["id"] == "dss_dynamic_plan_v1"
+        )
+
+        self.assertEqual(contract["arity"], 30)
+        self.assertEqual(contract["arguments"][-2:], ["para", "monitor"])
+        self.assertEqual(len(contract["results"]), 16)
+        self.assertEqual(contract["results"][-1], "monitor")
+        self.assertIn("V12", contract["behavior"])
+        self.assertIn("V13", contract["behavior"])
+
+        self.assertIn("V13", facade["title"])
+        self.assertEqual(len(facade["inputs"]), 30)
+        self.assertEqual(
+            facade["inputs"][-1],
+            {
+                "id": "monitor",
+                "alias": "monitor_input",
+                "inputKind": "model",
+                "schemaRef": "frames.monitor",
+                "required": True,
+                "position": 30,
+                "description": "Dynamic V13 的 PVSystem/Storage mode 0、1、3 Monitor 定义。",
+            },
+        )
+        self.assertEqual(len(facade["results"]), 16)
+        self.assertEqual(facade["results"][-1]["name"], "monitor")
+        self.assertEqual(
+            facade["results"][-1]["schemaRef"],
+            "result_frames.qsts_monitor",
+        )
+        self.assertTrue(any("V12" in item and "29" in item for item in facade["differences"]))
+        self.assertEqual(projection["inputs"], facade["inputs"])
+        self.assertEqual(projection["results"], facade["results"])
+
+    def test_enabled_case_projections_select_managed_projection_results(self):
+        catalog = self.read("case_projections.json")
+        selectors = {
+            profile["id"]: profile["resultSelector"]["valueSource"]
+            for profile in catalog["profiles"]
+            if profile["compatibility"]["status"] == "enabled"
+        }
+        self.assertTrue(selectors)
+        self.assertEqual(
+            set(selectors.values()),
+            {"profile.resultMap(manifest.projection.results)"},
+        )
+
+    def test_native_dynamic_catalog_publishes_v13_monitor(self):
+        functions = self.read("functions.json")
+        dataframes = self.read("dataframes.json")
+        contract = self.dsa_contract(functions, "ds_dss_dynamic_plan")
+
+        self.assertIn("V13", contract["behavior"])
+        self.assertEqual(len(contract["results"]), 16)
+        self.assertEqual(contract["results"][-1], "monitor")
+        monitor = dataframes["result_frames"]["qsts_monitor"]
+        self.assertIn("ds_network_dynamics", monitor["context"])
+        self.assertIn("ds_dss_dynamic_plan", monitor["context"])
+        self.assertEqual(monitor["schema_source"], "psa/src/dsa/monitor_output.rs")
+        self.assertEqual(monitor["contract"]["source"], ["psa/src/dsa/monitor_output.rs"])
+
+    def test_manifest_dynamic_result_contract_accepts_v13_and_legacy_v12(self):
+        profile = next(
+            item for item in self.read("case_projections.json")["profiles"]
+            if item["id"] == "dss_dynamic_plan_v1"
+        )
+        native_v13 = list(profile["bundleResultMap"])
+        managed_v12 = [
+            {"source": name, "target": profile["bundleResultMap"][name], "binding": f"result_{name}"}
+            for name in native_v13[:-1]
+        ]
+
+        self.validator.validate_manifest_result_contract(
+            "v13", profile, native_v13, managed_v12
+        )
+        self.validator.validate_manifest_result_contract(
+            "v12", profile, native_v13[:-1], managed_v12
+        )
+
+    def test_manifest_dynamic_result_contract_rejects_malformed_sets(self):
+        profile = next(
+            item for item in self.read("case_projections.json")["profiles"]
+            if item["id"] == "dss_dynamic_plan_v1"
+        )
+        native_v13 = list(profile["bundleResultMap"])
+        managed_v12 = [
+            {"source": name, "target": profile["bundleResultMap"][name], "binding": f"result_{name}"}
+            for name in native_v13[:-1]
+        ]
+        malformed = {
+            "unknown": (native_v13[:-1] + ["unknown"], managed_v12),
+            "missing": (native_v13[:-2], managed_v12[:-1]),
+            "duplicate": (native_v13 + ["monitor"], managed_v12),
+            "reordered": (native_v13, [managed_v12[1], managed_v12[0], *managed_v12[2:]]),
+        }
+        for name, (source_results, projected_results) in malformed.items():
+            with self.subTest(name=name), self.assertRaises(AssertionError):
+                self.validator.validate_manifest_result_contract(
+                    name, profile, source_results, projected_results
+                )
 
     def test_rejects_case_projection_contract_drift(self):
         catalog = self.read("case_projections.json")
@@ -541,7 +657,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         self.assertEqual(stats["facades"], 18)
         self.assertEqual(stats["models"], 77)
         self.assertEqual(stats["structs"], 9)
-        self.assertEqual(stats["results"], 126)
+        self.assertEqual(stats["results"], 127)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):
