@@ -18,17 +18,17 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 155 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 IEEE30 Master 模型入口 |
-| 当前尚未发布的独立入口 | 108 | 263 个独立入口扣除 155 个已发布入口；IEEE30 Master 由原 `not_standalone_entry` 新确认为独立入口 |
+| 已转换并发布 bundle | 156 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 IEEE8500 Master-unbal 模型入口 |
+| 当前尚未发布的独立入口 | 108 | 264 个独立入口扣除 156 个已发布入口；IEEE8500 Master-unbal 由原 `not_standalone_entry` 新确认为独立入口 |
 | 超时 | 0 | 无 |
 
-155 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+156 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 155 个发布入口；
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 156 个发布入口；
 其余 108 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
@@ -1271,6 +1271,24 @@ DSS 语句、1 个 solve epoch 和 Circuit bootstrap。portable closure 只含 M
 数仍为 108。完整证据见
 [`ieee30_master_snapshot_publication_evidence.md`](ieee30_master_snapshot_publication_evidence.md)。
 
+### 第四十八轮 IEEE8500 Master-unbal Snapshot 发布
+
+2026-11-07 将未修改的官方模型入口 `IEEETestCases/8500-Node/Master-unbal.dss` 按显式
+Snapshot、Radial 与 `line_model=exact` 合同发布。官方入口和既有 PSA fixture 的 SHA-256 均为
+`8cbb671b1e353b72d445f361547bd43ac8ed3c90878d7c8dced26ba3bc55f043`；release
+`tensoreval` SHA-256 为
+`876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`。严格检查确认 7,590 条
+DSS 语句、1 个 solve epoch 和 Circuit bootstrap。schema v2 closure 包含 Master、11 个
+Redirect/BusCoords 依赖和两个 RSS 入口，不含 wrapper 或 GFM sibling，也不含绝对路径。
+
+已有 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 原生参考锁定 8,531 个节点电压、24,195 个端口
+电流/功率、7,275 个元件损耗、7,280 个对象、3,579 个控制状态和 11 个汇总值；PSA consumer
+显式使用 `line_model="exact"`。搬移后的 bundle 从根目录自执行成功，完整 PSA `bus_phase` 输出
+11,038 行，其中原生门禁要求并比较全部 8,531 个 OpenDSS 节点。catalog 只修改 Master-unbal 行，
+当前计数为 156 `converted`、108 `unsupported`、584 `not_standalone_entry`；独立入口分母增至
+264，尚未发布数仍为 108。完整证据见
+[`ieee8500_master_unbalanced_snapshot_publication_evidence.md`](ieee8500_master_unbalanced_snapshot_publication_evidence.md)。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1398,8 +1416,8 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 ## 逐文件结果
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
-其中 585 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 263 个独立入口：
-155 个 `converted` 和 108 个 `unsupported`：
+其中 584 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 264 个独立入口：
+156 个 `converted` 和 108 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

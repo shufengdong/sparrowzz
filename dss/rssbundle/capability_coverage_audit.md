@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：155 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：156 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -775,6 +775,19 @@ Snapshot、`line_model=exact` 和 Radial 求解发布。源文件 SHA-256 为
 264 个端口电流、264 个端口功率、65 个元件损耗/功率以及汇总和控制状态。portable bundle 的
 closure 只包含 Master 与五个 Redirect 依赖；不含 `Run_IEEE30.DSS`。catalog 当前为
 155 `converted`、108 `unsupported`、585 `not_standalone_entry`，独立入口分母为 263。
+
+## 2026-11-07 IEEE8500 Master-unbal Snapshot 发布
+
+模型入口 `IEEETestCases/8500-Node/Master-unbal.dss` 已按显式 Snapshot、Radial 与
+`line_model=exact` 发布。官方源与已有 PSA fixture 的 SHA-256 都是
+`8cbb671b1e353b72d445f361547bd43ac8ed3c90878d7c8dced26ba3bc55f043`；严格检查覆盖
+7,590 条语句、1 个 solve epoch 和 Circuit bootstrap。
+
+既有 unbalanced native reference 覆盖 8,531 个节点电压、24,195 个端口电流/功率、7,275 个
+元件损耗、7,280 个对象、3,579 个控制状态与 11 个汇总值；Exact consumer 逐项要求全部原生节点
+存在。portable closure 共 14 个 manifest 文件，不含 wrapper/GFM sibling 和绝对路径；搬移后完整
+PSA `bus_phase` 输出 11,038 行。catalog 当前为 156 `converted`、108 `unsupported`、584
+`not_standalone_entry`，独立入口分母为 264，尚未发布数仍为 108。
 
 ## 建议的实现门禁
 
