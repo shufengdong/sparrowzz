@@ -18,17 +18,17 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 152 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 PV 正 kvar 能力入口 |
-| 当前尚未发布的独立入口 | 108 | 260 个独立入口扣除 152 个已发布入口；本轮从原 `not_standalone_entry` 新确认 1 个独立入口 |
+| 已转换并发布 bundle | 153 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 PV 负 kvar 能力入口 |
+| 当前尚未发布的独立入口 | 108 | 261 个独立入口扣除 153 个已发布入口；两项 kvar 能力入口均由原 `not_standalone_entry` 新确认为独立入口 |
 | 超时 | 0 | 无 |
 
-152 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+153 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 152 个发布入口；
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 153 个发布入口；
 其余 108 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
@@ -1203,6 +1203,27 @@ SHA-256 为 `876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`�
 统计内；本轮确认其可独立执行后，独立入口总数增至 260，尚未发布数仍为 108。
 完整发布证据见
 [`pv_current_kvar_limit_publication_evidence.md`](pv_current_kvar_limit_publication_evidence.md)。
+
+### 第四十五轮 PV 负 kvar 能力 Snapshot 发布
+
+2026-11-07 将未修改的官方入口
+`Examples/InverterModels/PVSystem/NewFeatures/varCapability/PV_currentkvarLimit_kvarNEG.dss` 发布为
+schema v2 portable bundle。它与正向 sibling 共享 Snapshot、`line_model=exact` 和 Radial 合同，
+但使用独立 OpenDSS reference 门禁 `kvarmaxabs=300`：写入的 `kvar=-500` 被限制为三相合计
+`-300 kvar`，不能从正向 `kvarmax=200` 结果外推。
+
+源文件 SHA-256 为 `8f3e3389ded5a057984f3efbdfce1962508bda51fea52b6c5bdc7ea457d35a79`。
+现有 release `tensoreval` SHA-256 为
+`876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`；严格检查确认 12 条 DSS
+语句和 1 个 solve epoch。bundle 搬迁后独立自执行，`voltage.csv` 输出 3 行，closure 不含来源树、
+`/tmp` 或工作区绝对路径。
+
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 在 2 次迭代内收敛。3 个母线相电压的实际最大归一化
+复数误差为 `3.3801475356637357e-10`；3 个 PV 相的实际最大有功/无功绝对误差分别为
+`5.820766091346741e-11 W` 和 `1.4551915228366852e-11 var`，通过 `1e-9` 与 `1e-6 W/var`
+门限。发布数由 152 增至 153；该入口原先不在独立入口统计内，因此分母由 260 增至 261，尚未发布
+数仍为 108。完整证据见
+[`pv_negative_kvar_limit_publication_evidence.md`](pv_negative_kvar_limit_publication_evidence.md)。
 
 #### 三个同名 `IEEE_519.DSS` 的边界
 

@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：152 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：153 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -725,6 +725,25 @@ release `tensoreval` SHA-256 为
 增至 152；因为该入口原先不在 259 个独立入口统计内，本轮把独立入口总数扩为 260，尚未发布数仍为
 108。相邻 `PV_currentkvarLimit_kvarNEG.dss` 未经本次数值门禁，继续保持 `not_standalone_entry`，
 不得由正 kvar 结果外推。
+
+## 2026-11-07 PV 负 kvar 能力 Snapshot 发布
+
+未修改的官方
+`Examples/InverterModels/PVSystem/NewFeatures/varCapability/PV_currentkvarLimit_kvarNEG.dss` 已按显式
+Snapshot、`line_model=exact` 和 Radial 求解发布为 schema v2 portable bundle。源文件 SHA-256 为
+`8f3e3389ded5a057984f3efbdfce1962508bda51fea52b6c5bdc7ea457d35a79`；固定上游提交仍为
+`3b208397160213cae4a9e2d0a7d1aa3528ce26e1`。
+
+本案例使用独立 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 reference，并在 2 次迭代内收敛。
+`kvar=-500` 通过 `kvarmaxabs=300` 被限制为三相合计 `-300 kvar`，与正向 sibling 的
+`kvarmax=200` 分支分开验证。3 个母线相电压最大归一化复数误差为
+`3.3801475356637357e-10`；PV 相最大有功/无功绝对误差分别为
+`5.820766091346741e-11 W` 和 `1.4551915228366852e-11 var`。
+
+release binary SHA-256 为 `876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`。
+严格检查确认 12 条语句和 1 个 solve epoch；搬迁 bundle 自执行输出 3 行电压，closure 不含来源树、
+`/tmp` 或工作区绝对路径。目录只将 NEG 行由 `not_standalone_entry` 改为 `converted`：发布数由
+152 增至 153，独立入口分母由 260 增至 261，尚未发布数仍为 108。
 
 ## 建议的实现门禁
 
