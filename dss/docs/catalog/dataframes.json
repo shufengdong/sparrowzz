@@ -22900,7 +22900,7 @@
         "v_max_pu",
         "v_avg_pu"
       ],
-      "schema_source": "psa/src/dsa/pf/metering.rs",
+      "schema_source": "psa/src/dsa/pf/metering/frames.rs",
       "contract": {
         "kind": "result",
         "rowCount": "zero_or_more",
@@ -23545,7 +23545,7 @@
         "p_loss",
         "q_loss"
       ],
-      "schema_source": "psa/src/dsa/pf/metering.rs",
+      "schema_source": "psa/src/dsa/pf/metering/frames.rs",
       "contract": {
         "kind": "result",
         "rowCount": "zero_or_more",
@@ -23808,7 +23808,7 @@
         "aux29",
         "aux30"
       ],
-      "schema_source": "psa/src/dsa/pf/metering.rs",
+      "schema_source": "psa/src/dsa/pf/metering/frames.rs",
       "contract": {
         "kind": "result",
         "rowCount": "zero_or_more",
@@ -24265,7 +24265,7 @@
         "loss_kwh",
         "loss_kvarh"
       ],
-      "schema_source": "psa/src/dsa/pf/metering.rs",
+      "schema_source": "psa/src/dsa/pf/metering/frames.rs",
       "contract": {
         "kind": "result",
         "rowCount": "zero_or_more",
@@ -24369,7 +24369,7 @@
         "zone_een_kwh",
         "zone_ue_kwh"
       ],
-      "schema_source": "psa/src/dsa/pf/metering.rs",
+      "schema_source": "psa/src/dsa/pf/metering/frames.rs",
       "contract": {
         "kind": "result",
         "rowCount": "zero_or_more",
@@ -24487,7 +24487,7 @@
         "load",
         "bus"
       ],
-      "schema_source": "psa/src/dsa/pf/metering.rs",
+      "schema_source": "psa/src/dsa/pf/metering/frames.rs",
       "contract": {
         "kind": "result",
         "rowCount": "zero_or_more",
@@ -24622,7 +24622,7 @@
         "aux29",
         "aux30"
       ],
-      "schema_source": "psa/src/dsa/pf/metering.rs",
+      "schema_source": "psa/src/dsa/pf/metering/frames.rs",
       "contract": {
         "kind": "result",
         "rowCount": "zero_or_more",
