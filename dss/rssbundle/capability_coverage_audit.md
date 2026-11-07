@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：150 个入口已经发布 bundle，109 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：151 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -684,6 +684,29 @@ Export/Show/Plot 接入已有 Dynamic Monitor 结果合同，并以 OpenDSS 锁�
 GFMSnap-C 是同系列下一入口，但有两个 fresh 阻断：执行开始后的 Storage `ControlMode` 修改顺序无法
 由单一不可变 NetworkTables 表达，且 `Storage.ControlMode=GFM` 尚无无损导入映射。
 
+## 2026-11-07 Stevenson 正序 Snapshot 发布
+
+未修改的官方 `Examples/Stevenson/StevensonPflow.dss` 使用 `Set cktmodel=pos`、单相正序网络和
+Generator Model 3。本轮准入严格限定为单个全新 Snapshot epoch、Newton 求解和
+`line_model=exact`，不外推到 time-series、multi-epoch continuation 或其他正序生命周期。
+现成 release `tensoreval`（SHA-256
+`3355a4ae97767be49bfc5a7e32186d93b34131810d98f48dacc10f63da18f4ca`）完成 25 条语句和 1 个
+solve epoch 的严格检查。schema v2 bundle 搬移后从 bundle 根目录独立自执行，输出 5 行电压，
+closure 不含来源树或工作区绝对路径。
+
+OpenDSS 数值门禁比较电压、端子电流、端子功率、Generator 聚合功率、元件损耗和全网复损耗；最大
+归一化复数误差分别为 `4.706012215396644e-5`、`5.060234324821709e-4`、
+`5.134890000010807e-4`、`2.6197402537890573e-4`、`9.737775970918348e-4` 和
+`9.558586294051992e-5`，均低于 `1e-3`。`conversion_report.csv` 已由 `unsupported` 改为
+`converted`，当前计数由 150/109 更新为 151/108；既有三相 Stevenson bundle 未修改。
+
+冻结报告
+[`candidate_scan_2026-11-06-post-stevenson.json`](candidate_scan_2026-11-06-post-stevenson.json)
+（SHA-256 `197a90ce76d670de6d68456038d3e5dda83c0280c954c41007776e2c12f6e0be`）对剩余 108 个入口
+完成有界复扫：102 个 linked conversion 诊断、6 个转换成功后检查诊断、0 个超时、0 个完整检查成功。
+6 个转换成功者均依赖预置会话状态，不是独立发布入口；排除这些片段后，下一完整工程候选仍为
+`Examples/Dynamic_Expressions/Dynamic_KundurDynExp.dss`。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -692,7 +715,7 @@ GFMSnap-C 是同系列下一入口，但有两个 fresh 阻断：执行开始后
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD 完整入口和 InductionMachine
    则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 109 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 108 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 150 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 GFMSnap-B 两快照入口 |
-| 当前尚未发布的独立入口 | 109 | 259 个独立入口扣除 150 个已发布入口 |
+| 已转换并发布 bundle | 151 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 Stevenson 正序入口 |
+| 当前尚未发布的独立入口 | 108 | 259 个独立入口扣除 151 个已发布入口 |
 | 超时 | 0 | 无 |
 
-150 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+151 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 150 个发布入口；
-其余 109 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 151 个发布入口；
+其余 108 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -1157,6 +1157,33 @@ fresh 阻断只有 `PSA.DSS.DYNAMIC.MONITOR_REQUEST_UNSUPPORTED`，下一步需�
 `PSA.DSS.EXECUTION.ORDER_UNREPRESENTABLE` 和 `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` 阻断；它要求
 在执行开始后有序切换 Storage `ControlMode=GFM`，不能沿用 GFMSnap-B 的失电零输出语义。
 
+### 第四十三轮 Stevenson 正序 Snapshot 发布
+
+2026-11-07 将未修改的官方入口 `Examples/Stevenson/StevensonPflow.dss` 发布为 schema v2 bundle。
+该入口使用 `Set cktmodel=pos`、单相正序网络和 Generator Model 3；准入范围严格限定为单个全新
+Snapshot epoch、Newton 求解与 `line_model=exact`，不外推到 time-series 或 multi-epoch continuation。
+现成 release `tensoreval`（SHA-256
+`3355a4ae97767be49bfc5a7e32186d93b34131810d98f48dacc10f63da18f4ca`）完成 25 条语句、1 个
+solve epoch 的严格检查。bundle 搬移到独立临时目录后，从 bundle 根目录自执行成功并输出 5 行电压；
+closure 不含来源树或工作区绝对路径。
+
+OpenDSS 对标显式使用 `line_model=exact`。电压、端子电流、端子功率、Generator 聚合功率、元件损耗
+和全网复损耗的最大归一化复数误差依次为 `4.706012215396644e-5`、
+`5.060234324821709e-4`、`5.134890000010807e-4`、`2.6197402537890573e-4`、
+`9.737775970918348e-4` 和 `9.558586294051992e-5`，均低于 `1e-3` 门限。
+`conversion_report.csv` 已由 `unsupported` 改为 `converted`，发布总数由 150 增至 151，尚未发布数
+由 109 降至 108。既有 `StevensonPflow-3ph.rssbundle` 未修改。
+
+### Stevenson 正序发布后的候选扫描
+
+[`candidate_scan_2026-11-06-post-stevenson.json`](candidate_scan_2026-11-06-post-stevenson.json)
+（SHA-256 `197a90ce76d670de6d68456038d3e5dda83c0280c954c41007776e2c12f6e0be`）使用同一
+release binary 和固定上游提交扫描剩余 108 个 `unsupported` 入口。102 个入口在 linked conversion
+阶段返回诊断；6 个转换成功者均在 `--check` 阶段返回诊断，并依赖预置会话状态，不能作为独立 bundle
+发布。没有超时，也没有完整检查成功；报告设置 `publishes_cases=false`，未改变 catalog 状态。
+排除会话片段后，下一完整工程候选仍是
+`Examples/Dynamic_Expressions/Dynamic_KundurDynExp.dss`。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1285,7 +1312,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-150 个 `converted` 和 109 个 `unsupported`：
+151 个 `converted` 和 108 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
