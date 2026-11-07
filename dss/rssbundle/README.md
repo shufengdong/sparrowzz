@@ -18,17 +18,17 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 151 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 Stevenson 正序入口 |
-| 当前尚未发布的独立入口 | 108 | 259 个独立入口扣除 151 个已发布入口 |
+| 已转换并发布 bundle | 152 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 PV 正 kvar 能力入口 |
+| 当前尚未发布的独立入口 | 108 | 260 个独立入口扣除 152 个已发布入口；本轮从原 `not_standalone_entry` 新确认 1 个独立入口 |
 | 超时 | 0 | 无 |
 
-151 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+152 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 151 个发布入口；
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 152 个发布入口；
 其余 108 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
@@ -1183,6 +1183,26 @@ release binary 和固定上游提交扫描剩余 108 个 `unsupported` 入口。
 发布。没有超时，也没有完整检查成功；报告设置 `publishes_cases=false`，未改变 catalog 状态。
 排除会话片段后，下一完整工程候选仍是
 `Examples/Dynamic_Expressions/Dynamic_KundurDynExp.dss`。
+
+### 第四十四轮 PV 正 kvar 能力 Snapshot 发布
+
+2026-11-07 将未修改的官方入口
+`Examples/InverterModels/PVSystem/NewFeatures/varCapability/PV_currentkvarLimit_kvar.dss` 发布为
+schema v2 portable bundle。入口按显式 Snapshot 投影，使用 `line_model=exact` 与 Radial 求解；
+准入范围只覆盖该正 kvar 能力案例，不外推到相邻的 `PV_currentkvarLimit_kvarNEG.dss`。
+
+release `tensoreval` 以 `--no-default-features --features tensoreval-cli,with_dsa_mumps` 构建，
+SHA-256 为 `876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`。官方入口严格检查
+12 条 DSS 语句和 1 个 solve epoch；bundle 搬移到独立临时父目录后自执行成功，输出
+`voltage.csv` 的 3 行母线相电压，closure 不含来源树绝对路径。
+
+锁定的 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 参考在 2 次迭代内收敛。PSA 对全部 3 个
+母线相电压使用 `1e-9` 最大归一化复数误差门限，并对 3 个 PV 相的有功、无功输出使用
+`1e-6 W/var` 最大绝对误差门限，全部通过。`conversion_report.csv` 已由
+`not_standalone_entry` 改为 `converted`，发布总数由 151 增至 152。该入口原先不在 259 个独立入口
+统计内；本轮确认其可独立执行后，独立入口总数增至 260，尚未发布数仍为 108。
+完整发布证据见
+[`pv_current_kvar_limit_publication_evidence.md`](pv_current_kvar_limit_publication_evidence.md)。
 
 #### 三个同名 `IEEE_519.DSS` 的边界
 
