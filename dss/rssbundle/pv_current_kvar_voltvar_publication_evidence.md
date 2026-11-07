@@ -21,6 +21,7 @@
 - 实际最大 P/Q 额定容量归一化误差：`3.6963573337257865e-6`，门限 `1e-5`，
   分母为 PV 的 `1,200,000 VA` 额定容量。原生每相 Q 约 `-0.806 var`，PSA 每相约
   `+3.630 var`；两者的停止尾差均处于源文件显式 `VarChangeTolerance=1e-5` 的量级。
+  发布门限使用总额定容量基准，数值上与该容差对齐，但不等同于控制器的每相停止判据。
 - Consumer：`dss_import::pv_current_kvar_voltvar_snapshot_matches_locked_native_reference`；
   同一 helper 中两个固定 kvar sibling 仍使用 `1e-6 W/var` 绝对门限。
 
