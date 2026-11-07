@@ -108,7 +108,7 @@ bundle manifest schema v2 的 `projection` 包含 `source_function`、`profile`�
 dtype := primitive | semantic | constructor "<" dtype ">"
 ```
 
-原子类型包括 `str`、`bool`、`i32`、`u32`、`u64` 和 `f64`。一元构造器包括：
+原子类型包括 `str`、`bool`、`i32`、`u8`、`u32`、`u64` 和 `f64`。一元构造器包括：
 
 - `list<T>`：Arrow `List<T>`、Parquet `LIST<T>`；元素不可为 null，整格是否可为 null 由列的 `nullable` 决定；
 - `matrix<T>`：物理表示仍为 Arrow/Parquet 一维 List，逻辑上按行主序扁平编码；矩阵维度由字段规则、相数或配套表决定。

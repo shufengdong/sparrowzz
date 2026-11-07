@@ -623,11 +623,103 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
                     self.assertIn("nullable", column, f"{result['schemaRef']}.{column.get('name')}")
                     self.assertIn("unit", column, f"{result['schemaRef']}.{column.get('name')}")
 
+    def test_branch_flow_contract_matches_runtime_schema_through_execution_inheritance(self):
+        dataframes = self.read("dataframes.json")
+        base = [
+            ("branch", "u32", True, False, "not_applicable"),
+            ("element", "str", True, True, "not_applicable"),
+            ("bus_from", "str", True, False, "not_applicable"),
+            ("bus_to", "str", True, False, "not_applicable"),
+            ("phase_from", "str", True, False, "not_applicable"),
+            ("phase_to", "str", True, False, "not_applicable"),
+            ("v_from_re", "f64", True, False, "V"),
+            ("v_from_im", "f64", True, False, "V"),
+            ("v_to_re", "f64", True, False, "V"),
+            ("v_to_im", "f64", True, False, "V"),
+            ("i_from_re", "f64", True, False, "A"),
+            ("i_from_im", "f64", True, False, "A"),
+            ("i_from_mag", "f64", True, False, "A"),
+            ("i_to_re", "f64", True, False, "A"),
+            ("i_to_im", "f64", True, False, "A"),
+            ("i_to_mag", "f64", True, False, "A"),
+            ("p_from", "f64", True, False, "W"),
+            ("q_from", "f64", True, False, "var"),
+            ("p_to", "f64", True, False, "W"),
+            ("q_to", "f64", True, False, "var"),
+            ("p_loss", "f64", True, False, "W"),
+            ("q_loss", "f64", True, False, "var"),
+            ("winding_1_phase", "u32", True, True, "not_applicable"),
+            ("winding_1_v_re", "f64", True, True, "not_applicable"),
+            ("winding_1_v_im", "f64", True, True, "not_applicable"),
+            ("winding_1_i_re", "f64", True, True, "not_applicable"),
+            ("winding_1_i_im", "f64", True, True, "not_applicable"),
+            ("winding_1_tap", "f64", True, True, "not_applicable"),
+            ("winding_2_phase", "u32", True, True, "not_applicable"),
+            ("winding_2_v_re", "f64", True, True, "not_applicable"),
+            ("winding_2_v_im", "f64", True, True, "not_applicable"),
+            ("winding_2_i_re", "f64", True, True, "not_applicable"),
+            ("winding_2_i_im", "f64", True, True, "not_applicable"),
+            ("winding_2_tap", "f64", True, True, "not_applicable"),
+        ]
+        qsts = [
+            ("time", "f64", True, False, "s"),
+            ("load_multiplier", "f64", True, False, "pu"),
+            ("generation_multiplier", "f64", True, False, "pu"),
+        ]
+        execution = [
+            ("epoch_index", "u64", True, False, "not_applicable"),
+            ("solve_event_sequence", "u64", True, False, "not_applicable"),
+        ]
+
+        def metadata(reference):
+            return [
+                (
+                    column["name"],
+                    column["dtype"],
+                    column["required"],
+                    column["nullable"],
+                    column["unit"],
+                )
+                for column in self.validator.resolve_contract_columns(dataframes, reference)
+            ]
+
+        self.assertEqual(metadata("result_frames.branch_flow"), base)
+        self.assertEqual(
+            dataframes["qsts_outputs"]["branch_flow"]["base_schema"],
+            "result_frames.branch_flow",
+        )
+        self.assertEqual(metadata("qsts_outputs.branch_flow"), base + qsts)
+        self.assertEqual(
+            dataframes["execution_outputs"]["branch_flow"]["base_schema"],
+            "qsts_outputs.branch_flow",
+        )
+        self.assertEqual(
+            metadata("execution_outputs.branch_flow"),
+            base + qsts + execution,
+        )
+
     def test_rejects_undeclared_dtype_with_affected_facade_and_field(self):
         catalog = self.read("dataframes.json")
         catalog["frames"]["bus"]["contract"]["columns"][0]["dtype"] = "decimal128"
         self.write("dataframes.json", catalog)
         self.assert_invalid(r"undeclared dtype decimal128.*frames\.bus\.id.*ds_radial_pf")
+
+    def test_dtype_grammar_declares_runtime_u8_execution_field(self):
+        catalog = self.read("dataframes.json")
+        self.assertEqual(
+            catalog["dtype_grammar"]["primitives"]["u8"],
+            {
+                "arrow": "UInt8",
+                "parquet": "INT32/UINT_8",
+                "logical": "Unsigned 8-bit integer",
+            },
+        )
+        target_terminal = next(
+            column
+            for column in catalog["result_frames"]["execution_trace"]["contract"]["columns"]
+            if column["name"] == "target_terminal"
+        )
+        self.assertEqual(target_terminal["dtype"], "u8")
 
     def test_rejects_malformed_dtype_expression(self):
         catalog = self.read("dataframes.json")
