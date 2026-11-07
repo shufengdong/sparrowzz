@@ -14653,7 +14653,7 @@
         "columns": [
           {
             "name": "branch",
-            "dtype": "str",
+            "dtype": "u32",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -14807,7 +14807,7 @@
           },
           {
             "name": "winding_1_phase",
-            "dtype": "str",
+            "dtype": "u32",
             "required": true,
             "nullable": true,
             "unit": "not_applicable"
@@ -14849,7 +14849,7 @@
           },
           {
             "name": "winding_2_phase",
-            "dtype": "str",
+            "dtype": "u32",
             "required": true,
             "nullable": true,
             "unit": "not_applicable"
