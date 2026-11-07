@@ -11,6 +11,7 @@
     "str",
     "bool",
     "i32",
+    "u8",
     "u32",
     "u64",
     "f64",
@@ -14364,14 +14365,14 @@
           },
           {
             "name": "v_mag",
-            "dtype": "list<f64>",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "V"
           },
           {
             "name": "v_ang",
-            "dtype": "list<f64>",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "V"
@@ -14547,7 +14548,7 @@
           },
           {
             "name": "v_mag",
-            "dtype": "list<f64>",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "V"
@@ -14941,7 +14942,7 @@
           },
           {
             "name": "terminal",
-            "dtype": "u64",
+            "dtype": "u32",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -15059,7 +15060,7 @@
           },
           {
             "name": "winding",
-            "dtype": "u64",
+            "dtype": "u32",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -15182,21 +15183,21 @@
           },
           {
             "name": "conductor",
-            "dtype": "u64",
+            "dtype": "u32",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
           },
           {
             "name": "terminal_from",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
           },
           {
             "name": "terminal_to",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -15217,7 +15218,7 @@
           },
           {
             "name": "harmonic",
-            "dtype": "f64",
+            "dtype": "u32",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -15488,14 +15489,14 @@
           },
           {
             "name": "reverse_state",
-            "dtype": "str",
+            "dtype": "bool",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
           },
           {
             "name": "cogen_state",
-            "dtype": "str",
+            "dtype": "bool",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -15643,7 +15644,7 @@
         "columns": [
           {
             "name": "capacitor",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -15678,14 +15679,14 @@
           },
           {
             "name": "monitored_bus_from",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": true,
             "unit": "not_applicable"
           },
           {
             "name": "monitored_bus_to",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": true,
             "unit": "not_applicable"
@@ -16044,7 +16045,7 @@
           },
           {
             "name": "terminal_to",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -16156,14 +16157,14 @@
           },
           {
             "name": "p_limited",
-            "dtype": "bool",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
           },
           {
             "name": "q_limited",
-            "dtype": "bool",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -16191,7 +16192,7 @@
           },
           {
             "name": "v_mag",
-            "dtype": "list<f64>",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "V"
@@ -16294,7 +16295,7 @@
           },
           {
             "name": "terminal_to",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -21868,7 +21869,7 @@
         "columns": [
           {
             "name": "name",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -21937,7 +21938,7 @@
         "columns": [
           {
             "name": "name",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -21958,14 +21959,14 @@
           },
           {
             "name": "monitored",
-            "dtype": "bool",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
           },
           {
             "name": "target",
-            "dtype": "str",
+            "dtype": "f64",
             "required": true,
             "nullable": true,
             "unit": "W"
@@ -22044,7 +22045,7 @@
         "columns": [
           {
             "name": "name",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -22171,7 +22172,7 @@
         "columns": [
           {
             "name": "name",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -22297,7 +22298,7 @@
         "columns": [
           {
             "name": "name",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -22487,7 +22488,7 @@
         "columns": [
           {
             "name": "name",
-            "dtype": "f64",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -22543,7 +22544,7 @@
           },
           {
             "name": "normal_state",
-            "dtype": "bool",
+            "dtype": "str",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -22939,7 +22940,7 @@
           },
           {
             "name": "sample_count",
-            "dtype": "u64",
+            "dtype": "u32",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -23120,7 +23121,7 @@
           },
           {
             "name": "target_terminal",
-            "dtype": "u32",
+            "dtype": "u8",
             "required": true,
             "nullable": true,
             "unit": "not_applicable"
@@ -23218,7 +23219,7 @@
           },
           {
             "name": "member_order",
-            "dtype": "u64",
+            "dtype": "u32",
             "required": true,
             "nullable": true,
             "unit": "not_applicable"
@@ -23338,7 +23339,7 @@
           },
           {
             "name": "mode",
-            "dtype": "str",
+            "dtype": "u32",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -23408,7 +23409,7 @@
           },
           {
             "name": "v_mag",
-            "dtype": "list<f64>",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "V"
@@ -23577,7 +23578,7 @@
           },
           {
             "name": "mode",
-            "dtype": "str",
+            "dtype": "u32",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -23647,7 +23648,7 @@
           },
           {
             "name": "v_mag",
-            "dtype": "list<f64>",
+            "dtype": "f64",
             "required": true,
             "nullable": false,
             "unit": "V"
@@ -24306,7 +24307,7 @@
             "name": "voltage_base_v",
             "dtype": "f64",
             "required": true,
-            "nullable": false,
+            "nullable": true,
             "unit": "V"
           },
           {
@@ -25084,7 +25085,7 @@
         "columns": [
           {
             "name": "rank",
-            "dtype": "u64",
+            "dtype": "u32",
             "required": true,
             "nullable": false,
             "unit": "not_applicable"
@@ -26562,6 +26563,11 @@
         "arrow": "Int32",
         "parquet": "INT32",
         "logical": "Signed 32-bit integer"
+      },
+      "u8": {
+        "arrow": "UInt8",
+        "parquet": "INT32/UINT_8",
+        "logical": "Unsigned 8-bit integer"
       },
       "u32": {
         "arrow": "UInt32",

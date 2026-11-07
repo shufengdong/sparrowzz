@@ -113,7 +113,7 @@ SUPPORTED_RULE_TYPES = {
     "unique_items",
 }
 
-UNSIGNED_INTEGER_DTYPES = {"u32", "u64", "u32_semantics"}
+UNSIGNED_INTEGER_DTYPES = {"u8", "u32", "u64", "u32_semantics"}
 
 QSTS_RESULT_BUILDERS = {
     "storage_state": ("qsts_storage_state_frame", []),

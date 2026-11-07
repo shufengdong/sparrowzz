@@ -704,6 +704,23 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         self.write("dataframes.json", catalog)
         self.assert_invalid(r"undeclared dtype decimal128.*frames\.bus\.id.*ds_radial_pf")
 
+    def test_dtype_grammar_declares_runtime_u8_execution_field(self):
+        catalog = self.read("dataframes.json")
+        self.assertEqual(
+            catalog["dtype_grammar"]["primitives"]["u8"],
+            {
+                "arrow": "UInt8",
+                "parquet": "INT32/UINT_8",
+                "logical": "Unsigned 8-bit integer",
+            },
+        )
+        target_terminal = next(
+            column
+            for column in catalog["result_frames"]["execution_trace"]["contract"]["columns"]
+            if column["name"] == "target_terminal"
+        )
+        self.assertEqual(target_terminal["dtype"], "u8")
+
     def test_rejects_malformed_dtype_expression(self):
         catalog = self.read("dataframes.json")
         catalog["frames"]["bus"]["contract"]["columns"][0]["dtype"] = "list<f64"
