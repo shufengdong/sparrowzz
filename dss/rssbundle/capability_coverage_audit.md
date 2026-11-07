@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：153 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：154 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -744,6 +744,24 @@ release binary SHA-256 为 `876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e6004
 严格检查确认 12 条语句和 1 个 solve epoch；搬迁 bundle 自执行输出 3 行电压，closure 不含来源树、
 `/tmp` 或工作区绝对路径。目录只将 NEG 行由 `not_standalone_entry` 改为 `converted`：发布数由
 152 增至 153，独立入口分母由 260 增至 261，尚未发布数仍为 108。
+
+## 2026-11-07 CurrentkvarLimite Volt-Var Snapshot 发布
+
+未修改的官方
+`Examples/InverterModels/PVSystem/CurrentkvarLimite/PV_currentkvarLimit_VV.dss` 已按显式
+Snapshot、`line_model=exact` 和 Radial 求解发布。源文件 SHA-256 为
+`ae05f52408aff3795dba85ffe655e16b4711f13aa9daff30b0d524cd3a5af353`。现有 release
+严格检查 15 条语句和 1 个 solve epoch；搬迁 bundle 自执行输出 3 行电压，closure 无绝对路径。
+
+独立 OpenDSS reference 在 56 次迭代、28 次控制迭代后收敛。3 个母线相电压最大归一化误差为
+`3.3801558328329703e-10`；PV 相 P/Q 以 1.2 MVA 为基准的最大归一化误差为
+`3.6963573337257865e-6`，通过 `1e-5` 门限。catalog 只修改该 VV 行，当前计数为
+154 `converted`、108 `unsupported`、586 `not_standalone_entry`；独立入口分母为 262。
+
+新的 42 条模型入口扫描报告设置 `publishes_cases=false`：7 条可完成显式 Snapshot 转换和检查，
+本轮仅 VV 具备完整独立数值与搬移证据。Kundur 的深入探测则推翻了“只补 Monitor”判断：其后还有
+外部 Generator DynamicEq/DynOut 和 Monitor 端口/mode 合同，内置模型替代的 5 秒转速轨迹也与
+原生明显分离，因此降级为需要专用动态模型闭合的中大型候选。
 
 ## 建议的实现门禁
 
