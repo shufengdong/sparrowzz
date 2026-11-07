@@ -147,6 +147,10 @@ YYD 完整入口仍需要跨研究 Direct 专用合同。InductionMachine 可进
 Dynamic/Dynamics V12 adapter，但仍须通过该入口的保护、Monitor 和数值门禁，不能只按语法成功计入。
 `Examples/DistanceRelays` 的 4 个固定步长 Distance/TD21 入口已经完成上述门禁并发布 bundle。
 
+截至 2026-11-07，实时 catalog 为 161 个已发布入口、108 个尚未发布的独立入口和 579 个模型片段；
+独立入口分母为 269。最新五入口批量证据见
+[`rssbundle/five_model_snapshot_publication_evidence.md`](rssbundle/five_model_snapshot_publication_evidence.md)。
+
 ## 运行
 
 完整 OpenDSS 执行文件可先严格转换为 RSS；详细边界见

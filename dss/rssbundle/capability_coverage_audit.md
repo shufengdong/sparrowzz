@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：156 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：161 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -788,6 +788,23 @@ closure 只包含 Master 与五个 Redirect 依赖；不含 `Run_IEEE30.DSS`。c
 存在。portable closure 共 14 个 manifest 文件，不含 wrapper/GFM sibling 和绝对路径；搬移后完整
 PSA `bus_phase` 输出 11,038 行。catalog 当前为 156 `converted`、108 `unsupported`、584
 `not_standalone_entry`，独立入口分母为 264，尚未发布数仍为 108。
+
+## 2026-11-07 五个模型入口 Snapshot 批量闭合
+
+两个 CurrentkvarLimite 固定 kvar 模型入口、GFM IEEE8500 unbalanced Master、官方 IEEE8500
+balanced Master 和 GFM balanced Master 均已按显式 Snapshot、Radial、`line_model=exact` 发布。
+CurrentkvarLimite 的两个 exact-source consumer 锁定全部 3 个复电压与 3 个 PV 相 P/Q；其中
+`kvarNEG` 官方源仍是正向 `kvar=500`，不作为负 kvar 证据。
+
+IEEE8500 balanced/unbalanced 共用既有原生 reference consumer，分别覆盖 8,531 个节点、
+15,882 个端口电流、15,882 个端口功率以及元件功率/损耗和汇总。GFM balanced 的唯一电气源差异
+是一个没有消费者的 `LoadShapes.dss` redirect；portable closure 保留该文件和 `LoadShape1.CSV`，
+搬移结果与官方 balanced Master 按 `bus + phase` 对齐的 11,038 个复电压最大归一化误差为
+`1.2399434592283917e-16`，属于一 ULP 量级。
+
+五条 catalog 行由 `not_standalone_entry` 改为 `converted` 后，当前为 161 `converted`、108
+`unsupported`、579 `not_standalone_entry`；独立入口分母为 269。完整证据见
+[`five_model_snapshot_publication_evidence.md`](five_model_snapshot_publication_evidence.md)。
 
 ## 建议的实现门禁
 
