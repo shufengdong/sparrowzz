@@ -802,7 +802,7 @@ IEEETestCases/IEEE 30 Bus/Capacitors.DSS,not_standalone_entry,TENSOREVAL.DSS.CLA
 IEEETestCases/IEEE 30 Bus/Generators.DSS,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/IEEE 30 Bus,source: a model-only deck requires an explicit --study
 IEEETestCases/IEEE 30 Bus/Lines.DSS,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/IEEE 30 Bus,source: a model-only deck requires an explicit --study
 IEEETestCases/IEEE 30 Bus/Loads.DSS,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/IEEE 30 Bus,source: a model-only deck requires an explicit --study
-IEEETestCases/IEEE 30 Bus/Master.dss,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/IEEE 30 Bus,source: a model-only deck requires an explicit --study
+IEEETestCases/IEEE 30 Bus/Master.dss,converted,,,0,.,Explicit Snapshot Newton conversion, locked native reference, relocation, and bundle self-execution passed
 IEEETestCases/IEEE 30 Bus/Run_IEEE30.DSS,converted,,,0,.,Static Newton conversion and bundle self-execution passed
 IEEETestCases/IEEE 30 Bus/Transformers.DSS,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/IEEE 30 Bus,source: a model-only deck requires an explicit --study
 IEEETestCases/IEEE118Bus/confirm_kv_bases.dss,not_standalone_entry,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,TENSOREVAL.DSS.CLASSIFY.STUDY_REQUIRED,1,IEEETestCases/IEEE118Bus,source: a model-only deck requires an explicit --study

@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：154 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：155 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -762,6 +762,19 @@ Snapshot、`line_model=exact` 和 Radial 求解发布。源文件 SHA-256 为
 本轮仅 VV 具备完整独立数值与搬移证据。Kundur 的深入探测则推翻了“只补 Monitor”判断：其后还有
 外部 Generator DynamicEq/DynOut 和 Monitor 端口/mode 合同，内置模型替代的 5 秒转速轨迹也与
 原生明显分离，因此降级为需要专用动态模型闭合的中大型候选。
+
+## 2026-11-07 IEEE30 Master Snapshot 发布
+
+模型入口 `IEEETestCases/IEEE 30 Bus/Master.dss` 已按显式 Snapshot、Newton-Raphson 与
+`line_model=exact` 发布。官方源 SHA-256
+`bb0b864c3e63955cad3c6f289832421c24cc0d4dccaf9f66c3be51e8c22d1aba` 与 PSA 锁定 fixture
+完全相同；严格检查覆盖 101 条语句、1 个 solve epoch 和 Circuit bootstrap。
+
+已有 `projection_evidence.json` 证明官方 Master 与 PSA 可执行投影的七类原生输出逐文件字节一致，
+`dss_import::ieee30_snapshot_matches_locked_native_reference` 则以显式 Exact 线路模型比较 90 个节点、
+264 个端口电流、264 个端口功率、65 个元件损耗/功率以及汇总和控制状态。portable bundle 的
+closure 只包含 Master 与五个 Redirect 依赖；不含 `Run_IEEE30.DSS`。catalog 当前为
+155 `converted`、108 `unsupported`、585 `not_standalone_entry`，独立入口分母为 263。
 
 ## 建议的实现门禁
 
