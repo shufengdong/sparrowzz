@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 161 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新批次闭合两个 CurrentkvarLimite 与三个 IEEE8500 模型入口 |
-| 当前尚未发布的独立入口 | 108 | 269 个独立入口扣除 161 个已发布入口；本批五个模型入口由原 `not_standalone_entry` 新确认为独立入口 |
+| 已转换并发布 bundle | 166 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新批次闭合 Ckt5/Storage QSTS、IEEE123 Yearly、IEEE13 Assets 与 Ckt24 |
+| 当前尚未发布的独立入口 | 103 | 269 个独立入口扣除 166 个已发布入口 |
 | 超时 | 0 | 无 |
 
-161 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+166 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 161 个发布入口；
-其余 108 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 166 个发布入口；
+其余 103 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -1307,6 +1307,20 @@ catalog 只修改这五行，当前为 161 `converted`、108 `unsupported`、579
 manifest 哈希与数值 consumer 见
 [`five_model_snapshot_publication_evidence.md`](five_model_snapshot_publication_evidence.md)。
 
+### 第五十轮五个执行入口批量发布
+
+2026-11-08 发布 `EPRITestCircuits/ckt5/Run_ckt5.dss`、Storage Quasi-Static Demo、
+`IEEETestCases/123Bus/Run_YearlySim.dss`、`Examples/CIM/IEEE13_Assets.dss` 和 Ckt24。
+五个未修改官方入口都使用 execution plan 与 `line_model=exact`，分别完成严格检查、schema-v2
+closure 哈希验证、独立父目录搬移执行和 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 最终复电压门禁。
+
+Ckt5 完整执行 Snapshot 加 8,760 个 Yearly 点并输出 34,588,428 行；Storage Demo 完成 192 个
+7.5 分钟点；IEEE123 完成 720 小时；IEEE13 Assets 和 Ckt24 分别输出 86 行和 7,522 行。
+全部原生节点均存在于 PSA 最终结果。五行从 `unsupported` 改为 `converted` 后，catalog 为
+166 `converted`、103 `unsupported`、579 `not_standalone_entry`，独立入口分母仍为 269。
+完整哈希、数值和搬移证据见
+[`next_five_candidate_publication_evidence.md`](next_five_candidate_publication_evidence.md)。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1435,7 +1449,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 579 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 269 个独立入口：
-161 个 `converted` 和 108 个 `unsupported`：
+166 个 `converted` 和 103 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

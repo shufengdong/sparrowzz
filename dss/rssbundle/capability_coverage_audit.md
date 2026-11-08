@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：161 个入口已经发布 bundle，108 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：166 个入口已经发布 bundle，103 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -806,6 +806,21 @@ IEEE8500 balanced/unbalanced 共用既有原生 reference consumer，分别覆�
 `unsupported`、579 `not_standalone_entry`；独立入口分母为 269。完整证据见
 [`five_model_snapshot_publication_evidence.md`](five_model_snapshot_publication_evidence.md)。
 
+## 2026-11-08 五个执行入口闭合
+
+Ckt5、Storage Quasi-Static Demo、IEEE123 `Run_YearlySim`、IEEE13 Assets 与 Ckt24 已从当前
+`unsupported` 集合闭合。通用改造覆盖未引用无效导体过滤、`Ins` 电缆缩写、Solve RPN 表达式、
+序分量 LineCode 相数扩展、布尔 `RegControl.DebugTrace`，以及仅限 `New EnergyMeter` 的幂等 Clear；
+被引用无效导体、显式矩阵猜测扩维、非法布尔值和后续 Meter Clear 仍保持失败关闭。
+
+五个 portable bundle 均从独立 `/tmp` 父目录执行成功；72 个 manifest 文件从 `sparrowzz` HEAD
+Git blob 复算 SHA-256 后零不匹配。固定 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 比较覆盖
+3,437 / 3,437 / 278 / 41 / 7,522 个原生最终节点，最大归一化复电压误差依次为
+`8.20624e-4`、`9.34665e-4`、`2.10120e-6`、`2.75110e-3` 和 `3.10352e-2`。
+catalog 当前为 166 `converted`、103 `unsupported`、579 `not_standalone_entry`。
+完整证据见
+[`next_five_candidate_publication_evidence.md`](next_five_candidate_publication_evidence.md)。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -814,7 +829,7 @@ IEEE8500 balanced/unbalanced 共用既有原生 reference consumer，分别覆�
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD 完整入口和 InductionMachine
    则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 108 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 103 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
