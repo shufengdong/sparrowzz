@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 171 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新批次闭合三个 Ckt24 Daily、Paulo IEEE13 Daily 和 Matlab IEEE 519 初始化 Snapshot |
-| 当前尚未发布的独立入口 | 98 | 269 个独立入口扣除 171 个已发布入口 |
+| 已转换并发布 bundle | 176 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新批次闭合五个 Ckt24 MemoryMapping TXT/SNG/DBL Yearly 入口 |
+| 当前尚未发布的独立入口 | 93 | 269 个独立入口扣除 176 个已发布入口 |
 | 超时 | 0 | 无 |
 
-171 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+176 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 171 个发布入口；
-其余 98 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 176 个发布入口；
+其余 93 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -1337,6 +1337,23 @@ catalog 只修改这五行，当前为 171 `converted`、98 `unsupported`、579
 `not_standalone_entry`，独立入口分母仍为 269。完整源、manifest、数值和搬移证据见
 [`next_five_batch_2_publication_evidence.md`](next_five_batch_2_publication_evidence.md)。
 
+### 第五十二轮五个执行入口批量发布
+
+2026-11-08 发布 Ckt24 MemoryMapping 示例剩余的 TXT-P、TXT-PQ、DBL-P、SNG-P 和旧式直接
+SNG 五个 100 步 Yearly 入口。通用导入改造只扩展 LoadShape 的小端 IEEE-754 float32/float64
+文件物化与 bundle 依赖收集；空文件、错误字节宽度、非有限值、缺失文件和超过 10,000,000 点
+均以稳定诊断失败关闭，未扩展到其他 Shape 类。
+
+五个 bundle 各输出 752,200 行电压。显式 `line_model=exact` 的原生门禁各覆盖最终 7,522 个
+母线相和三相源端 P/Q；最大复电压相对误差为 `1.92567e-2`，RMS 为 `2.08902e-3`，源端
+复功率最大误差为 `1.20918e-2`。五个 schema-v2 closure 均在独立父目录改名后执行成功，
+123 个声明文件从 Git blob 复算 SHA-256 零不匹配，DBL/SNG 资产与官方源逐字节一致。
+
+catalog 只修改这五行，当前为 176 `converted`、93 `unsupported`、579
+`not_standalone_entry`，独立入口分母仍为 269。该证据只覆盖 100 小时终点，不声明 8,760 小时
+性能。完整源、manifest、数值和搬移证据见
+[`next_five_batch_3_publication_evidence.md`](next_five_batch_3_publication_evidence.md)。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1378,8 +1395,8 @@ catalog 只修改这五行，当前为 171 `converted`、98 `unsupported`、579
 - 26 个 mixed-study 入口多数是 Snapshot 初始化后转 Daily/Duty。PSA 支持多 epoch 和跨时点状态，
   但其中还包含 GFM、Storage、UPFC 等不同对象，取消分类器的统一拒绝后仍需逐文件复测。
 - 27 个 `REQUEST.SOURCE.ESCAPES_ROOT` 入口的首要问题是 epoch/内存 `Source` 没有保留声明文件的
-  目录身份。路径修复只消除第一个阻断；MemoryMapping、二进制 Sng/Dbl 和部分 Storage 行为仍可能
-  落在 PSA 的明确边界外。
+  目录身份。路径修复只消除第一个阻断；本轮已闭合 LoadShape 的 MemoryMapping 与二进制
+  Sng/Dbl 合同，其他 Storage 行为仍可能落在 PSA 的明确边界外。
 - DynamicEq/DynOut、VCCS、用户 DLL、EMT、V12 未覆盖的 IBR 暂态、AutoTrans 未支持接法、
   特殊节点编号和两个求解器都拒绝的拓扑属于当前真实能力边界。普通 Dynamic/Dynamics 已有
   有界 adapter，仍须逐入口通过转换、自执行和数值门禁后才能列为已发布案例。
@@ -1397,8 +1414,8 @@ catalog 只修改这五行，当前为 171 `converted`、98 `unsupported`、579
 4. **已完成：以 PSA 的机器可读诊断合同为准。** `dss2rss` 以 import profile 返回的 `severity`
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
-   会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 115 个尚未发布入口中逐项验证。
+   会重新附加坐标文件和已识别的数据资产。跨目录 `../` 和 LoadShape 的文本/Sng/Dbl 资产已进入
+   同一来源与 bundle 合同；其余 93 个尚未发布入口仍须逐项验证其他对象和执行语义。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -1421,7 +1438,7 @@ catalog 只修改这五行，当前为 171 `converted`、98 `unsupported`、579
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 115 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 93 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
