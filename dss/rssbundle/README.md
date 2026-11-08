@@ -1354,6 +1354,23 @@ catalog 只修改这五行，当前为 176 `converted`、93 `unsupported`、579
 性能。完整源、manifest、数值和搬移证据见
 [`next_five_batch_3_publication_evidence.md`](next_five_batch_3_publication_evidence.md)。
 
+### 第五十三轮最终小候选组与终局扫描
+
+2026-11-08 发布未修改官方入口
+`IEEETestCases/SecondaryTestCircuit_modified/Master.DSS`。schema-v2 bundle 含 82 个 manifest
+声明文件，在独立父目录改名后执行成功并返回相同的 118 行集合。显式 `line_model=exact` 的
+OpenDSSDirect 门禁比较全部 118 个 native bus-phase 复电压和三相源端 P/Q：最大/RMS 电压误差
+为 `2.97686e-2` / `8.55878e-3`，源端复功率最大误差为 `7.97605e-2`，均通过锁定门限。
+
+catalog 更新为 177 `converted`、92 `unsupported`、579 `not_standalone_entry`。随后用同一个
+release 工具重扫全部 92 个未发布入口：85 个转换失败，7 个 linked conversion 成功但 strict
+check 全部失败。其中唯一 scope 已确认的完整入口 M1 是 QSTS 拓扑求解器拒绝；其余 6 个是
+`circuit_bootstrap=false` 的会话片段。其他入口需要新的生命周期、拓扑/设备语义或原生数值 oracle。
+因此严格发布口径下已无可通过小修改发布的剩余案例。本轮只证明一个 Snapshot 终态，不声明
+8,760 小时性能。完整证据见
+[`final_small_candidates_publication_evidence.md`](final_small_candidates_publication_evidence.md) 和
+[`candidate_scan_2026-11-08-final.json`](candidate_scan_2026-11-08-final.json)。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
