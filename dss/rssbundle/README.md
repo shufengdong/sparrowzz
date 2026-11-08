@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 153 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 PV 负 kvar 能力入口 |
-| 当前尚未发布的独立入口 | 108 | 261 个独立入口扣除 153 个已发布入口；两项 kvar 能力入口均由原 `not_standalone_entry` 新确认为独立入口 |
+| 已转换并发布 bundle | 166 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新批次闭合 Ckt5/Storage QSTS、IEEE123 Yearly、IEEE13 Assets 与 Ckt24 |
+| 当前尚未发布的独立入口 | 103 | 269 个独立入口扣除 166 个已发布入口 |
 | 超时 | 0 | 无 |
 
-153 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+166 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 153 个发布入口；
-其余 108 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 166 个发布入口；
+其余 103 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -180,6 +180,7 @@ OpenDSS 轨迹比较全部 2,900 个时点、9 个节点共 26,100 个值，最�
 |---|---|---|
 | `IEEETestCases/4Bus-OYOD-Bal/4Bus-OYOD-Bal.DSS` | 已发布 | 两项独立 study 自执行通过 |
 | `IEEETestCases/4Bus-YYD/YYD-Master-step1.DSS` | 已发布 | Newton 自执行通过 |
+| `IEEETestCases/IEEE 30 Bus/Master.dss` | 已发布 | 显式 Snapshot、Newton、锁定原生参考与搬移自执行通过 |
 | `IEEETestCases/IEEE 30 Bus/Run_IEEE30.DSS` | 已发布 | 静态 Newton 自执行通过 |
 | `IEEETestCases/8500-Node/Run_8500Node.dss` | 已发布 | Newton 自执行通过 |
 | `IEEETestCases/8500-Node/Run_8500Node_Unbal.dss` | 已发布 | Newton 自执行通过 |
@@ -1225,6 +1226,101 @@ OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 在 2 次迭代内收敛。3 个母线
 数仍为 108。完整证据见
 [`pv_negative_kvar_limit_publication_evidence.md`](pv_negative_kvar_limit_publication_evidence.md)。
 
+### 第四十六轮 CurrentkvarLimite Volt-Var Snapshot 发布
+
+2026-11-07 将未修改的官方模型入口
+`Examples/InverterModels/PVSystem/CurrentkvarLimite/PV_currentkvarLimit_VV.dss` 按显式
+Snapshot、`line_model=exact` 和 Radial 合同发布。源文件 SHA-256 为
+`ae05f52408aff3795dba85ffe655e16b4711f13aa9daff30b0d524cd3a5af353`；release
+`tensoreval` SHA-256 为
+`876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`。严格检查确认 15 条
+DSS 语句、1 个 solve epoch 和 Circuit bootstrap；bundle 搬迁后独立自执行并输出 3 行母线相
+电压，closure 不含来源树、`/tmp` 或工作区绝对路径。
+
+独立 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 reference 在 56 次迭代、28 次控制迭代后收敛。
+3 个母线相电压最大归一化复数误差为 `3.3801558328329703e-10`；PV 相 P/Q 在 1.2 MVA
+额定容量上的最大归一化误差为 `3.6963573337257865e-6`，分别通过 `1e-9` 与 `1e-5`
+门限。测试显式验证一个 Volt-Var 控制器和 `max_control_iter=2000`，没有放宽两个固定 kvar
+sibling 的 `1e-6 W/var` 绝对门限。
+
+42 条“自身创建 Circuit 但历史标为 `not_standalone_entry`”的模型入口扫描固定在
+[`model_only_snapshot_candidate_scan_2026-11-07.json`](model_only_snapshot_candidate_scan_2026-11-07.json)：
+7 条完成显式 Snapshot 转换与检查，报告本身设置 `publishes_cases=false`。本轮只发布具有独立数值
+证据的 VV 入口，状态计数变为 154 `converted`、108 `unsupported`、586
+`not_standalone_entry`；独立入口分母增至 262，尚未发布数仍为 108。
+
+Kundur DynamicExp 不再列为“小修改”候选：移除 Monitor 输出阻断后依次暴露外部
+`DynamicEq`/`DynOut` Generator 模型与 Monitor 端口/mode 语义；临时替换为内置 H/D 后，5 秒末
+原生与 PSA 转速约为 `0.6255 rad/s` 和 `3.8242 rad/s`，尚无可发布的轨迹等价性。完整证据见
+[`pv_current_kvar_voltvar_publication_evidence.md`](pv_current_kvar_voltvar_publication_evidence.md)。
+
+### 第四十七轮 IEEE30 Master Snapshot 发布
+
+2026-11-07 将未修改的官方模型入口 `IEEETestCases/IEEE 30 Bus/Master.dss` 按显式 Snapshot、
+Newton-Raphson 与 `line_model=exact` 合同发布。源文件 SHA-256 为
+`bb0b864c3e63955cad3c6f289832421c24cc0d4dccaf9f66c3be51e8c22d1aba`；release
+`tensoreval` SHA-256 为
+`876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`。严格检查确认 101 条
+DSS 语句、1 个 solve epoch 和 Circuit bootstrap。portable closure 只含 Master 与五个 Redirect
+依赖，不含 wrapper `Run_IEEE30.DSS`。
+
+本入口复用已锁定的 IEEE30 原生 OpenDSS NCIM 参考：`projection_evidence.json` 证明官方 Master
+与 PSA 可执行投影的对象清单、节点电压、端口电流/功率、元件损耗、控制状态和汇总输出逐文件
+字节一致；PSA consumer 显式使用 `line_model="exact"`。catalog 只修改 Master 行，当前计数为
+155 `converted`、108 `unsupported`、585 `not_standalone_entry`；独立入口分母增至 263，尚未发布
+数仍为 108。完整证据见
+[`ieee30_master_snapshot_publication_evidence.md`](ieee30_master_snapshot_publication_evidence.md)。
+
+### 第四十八轮 IEEE8500 Master-unbal Snapshot 发布
+
+2026-11-07 将未修改的官方模型入口 `IEEETestCases/8500-Node/Master-unbal.dss` 按显式
+Snapshot、Radial 与 `line_model=exact` 合同发布。官方入口和既有 PSA fixture 的 SHA-256 均为
+`8cbb671b1e353b72d445f361547bd43ac8ed3c90878d7c8dced26ba3bc55f043`；release
+`tensoreval` SHA-256 为
+`876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`。严格检查确认 7,590 条
+DSS 语句、1 个 solve epoch 和 Circuit bootstrap。schema v2 closure 包含 Master、11 个
+Redirect/BusCoords 依赖和两个 RSS 入口，不含 wrapper 或 GFM sibling，也不含绝对路径。
+
+已有 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 原生参考锁定 8,531 个节点电压、24,195 个端口
+电流/功率、7,275 个元件损耗、7,280 个对象、3,579 个控制状态和 11 个汇总值；PSA consumer
+显式使用 `line_model="exact"`。搬移后的 bundle 从根目录自执行成功，完整 PSA `bus_phase` 输出
+11,038 行，其中原生门禁要求并比较全部 8,531 个 OpenDSS 节点。catalog 只修改 Master-unbal 行，
+当前计数为 156 `converted`、108 `unsupported`、584 `not_standalone_entry`；独立入口分母增至
+264，尚未发布数仍为 108。完整证据见
+[`ieee8500_master_unbalanced_snapshot_publication_evidence.md`](ieee8500_master_unbalanced_snapshot_publication_evidence.md)。
+
+### 第四十九轮五个模型入口 Snapshot 批量发布
+
+2026-11-07 在前述单入口门禁之后，统一发布两个 CurrentkvarLimite 固定 kvar 模型入口、GFM
+IEEE8500 unbalanced Master、官方 IEEE8500 balanced Master 和带未引用 LoadShape 资产的 GFM
+balanced Master。五个入口都使用显式 Snapshot、Radial 和 `line_model=exact`，并分别完成严格检查、
+schema-v2 manifest/哈希验证与搬移自执行。
+
+CurrentkvarLimite 两入口分别锁定 3 个复电压和 3 个 PV 相 P/Q；官方 `kvarNEG` 文件实际仍写入
+正向 `kvar=500`，因此不把它误报成负 kvar。三个 IEEE8500 bundle 均输出 11,038 行电压；GFM
+balanced 只比官方 balanced Master 多 `Redirect LoadShapes.dss`，实际闭包没有曲线消费者。按
+`bus + phase` 对齐的 11,038 个复电压最大归一化误差为 `1.2399434592283917e-16`，最大绝对误差
+`9.094947017729282e-13 V`。它的 closure 仍完整携带 `LoadShapes.dss` 和 `LoadShape1.CSV`。
+
+catalog 只修改这五行，当前为 161 `converted`、108 `unsupported`、579
+`not_standalone_entry`；独立入口分母为 269，尚未发布数仍为 108。完整源哈希、release 哈希、
+manifest 哈希与数值 consumer 见
+[`five_model_snapshot_publication_evidence.md`](five_model_snapshot_publication_evidence.md)。
+
+### 第五十轮五个执行入口批量发布
+
+2026-11-08 发布 `EPRITestCircuits/ckt5/Run_ckt5.dss`、Storage Quasi-Static Demo、
+`IEEETestCases/123Bus/Run_YearlySim.dss`、`Examples/CIM/IEEE13_Assets.dss` 和 Ckt24。
+五个未修改官方入口都使用 execution plan 与 `line_model=exact`，分别完成严格检查、schema-v2
+closure 哈希验证、独立父目录搬移执行和 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 最终复电压门禁。
+
+Ckt5 完整执行 Snapshot 加 8,760 个 Yearly 点并输出 34,588,428 行；Storage Demo 完成 192 个
+7.5 分钟点；IEEE123 完成 720 小时；IEEE13 Assets 和 Ckt24 分别输出 86 行和 7,522 行。
+全部原生节点均存在于 PSA 最终结果。五行从 `unsupported` 改为 `converted` 后，catalog 为
+166 `converted`、103 `unsupported`、579 `not_standalone_entry`，独立入口分母仍为 269。
+完整哈希、数值和搬移证据见
+[`next_five_candidate_publication_evidence.md`](next_five_candidate_publication_evidence.md)。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1352,8 +1448,8 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 ## 逐文件结果
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
-其中 589 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 259 个独立入口：
-151 个 `converted` 和 108 个 `unsupported`：
+其中 579 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 269 个独立入口：
+166 个 `converted` 和 103 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用
