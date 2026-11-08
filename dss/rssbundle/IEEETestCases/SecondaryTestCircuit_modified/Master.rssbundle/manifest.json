@@ -1,0 +1,449 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/IEEETestCases/SecondaryTestCircuit_modified/Master.DSS",
+    "root": "dss",
+    "tree_sha256": "fcc0db99bfd770bd733b1a4e522ee744ac4c2143e649c2bbe2cede50cd84d6a6"
+  },
+  "projection": {
+    "source_function": "ds_radial_dss_plan",
+    "profile": "dss_execution_radial_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_radial_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/BusCoords.DSS",
+      "role": "data-asset",
+      "sha256": "b49fb647febe023239552ad325ba9cb202f2556422776b9d3dedb411900e8069"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/LineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "b377b2422f983589eec73ad7b4ed909bbd69145dad218ddfa5b6de4e67a17629"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/LinesTrafosLoads.dss",
+      "role": "dss-source",
+      "sha256": "4b3d9c49500912b8c23cb7b17b65c94b6358af5bdfd9a1296a39b4f6eeb78cd5"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Loadshapes.dss",
+      "role": "dss-source",
+      "sha256": "2cc4bca223eded5fc6cc003fa24b9de1694b50ea4bbcb3a29b7ae3dc0ff82a1b"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Loadshapes_VarySubV.dss",
+      "role": "dss-source",
+      "sha256": "cc42f579f37373bc7460367be4a02989473cfb7b56d3da8d01f4dba778a6455e"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Master.DSS",
+      "role": "dss-entry",
+      "sha256": "3745d7e7c67cc2f02094f2a72b8acfdc3938318a70cfb85e8a6f3267d2527033"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/SubV_PhaseA_60minInst.sng",
+      "role": "data-asset",
+      "sha256": "20684979f913df54b891977f5ca14661eabee6abf38372249b53cf3526cfa8ef"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load10_1_P.dbl",
+      "role": "data-asset",
+      "sha256": "64fac5bf7a67597830185fc987dfc6975e285d1e65404123b78a0d851c5054af"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load10_1_Q.dbl",
+      "role": "data-asset",
+      "sha256": "f0c6dc29e0a3e11ee1f1d52b2df14008c37b18f3ada808ba0cc04038f1e78239"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load10_2_P.dbl",
+      "role": "data-asset",
+      "sha256": "56b0ce4698c560f2ae233694bad219d67f293daf298a6e88d7450635766948c4"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load10_2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "f1c8abbc890fb95b89f7fbebb5cfe0333ca66d507f2872eba06203a8be3ef85b"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_1_P.dbl",
+      "role": "data-asset",
+      "sha256": "9bde1910dbcd969b4832e967f989efe698660e1d9f77aeb0eb13232d76348773"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_1_Q.dbl",
+      "role": "data-asset",
+      "sha256": "398c4c956eb094c711cd2e8b465cae591702402fb49855ef6f38cec9ea74aa2e"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_2_P.dbl",
+      "role": "data-asset",
+      "sha256": "fa9b4570f97af00e83b9c4c3b6099c09cedfe32792541432fe700fc638979f94"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "21922bf1056492a35ab62e8a6f3c6a8cd787baf9ad6bac154cdcdf92b3c54cbe"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_3_P.dbl",
+      "role": "data-asset",
+      "sha256": "7d92f0d466b74b268a094ed550262dd41e9226d1038e31624470c5ec4df8e2a7"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_3_Q.dbl",
+      "role": "data-asset",
+      "sha256": "6f70d4d7ddc6aea62349e5fc688d71be8fe7f58a56cb437e6a3c5ba821c16604"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_4_P.dbl",
+      "role": "data-asset",
+      "sha256": "a96eb6ecfa83d2541cd2620e620d9ddeef5266c1cb2af96334ca817e5250ba92"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_4_Q.dbl",
+      "role": "data-asset",
+      "sha256": "c8dd5fd2baf2f53cbb1bc76bc9c1399f8c467299e58209ef3f73bc546a2989ae"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_5_P.dbl",
+      "role": "data-asset",
+      "sha256": "e364647300de986bf4c73a647ff7d34d445042c2b5e8e9581dbed3ee8c5366ca"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load1_5_Q.dbl",
+      "role": "data-asset",
+      "sha256": "b22fc4814bc52a8c535ec62ee8267b23064a9498654cc6d700a2be117fd6b683"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load2_P.dbl",
+      "role": "data-asset",
+      "sha256": "fea384546671de0c4adae1913d62af5fd7bd58d7fe84bda91afaad226b859c6d"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "679f192fb14fe978be6b64278959082f05dfdbf066cbbee67b97b696952c081b"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_1_P.dbl",
+      "role": "data-asset",
+      "sha256": "686105cf1cb7762c41440498a3b764b6d8eb5f24146a63c15833d9c416f8796e"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_1_Q.dbl",
+      "role": "data-asset",
+      "sha256": "77cf1e7ba32181f43177c2da989ad76763795dd312be3f82328fc36bf1a068fe"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_2_P.dbl",
+      "role": "data-asset",
+      "sha256": "e6672a1880c148d753bad3f1019504a6231bc67b55845c3e829a3e4e8c420618"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "9b4926f2df67207351247d4bd99fc45f0bf89a9323126ab1a87bca66be44e7c6"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_3_P.dbl",
+      "role": "data-asset",
+      "sha256": "c15548eee39e8c64531c548bed9ab6fdb6465e256a08054561ee0c550f49262a"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_3_Q.dbl",
+      "role": "data-asset",
+      "sha256": "fced6ee6fe502fd30a6891ed9eaab9a1b7df24ab89350f31a3674432849004f1"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_4_P.dbl",
+      "role": "data-asset",
+      "sha256": "bc726b635830430fb44a267dc4dda0be4d4d987b56e92b5ba158a10744a2471d"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_4_Q.dbl",
+      "role": "data-asset",
+      "sha256": "3a1a99e263dfaeee885915754a0b8d4ee827557eff3e9dd1d079b34f41125bfc"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_5_P.dbl",
+      "role": "data-asset",
+      "sha256": "edff680687a07f3908eea16e0647d9ecab2969d95018c4a5b7422658d19f826a"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load3_5_Q.dbl",
+      "role": "data-asset",
+      "sha256": "a678a879172321b3159ad3626bafd55f8b870c5a11eace2279035ef2e6f78ad7"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_1_P.dbl",
+      "role": "data-asset",
+      "sha256": "65307ef15e1e56763629ed80c9281b5d4f982300bacf6ab4386f3bc28b5f9539"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_1_Q.dbl",
+      "role": "data-asset",
+      "sha256": "ea94c77e9e837157cb6f924bd96e0537a941f7ca75ef6e8c149027425b112dd5"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_2_P.dbl",
+      "role": "data-asset",
+      "sha256": "d6a8a57fe4ccb757d9b7c367b3505e88e3c2e251483b368491c8443788432aca"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "be575f6ee637f76ab0daf311111e02b163f737a6861a1b1a634ebdcef559ac35"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_3_P.dbl",
+      "role": "data-asset",
+      "sha256": "d0e4e9c95e0d07875fcad721bc44ca4935e4ece92f05fe4c1cac498054aa5693"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_3_Q.dbl",
+      "role": "data-asset",
+      "sha256": "1bf5f4a680e3de9df5d16d709866099400404c78ae0caef6949252314da5bd65"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_4_P.dbl",
+      "role": "data-asset",
+      "sha256": "fb2a5e4fefa1845adb8a4ed112ed932eb4598acd460ac776cdcbec179bfdafda"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_4_Q.dbl",
+      "role": "data-asset",
+      "sha256": "f74f6c3aad042cbc1f0bb88270508a23f7e46e53d31f5c8224f6819cd6bf5e7c"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_5_P.dbl",
+      "role": "data-asset",
+      "sha256": "c709913114c80222373b38a4639278b25ddd11046dd362d960ab76efe9568015"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load4_5_Q.dbl",
+      "role": "data-asset",
+      "sha256": "13674a6d0d5aed554389ef74f40d1f55e5e807a52c4630ed78d36c990776db26"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load5_1_P.dbl",
+      "role": "data-asset",
+      "sha256": "d4abf5d0940bfcb73ab1c8deec96efc2cc9481d28d74cf7447691654c5dc1692"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load5_1_Q.dbl",
+      "role": "data-asset",
+      "sha256": "1319dbbb34f7bd862e4e4abf75727047695162eb04d6dddc3045004c9577884f"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load5_2_P.dbl",
+      "role": "data-asset",
+      "sha256": "e35eec687518215a949b54b83995e714af3f1ae1b0ff763f5bd2ce2914eab41e"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load5_2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "f57564265e075649fa5ae498b1b3f385295419d02815fb7db575425173d608d5"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load5_3_P.dbl",
+      "role": "data-asset",
+      "sha256": "2acb11960646c1ee6d1fc73ce49eab77b446e9a526a345e80301f0e80cffd5ca"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load5_3_Q.dbl",
+      "role": "data-asset",
+      "sha256": "bde3432d5d10911120642f38281cf2da600962de2dd81cb9d771a748f962bd43"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load5_4_P.dbl",
+      "role": "data-asset",
+      "sha256": "a22a5ddf38ac988c320c1604f7d651b548ea35003ee7cd20fc5478d706599435"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load5_4_Q.dbl",
+      "role": "data-asset",
+      "sha256": "7d196ba561375acaa82bbf4a68e162da0b263ba3b602069efdce9d2692a23240"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load6_1_P.dbl",
+      "role": "data-asset",
+      "sha256": "b5f4e7a24900718e4675ac73ca4cd267e29f6a141a259c7ede6c413c2c03f0bf"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load6_1_Q.dbl",
+      "role": "data-asset",
+      "sha256": "e3252e9235a6987181897ceed74ac0a8cb46415916e405112ef091a496ff08b5"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load6_2_P.dbl",
+      "role": "data-asset",
+      "sha256": "a5ab670dfbe96f425386bf24843974efedebb92dfd585984662166c0f638ddd4"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load6_2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "23e8f7fb9c13e39d5fa0510f5fca06eae83acbe02a842ac317e29f523fd6bece"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load6_3_P.dbl",
+      "role": "data-asset",
+      "sha256": "20bf2bce838faa4f6b13cf59775e31fc5c9b4776915fad11892b404136d310e9"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load6_3_Q.dbl",
+      "role": "data-asset",
+      "sha256": "2ae6e07cf3c69f4052651e736a63914b58ae128f6f27989767533ab810fde2e4"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load6_4_P.dbl",
+      "role": "data-asset",
+      "sha256": "adbbf96bfc9c581ae4b24c6628a763ac388ce513fd954628713a0e4cc0a3966d"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load6_4_Q.dbl",
+      "role": "data-asset",
+      "sha256": "44998390dff97112a352e046a215fc9d53776c63421f1c936227b54f7e220aa5"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load7_1_P.dbl",
+      "role": "data-asset",
+      "sha256": "67080d24a00a766bf83ac67ed52da9edb87125100d9d91bb4d2cac1d4779ef0f"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load7_1_Q.dbl",
+      "role": "data-asset",
+      "sha256": "f08f7cd09996c50db3f9545e0eecd4812b87de21882f04f128db98faa94961ba"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load7_2_P.dbl",
+      "role": "data-asset",
+      "sha256": "384072f9a3e8a65895b6db91ddd9390a9f17663e3b311928acbe135b5cad1bda"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load7_2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "4b3dfc3e29565f5ddbc4c4b844bc600ea8d4501b5257cf3d18f6559065955cc4"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load7_3_P.dbl",
+      "role": "data-asset",
+      "sha256": "a73b652a8c8be35b2be9c446e84063c84949475c110bd8de9b04132ffc1f9250"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load7_3_Q.dbl",
+      "role": "data-asset",
+      "sha256": "4f9fd6e1e9b324a0ad2dfe34e8ba2f0b62535fb729bb57521c72e493cb78e0f9"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load7_4_P.dbl",
+      "role": "data-asset",
+      "sha256": "bd5e02067f59135ce0dcad025b22003be951191834cf465867e91ec71e9579e4"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load7_4_Q.dbl",
+      "role": "data-asset",
+      "sha256": "398816a269a2d4f1b150bc3904421be0719f78d7cf9f4bacee79ea16ac5bbbdd"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load8_1_P.dbl",
+      "role": "data-asset",
+      "sha256": "21e95196396a574f0b8dc70b52c42f430dc7e438b9d2e44d6ac8de7ea4619263"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load8_1_Q.dbl",
+      "role": "data-asset",
+      "sha256": "6f547d8a5ffdcc6dceee015d75bfe8faed91853823cea048fd69ef17aa22243c"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load8_2_P.dbl",
+      "role": "data-asset",
+      "sha256": "ee4fdaade2545801b12034ec9f93e2be1846a7a91ae431e8213d942b152a5937"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load8_2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "b7d4704b8f3727a9c131ac0316e046b44b99103cae886818522af2682fc7796c"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load8_3_P.dbl",
+      "role": "data-asset",
+      "sha256": "34f895dad970af17be949f73d455ca1231461f34720e416d5e5c7129b117df1e"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load8_3_Q.dbl",
+      "role": "data-asset",
+      "sha256": "b598efb92e320d39cc6b5fe21db29d199a07bc912a06fb1fc5d0d8744bd04516"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load8_4_P.dbl",
+      "role": "data-asset",
+      "sha256": "60e03eaea9529639b261ef1543e92330e03d478ecfeeaf88931f5808042cf535"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load8_4_Q.dbl",
+      "role": "data-asset",
+      "sha256": "6a4db994680875ab671ee6b6aa77de29a2a0823870b9e47c3dc1d4a6f3d5b390"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load9_1_P.dbl",
+      "role": "data-asset",
+      "sha256": "6d274dd5a4f157500b71ef28c38638e1bd0ba8e0122182b50bd5df785624da8d"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load9_1_Q.dbl",
+      "role": "data-asset",
+      "sha256": "69b8756e90d5a71109408944ae1b210d5a7a964eb491f330c1a5ae3ab622c1a1"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load9_2_P.dbl",
+      "role": "data-asset",
+      "sha256": "4bdfffe713107bcecb48faaffd2e984f8a9fcd5f731f69e9af171aa30711c0e3"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Profiles/load9_2_Q.dbl",
+      "role": "data-asset",
+      "sha256": "5c7eea2b25cff31bd26bee62da51819125bfc5749bf0604ea873bdfd420b5fb2"
+    },
+    {
+      "path": "dss/IEEETestCases/SecondaryTestCircuit_modified/Substation.DSS",
+      "role": "dss-source",
+      "sha256": "457f29a5a22817bd4d4862f720bc293c3d2aba70ba26ec3cbf131445b3f9c9d1"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "c3f13088c08f9bbd8353564bbb04be3d327d279dfea387ebc36e0d5ef623d1b0"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
+    }
+  ],
+  "inputs": []
+}
