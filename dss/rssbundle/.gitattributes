@@ -5,4 +5,5 @@
 *.CSV -text
 *.dat -text
 *.txt -text
+*.Txt -text
 *.TXT -text
