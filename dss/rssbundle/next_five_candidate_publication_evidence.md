@@ -49,3 +49,15 @@ Ckt5 官方脚本在完成最终 Solve 后请求不存在的 `ckt5mon` 导出，
 目录从 161/108/579 更新为 166 `converted`、103 `unsupported`、579
 `not_standalone_entry`；独立入口分母保持 269。两个原拟选的 LVTestCaseNorthAmerican 脚本因包含
 数百个跨场景清空、重建和求解顺序转换而未发布，未用路径白名单或静默删命令绕过。
+
+## 最终回归
+
+五个案例全部处理、bundle 与 catalog 提交完成后，才运行本批第一次完整集成套件；随后用测试框架
+`--quiet` 复跑以取得未被逐项名称截断的汇总：
+
+```text
+CARGO_TARGET_DIR=/home/dongshufeng/IdeaProjects/eig-rs/target \
+  cargo test -p psa --features mumps-static --test dss_import -- --quiet
+
+test result: ok. 522 passed; 0 failed; 0 ignored; 0 measured; 0 filtered out; finished in 286.45s
+```
