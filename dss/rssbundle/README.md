@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 166 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新批次闭合 Ckt5/Storage QSTS、IEEE123 Yearly、IEEE13 Assets 与 Ckt24 |
-| 当前尚未发布的独立入口 | 103 | 269 个独立入口扣除 166 个已发布入口 |
+| 已转换并发布 bundle | 176 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新批次闭合五个 Ckt24 MemoryMapping TXT/SNG/DBL Yearly 入口 |
+| 当前尚未发布的独立入口 | 93 | 269 个独立入口扣除 176 个已发布入口 |
 | 超时 | 0 | 无 |
 
-166 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+176 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 166 个发布入口；
-其余 103 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 176 个发布入口；
+其余 93 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -1321,6 +1321,57 @@ Ckt5 完整执行 Snapshot 加 8,760 个 Yearly 点并输出 34,588,428 行；St
 完整哈希、数值和搬移证据见
 [`next_five_candidate_publication_evidence.md`](next_five_candidate_publication_evidence.md)。
 
+### 第五十一轮五个执行入口批量发布
+
+2026-11-08 发布 Ckt24 MemoryMapping 示例的 non-MM、CSV-P、CSV-PQ 三个 100 步 Daily 入口、
+Paulo IEEE13 的 Snapshot 加 24 步 Daily 入口，以及 Matlab 目录下 IEEE 519 文件自身的初始化
+Snapshot。所有 PSA/OpenDSS 比较均显式使用 `line_model=exact`，并覆盖最终母线复电压和三相源端
+P/Q；Matlab 文件的结论不外推到由 `Main_Script.m` 驱动的谐波循环。
+
+三个 Ckt24 bundle 各输出 752,200 行电压，最终 7,522 个原生节点的最大/RMS 归一化误差为
+`1.92567e-2` / `2.08902e-3`，源端功率最大误差为 `1.20918e-2`。Paulo 两个 epoch 均锁定
+41 个节点和源端功率；Matlab IEEE 519 初始化的 24 个节点最大误差为 `1.5376e-7`。五个 schema-v2
+closure 均在独立父目录搬移执行成功，Git 索引内 103 个声明文件与 manifest 哈希全部一致。
+
+catalog 只修改这五行，当前为 171 `converted`、98 `unsupported`、579
+`not_standalone_entry`，独立入口分母仍为 269。完整源、manifest、数值和搬移证据见
+[`next_five_batch_2_publication_evidence.md`](next_five_batch_2_publication_evidence.md)。
+
+### 第五十二轮五个执行入口批量发布
+
+2026-11-08 发布 Ckt24 MemoryMapping 示例剩余的 TXT-P、TXT-PQ、DBL-P、SNG-P 和旧式直接
+SNG 五个 100 步 Yearly 入口。通用导入改造只扩展 LoadShape 的小端 IEEE-754 float32/float64
+文件物化与 bundle 依赖收集；空文件、错误字节宽度、非有限值、缺失文件和超过 10,000,000 点
+均以稳定诊断失败关闭，未扩展到其他 Shape 类。
+
+五个 bundle 各输出 752,200 行电压。显式 `line_model=exact` 的原生门禁各覆盖最终 7,522 个
+母线相和三相源端 P/Q；最大复电压相对误差为 `1.92567e-2`，RMS 为 `2.08902e-3`，源端
+复功率最大误差为 `1.20918e-2`。五个 schema-v2 closure 均在独立父目录改名后执行成功，
+123 个声明文件从 Git blob 复算 SHA-256 零不匹配，DBL/SNG 资产与官方源逐字节一致。
+
+catalog 只修改这五行，当前为 176 `converted`、93 `unsupported`、579
+`not_standalone_entry`，独立入口分母仍为 269。该证据只覆盖 100 小时终点，不声明 8,760 小时
+性能。完整源、manifest、数值和搬移证据见
+[`next_five_batch_3_publication_evidence.md`](next_five_batch_3_publication_evidence.md)。
+
+### 第五十三轮最终小候选组与终局扫描
+
+2026-11-08 发布未修改官方入口
+`IEEETestCases/SecondaryTestCircuit_modified/Master.DSS`。schema-v2 bundle 含 82 个 manifest
+声明文件，在独立父目录改名后执行成功并返回相同的 118 行集合。显式 `line_model=exact` 的
+OpenDSSDirect 门禁比较全部 118 个 native bus-phase 复电压和三相源端 P/Q：最大/RMS 电压误差
+为 `2.97686e-2` / `8.55878e-3`，源端复功率最大误差为 `7.97605e-2`，均通过锁定门限。
+
+catalog 更新为 177 `converted`、92 `unsupported`、579 `not_standalone_entry`。随后用同一个
+release 工具重扫全部 92 个未发布入口：85 个转换失败，7 个 linked conversion 成功但 strict
+check 全部失败。其中唯一 scope 已确认的完整入口 M1 是 QSTS 拓扑求解器拒绝；其余 6 个是
+`circuit_bootstrap=false` 的会话片段。其他入口需要新的生命周期、拓扑/设备语义或原生数值 oracle。
+因此严格发布口径下已无可通过小修改发布的剩余案例。本轮只证明一个 Snapshot 终态，不声明
+8,760 小时性能。完整证据见
+[`final_small_candidates_publication_evidence.md`](final_small_candidates_publication_evidence.md) 和
+[`candidate_scan_2026-11-08-final.json`](candidate_scan_2026-11-08-final.json)。
+最终 `dss_import` 全量为 546/546 通过、0 失败、0 忽略，耗时 496.77 秒。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1329,10 +1380,10 @@ Ckt5 完整执行 Snapshot 加 8,760 个 Yearly 点并输出 34,588,428 行；St
 |---|---|---|
 | `Examples/HarmonicsTMode/IEEE_519.DSS` | 进入 HarmonicT，跨多次 `Solve` 依次打开两个开关 | 完整 HarmonicT 入口，bundle 已发布 |
 | `Examples/HarmonicsVariableLoad/IEEE_519.DSS` | 进入 HarmonicT，跨 `Solve` 修改负荷状态 | 完整 HarmonicT 入口，bundle 已发布 |
-| `Examples/Matlab/HarmonicT_MATLAB/IEEE_519.DSS` | 只构造网络并执行初始化 `Solve` | 不列入本批；时间循环由同目录 `Main_Script.m` 通过 COM API 驱动，单独转换只能声明 Snapshot 初始化一致 |
+| `Examples/Matlab/HarmonicT_MATLAB/IEEE_519.DSS` | 只构造网络并执行初始化 `Solve` | 初始化 Snapshot bundle 已发布；时间循环仍由同目录 `Main_Script.m` 通过 COM API 驱动 |
 
 因此不能用 Matlab 目录下文件的转换结果声明完整 Matlab HarmonicT 工作流等价，也不应把它作为
-第三个 HarmonicT bundle 增加已覆盖案例数。若以后接入该工作流，需要先定义 Matlab 外部命令序列
+第三个完整 HarmonicT 工作流增加算法覆盖数。若以后接入该工作流，需要先定义 Matlab 外部命令序列
 到 RSS study 的独立转换合同和数值门禁。
 
 基线失败不能解释为 PSA 没有覆盖这些网络和算法。当时的转换链在 PSA 前后又维护了
@@ -1362,8 +1413,8 @@ Ckt5 完整执行 Snapshot 加 8,760 个 Yearly 点并输出 34,588,428 行；St
 - 26 个 mixed-study 入口多数是 Snapshot 初始化后转 Daily/Duty。PSA 支持多 epoch 和跨时点状态，
   但其中还包含 GFM、Storage、UPFC 等不同对象，取消分类器的统一拒绝后仍需逐文件复测。
 - 27 个 `REQUEST.SOURCE.ESCAPES_ROOT` 入口的首要问题是 epoch/内存 `Source` 没有保留声明文件的
-  目录身份。路径修复只消除第一个阻断；MemoryMapping、二进制 Sng/Dbl 和部分 Storage 行为仍可能
-  落在 PSA 的明确边界外。
+  目录身份。路径修复只消除第一个阻断；本轮已闭合 LoadShape 的 MemoryMapping 与二进制
+  Sng/Dbl 合同，其他 Storage 行为仍可能落在 PSA 的明确边界外。
 - DynamicEq/DynOut、VCCS、用户 DLL、EMT、V12 未覆盖的 IBR 暂态、AutoTrans 未支持接法、
   特殊节点编号和两个求解器都拒绝的拓扑属于当前真实能力边界。普通 Dynamic/Dynamics 已有
   有界 adapter，仍须逐入口通过转换、自执行和数值门禁后才能列为已发布案例。
@@ -1381,8 +1432,8 @@ Ckt5 完整执行 Snapshot 加 8,760 个 Yearly 点并输出 34,588,428 行；St
 4. **已完成：以 PSA 的机器可读诊断合同为准。** `dss2rss` 以 import profile 返回的 `severity`
    决定 Warning 放行、Error 阻断，不再解析诊断码或英文 message。
 5. **部分完成：保留 Source 图和声明目录。** 未删改的纯模型直接沿用原始 `Source`；execution epoch
-   会重新附加坐标文件和已识别的数据资产。跨目录 `../`、MemoryMapping 与二进制 Sng/Dbl 仍需在
-   当前 115 个尚未发布入口中逐项验证。
+   会重新附加坐标文件和已识别的数据资产。跨目录 `../` 和 LoadShape 的文本/Sng/Dbl 资产已进入
+   同一来源与 bundle 合同；其余 93 个尚未发布入口仍须逐项验证其他对象和执行语义。
 6. **已完成分类层改造：让 PSA 判断连续执行是否可表达。** Snapshot+Daily/Duty 不再被分类器统一
    拒绝；具体状态转换仍由 execution plan fail closed。
 7. **部分完成：为非电气副作用定义显式策略。** `BusCoords/LatLongCoords` 已保留资产并产生稳定
@@ -1405,7 +1456,7 @@ Ckt5 完整执行 Snapshot 加 8,760 个 Yearly 点并输出 34,588,428 行；St
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 115 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 93 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -1449,7 +1500,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
 其中 579 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 269 个独立入口：
-166 个 `converted` 和 103 个 `unsupported`：
+171 个 `converted` 和 98 个 `unsupported`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

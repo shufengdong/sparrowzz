@@ -1,0 +1,4 @@
+// Test case for MemoryMapping, PMult and QMult from txt file
+Clear
+var @loadshape_script_dss=LS_PhaseA-mm-txt-pq.dss
+redirect main_template.dss

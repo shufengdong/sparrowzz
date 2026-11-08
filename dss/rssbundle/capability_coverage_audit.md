@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：166 个入口已经发布 bundle，103 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：176 个入口已经发布 bundle，93 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -241,10 +241,11 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
 - InverterTechNote `kVA/11_1_kVAViolation.dss` 已在第二十九轮接入 Storage `%kWRated`、
   `%PMinNoVars/%PMinkvarMax`、切入前空闲态和 EffCurve DC 侧损耗分解；24 时点最大连续状态
   归一化误差 `8.49630e-4`，三相电压最大归一化误差 `1.40126e-5`，bundle 已发布。
-- 8 个 MemoryMappingLoadShapes 案例还涉及 MemoryMapping、Sng/Dbl 二进制或专用文本加载
-  语义，超出当前 LoadShape 文件合同。
+- 8 个 MemoryMappingLoadShapes 案例在该轮审计时还涉及 MemoryMapping、Sng/Dbl 二进制或专用
+  文本加载语义；它们现已在第二、第三批全部通过严格转换、原生数值和搬移 bundle 门禁。
 
-所以这 27 个都是“路径层有 bug”，但不是“能力已经完整覆盖”的案例。
+所以当时这 27 个都是“路径层有 bug”，但不能仅凭路径修复声明能力完整覆盖；其中 8 个
+MemoryMappingLoadShapes 完整入口现已另行完成发布门禁。
 
 ### 3 个 `READ.DSS.VALUE_DEFAULTED`
 
@@ -821,6 +822,41 @@ catalog 当前为 166 `converted`、103 `unsupported`、579 `not_standalone_entr
 完整证据见
 [`next_five_candidate_publication_evidence.md`](next_five_candidate_publication_evidence.md)。
 
+## 2026-11-08 第二批五个执行入口闭合
+
+Ckt24 MemoryMapping 示例的 non-MM、CSV-P、CSV-PQ 三个完整 Daily 入口、Paulo IEEE13 Daily 和
+Matlab IEEE 519 初始化 Snapshot 已从 `unsupported` 集合闭合。通用改造包括：把 BusMarker 归入
+输出副作用；保留 `MinIterations`；按 OpenDSS 默认补全 SwtControl `Normal`/`State`/`Reset` 并接受
+`Lock=Open`；Meter 电压基准忽略只由 disabled 对象形成的 ghost bus；把 LoadShape
+`MemoryMapping` 限定为不改变曲线样本的存储提示。非法布尔值、真实引用的 ghost bus 和未表示的
+动态/外部编排仍然失败关闭。
+
+五个 portable bundle 搬移执行分别输出 752,200 / 1,025 / 24 / 752,200 / 752,200 行电压；
+103 个 manifest 声明 Git blob 复算 SHA-256 后零不匹配。显式 `line_model=exact` 的锁定参考覆盖
+三个 Ckt24 各 7,522 个最终节点、Paulo 两个 epoch 各 41 个节点、IEEE 519 的 24 个节点，以及
+每个状态的三相源端 P/Q。Matlab 案例只证明 `.DSS` 文件自身的初始化 Snapshot，不证明外部
+`Main_Script.m` 谐波循环。
+
+catalog 当前为 171 `converted`、98 `unsupported`、579 `not_standalone_entry`。完整证据见
+[`next_five_batch_2_publication_evidence.md`](next_five_batch_2_publication_evidence.md)。
+
+## 2026-11-08 第三批五个执行入口闭合
+
+Ckt24 MemoryMapping 示例剩余的 TXT-P、TXT-PQ、DBL-P、SNG-P 和旧式直接 SNG 五个完整
+100 步 Yearly 入口已从 `unsupported` 集合闭合。通用改造为 LoadShape 增加有界的小端
+float32/float64 资产物化，并把直接及嵌入式 `SngFile`/`DblFile` 纳入同一依赖来源与 bundle
+改写合同；非法宽度、空文件、非有限值、缺失文件和超限点数继续失败关闭。
+
+五个 portable bundle 搬移并改名后均独立执行，分别输出 752,200 行电压；schema-v2 manifest
+共声明 123 个文件，从 `sparrowzz` Git blob 复算 SHA-256 后零不匹配，二进制资产与官方源
+逐字节一致。显式 `line_model=exact` 的锁定参考对每例比较 7,522 个最终母线相及三相源端
+P/Q，最大/RMS 复电压相对误差为 `1.92567e-2` / `2.08902e-3`，源功率最大误差为
+`1.20918e-2`。
+
+catalog 当前为 176 `converted`、93 `unsupported`、579 `not_standalone_entry`。这些入口只
+执行 100 个一小时时点，不能据此声明 8,760 小时性能。完整证据见
+[`next_five_batch_3_publication_evidence.md`](next_five_batch_3_publication_evidence.md)。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -829,7 +865,7 @@ catalog 当前为 166 `converted`、103 `unsupported`、579 `not_standalone_entr
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD 完整入口和 InductionMachine
    则分别等待 Direct/Fault continuation
    与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 103 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 93 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

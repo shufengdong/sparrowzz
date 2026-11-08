@@ -136,7 +136,7 @@ DataFrame，便于查看和修改每张输入表。
 逐时点或逐谐波与 OpenDSS 复电压基准比较，最大允许相对误差为 `1e-3`。
 
 官方 OpenDSS 发行文件的便携转换结果集中在 [`rssbundle`](rssbundle/README.md)，
-其中列出 166 个已发布入口、基线未支持文件的原因和与 OpenDSS 的数值对照。官方
+其中列出 176 个已发布入口、基线未支持文件的原因和与 OpenDSS 的数值对照。官方
 `Examples/FreqScan/Run_Scan.dss` 已转换为可搬移 bundle，完整重放 188 个非整数频点并以
 564 行 Monitor 数据与 OpenDSS 逐点比较。
 针对 249 个独立入口中后续 8 个候选的定向分析见
@@ -147,9 +147,9 @@ YYD 完整入口仍需要跨研究 Direct 专用合同。InductionMachine 可进
 Dynamic/Dynamics V12 adapter，但仍须通过该入口的保护、Monitor 和数值门禁，不能只按语法成功计入。
 `Examples/DistanceRelays` 的 4 个固定步长 Distance/TD21 入口已经完成上述门禁并发布 bundle。
 
-截至 2026-11-08，实时 catalog 为 166 个已发布入口、103 个尚未发布的独立入口和 579 个模型片段；
+截至 2026-11-08，实时 catalog 为 176 个已发布入口、93 个尚未发布的独立入口和 579 个模型片段；
 独立入口分母为 269。最新五入口批量证据见
-[`rssbundle/next_five_candidate_publication_evidence.md`](rssbundle/next_five_candidate_publication_evidence.md)。
+[`rssbundle/next_five_batch_3_publication_evidence.md`](rssbundle/next_five_batch_3_publication_evidence.md)。
 
 ## 运行
 

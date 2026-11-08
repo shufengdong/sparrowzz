@@ -1,0 +1,4 @@
+// Test case for MemoryMapping, PMult from csv file
+Clear
+var @loadshape_script_dss=LS_PhaseA-mm-csv-p.dss
+redirect main_template.dss
