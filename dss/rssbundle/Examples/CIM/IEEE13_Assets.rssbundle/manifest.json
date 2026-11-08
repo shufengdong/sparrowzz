@@ -1,0 +1,59 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/CIM/IEEE13_Assets.dss",
+    "root": "dss",
+    "tree_sha256": "24dceaba83b26bda6ffb44306414a963ccfba77ee7752955e4b1f97963543272"
+  },
+  "projection": {
+    "source_function": "ds_radial_dss_plan",
+    "profile": "dss_execution_radial_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_radial_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/Examples/CIM/IEEE13Node_BusXY.csv",
+      "role": "data-asset",
+      "sha256": "f8dd1528c72f339ebf41bf1355ed64ef12fbe30864fcc839ed5e5e9dc527846e"
+    },
+    {
+      "path": "dss/Examples/CIM/IEEE13_Assets.dss",
+      "role": "dss-entry",
+      "sha256": "679387c9d71611ba238761227dce69df670008517e3f3ba3cfef985b8a0ca92c"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "dbc27f1a3d7567f41c990b9b007c4308e037690c5fb49cbb49fd87f83f0ada7a"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
+    }
+  ],
+  "inputs": []
+}
