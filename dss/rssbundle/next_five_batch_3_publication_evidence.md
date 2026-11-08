@@ -40,8 +40,9 @@ SHA-256 校验；实际文件集合严格等于 `.files[]` 加 `manifest.json`�
 | SNG-P / legacy SNG | `1.9256655486532877e-2` | `2.0890161535589056e-3` | `1.2091782231033592e-2` | 同上 |
 
 聚焦测试 `cargo test -p psa --features mumps-static --test dss_import next_five_batch_3 -- --nocapture`
-为 5/5 通过。参考清单完整性测试为 1/1 通过。完整 `dss_import` 套件按批次规则在目录、文档和
-父仓库 gitlink 提交后统一运行，结果将在本文件补记。
+为 5/5 通过，参考清单完整性测试为 1/1 通过。目录、文档和父仓库 gitlink 提交后统一运行
+`cargo test -p psa --features mumps-static --test dss_import`，结果为 542/542 通过、0 失败、
+0 忽略，耗时 504.92 秒。
 
 ## 目录结论
 
