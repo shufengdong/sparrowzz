@@ -53,3 +53,11 @@ schema-v2 bundle 的实际目录严格为 82 个 `.files[]` 加 `manifest.json`�
 
 因此在“不修改官方输入、必须独立 strict check、必须有原生 exact 数值门禁”的口径下，已经没有
 能通过小修改发布的剩余案例。
+
+## 最终验证
+
+- `cargo test -p psa --features mumps-static --test reference_manifest -- --nocapture`：40/40 通过。
+- `PYTHONDONTWRITEBYTECODE=1 python3 sparrowzz/dss/docs/catalog/validate_catalog.py`：177 个
+  projected bundles，zero completeness diagnostics。
+- `cargo test -p psa --features mumps-static --test dss_import`：546/546 通过，0 失败、0 忽略，
+  耗时 496.77 秒。

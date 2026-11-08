@@ -1370,6 +1370,7 @@ check 全部失败。其中唯一 scope 已确认的完整入口 M1 是 QSTS 拓
 8,760 小时性能。完整证据见
 [`final_small_candidates_publication_evidence.md`](final_small_candidates_publication_evidence.md) 和
 [`candidate_scan_2026-11-08-final.json`](candidate_scan_2026-11-08-final.json)。
+最终 `dss_import` 全量为 546/546 通过、0 失败、0 忽略，耗时 496.77 秒。
 
 #### 三个同名 `IEEE_519.DSS` 的边界
 
