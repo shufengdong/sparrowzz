@@ -179,7 +179,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             self.read("study_facades.json"),
             self.read("dataframes.json"),
         )
-        self.assertEqual(count, 150)
+        self.assertEqual(count, 179)
 
     def test_network_dynamics_catalog_publishes_v13_monitor_additively(self):
         functions = self.read("functions.json")
