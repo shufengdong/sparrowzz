@@ -874,6 +874,23 @@ Snapshot source/transformer/conductor/loss/violation/summary 表不会作为 Dir
 catalog 当前为 178 `converted`、91 `unsupported`、579 `not_standalone_entry`。该合同只覆盖
 官方两 epoch YYD 案例，不扩展为任意多故障、保护动作或 8,760 小时 QSTS 性能声明。
 
+## 2026-11-09 EPRI M1 无 PV Snapshot 终态闭合
+
+`EPRITestCircuits/epri_dpv/M1/Master_NoPV.dss` 已从 `unsupported` 集合闭合。固定官方入口的
+4,279 条语句降为两个有序 Snapshot epoch；显式 `line_model=exact` 的最终态门禁比较 3,153 个
+原生母线相、三组接口复功率、总复损耗、M1 tap 和三个电容器状态。电压最大/RMS 归一化误差为
+`9.141043688582145e-5` / `2.7928383278329492e-5`，接口功率最大归一化误差为
+`6.054447326642671e-5`，总损耗最大归一化误差为 `2.8505834749390895e-4`；tap 和电容状态一致。
+
+PSA 额外保留的 25 个禁用开关端点全部为精确零，门禁按固定键集合失败关闭；M1 变压器两侧功率
+使用具有固定 SourceBus→temp 方向的 `branch_flow`，因为该变压器不出现在
+`transformer_winding_flow` 投影中。portable bundle 原地和搬移改名后均输出 6,356 行且字节相同。
+
+catalog 当前为 180 `converted`、89 `unsupported`、579 `not_standalone_entry`，独立入口分母
+仍为 269。完整证据见
+[`epri_m1_no_pv_publication_evidence.md`](epri_m1_no_pv_publication_evidence.md)。该闭合只覆盖无
+PV 入口最终 Snapshot；不覆盖 PV、可靠性、Monitor 通道、QSTS 轨迹或 8,760 小时年度性能。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
