@@ -1,0 +1,114 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/EPRITestCircuits/epri_dpv/M1/Master_NoPV.dss",
+    "root": "dss",
+    "tree_sha256": "3f38d2ebbefaab9058dea97f336aa6973b17bb730b271cbdbe7698390e76617b"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/2nd_ckt.dss",
+      "role": "dss-source",
+      "sha256": "39389dae94e754626fea694f6ccf17dc907a6687d960ac5a6febcf71af4beb9b"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/Buscoords.dss",
+      "role": "data-asset",
+      "sha256": "c84cdaef30bedabda44bcd55fc4b0a22dd1fd40c81757254b73d4272149be635"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/Capacitors.dss",
+      "role": "dss-source",
+      "sha256": "64086e7c95a3c900dcfdd23990399112cc0ad9c0e9c2df52e117f9e8947f597a"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/LineCodes.dss",
+      "role": "dss-source",
+      "sha256": "180b09078b7bca2e2144be5cefc24dce13e48783cee7888456c558e30cb12713"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/LineGeom.DSS",
+      "role": "dss-source",
+      "sha256": "e70554044b2c616aef022df904e4898202c3a16d43a605675b3ad72c7d423a5b"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/Lines.dss",
+      "role": "dss-source",
+      "sha256": "07ed708fcf410b34101d3122996d08c8c22600e9e6e47e401e1e99eabeae01ea"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/Loads_Only.dss",
+      "role": "dss-source",
+      "sha256": "f7f3e067b9afd11a4f9a888889bcdf51f428f15eff0b6500172cbced8e8b90cd"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/Master_NoPV.dss",
+      "role": "dss-entry",
+      "sha256": "ed1622057bbbb2bd25f3f86e0befeb6252ca3d17db7b301a0acf42ab8ff9d08a"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/Sub_Xfmr.dss",
+      "role": "dss-source",
+      "sha256": "26fdeb2112f0d1f2a417f66cf46dd39f50018379f344a24324e5e5aae15b6866"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/Switches.dss",
+      "role": "dss-source",
+      "sha256": "2128ee6f813c18294b488aeed724fbe34f6034200caddd0a0d7a539600beda3d"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/WireData.DSS",
+      "role": "dss-source",
+      "sha256": "812be5a1c1a408e4a7778fd678d85d19d0b4abe25da1a4377feb4b71b930e2a3"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/Xfmr_Only.dss",
+      "role": "dss-source",
+      "sha256": "3a31b38bd58280b6f53cebe9789fb9d32e6d3bea9ac62e8d60522cd40d5a1aa0"
+    },
+    {
+      "path": "dss/EPRITestCircuits/epri_dpv/M1/loadshapes.dss",
+      "role": "dss-source",
+      "sha256": "24dab8935c239ec66503f4ec19edb34f6761ccce53161d0ed49bbe2c1b8b858a"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "69750a5378ddb5a77b25f5b21b19b181353e6028e0f7121a0c49d5381fef9ae0"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b"
+    }
+  ],
+  "inputs": []
+}
