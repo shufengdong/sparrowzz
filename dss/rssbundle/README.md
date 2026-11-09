@@ -1372,6 +1372,31 @@ check 全部失败。其中唯一 scope 已确认的完整入口 M1 是 QSTS 拓
 [`candidate_scan_2026-11-08-final.json`](candidate_scan_2026-11-08-final.json)。
 最终 `dss_import` 全量为 546/546 通过、0 失败、0 忽略，耗时 496.77 秒。
 
+### 第五十四轮 YYD Direct 故障 continuation 发布
+
+2026-11-08 发布未修改官方入口 `IEEETestCases/4Bus-YYD/YYD-Master.DSS`。转换器保留
+Snapshot 初始化、负荷禁用、单个启用的单相接地 Fault 和后续 `Solve Mode=Direct` 的有序
+两 epoch 生命周期，并将 Direct epoch 降为 PSA 的有界 `DirectFault` 执行合同，而不是把它
+改名为 Snapshot 或 FaultStudy。
+
+schema-v2 portable bundle 在原目录和独立父目录改名后均执行成功，各输出 36 行 `bus_phase`；
+规范化 `voltage.csv` 的 SHA-256 均为
+`9dbd2d7f5f742e13b7de4492b3a6202f92a1597a7f6a35dab117b5e1a671853a`。最终故障 epoch
+相对 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 锁定参考的最大去共模复电压误差为
+`5.258653887720258e-9`，故障电流误差为 `3.763079292555971e-8`，实际故障电流为
+`3582.083395714918 A`。重建 release `tensoreval` SHA-256 为
+`ca2f21190e54fcda966cb10edcb01ab403c37a96881537bdbccd948ee9aaceff`；bundle 的
+manifest/main/managed/source SHA-256 分别为 `897249e49583963ea7aba0f45f255484c0c5b141a6f9330c47994d10cc920f01`、
+`0609a88d273e414a8ee64a1c35d5a54196b3d2d88ad66466404539da4578a431`、
+`57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b` 和
+`abc8500b3ed42b87521756ce050fc20c46e8be508cafd67cd86ad65369d75bec`。
+
+该发布只声明 `bus_voltage`/`bus_phase`、`branch_flow`、`fault_state`、执行 trace/diagnostics/events
+等具有故障后投影的输出；不把 Snapshot 的 source、transformer、conductor、loss、violation 或
+summary 表混作故障后结果。catalog 只修改这一行，当前为 178 `converted`、91 `unsupported`、
+579 `not_standalone_entry`，独立入口分母仍为 269。本案例只有两个有界 epoch，不声明 8,760
+小时性能。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：

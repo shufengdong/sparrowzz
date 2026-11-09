@@ -857,15 +857,32 @@ catalog 当前为 176 `converted`、93 `unsupported`、579 `not_standalone_entry
 执行 100 个一小时时点，不能据此声明 8,760 小时性能。完整证据见
 [`next_five_batch_3_publication_evidence.md`](next_five_batch_3_publication_evidence.md)。
 
+## 2026-11-08 YYD Direct 故障 continuation 闭合
+
+`IEEETestCases/4Bus-YYD/YYD-Master.DSS` 已由未修改官方入口生成 schema-v2 portable
+bundle。执行计划保留 Snapshot 初始化和后续 Direct 单相接地故障两个有序 epoch；Direct
+epoch 使用专用 `DirectFault` 投影，full、stream、trace-stream 和 diagnosed API 返回一致的
+故障后电压、支路和 fault state。禁用的 Fault 声明不会扩大“单个启用故障”合同，非法计划在
+数值执行前失败关闭。
+
+原目录和搬移改名后的 bundle 均输出 36 行 `bus_phase`，规范化 CSV SHA-256 为
+`9dbd2d7f5f742e13b7de4492b3a6202f92a1597a7f6a35dab117b5e1a671853a`。最终故障 epoch
+相对 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 的最大去共模复电压误差为
+`5.258653887720258e-9`，故障电流误差为 `3.763079292555971e-8`。没有故障后合同的
+Snapshot source/transformer/conductor/loss/violation/summary 表不会作为 Direct 结果发布。
+
+catalog 当前为 178 `converted`、91 `unsupported`、579 `not_standalone_entry`。该合同只覆盖
+官方两 epoch YYD 案例，不扩展为任意多故障、保护动作或 8,760 小时 QSTS 性能声明。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
    避免只维护诊断码白名单。
 2. 首批 12 个入口已通过严格转换并全部发布 bundle；第二批 8 个候选中有 6 个完成
-   V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD 完整入口和 InductionMachine
-   则分别等待 Direct/Fault continuation
-   与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 93 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+   V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD Direct/Fault
+   continuation 已按上述有界合同发布；InductionMachine 仍等待 Dynamic/保护动作执行合同，
+   不能降低门禁后发布。
+3. 每消除一个首诊断都重扫当前 91 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
