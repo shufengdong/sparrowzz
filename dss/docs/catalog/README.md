@@ -246,3 +246,38 @@ python3 dss/docs/catalog/test_validate_catalog.py
 
 校验器遍历 `study_facades.json` 的全部门面及传递 `base_schema` 引用，还扫描全部 rssbundle
 manifest、`managed.rss`、结果映射和文件哈希。目录发布要求两个命令均通过且完整性诊断为零。
+
+## Ordered study sequence v1
+
+`dss_study_sequence_v1` adds `ds_dss_study_sequence(path, [source_root], selector_or_para)`,
+`project_dss_study_sequence(path)`, and the path-independent `ds_study_sequence` facade.
+The projector and managed facade share exactly 48 positional frames, including typed
+empty families and the diagnostic frame. `sequence_inputs` publishes every physical
+column and dtype. The `para` frame remains exactly `line_model: str`, with value `exact`.
+
+Linked selectors use `<index>.<result>`, for example
+`study_status,0.bus_phase,1.fault_result,2.bus_voltage`. A linked parameter frame may
+supply `result` instead of a selector string. Managed selection uses `sequence_request`
+rows with the fixed columns `study_index: u64` and `result: str`; store `bus_phase` at
+index 0 to request `0.bus_phase`. Multiple results at one stage use multiple rows.
+A projected stage-ID request selects that stage's default result. An empty request
+selects one default result for each result-bearing stage. A `study_status` row uses
+any valid stage index and selects the single whole-sequence status frame.
+
+Results retain selector order, and stage indices must be nondecreasing. Empty selector entries,
+unqualified, duplicate, unknown, missing-stage, or reversed-stage selectors fail.
+All stages execute before any frame is returned; one stage failure returns an error
+without partial frames. `study_status` includes initialization stages and is returned
+only when explicitly requested. Existing schema-v2 bundle result lists are unchanged.
+
+Family-qualified catalog names such as `execution.bus_phase` and
+`harmonic.bus_voltage` are schema-disambiguation keys. Callers use each result's
+`publicName` and `selectorTemplate` to produce public selectors such as `0.bus_phase`;
+family-qualified keys are not runtime selector syntax. Defaults select `bus_voltage`
+for each result-bearing Snapshot/Direct/Harmonic stage and `fault_result` for each
+FaultStudy stage. They never add `study_status` implicitly.
+
+The existing execution projection schemas also publish `execution_epoch.solve_kind`
+and `storage.port_model` as optional, non-null String columns. Current projectors
+emit them; older injected frames may omit them and retain their parser defaults
+(`snapshot_or_qsts` and `PQ` respectively).

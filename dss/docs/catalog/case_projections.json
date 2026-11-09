@@ -5759,6 +5759,1476 @@
       "sourceResults": [],
       "resultMap": {},
       "bundleResultMap": {}
+    },
+    {
+      "id": "dss_study_sequence_v1",
+      "sourceFunction": "ds_dss_study_sequence",
+      "projector": "project_dss_study_sequence",
+      "targetFunction": "ds_study_sequence",
+      "managedEntry": "managed.rss",
+      "compatibility": {
+        "status": "enabled",
+        "failClosed": true,
+        "stableDiagnostic": "PSA.DSS.PROJECTION.INVALID"
+      },
+      "inputs": [
+        {
+          "id": "sequence_plan",
+          "alias": "sequence_plan",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.sequence_plan",
+          "required": true,
+          "position": 1,
+          "description": "Fixed v1 sequence_plan frame, including typed empty rows."
+        },
+        {
+          "id": "sequence_transition",
+          "alias": "sequence_transition",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.sequence_transition",
+          "required": true,
+          "position": 2,
+          "description": "Fixed v1 sequence_transition frame, including typed empty rows."
+        },
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.bus",
+          "required": true,
+          "position": 3,
+          "description": "Fixed v1 bus frame, including typed empty rows."
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.line",
+          "required": true,
+          "position": 4,
+          "description": "Fixed v1 line frame, including typed empty rows."
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.linecode",
+          "required": true,
+          "position": 5,
+          "description": "Fixed v1 linecode frame, including typed empty rows."
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.load",
+          "required": true,
+          "position": 6,
+          "description": "Fixed v1 load frame, including typed empty rows."
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.transformer",
+          "required": true,
+          "position": 7,
+          "description": "Fixed v1 transformer frame, including typed empty rows."
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.voltage_source",
+          "required": true,
+          "position": 8,
+          "description": "Fixed v1 voltage_source frame, including typed empty rows."
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.motor",
+          "required": true,
+          "position": 9,
+          "description": "Fixed v1 motor frame, including typed empty rows."
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.transformer_winding",
+          "required": true,
+          "position": 10,
+          "description": "Fixed v1 transformer_winding frame, including typed empty rows."
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.transformer_impedance",
+          "required": true,
+          "position": 11,
+          "description": "Fixed v1 transformer_impedance frame, including typed empty rows."
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.current_source",
+          "required": true,
+          "position": 12,
+          "description": "Fixed v1 current_source frame, including typed empty rows."
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.generator",
+          "required": true,
+          "position": 13,
+          "description": "Fixed v1 generator frame, including typed empty rows."
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.ibr",
+          "required": true,
+          "position": 14,
+          "description": "Fixed v1 ibr frame, including typed empty rows."
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.switch",
+          "required": true,
+          "position": 15,
+          "description": "Fixed v1 switch frame, including typed empty rows."
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.shunt",
+          "required": true,
+          "position": 16,
+          "description": "Fixed v1 shunt frame, including typed empty rows."
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.capacitor",
+          "required": true,
+          "position": 17,
+          "description": "Fixed v1 capacitor frame, including typed empty rows."
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.reactor",
+          "required": true,
+          "position": 18,
+          "description": "Fixed v1 reactor frame, including typed empty rows."
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.spectrum",
+          "required": true,
+          "position": 19,
+          "description": "Fixed v1 spectrum frame, including typed empty rows."
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.control_profile",
+          "required": true,
+          "position": 20,
+          "description": "Fixed v1 control_profile frame, including typed empty rows."
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.xy_curve",
+          "required": true,
+          "position": 21,
+          "description": "Fixed v1 xy_curve frame, including typed empty rows."
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.storage",
+          "required": true,
+          "position": 22,
+          "description": "Fixed v1 storage frame, including typed empty rows."
+        },
+        {
+          "id": "solution",
+          "alias": "solution",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.solution",
+          "required": true,
+          "position": 23,
+          "description": "Fixed v1 solution frame, including typed empty rows."
+        },
+        {
+          "id": "load_shape",
+          "alias": "load_shape",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.load_shape",
+          "required": true,
+          "position": 24,
+          "description": "Fixed v1 load_shape frame, including typed empty rows."
+        },
+        {
+          "id": "shape_assignment",
+          "alias": "shape_assignment",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.shape_assignment",
+          "required": true,
+          "position": 25,
+          "description": "Fixed v1 shape_assignment frame, including typed empty rows."
+        },
+        {
+          "id": "storage_controller",
+          "alias": "storage_controller",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.storage_controller",
+          "required": true,
+          "position": 26,
+          "description": "Fixed v1 storage_controller frame, including typed empty rows."
+        },
+        {
+          "id": "switch_control",
+          "alias": "switch_control",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.switch_control",
+          "required": true,
+          "position": 27,
+          "description": "Fixed v1 switch_control frame, including typed empty rows."
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.tcc_curve",
+          "required": true,
+          "position": 28,
+          "description": "Fixed v1 tcc_curve frame, including typed empty rows."
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.fuse",
+          "required": true,
+          "position": 29,
+          "description": "Fixed v1 fuse frame, including typed empty rows."
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.recloser",
+          "required": true,
+          "position": 30,
+          "description": "Fixed v1 recloser frame, including typed empty rows."
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.relay",
+          "required": true,
+          "position": 31,
+          "description": "Fixed v1 relay frame, including typed empty rows."
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor_input",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.monitor",
+          "required": true,
+          "position": 32,
+          "description": "Fixed v1 monitor frame, including typed empty rows."
+        },
+        {
+          "id": "energy_meter",
+          "alias": "energy_meter_input",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.energy_meter",
+          "required": true,
+          "position": 33,
+          "description": "Fixed v1 energy_meter frame, including typed empty rows."
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.fault",
+          "required": true,
+          "position": 34,
+          "description": "Fixed v1 fault frame, including typed empty rows."
+        },
+        {
+          "id": "execution_epoch",
+          "alias": "execution_epoch",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_epoch",
+          "required": true,
+          "position": 35,
+          "description": "Fixed v1 execution_epoch frame, including typed empty rows."
+        },
+        {
+          "id": "execution_setting",
+          "alias": "execution_setting",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_setting",
+          "required": true,
+          "position": 36,
+          "description": "Fixed v1 execution_setting frame, including typed empty rows."
+        },
+        {
+          "id": "execution_mutation",
+          "alias": "execution_mutation",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_mutation",
+          "required": true,
+          "position": 37,
+          "description": "Fixed v1 execution_mutation frame, including typed empty rows."
+        },
+        {
+          "id": "post_solve_action",
+          "alias": "post_solve_action",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.post_solve_action",
+          "required": true,
+          "position": 38,
+          "description": "Fixed v1 post_solve_action frame, including typed empty rows."
+        },
+        {
+          "id": "execution_reference",
+          "alias": "execution_reference",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_reference",
+          "required": true,
+          "position": 39,
+          "description": "Fixed v1 execution_reference frame, including typed empty rows."
+        },
+        {
+          "id": "execution_event",
+          "alias": "execution_event",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_event",
+          "required": true,
+          "position": 40,
+          "description": "Fixed v1 execution_event frame, including typed empty rows."
+        },
+        {
+          "id": "harmonic_plan",
+          "alias": "harmonic_plan",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.harmonic_plan",
+          "required": true,
+          "position": 41,
+          "description": "Fixed v1 harmonic_plan frame, including typed empty rows."
+        },
+        {
+          "id": "frequency_axis",
+          "alias": "frequency_axis",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.frequency_axis",
+          "required": true,
+          "position": 42,
+          "description": "Fixed v1 frequency_axis frame, including typed empty rows."
+        },
+        {
+          "id": "frequency_spectrum",
+          "alias": "frequency_spectrum",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.frequency_spectrum",
+          "required": true,
+          "position": 43,
+          "description": "Fixed v1 frequency_spectrum frame, including typed empty rows."
+        },
+        {
+          "id": "harmonic_monitor",
+          "alias": "harmonic_monitor",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.harmonic_monitor",
+          "required": true,
+          "position": 44,
+          "description": "Fixed v1 harmonic_monitor frame, including typed empty rows."
+        },
+        {
+          "id": "harmonic_snapshot",
+          "alias": "harmonic_snapshot",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.harmonic_snapshot",
+          "required": true,
+          "position": 45,
+          "description": "Fixed v1 harmonic_snapshot frame, including typed empty rows."
+        },
+        {
+          "id": "sequence_request",
+          "alias": "sequence_request",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.sequence_request",
+          "required": true,
+          "position": 46,
+          "description": "Fixed v1 sequence_request frame, including typed empty rows."
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "sequence_inputs.para",
+          "required": true,
+          "position": 47,
+          "description": "Fixed v1 para frame, including typed empty rows."
+        },
+        {
+          "id": "sequence_diagnostic",
+          "alias": "sequence_diagnostic",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.sequence_diagnostic",
+          "required": true,
+          "position": 48,
+          "description": "Fixed v1 sequence_diagnostic frame, including typed empty rows."
+        }
+      ],
+      "results": [
+        {
+          "id": "execution_bus_voltage",
+          "name": "execution.bus_voltage",
+          "schemaRef": "execution_outputs.bus_voltage",
+          "description": "带 epoch_index 和 solve_event_sequence 的 bus_voltage 结果。",
+          "recommended": true,
+          "publicName": "bus_voltage",
+          "selectorTemplate": "<index>.bus_voltage",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_bus_phase",
+          "name": "execution.bus_phase",
+          "schemaRef": "execution_outputs.bus_phase",
+          "description": "带 epoch_index 和 solve_event_sequence 的 bus_phase 结果。",
+          "recommended": false,
+          "publicName": "bus_phase",
+          "selectorTemplate": "<index>.bus_phase",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_load_state",
+          "name": "execution.load_state",
+          "schemaRef": "execution_outputs.load_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 load_state 结果。",
+          "recommended": false,
+          "publicName": "load_state",
+          "selectorTemplate": "<index>.load_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_generator_state",
+          "name": "execution.generator_state",
+          "schemaRef": "execution_outputs.generator_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 generator_state 结果。",
+          "recommended": false,
+          "publicName": "generator_state",
+          "selectorTemplate": "<index>.generator_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_branch_flow",
+          "name": "execution.branch_flow",
+          "schemaRef": "execution_outputs.branch_flow",
+          "description": "带 epoch_index 和 solve_event_sequence 的 branch_flow 结果。",
+          "recommended": false,
+          "publicName": "branch_flow",
+          "selectorTemplate": "<index>.branch_flow",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_source_flow",
+          "name": "execution.source_flow",
+          "schemaRef": "execution_outputs.source_flow",
+          "description": "带 epoch_index 和 solve_event_sequence 的 source_flow 结果。",
+          "recommended": false,
+          "publicName": "source_flow",
+          "selectorTemplate": "<index>.source_flow",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_transformer_winding_flow",
+          "name": "execution.transformer_winding_flow",
+          "schemaRef": "execution_outputs.transformer_winding_flow",
+          "description": "带 epoch_index 和 solve_event_sequence 的 transformer_winding_flow 结果。",
+          "recommended": false,
+          "publicName": "transformer_winding_flow",
+          "selectorTemplate": "<index>.transformer_winding_flow",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_conductor_flow",
+          "name": "execution.conductor_flow",
+          "schemaRef": "execution_outputs.conductor_flow",
+          "description": "带 epoch_index 和 solve_event_sequence 的 conductor_flow 结果。",
+          "recommended": false,
+          "publicName": "conductor_flow",
+          "selectorTemplate": "<index>.conductor_flow",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_regulator_state",
+          "name": "execution.regulator_state",
+          "schemaRef": "execution_outputs.regulator_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 regulator_state 结果。",
+          "recommended": false,
+          "publicName": "regulator_state",
+          "selectorTemplate": "<index>.regulator_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_capacitor_state",
+          "name": "execution.capacitor_state",
+          "schemaRef": "execution_outputs.capacitor_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 capacitor_state 结果。",
+          "recommended": false,
+          "publicName": "capacitor_state",
+          "selectorTemplate": "<index>.capacitor_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_reactor_state",
+          "name": "execution.reactor_state",
+          "schemaRef": "execution_outputs.reactor_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 reactor_state 结果。",
+          "recommended": false,
+          "publicName": "reactor_state",
+          "selectorTemplate": "<index>.reactor_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_ibr_state",
+          "name": "execution.ibr_state",
+          "schemaRef": "execution_outputs.ibr_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 ibr_state 结果。",
+          "recommended": false,
+          "publicName": "ibr_state",
+          "selectorTemplate": "<index>.ibr_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_gfm_state",
+          "name": "execution.gfm_state",
+          "schemaRef": "execution_outputs.gfm_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 gfm_state 结果。",
+          "recommended": false,
+          "publicName": "gfm_state",
+          "selectorTemplate": "<index>.gfm_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_violations",
+          "name": "execution.violations",
+          "schemaRef": "execution_outputs.violations",
+          "description": "带 epoch_index 和 solve_event_sequence 的 violations 结果。",
+          "recommended": false,
+          "publicName": "violations",
+          "selectorTemplate": "<index>.violations",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_summary",
+          "name": "execution.summary",
+          "schemaRef": "execution_outputs.summary",
+          "description": "带 epoch_index 和 solve_event_sequence 的 summary 结果。",
+          "recommended": false,
+          "publicName": "summary",
+          "selectorTemplate": "<index>.summary",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_storage_state",
+          "name": "execution.storage_state",
+          "schemaRef": "execution_outputs.storage_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 storage_state 结果。",
+          "recommended": false,
+          "publicName": "storage_state",
+          "selectorTemplate": "<index>.storage_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_storage_controller_state",
+          "name": "execution.storage_controller_state",
+          "schemaRef": "execution_outputs.storage_controller_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 storage_controller_state 结果。",
+          "recommended": false,
+          "publicName": "storage_controller_state",
+          "selectorTemplate": "<index>.storage_controller_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_switch_control_state",
+          "name": "execution.switch_control_state",
+          "schemaRef": "execution_outputs.switch_control_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 switch_control_state 结果。",
+          "recommended": false,
+          "publicName": "switch_control_state",
+          "selectorTemplate": "<index>.switch_control_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_fuse_state",
+          "name": "execution.fuse_state",
+          "schemaRef": "execution_outputs.fuse_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 fuse_state 结果。",
+          "recommended": false,
+          "publicName": "fuse_state",
+          "selectorTemplate": "<index>.fuse_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_recloser_state",
+          "name": "execution.recloser_state",
+          "schemaRef": "execution_outputs.recloser_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 recloser_state 结果。",
+          "recommended": false,
+          "publicName": "recloser_state",
+          "selectorTemplate": "<index>.recloser_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_relay_state",
+          "name": "execution.relay_state",
+          "schemaRef": "execution_outputs.relay_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 relay_state 结果。",
+          "recommended": false,
+          "publicName": "relay_state",
+          "selectorTemplate": "<index>.relay_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_fault_state",
+          "name": "execution.fault_state",
+          "schemaRef": "execution_outputs.fault_state",
+          "description": "带 epoch_index 和 solve_event_sequence 的 fault_state 结果。",
+          "recommended": false,
+          "publicName": "fault_state",
+          "selectorTemplate": "<index>.fault_state",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_monitor",
+          "name": "execution.monitor",
+          "schemaRef": "execution_outputs.monitor",
+          "description": "带 epoch_index 和 solve_event_sequence 的 monitor 结果。",
+          "recommended": false,
+          "publicName": "monitor",
+          "selectorTemplate": "<index>.monitor",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_monitor_save",
+          "name": "execution.monitor_save",
+          "schemaRef": "execution_outputs.monitor_save",
+          "description": "带 epoch_index 和 solve_event_sequence 的 monitor_save 结果。",
+          "recommended": false,
+          "publicName": "monitor_save",
+          "selectorTemplate": "<index>.monitor_save",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_energy_meter",
+          "name": "execution.energy_meter",
+          "schemaRef": "execution_outputs.energy_meter",
+          "description": "带 epoch_index 和 solve_event_sequence 的 energy_meter 结果。",
+          "recommended": false,
+          "publicName": "energy_meter",
+          "selectorTemplate": "<index>.energy_meter",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_meter_loss_breakdown",
+          "name": "execution.meter_loss_breakdown",
+          "schemaRef": "execution_outputs.meter_loss_breakdown",
+          "description": "带 epoch_index 和 solve_event_sequence 的 meter_loss_breakdown 结果。",
+          "recommended": false,
+          "publicName": "meter_loss_breakdown",
+          "selectorTemplate": "<index>.meter_loss_breakdown",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_reliability",
+          "name": "execution.reliability",
+          "schemaRef": "execution_outputs.reliability",
+          "description": "带 epoch_index 和 solve_event_sequence 的 reliability 结果。",
+          "recommended": false,
+          "publicName": "reliability",
+          "selectorTemplate": "<index>.reliability",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_meter_zone",
+          "name": "execution.meter_zone",
+          "schemaRef": "execution_outputs.meter_zone",
+          "description": "带 epoch_index 和 solve_event_sequence 的 meter_zone 结果。",
+          "recommended": false,
+          "publicName": "meter_zone",
+          "selectorTemplate": "<index>.meter_zone",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_meter_phase_voltage",
+          "name": "execution.meter_phase_voltage",
+          "schemaRef": "execution_outputs.meter_phase_voltage",
+          "description": "带 epoch_index 和 solve_event_sequence 的 meter_phase_voltage 结果。",
+          "recommended": false,
+          "publicName": "meter_phase_voltage",
+          "selectorTemplate": "<index>.meter_phase_voltage",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_meter_save",
+          "name": "execution.meter_save",
+          "schemaRef": "execution_outputs.meter_save",
+          "description": "带 epoch_index 和 solve_event_sequence 的 meter_save 结果。",
+          "recommended": false,
+          "publicName": "meter_save",
+          "selectorTemplate": "<index>.meter_save",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "execution_load_duration",
+          "name": "execution.load_duration",
+          "schemaRef": "execution_outputs.load_duration",
+          "description": "带 epoch_index 和 solve_event_sequence 的 load_duration 结果。",
+          "recommended": false,
+          "publicName": "load_duration",
+          "selectorTemplate": "<index>.load_duration",
+          "stageFamily": "execution"
+        },
+        {
+          "id": "fault_study_fault_result",
+          "name": "fault_study.fault_result",
+          "publicName": "fault_result",
+          "selectorTemplate": "<index>.fault_result",
+          "stageFamily": "fault_study",
+          "schemaRef": "result_frames.fault",
+          "description": "FaultStudy from the carried fundamental state.",
+          "recommended": true
+        },
+        {
+          "id": "harmonic_bus_voltage",
+          "name": "harmonic.bus_voltage",
+          "schemaRef": "result_frames.harmonic_execution_bus_voltage",
+          "description": "逐母线逐相谐波电压和 THD。",
+          "recommended": true,
+          "publicName": "bus_voltage",
+          "selectorTemplate": "<index>.bus_voltage",
+          "stageFamily": "harmonic"
+        },
+        {
+          "id": "harmonic_branch_flow",
+          "name": "harmonic.branch_flow",
+          "schemaRef": "result_frames.harmonic_execution_branch_flow",
+          "description": "逐支路端口谐波电压、电流和功率。",
+          "recommended": false,
+          "publicName": "branch_flow",
+          "selectorTemplate": "<index>.branch_flow",
+          "stageFamily": "harmonic"
+        },
+        {
+          "id": "harmonic_conductor_flow",
+          "name": "harmonic.conductor_flow",
+          "schemaRef": "result_frames.harmonic_execution_conductor_flow",
+          "description": "按物理导体展开的谐波电压与电流。",
+          "recommended": false,
+          "publicName": "conductor_flow",
+          "selectorTemplate": "<index>.conductor_flow",
+          "stageFamily": "harmonic"
+        },
+        {
+          "id": "harmonic_bus_sequence",
+          "name": "harmonic.bus_sequence",
+          "schemaRef": "result_frames.harmonic_execution_bus_sequence",
+          "description": "母线零、正、负序谐波电压。",
+          "recommended": false,
+          "publicName": "bus_sequence",
+          "selectorTemplate": "<index>.bus_sequence",
+          "stageFamily": "harmonic"
+        },
+        {
+          "id": "harmonic_branch_sequence",
+          "name": "harmonic.branch_sequence",
+          "schemaRef": "result_frames.harmonic_execution_branch_sequence",
+          "description": "支路零、正、负序谐波电气量。",
+          "recommended": false,
+          "publicName": "branch_sequence",
+          "selectorTemplate": "<index>.branch_sequence",
+          "stageFamily": "harmonic"
+        },
+        {
+          "id": "harmonic_monitor",
+          "name": "harmonic.monitor",
+          "schemaRef": "result_frames.harmonic_execution_monitor",
+          "description": "谐波 Monitor 通道长表。",
+          "recommended": false,
+          "publicName": "monitor",
+          "selectorTemplate": "<index>.monitor",
+          "stageFamily": "harmonic"
+        },
+        {
+          "id": "harmonic_monitor_save",
+          "name": "harmonic.monitor_save",
+          "schemaRef": "result_frames.harmonic_execution_monitor_save",
+          "description": "谐波 Monitor 保存快照。",
+          "recommended": false,
+          "publicName": "monitor_save",
+          "selectorTemplate": "<index>.monitor_save",
+          "stageFamily": "harmonic"
+        },
+        {
+          "id": "study_status",
+          "name": "study_status",
+          "publicName": "study_status",
+          "selectorTemplate": "study_status",
+          "schemaRef": "result_frames.sequence_status",
+          "description": "Successful stage identities, including initialization; explicitly selected only.",
+          "recommended": false
+        }
+      ],
+      "projectorOutputs": [
+        {
+          "id": "sequence_plan",
+          "alias": "sequence_plan",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.sequence_plan",
+          "required": true,
+          "position": 1,
+          "disposition": "facade_input",
+          "targetInput": "sequence_plan"
+        },
+        {
+          "id": "sequence_transition",
+          "alias": "sequence_transition",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.sequence_transition",
+          "required": true,
+          "position": 2,
+          "disposition": "facade_input",
+          "targetInput": "sequence_transition"
+        },
+        {
+          "id": "bus",
+          "alias": "bus",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.bus",
+          "required": true,
+          "position": 3,
+          "disposition": "facade_input",
+          "targetInput": "bus"
+        },
+        {
+          "id": "line",
+          "alias": "line",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.line",
+          "required": true,
+          "position": 4,
+          "disposition": "facade_input",
+          "targetInput": "line"
+        },
+        {
+          "id": "linecode",
+          "alias": "linecode",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.linecode",
+          "required": true,
+          "position": 5,
+          "disposition": "facade_input",
+          "targetInput": "linecode"
+        },
+        {
+          "id": "load",
+          "alias": "load",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.load",
+          "required": true,
+          "position": 6,
+          "disposition": "facade_input",
+          "targetInput": "load"
+        },
+        {
+          "id": "transformer",
+          "alias": "transformer",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.transformer",
+          "required": true,
+          "position": 7,
+          "disposition": "facade_input",
+          "targetInput": "transformer"
+        },
+        {
+          "id": "voltage_source",
+          "alias": "voltage_source",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.voltage_source",
+          "required": true,
+          "position": 8,
+          "disposition": "facade_input",
+          "targetInput": "voltage_source"
+        },
+        {
+          "id": "motor",
+          "alias": "motor",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.motor",
+          "required": true,
+          "position": 9,
+          "disposition": "facade_input",
+          "targetInput": "motor"
+        },
+        {
+          "id": "transformer_winding",
+          "alias": "transformer_winding",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.transformer_winding",
+          "required": true,
+          "position": 10,
+          "disposition": "facade_input",
+          "targetInput": "transformer_winding"
+        },
+        {
+          "id": "transformer_impedance",
+          "alias": "transformer_impedance",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.transformer_impedance",
+          "required": true,
+          "position": 11,
+          "disposition": "facade_input",
+          "targetInput": "transformer_impedance"
+        },
+        {
+          "id": "current_source",
+          "alias": "current_source",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.current_source",
+          "required": true,
+          "position": 12,
+          "disposition": "facade_input",
+          "targetInput": "current_source"
+        },
+        {
+          "id": "generator",
+          "alias": "generator",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.generator",
+          "required": true,
+          "position": 13,
+          "disposition": "facade_input",
+          "targetInput": "generator"
+        },
+        {
+          "id": "ibr",
+          "alias": "ibr",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.ibr",
+          "required": true,
+          "position": 14,
+          "disposition": "facade_input",
+          "targetInput": "ibr"
+        },
+        {
+          "id": "switch",
+          "alias": "switch",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.switch",
+          "required": true,
+          "position": 15,
+          "disposition": "facade_input",
+          "targetInput": "switch"
+        },
+        {
+          "id": "shunt",
+          "alias": "shunt",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.shunt",
+          "required": true,
+          "position": 16,
+          "disposition": "facade_input",
+          "targetInput": "shunt"
+        },
+        {
+          "id": "capacitor",
+          "alias": "capacitor",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.capacitor",
+          "required": true,
+          "position": 17,
+          "disposition": "facade_input",
+          "targetInput": "capacitor"
+        },
+        {
+          "id": "reactor",
+          "alias": "reactor",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.reactor",
+          "required": true,
+          "position": 18,
+          "disposition": "facade_input",
+          "targetInput": "reactor"
+        },
+        {
+          "id": "spectrum",
+          "alias": "spectrum",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.spectrum",
+          "required": true,
+          "position": 19,
+          "disposition": "facade_input",
+          "targetInput": "spectrum"
+        },
+        {
+          "id": "control_profile",
+          "alias": "control_profile",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.control_profile",
+          "required": true,
+          "position": 20,
+          "disposition": "facade_input",
+          "targetInput": "control_profile"
+        },
+        {
+          "id": "xy_curve",
+          "alias": "xy_curve",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.xy_curve",
+          "required": true,
+          "position": 21,
+          "disposition": "facade_input",
+          "targetInput": "xy_curve"
+        },
+        {
+          "id": "storage",
+          "alias": "storage",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.storage",
+          "required": true,
+          "position": 22,
+          "disposition": "facade_input",
+          "targetInput": "storage"
+        },
+        {
+          "id": "solution",
+          "alias": "solution",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.solution",
+          "required": true,
+          "position": 23,
+          "disposition": "facade_input",
+          "targetInput": "solution"
+        },
+        {
+          "id": "load_shape",
+          "alias": "load_shape",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.load_shape",
+          "required": true,
+          "position": 24,
+          "disposition": "facade_input",
+          "targetInput": "load_shape"
+        },
+        {
+          "id": "shape_assignment",
+          "alias": "shape_assignment",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.shape_assignment",
+          "required": true,
+          "position": 25,
+          "disposition": "facade_input",
+          "targetInput": "shape_assignment"
+        },
+        {
+          "id": "storage_controller",
+          "alias": "storage_controller",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.storage_controller",
+          "required": true,
+          "position": 26,
+          "disposition": "facade_input",
+          "targetInput": "storage_controller"
+        },
+        {
+          "id": "switch_control",
+          "alias": "switch_control",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.switch_control",
+          "required": true,
+          "position": 27,
+          "disposition": "facade_input",
+          "targetInput": "switch_control"
+        },
+        {
+          "id": "tcc_curve",
+          "alias": "tcc_curve",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.tcc_curve",
+          "required": true,
+          "position": 28,
+          "disposition": "facade_input",
+          "targetInput": "tcc_curve"
+        },
+        {
+          "id": "fuse",
+          "alias": "fuse",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.fuse",
+          "required": true,
+          "position": 29,
+          "disposition": "facade_input",
+          "targetInput": "fuse"
+        },
+        {
+          "id": "recloser",
+          "alias": "recloser",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.recloser",
+          "required": true,
+          "position": 30,
+          "disposition": "facade_input",
+          "targetInput": "recloser"
+        },
+        {
+          "id": "relay",
+          "alias": "relay",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.relay",
+          "required": true,
+          "position": 31,
+          "disposition": "facade_input",
+          "targetInput": "relay"
+        },
+        {
+          "id": "monitor",
+          "alias": "monitor_input",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.monitor",
+          "required": true,
+          "position": 32,
+          "disposition": "facade_input",
+          "targetInput": "monitor"
+        },
+        {
+          "id": "energy_meter",
+          "alias": "energy_meter_input",
+          "inputKind": "model",
+          "schemaRef": "sequence_inputs.energy_meter",
+          "required": true,
+          "position": 33,
+          "disposition": "facade_input",
+          "targetInput": "energy_meter"
+        },
+        {
+          "id": "fault",
+          "alias": "fault",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.fault",
+          "required": true,
+          "position": 34,
+          "disposition": "facade_input",
+          "targetInput": "fault"
+        },
+        {
+          "id": "execution_epoch",
+          "alias": "execution_epoch",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_epoch",
+          "required": true,
+          "position": 35,
+          "disposition": "facade_input",
+          "targetInput": "execution_epoch"
+        },
+        {
+          "id": "execution_setting",
+          "alias": "execution_setting",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_setting",
+          "required": true,
+          "position": 36,
+          "disposition": "facade_input",
+          "targetInput": "execution_setting"
+        },
+        {
+          "id": "execution_mutation",
+          "alias": "execution_mutation",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_mutation",
+          "required": true,
+          "position": 37,
+          "disposition": "facade_input",
+          "targetInput": "execution_mutation"
+        },
+        {
+          "id": "post_solve_action",
+          "alias": "post_solve_action",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.post_solve_action",
+          "required": true,
+          "position": 38,
+          "disposition": "facade_input",
+          "targetInput": "post_solve_action"
+        },
+        {
+          "id": "execution_reference",
+          "alias": "execution_reference",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_reference",
+          "required": true,
+          "position": 39,
+          "disposition": "facade_input",
+          "targetInput": "execution_reference"
+        },
+        {
+          "id": "execution_event",
+          "alias": "execution_event",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.execution_event",
+          "required": true,
+          "position": 40,
+          "disposition": "facade_input",
+          "targetInput": "execution_event"
+        },
+        {
+          "id": "harmonic_plan",
+          "alias": "harmonic_plan",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.harmonic_plan",
+          "required": true,
+          "position": 41,
+          "disposition": "facade_input",
+          "targetInput": "harmonic_plan"
+        },
+        {
+          "id": "frequency_axis",
+          "alias": "frequency_axis",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.frequency_axis",
+          "required": true,
+          "position": 42,
+          "disposition": "facade_input",
+          "targetInput": "frequency_axis"
+        },
+        {
+          "id": "frequency_spectrum",
+          "alias": "frequency_spectrum",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.frequency_spectrum",
+          "required": true,
+          "position": 43,
+          "disposition": "facade_input",
+          "targetInput": "frequency_spectrum"
+        },
+        {
+          "id": "harmonic_monitor",
+          "alias": "harmonic_monitor",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.harmonic_monitor",
+          "required": true,
+          "position": 44,
+          "disposition": "facade_input",
+          "targetInput": "harmonic_monitor"
+        },
+        {
+          "id": "harmonic_snapshot",
+          "alias": "harmonic_snapshot",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.harmonic_snapshot",
+          "required": true,
+          "position": 45,
+          "disposition": "facade_input",
+          "targetInput": "harmonic_snapshot"
+        },
+        {
+          "id": "sequence_request",
+          "alias": "sequence_request",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.sequence_request",
+          "required": true,
+          "position": 46,
+          "disposition": "facade_input",
+          "targetInput": "sequence_request"
+        },
+        {
+          "id": "para",
+          "alias": "para",
+          "inputKind": "struct",
+          "schemaRef": "sequence_inputs.para",
+          "required": true,
+          "position": 47,
+          "disposition": "facade_input",
+          "targetInput": "para"
+        },
+        {
+          "id": "sequence_diagnostic",
+          "alias": "sequence_diagnostic",
+          "inputKind": "data",
+          "schemaRef": "sequence_inputs.sequence_diagnostic",
+          "required": true,
+          "position": 48,
+          "disposition": "facade_input",
+          "targetInput": "sequence_diagnostic"
+        }
+      ],
+      "sourceResults": [
+        "execution.bus_voltage",
+        "execution.bus_phase",
+        "execution.load_state",
+        "execution.generator_state",
+        "execution.branch_flow",
+        "execution.source_flow",
+        "execution.transformer_winding_flow",
+        "execution.conductor_flow",
+        "execution.regulator_state",
+        "execution.capacitor_state",
+        "execution.reactor_state",
+        "execution.ibr_state",
+        "execution.gfm_state",
+        "execution.violations",
+        "execution.summary",
+        "execution.storage_state",
+        "execution.storage_controller_state",
+        "execution.switch_control_state",
+        "execution.fuse_state",
+        "execution.recloser_state",
+        "execution.relay_state",
+        "execution.fault_state",
+        "execution.monitor",
+        "execution.monitor_save",
+        "execution.energy_meter",
+        "execution.meter_loss_breakdown",
+        "execution.reliability",
+        "execution.meter_zone",
+        "execution.meter_phase_voltage",
+        "execution.meter_save",
+        "execution.load_duration",
+        "fault_study.fault_result",
+        "harmonic.bus_voltage",
+        "harmonic.branch_flow",
+        "harmonic.conductor_flow",
+        "harmonic.bus_sequence",
+        "harmonic.branch_sequence",
+        "harmonic.monitor",
+        "harmonic.monitor_save",
+        "study_status"
+      ],
+      "resultMap": {
+        "execution.bus_voltage": "execution.bus_voltage",
+        "execution.bus_phase": "execution.bus_phase",
+        "execution.load_state": "execution.load_state",
+        "execution.generator_state": "execution.generator_state",
+        "execution.branch_flow": "execution.branch_flow",
+        "execution.source_flow": "execution.source_flow",
+        "execution.transformer_winding_flow": "execution.transformer_winding_flow",
+        "execution.conductor_flow": "execution.conductor_flow",
+        "execution.regulator_state": "execution.regulator_state",
+        "execution.capacitor_state": "execution.capacitor_state",
+        "execution.reactor_state": "execution.reactor_state",
+        "execution.ibr_state": "execution.ibr_state",
+        "execution.gfm_state": "execution.gfm_state",
+        "execution.violations": "execution.violations",
+        "execution.summary": "execution.summary",
+        "execution.storage_state": "execution.storage_state",
+        "execution.storage_controller_state": "execution.storage_controller_state",
+        "execution.switch_control_state": "execution.switch_control_state",
+        "execution.fuse_state": "execution.fuse_state",
+        "execution.recloser_state": "execution.recloser_state",
+        "execution.relay_state": "execution.relay_state",
+        "execution.fault_state": "execution.fault_state",
+        "execution.monitor": "execution.monitor",
+        "execution.monitor_save": "execution.monitor_save",
+        "execution.energy_meter": "execution.energy_meter",
+        "execution.meter_loss_breakdown": "execution.meter_loss_breakdown",
+        "execution.reliability": "execution.reliability",
+        "execution.meter_zone": "execution.meter_zone",
+        "execution.meter_phase_voltage": "execution.meter_phase_voltage",
+        "execution.meter_save": "execution.meter_save",
+        "execution.load_duration": "execution.load_duration",
+        "fault_study.fault_result": "fault_study.fault_result",
+        "harmonic.bus_voltage": "harmonic.bus_voltage",
+        "harmonic.branch_flow": "harmonic.branch_flow",
+        "harmonic.conductor_flow": "harmonic.conductor_flow",
+        "harmonic.bus_sequence": "harmonic.bus_sequence",
+        "harmonic.branch_sequence": "harmonic.branch_sequence",
+        "harmonic.monitor": "harmonic.monitor",
+        "harmonic.monitor_save": "harmonic.monitor_save",
+        "study_status": "study_status"
+      },
+      "bundleResultMap": {
+        "execution.bus_voltage": "execution.bus_voltage",
+        "execution.bus_phase": "execution.bus_phase",
+        "execution.load_state": "execution.load_state",
+        "execution.generator_state": "execution.generator_state",
+        "execution.branch_flow": "execution.branch_flow",
+        "execution.source_flow": "execution.source_flow",
+        "execution.transformer_winding_flow": "execution.transformer_winding_flow",
+        "execution.conductor_flow": "execution.conductor_flow",
+        "execution.regulator_state": "execution.regulator_state",
+        "execution.capacitor_state": "execution.capacitor_state",
+        "execution.reactor_state": "execution.reactor_state",
+        "execution.ibr_state": "execution.ibr_state",
+        "execution.gfm_state": "execution.gfm_state",
+        "execution.violations": "execution.violations",
+        "execution.summary": "execution.summary",
+        "execution.storage_state": "execution.storage_state",
+        "execution.storage_controller_state": "execution.storage_controller_state",
+        "execution.switch_control_state": "execution.switch_control_state",
+        "execution.fuse_state": "execution.fuse_state",
+        "execution.recloser_state": "execution.recloser_state",
+        "execution.relay_state": "execution.relay_state",
+        "execution.fault_state": "execution.fault_state",
+        "execution.monitor": "execution.monitor",
+        "execution.monitor_save": "execution.monitor_save",
+        "execution.energy_meter": "execution.energy_meter",
+        "execution.meter_loss_breakdown": "execution.meter_loss_breakdown",
+        "execution.reliability": "execution.reliability",
+        "execution.meter_zone": "execution.meter_zone",
+        "execution.meter_phase_voltage": "execution.meter_phase_voltage",
+        "execution.meter_save": "execution.meter_save",
+        "execution.load_duration": "execution.load_duration",
+        "fault_study.fault_result": "fault_study.fault_result",
+        "harmonic.bus_voltage": "harmonic.bus_voltage",
+        "harmonic.branch_flow": "harmonic.branch_flow",
+        "harmonic.conductor_flow": "harmonic.conductor_flow",
+        "harmonic.bus_sequence": "harmonic.bus_sequence",
+        "harmonic.branch_sequence": "harmonic.branch_sequence",
+        "harmonic.monitor": "harmonic.monitor",
+        "harmonic.monitor_save": "harmonic.monitor_save",
+        "study_status": "study_status"
+      },
+      "resultSelector": {
+        "input": "sequence_request",
+        "field": "result",
+        "stageField": "study_index",
+        "valueSource": "manifest.study_sequence.results"
+      },
+      "selectorContract": {
+        "grammar": "<index>.<result>",
+        "statusSelector": "study_status",
+        "stageOrder": "nondecreasing",
+        "unique": true,
+        "unqualified": "forbidden",
+        "defaults": "one default result per result-bearing stage in source order",
+        "request": "Each row has a valid study_index and unqualified result; a stage_id selects the stage default. study_status is explicit and uses any valid study_index. para has only line_model=exact."
+      }
     }
   ]
 }

@@ -68,6 +68,60 @@ class CatalogValidatorTests(unittest.TestCase):
                 with self.assertRaisesRegex(AssertionError, pattern):
                     self.validator.main()
 
+    def test_study_sequence_fixed_v1_profile_and_result_schemas(self):
+        catalog = self.read("case_projections.json")
+        profiles = [p for p in catalog["profiles"] if p["id"] == "dss_study_sequence_v1"]
+        self.assertEqual(len(profiles), 1, "missing sequence v1 profile")
+        profile = profiles[0]
+        facade = self.facade(self.read("study_facades.json"), "ds_study_sequence")
+        self.assertEqual(profile["inputs"], facade["inputs"])
+        self.assertEqual(len(profile["inputs"]), 48)
+        self.assertEqual([i["position"] for i in profile["inputs"]], list(range(1,49)))
+        self.assertEqual([i["id"] for i in profile["inputs"][:2]], ["sequence_plan", "sequence_transition"])
+        self.assertEqual([i["id"] for i in profile["inputs"][-3:]], ["sequence_request", "para", "sequence_diagnostic"])
+        self.assertEqual(profile["results"], facade["results"])
+        dataframes = self.read("dataframes.json")
+        load_columns = {c["name"]: c for c in dataframes["sequence_inputs"]["load"]["contract"]["columns"]}
+        self.assertEqual(load_columns["p_nom"]["unit"], "W")
+        epoch_columns = {c["name"]: c for c in dataframes["sequence_inputs"]["execution_epoch"]["contract"]["columns"]}
+        self.assertEqual(epoch_columns["base_frequency_hz"]["unit"], "Hz")
+        for item in profile["inputs"] + profile["results"]:
+            self.validator.schema_at(dataframes, item["schemaRef"])
+        self.assertIn("study_status", [r["name"] for r in profile["results"]])
+        self.assertEqual(self.dsa_contract(self.read("functions.json"), "ds_study_sequence")["arity"],48)
+
+    def test_study_sequence_catalog_registers_source_and_projector(self):
+        functions = self.read("functions.json")
+        self.assertTrue(any("ds_dss_study_sequence" in item["names"] for item in functions["dsa_functions"]))
+        self.assertIn("project_dss_study_sequence", json.dumps(functions))
+
+    def test_study_sequence_catalog_rejects_fixed_slot_order_drift(self):
+        catalog = self.read("case_projections.json")
+        profile = next(p for p in catalog["profiles"] if p["id"] == "dss_study_sequence_v1")
+        profile["inputs"][0]["schemaRef"] = "sequence_inputs.sequence_transition"
+        with self.assertRaisesRegex(AssertionError, "sequence.*schema"):
+            self.validator.validate_study_sequence_catalog(self.read("functions.json"), self.read("dataframes.json"), self.read("study_facades.json"), catalog)
+
+    def test_study_sequence_catalog_rejects_unmapped_result(self):
+        facades = self.read("study_facades.json")
+        facade = self.facade(facades, "ds_study_sequence")
+        facade["results"][0]["schemaRef"] = "result_frames.does_not_exist"
+        with self.assertRaisesRegex(AssertionError, "schemaRef"):
+            self.validator.validate_study_sequence_catalog(self.read("functions.json"), self.read("dataframes.json"), facades, self.read("case_projections.json"))
+
+    def test_study_sequence_catalog_rejects_missing_result_family(self):
+        facades = self.read("study_facades.json")
+        self.facade(facades, "ds_study_sequence")["results"].pop(0)
+        with self.assertRaisesRegex(AssertionError, "sequence.*result"):
+            self.validator.validate_study_sequence_catalog(self.read("functions.json"), self.read("dataframes.json"), facades, self.read("case_projections.json"))
+
+    def test_study_sequence_selection_uses_request_without_changing_para_schema(self):
+        facade = self.facade(self.read("study_facades.json"), "ds_study_sequence")
+        self.assertEqual(facade["resultConstraints"][0]["type"], "ordered_stage_selection")
+        self.assertEqual(facade["resultConstraints"][0]["selector"], "sequence_request.result")
+        columns = self.validator.resolve_contract_columns(self.read("dataframes.json"), "sequence_inputs.para")
+        self.assertEqual([(c["name"], c["dtype"]) for c in columns], [("line_model", "str")])
+
     def test_harmonic_monitor_save_uses_full_base_schema(self):
         catalog = self.read("dataframes.json")
         self.assertEqual(
@@ -179,7 +233,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             self.read("study_facades.json"),
             self.read("dataframes.json"),
         )
-        self.assertEqual(count, 179)
+        self.assertEqual(count, 180)
 
     def test_network_dynamics_catalog_publishes_v13_monitor_additively(self):
         functions = self.read("functions.json")
@@ -234,7 +288,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         self.assertTrue(selectors)
         self.assertEqual(
             set(selectors.values()),
-            {"profile.resultMap(manifest.projection.results)"},
+            {"profile.resultMap(manifest.projection.results)", "manifest.study_sequence.results"},
         )
 
     def test_native_dynamic_catalog_publishes_v13_monitor(self):
@@ -746,10 +800,10 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         facades = self.read("study_facades.json")
         stats = self.validator.validate_catalog_contracts(dataframes, facades)
         self.assertEqual(stats["facades"], len(facades["facades"]))
-        self.assertEqual(stats["facades"], 18)
-        self.assertEqual(stats["models"], 77)
-        self.assertEqual(stats["structs"], 9)
-        self.assertEqual(stats["results"], 127)
+        self.assertEqual(stats["facades"], 19)
+        self.assertEqual(stats["models"], 105)
+        self.assertEqual(stats["structs"], 10)
+        self.assertEqual(stats["results"], 128)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):

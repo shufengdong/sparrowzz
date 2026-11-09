@@ -797,7 +797,13 @@ def validate_result_constraints(function, facade, dataframes, result_names, reco
         if not isinstance(kind, str):
             fail(f"{function} resultConstraints[{index}].type must be a string")
 
-        if kind == "ordered_unique_selection":
+        if kind == "ordered_stage_selection":
+            selection_count += 1
+            if function != "ds_study_sequence" or constraint.get("selector") != "sequence_request.result" or constraint.get("stageField") != "study_index":
+                fail(f"{function} invalid ordered stage selection")
+            if constraint.get("minimum") != 1 or constraint.get("bindingCount") != "selected_result_count":
+                fail(f"{function} invalid ordered stage selection binding count")
+        elif kind == "ordered_unique_selection":
             selection_count += 1
             selector = constraint.get("selector")
             if not isinstance(selector, str) or not selector.strip() or "." not in selector:
@@ -983,6 +989,13 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
                     if item["schemaRef"] == "harmonic_snapshot_inputs.snapshot"
                     else "model"
                 )
+            if item["schemaRef"].startswith("sequence_inputs."):
+                schema_name = item["schemaRef"].split(".", 1)[1]
+                expected_kind = ("struct" if schema_name == "para" else
+                    "model" if schema_name in set(network_order) | {
+                        "shape_assignment", "storage_controller", "switch_control",
+                        "fuse", "recloser", "relay", "monitor", "energy_meter",
+                    } else "data")
             if expected_kind is None:
                 fail(f"{function}.{item['id']} has no audited inputKind for {item['schemaRef']}")
             if item["inputKind"] != expected_kind:
@@ -1036,6 +1049,60 @@ def validate_study_facades(functions, dataframes, study_facades, dsa_by_name):
             fail(f"related algorithms must remain separate facades: {group}")
 
 
+def validate_study_sequence_catalog(functions, dataframes, study_facades, case_projections):
+    """Audit the fixed physical ABI and family-specific public selector mapping."""
+    profile = next((p for p in case_projections["profiles"] if p["id"] == "dss_study_sequence_v1"), None)
+    facade = next((f for f in study_facades["facades"] if f["function"] == "ds_study_sequence"), None)
+    if profile is None or facade is None:
+        fail("missing study sequence v1 profile/facade")
+    source = (ROOT / "psa/src/dsa/parse/dss_sequence_schema.rs").read_text()
+    schemas = re.findall(r'\(\s*"([^"\n]+)",\s*&\[(.*?)\],?\s*\)', source, re.S)
+    renamed = {"transition": "sequence_transition", "request": "sequence_request",
+        "diagnostic": "sequence_diagnostic", "monitor": "harmonic_monitor",
+        "snapshot": "harmonic_snapshot", "epoch": "execution_epoch",
+        "setting": "execution_setting", "mutation": "execution_mutation", "event": "execution_event"}
+    expected = [name.split(".")[1] if "." in name else renamed.get(name, name) for name, _ in schemas]
+    contract = next(c for c in functions["dsa_functions"] if "ds_study_sequence" in c["names"])
+    if len(schemas) != 48 or contract.get("arity") != 48 or contract["arguments"] != expected:
+        fail("study sequence fixed v1 arity/order differs")
+    for owner in (facade, profile):
+        inputs = owner["inputs"]
+        if [item["id"] for item in inputs] != expected:
+            fail("study sequence fixed v1 input order differs")
+        for item, (name, body) in zip(inputs, schemas):
+            reference = "sequence_inputs." + item["id"]
+            if item["schemaRef"] != reference:
+                fail("study sequence fixed input schema differs at " + item["id"])
+            columns = resolve_contract_columns(dataframes, reference)
+            actual = [(c["name"], c["dtype"]) for c in columns]
+            physical = re.findall(r'\("([^\"]+)", "([^\"]+)"\)', body)
+            if actual != physical:
+                fail("study sequence physical schema differs at " + reference)
+    frame_ops = FRAME_OPS.read_text()
+    execution = [n for n in result_constant(frame_ops, "DSS_PLAN_RESULT_NAMES") if n not in {"execution_trace", "diagnostics", "events"}]
+    harmonic = result_constant(frame_ops, "HARMONIC_RESULT_NAMES")
+    expected_results = (["execution." + n for n in execution] + ["fault_study.fault_result"] +
+                        ["harmonic." + n for n in harmonic] + ["study_status"])
+    if [r["name"] for r in facade["results"]] != expected_results:
+        fail("study sequence results must cover every typed result family")
+    for item in facade["results"]:
+        schema_at(dataframes, item["schemaRef"])
+        name = item["name"]
+        if name == "study_status":
+            expected_ref = "result_frames.sequence_status"
+            template = "study_status"
+        else:
+            family, public = name.split(".", 1)
+            expected_ref = ("execution_outputs." + public if family == "execution" else
+                            "result_frames.fault" if family == "fault_study" else
+                            "result_frames.harmonic_execution_" + public)
+            template = "<index>." + public
+        if item["schemaRef"] != expected_ref or item.get("selectorTemplate") != template:
+            fail("study sequence result schema/selector mapping differs at " + name)
+    if profile["results"] != facade["results"]:
+        fail("study sequence profile results differ from facade")
+
+
 def validate_case_projections(case_projections, study_facades, dataframes, dsa_by_name, frame_ops, translate):
     if case_projections.get("schema_version") != 2:
         fail("case_projections.json must use schema_version 2")
@@ -1053,6 +1120,7 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
         "ds_dss_dynamic_plan",
         "ds_dss_auto_add",
         "ds_dss_relcalc",
+        "ds_dss_study_sequence",
     }
     ids = [profile.get("id") for profile in profiles]
     sources = [profile.get("sourceFunction") for profile in profiles]
@@ -1191,7 +1259,8 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
         if unknown:
             fail(f"case projection {profile['id']} bundleResultMap references unknown target results {sorted(unknown)}")
         selector = profile.get("resultSelector")
-        if selector != {"input": "para", "field": "result", "valueSource": "profile.resultMap(manifest.projection.results)"}:
+        expected_selector = ({"input": "sequence_request", "field": "result", "stageField": "study_index", "valueSource": "manifest.study_sequence.results"} if profile["id"] == "dss_study_sequence_v1" else {"input": "para", "field": "result", "valueSource": "profile.resultMap(manifest.projection.results)"})
+        if selector != expected_selector:
             fail(f"case projection {profile['id']} must declare the para.result manifest mapping")
 
 
@@ -1381,6 +1450,7 @@ def main():
         )
 
     validate_base_schemas(dataframes)
+    validate_study_sequence_catalog(functions, dataframes, study_facades, case_projections)
     validate_study_facades(functions, dataframes, study_facades, dsa_by_name)
     contract_stats = validate_catalog_contracts(dataframes, study_facades, case_projections)
     validate_case_projections(case_projections, study_facades, dataframes, dsa_by_name, frame_ops, translate)
