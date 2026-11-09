@@ -1,0 +1,4 @@
+// Test case for MemoryMapping, PMult from binary float32 file
+Clear
+var @loadshape_script_dss=LS_PhaseA-mm-sng-p.dss
+redirect main_template.dss

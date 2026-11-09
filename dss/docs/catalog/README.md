@@ -21,6 +21,13 @@
 `bundleResultMap` 描述 manifest 中旧脚本绑定名到目标结果名的映射。`managedEntry` 固定为
 `managed.rss`。`compatibility.failClosed=true` 且必须提供 `stableDiagnostic`。
 
+`manifest.study.results` 是原生 bundle 结果全集，`manifest.projection.results` 是 managed
+门面实际选择的有序子集。启用 profile 的 selector 固定使用
+`profile.resultMap(manifest.projection.results)`；不得从原生全集为 managed 调用生成未绑定结果。
+Dynamic V13 因此可以发布 16 项原生结果（末尾含 `monitor`），同时 managed projection 继续
+选择 V12 的 15 项。V12 的 29 参数入口仍由运行时兼容，V13 规范入口为末尾追加 `monitor` 的
+30 参数、16 结果合同。
+
 每个启用 profile 的 `projectorOutputs` 是 projector 返回 DataFrame 的完整有序合同，位置从 1
 连续编号。每项必须包含 `id`、`alias`、`inputKind`、`schemaRef`、`required`、`position` 和
 `disposition`：
@@ -101,7 +108,7 @@ bundle manifest schema v2 的 `projection` 包含 `source_function`、`profile`�
 dtype := primitive | semantic | constructor "<" dtype ">"
 ```
 
-原子类型包括 `str`、`bool`、`i32`、`u32`、`u64` 和 `f64`。一元构造器包括：
+原子类型包括 `str`、`bool`、`i32`、`u8`、`u32`、`u64` 和 `f64`。一元构造器包括：
 
 - `list<T>`：Arrow `List<T>`、Parquet `LIST<T>`；元素不可为 null，整格是否可为 null 由列的 `nullable` 决定；
 - `matrix<T>`：物理表示仍为 Arrow/Parquet 一维 List，逻辑上按行主序扁平编码；矩阵维度由字段规则、相数或配套表决定。

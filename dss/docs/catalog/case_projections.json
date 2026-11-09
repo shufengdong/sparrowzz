@@ -329,7 +329,7 @@
       "resultSelector": {
         "input": "para",
         "field": "result",
-        "valueSource": "profile.resultMap(manifest.study.results)"
+        "valueSource": "profile.resultMap(manifest.projection.results)"
       },
       "bundleResultMap": {
         "voltage": "bus_phase"
@@ -865,7 +865,7 @@
       "resultSelector": {
         "input": "para",
         "field": "result",
-        "valueSource": "profile.resultMap(manifest.study.results)"
+        "valueSource": "profile.resultMap(manifest.projection.results)"
       },
       "bundleResultMap": {
         "voltage": "bus_phase"
@@ -1771,7 +1771,7 @@
       "resultSelector": {
         "input": "para",
         "field": "result",
-        "valueSource": "profile.resultMap(manifest.study.results)"
+        "valueSource": "profile.resultMap(manifest.projection.results)"
       },
       "bundleResultMap": {
         "voltage": "bus_phase"
@@ -2867,7 +2867,7 @@
       "resultSelector": {
         "input": "para",
         "field": "result",
-        "valueSource": "profile.resultMap(manifest.study.results)"
+        "valueSource": "profile.resultMap(manifest.projection.results)"
       },
       "bundleResultMap": {
         "voltage": "bus_phase"
@@ -3511,7 +3511,7 @@
       "resultSelector": {
         "input": "para",
         "field": "result",
-        "valueSource": "profile.resultMap(manifest.study.results)"
+        "valueSource": "profile.resultMap(manifest.projection.results)"
       },
       "bundleResultMap": {
         "fault": "fault"
@@ -4355,7 +4355,7 @@
       "resultSelector": {
         "input": "para",
         "field": "result",
-        "valueSource": "profile.resultMap(manifest.study.results)"
+        "valueSource": "profile.resultMap(manifest.projection.results)"
       },
       "bundleResultMap": {
         "bus_voltage": "bus_voltage",
@@ -5233,7 +5233,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,
@@ -5394,7 +5394,7 @@
       "resultSelector": {
         "input": "para",
         "field": "result",
-        "valueSource": "profile.resultMap(manifest.study.results)"
+        "valueSource": "profile.resultMap(manifest.projection.results)"
       },
       "bundleResultMap": {
         "bus_voltage": "bus_voltage",
@@ -5707,7 +5707,7 @@
         },
         {
           "id": "monitor",
-          "alias": "monitor",
+          "alias": "monitor_input",
           "inputKind": "model",
           "schemaRef": "frames.monitor",
           "required": true,

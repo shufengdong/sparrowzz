@@ -20,10 +20,12 @@ TENSOREVAL = next(ROOT.glob("*/src/bin/tensoreval.rs"))
 RUNTIME_SRC = TENSOREVAL.parents[1]
 TRANSLATE = RUNTIME_SRC / "ml/expr_df/translate.rs"
 FRAME_OPS = RUNTIME_SRC / "ml/expr_df/frame_ops.rs"
+QSTS_OUTPUT = RUNTIME_SRC / "ml/expr_df/frame_ops/qsts_output.rs"
 NATIVE_DSS = RUNTIME_SRC / "ml/expr_df/frame_ops/dsa/native_dss.rs"
 
 RESULT_CONSTANTS = {
     "MOTOR_DYNAMIC_RESULT_NAMES": {"ds_motor_dynamics"},
+    "NETWORK_DYNAMIC_RESULT_NAMES_V13": {"ds_network_dynamics", "ds_dss_dynamic_plan"},
     "PROTECTION_COORDINATION_RESULT_NAMES": {"ds_protection_coordination"},
     "DSS_PLAN_RESULT_NAMES": {
         "ds_radial_dss_plan",
@@ -111,7 +113,7 @@ SUPPORTED_RULE_TYPES = {
     "unique_items",
 }
 
-UNSIGNED_INTEGER_DTYPES = {"u32", "u64", "u32_semantics"}
+UNSIGNED_INTEGER_DTYPES = {"u8", "u32", "u64", "u32_semantics"}
 
 QSTS_RESULT_BUILDERS = {
     "storage_state": ("qsts_storage_state_frame", []),
@@ -126,14 +128,14 @@ QSTS_RESULT_BUILDERS = {
 
 QSTS_METER_RESULT_BUILDERS = {
     "qsts_monitor": ("psa/src/dsa/monitor_output.rs", "monitor_output_frame"),
-    "qsts_monitor_save": ("psa/src/dsa/pf/metering.rs", "monitor_save_frame"),
-    "qsts_energy_meter": ("psa/src/dsa/pf/metering.rs", "meter_frame"),
-    "qsts_meter_loss_breakdown": ("psa/src/dsa/pf/metering.rs", "meter_loss_frame"),
-    "qsts_reliability": ("psa/src/dsa/pf/metering.rs", "reliability_frame"),
-    "qsts_meter_zone": ("psa/src/dsa/pf/metering.rs", "meter_zone_frame"),
-    "meter_phase_voltage": ("psa/src/dsa/pf/metering.rs", "meter_phase_voltage_frame"),
-    "qsts_meter_save": ("psa/src/dsa/pf/metering.rs", "meter_frame"),
-    "qsts_load_duration": ("psa/src/dsa/pf/time_series.rs", "load_duration_frame"),
+    "qsts_monitor_save": ("psa/src/dsa/pf/metering/frames.rs", "monitor_save_frame"),
+    "qsts_energy_meter": ("psa/src/dsa/pf/metering/frames.rs", "meter_frame"),
+    "qsts_meter_loss_breakdown": ("psa/src/dsa/pf/metering/frames.rs", "meter_loss_frame"),
+    "qsts_reliability": ("psa/src/dsa/pf/metering/frames.rs", "reliability_frame"),
+    "qsts_meter_zone": ("psa/src/dsa/pf/metering/frames.rs", "meter_zone_frame"),
+    "meter_phase_voltage": ("psa/src/dsa/pf/metering/frames.rs", "meter_phase_voltage_frame"),
+    "qsts_meter_save": ("psa/src/dsa/pf/metering/frames.rs", "meter_frame"),
+    "qsts_load_duration": ("psa/src/dsa/pf/time_series/load_duration.rs", "load_duration_frame"),
 }
 
 PSA_RESULT_BUILDERS = {
@@ -154,7 +156,7 @@ PSA_RESULT_BUILDERS = {
     "harmonic_bus_sequence": ("psa/src/dsa/harmonics/api.rs", "bus_sequence_frame"),
     "harmonic_branch_sequence": ("psa/src/dsa/harmonics/api.rs", "branch_sequence_frame"),
     "harmonic_monitor": ("psa/src/dsa/harmonics/monitor.rs", "monitor_frame"),
-    "meter_phase_voltage": ("psa/src/dsa/pf/metering.rs", "meter_phase_voltage_frame"),
+    "meter_phase_voltage": ("psa/src/dsa/pf/metering/frames.rs", "meter_phase_voltage_frame"),
 }
 
 HARMONIC_EXECUTION_RESULT_COLUMNS = {
@@ -1189,7 +1191,7 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
         if unknown:
             fail(f"case projection {profile['id']} bundleResultMap references unknown target results {sorted(unknown)}")
         selector = profile.get("resultSelector")
-        if selector != {"input": "para", "field": "result", "valueSource": "profile.resultMap(manifest.study.results)"}:
+        if selector != {"input": "para", "field": "result", "valueSource": "profile.resultMap(manifest.projection.results)"}:
             fail(f"case projection {profile['id']} must declare the para.result manifest mapping")
 
 
@@ -1225,11 +1227,11 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
             schema_at(dataframes, item["schemaRef"])
         source_results = manifest.get("study", {}).get("results")
         projected_results = projection.get("results")
-        if not isinstance(source_results, list) or not isinstance(projected_results, list) or len(source_results) != len(projected_results):
-            fail(f"{label} projection results differ from study.results")
+        validate_manifest_result_contract(label, profile, source_results, projected_results)
         expected_map = profile["bundleResultMap"]
-        for source, result in zip(source_results, projected_results):
-            if result.get("source") != source or result.get("target") != expected_map.get(source):
+        for result in projected_results:
+            source = result.get("source")
+            if result.get("target") != expected_map.get(source):
                 fail(f"{label} cannot map published result {source} through {profile['id']}")
             if result.get("binding") != f"result_{source}":
                 fail(f"{label} uses a non-canonical managed result binding for {source}")
@@ -1239,7 +1241,15 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
         script = managed.read_text(encoding="utf-8")
         if any(token in script.lower() for token in (".dss", "import_dss", "source_root", "http://", "https://")):
             fail(f"{label} managed entry contains a forbidden path or import token")
-        expected_arguments = ", ".join(item["alias"] for item in facade["inputs"])
+        managed_inputs = facade["inputs"]
+        if (
+            profile["targetFunction"] == "ds_network_dynamics"
+            and source_results == [result["name"] for result in facade["results"][:-1]]
+            and facade["results"][-1]["name"] == "monitor"
+            and facade["inputs"][-1]["id"] == "monitor"
+        ):
+            managed_inputs = facade["inputs"][:-1]
+        expected_arguments = ", ".join(item["alias"] for item in managed_inputs)
         expected_bindings = ", ".join(result["binding"] for result in projected_results)
         expected_left = expected_bindings if len(projected_results) == 1 else f"[{expected_bindings}]"
         if f"{expected_left} = {profile['targetFunction']}({expected_arguments});" not in script:
@@ -1251,6 +1261,38 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
         if declared[0].get("sha256") != actual_hash:
             fail(f"{label} managed entry hash is stale")
     return len(manifests)
+
+
+def is_ordered_subset(values, canonical):
+    remaining = iter(canonical)
+    return all(any(candidate == value for candidate in remaining) for value in values)
+
+
+def validate_manifest_result_contract(label, profile, source_results, projected_results):
+    if (
+        not isinstance(source_results, list)
+        or not source_results
+        or any(not isinstance(source, str) or not source for source in source_results)
+        or len(source_results) != len(set(source_results))
+    ):
+        fail(f"{label} study.results must contain unique non-empty strings")
+    canonical_sources = list(profile["bundleResultMap"])
+    if not is_ordered_subset(source_results, canonical_sources):
+        fail(f"{label} study.results must be an ordered subset of the native result contract")
+    if profile["id"] == "dss_dynamic_plan_v1":
+        legacy_v12 = canonical_sources[:-1] if canonical_sources[-1] == "monitor" else []
+        if source_results not in (canonical_sources, legacy_v12):
+            fail(f"{label} dynamic study.results must be the complete V13 or legacy V12 contract")
+    if not isinstance(projected_results, list) or not projected_results or any(not isinstance(result, dict) for result in projected_results):
+        fail(f"{label} projection.results must be a non-empty list of mappings")
+    projected_sources = [result.get("source") for result in projected_results]
+    if (
+        any(not isinstance(source, str) or not source for source in projected_sources)
+        or len(projected_sources) != len(set(projected_sources))
+    ):
+        fail(f"{label} projection.results sources must be unique non-empty strings")
+    if not is_ordered_subset(projected_sources, source_results):
+        fail(f"{label} projection.results must be an ordered subset of study.results")
 
 
 def result_constant(source, name):
@@ -1323,6 +1365,7 @@ def main():
 
     translate = TRANSLATE.read_text(encoding="utf-8")
     frame_ops = FRAME_OPS.read_text(encoding="utf-8")
+    qsts_output = QSTS_OUTPUT.read_text(encoding="utf-8")
     native_dss = NATIVE_DSS.read_text(encoding="utf-8")
     registered_dsa = registered_dsa_names(frame_ops)
 
@@ -1372,7 +1415,7 @@ def main():
 
     for result_name, builder in QSTS_RESULT_BUILDERS.items():
         function_name, appended = builder
-        rust_columns = dataframe_builder_columns(frame_ops, function_name) + appended
+        rust_columns = dataframe_builder_columns(qsts_output, function_name) + appended
         key = "columns" if result_name == "execution_trace" else "columns_before_time_metadata"
         catalog_columns = dataframes["result_frames"][result_name][key]
         if catalog_columns != rust_columns:

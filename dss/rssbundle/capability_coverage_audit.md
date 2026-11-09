@@ -12,8 +12,9 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：149 个入口已经发布 bundle，110 个独立入口尚未发布；`conversion_report.csv`
-  的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT 与 8,760 点 Ckt7 均已完成
+- 当前结果：176 个入口已经发布 bundle，93 个独立入口尚未发布；`conversion_report.csv`
+  的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
+  GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
 - 每个失败入口先记录全部诊断，不以首诊断推断后续能力；对路径和词法类失败，另在临时
   副本中只修正引用位置或行尾注释，再次执行以取得第二层诊断。
@@ -240,10 +241,11 @@ bundle 发布。去除浮置 Delta 母线的任意公共模后，最大复电压
 - InverterTechNote `kVA/11_1_kVAViolation.dss` 已在第二十九轮接入 Storage `%kWRated`、
   `%PMinNoVars/%PMinkvarMax`、切入前空闲态和 EffCurve DC 侧损耗分解；24 时点最大连续状态
   归一化误差 `8.49630e-4`，三相电压最大归一化误差 `1.40126e-5`，bundle 已发布。
-- 8 个 MemoryMappingLoadShapes 案例还涉及 MemoryMapping、Sng/Dbl 二进制或专用文本加载
-  语义，超出当前 LoadShape 文件合同。
+- 8 个 MemoryMappingLoadShapes 案例在该轮审计时还涉及 MemoryMapping、Sng/Dbl 二进制或专用
+  文本加载语义；它们现已在第二、第三批全部通过严格转换、原生数值和搬移 bundle 门禁。
 
-所以这 27 个都是“路径层有 bug”，但不是“能力已经完整覆盖”的案例。
+所以当时这 27 个都是“路径层有 bug”，但不能仅凭路径修复声明能力完整覆盖；其中 8 个
+MemoryMappingLoadShapes 完整入口现已另行完成发布门禁。
 
 ### 3 个 `READ.DSS.VALUE_DEFAULTED`
 
@@ -307,8 +309,8 @@ linked RSS，0 个超时。随后对其中 16 个非 Yearly、非 P174 入口执
 - `Examples/ExpControl/SolveAndExportMonitors.dss` 只含 Solve/Export，必须由 `Master.dss` 在同一
   OpenDSS 进程中先构网；把它当独立入口会得到无效拓扑。Paulo 的 `solve_snapshot.dss` 和
   `solve_daily.dss` 同样是父脚本片段。
-- `Run_IEEE123Bus_GFMSnap-B.DSS` 的 importer 已能表达两段 Snapshot，但第二段断开 SW5 后形成
-  无电压参考孤岛；当前求解失败与既有审计一致。
+- `Run_IEEE123Bus_GFMSnap-B.DSS` 的无电压参考被动孤岛已经闭合并发布；显式打开 SW5 后 32 个
+  母线相及设备终端输出为精确零，主动 GFM 孤岛仍 fail closed。
 - GIC、NCIM、VCCS、WindGen QSTS、Storage GFM/AmpLimit 等真实对象或方程缺口没有因为生成 RSS
   的数量变化而自动晋级为近期候选。
 
@@ -662,15 +664,225 @@ epoch 和全部 8,760 个 Yearly 时点。schema v2 bundle 在仓库内与独立
 求解诊断，也必须重新执行严格转换、完整检查、OpenDSS 数值对标和 bundle 迁移门禁，不能从本次
 有界扫描直接推导发布状态。
 
+## 2026-11-05 GFMSnap-B 发布与 109 个入口复扫
+
+GFMSnap-B 使用 release `tensoreval`（SHA-256
+`1c6dd45ca03d2fb73214e7fb23f7ce3c064a7d6e9ca56a332bb71104755f3d50`）完成 388 条语句、两个
+Snapshot epoch、正式 bundle 和迁移副本自执行。最终 epoch 1 显式使用 `line_model=exact`：252 个
+带电节点的最大/RMS 归一化复电压误差为 `4.112314026489773e-6` / `2.3217050758919202e-6`；32 个
+失电节点的 PSA 电压为精确零，OpenDSS 残差最大 `0.005418309046707934 V`，低于 `0.01 V` 判据。
+`conversion_report.csv` 计数由 149/110 更新为 150/109。
+
+冻结报告 [`candidate_scan_2026-11-05.json`](candidate_scan_2026-11-05.json)（SHA-256
+`c05a640861c1c86660f300adf6278d2959188ed721fdeeaf583514b199fd3dfb`）对剩余 109 个入口全部完成
+有界扫描：103 个 linked conversion 诊断、6 个转换成功后检查诊断、0 个超时、0 个完整检查成功。
+6 个转换成功者均依赖预置会话状态，不能作为独立 bundle 发布。
+
+排除会话片段后，当前最小的完整工程候选是
+`Examples/Dynamic_Expressions/Dynamic_KundurDynExp.dss`。它显式创建 Circuit，fresh 阻断仅为
+`PSA.DSS.DYNAMIC.MONITOR_REQUEST_UNSUPPORTED`；下一步应把运行期 Monitor 显式采样及指定缓冲区
+Export/Show/Plot 接入已有 Dynamic Monitor 结果合同，并以 OpenDSS 锁定 5 秒动态轨迹。
+GFMSnap-C 是同系列下一入口，但有两个 fresh 阻断：执行开始后的 Storage `ControlMode` 修改顺序无法
+由单一不可变 NetworkTables 表达，且 `Storage.ControlMode=GFM` 尚无无损导入映射。
+
+## 2026-11-07 Stevenson 正序 Snapshot 发布
+
+未修改的官方 `Examples/Stevenson/StevensonPflow.dss` 使用 `Set cktmodel=pos`、单相正序网络和
+Generator Model 3。本轮准入严格限定为单个全新 Snapshot epoch、Newton 求解和
+`line_model=exact`，不外推到 time-series、multi-epoch continuation 或其他正序生命周期。
+现成 release `tensoreval`（SHA-256
+`3355a4ae97767be49bfc5a7e32186d93b34131810d98f48dacc10f63da18f4ca`）完成 25 条语句和 1 个
+solve epoch 的严格检查。schema v2 bundle 搬移后从 bundle 根目录独立自执行，输出 5 行电压，
+closure 不含来源树或工作区绝对路径。
+
+OpenDSS 数值门禁比较电压、端子电流、端子功率、Generator 聚合功率、元件损耗和全网复损耗；最大
+归一化复数误差分别为 `4.706012215396644e-5`、`5.060234324821709e-4`、
+`5.134890000010807e-4`、`2.6197402537890573e-4`、`9.737775970918348e-4` 和
+`9.558586294051992e-5`，均低于 `1e-3`。`conversion_report.csv` 已由 `unsupported` 改为
+`converted`，当前计数由 150/109 更新为 151/108；既有三相 Stevenson bundle 未修改。
+
+冻结报告
+[`candidate_scan_2026-11-06-post-stevenson.json`](candidate_scan_2026-11-06-post-stevenson.json)
+（SHA-256 `197a90ce76d670de6d68456038d3e5dda83c0280c954c41007776e2c12f6e0be`）对剩余 108 个入口
+完成有界复扫：102 个 linked conversion 诊断、6 个转换成功后检查诊断、0 个超时、0 个完整检查成功。
+6 个转换成功者均依赖预置会话状态，不是独立发布入口；排除这些片段后，下一完整工程候选仍为
+`Examples/Dynamic_Expressions/Dynamic_KundurDynExp.dss`。
+
+## 2026-11-07 PV 正 kvar 能力 Snapshot 发布
+
+未修改的官方
+`Examples/InverterModels/PVSystem/NewFeatures/varCapability/PV_currentkvarLimit_kvar.dss` 已按显式
+Snapshot、`line_model=exact` 和 Radial 求解发布为 schema v2 portable bundle。固定上游提交为
+`3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，源文件 SHA-256 为
+`9134bf1c0f17a06a9cd94781f625536d86ee76f29bc240904a1ff5078e4bd009`。
+
+release `tensoreval` SHA-256 为
+`876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`；严格检查确认 12 条语句、
+1 个 solve epoch。搬迁后的 bundle 独立自执行并输出 3 行母线相电压，closure 未包含来源树绝对路径。
+锁定 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 参考在 2 次迭代内收敛；3 个母线相电压通过
+`1e-9` 最大归一化复数误差门限，3 个 PV 相的有功/无功通过 `1e-6 W/var` 最大绝对误差门限。
+
+`conversion_report.csv` 仅将该正 kvar 行由 `not_standalone_entry` 改为 `converted`。发布数由 151
+增至 152；因为该入口原先不在 259 个独立入口统计内，本轮把独立入口总数扩为 260，尚未发布数仍为
+108。相邻 `PV_currentkvarLimit_kvarNEG.dss` 未经本次数值门禁，继续保持 `not_standalone_entry`，
+不得由正 kvar 结果外推。
+
+## 2026-11-07 PV 负 kvar 能力 Snapshot 发布
+
+未修改的官方
+`Examples/InverterModels/PVSystem/NewFeatures/varCapability/PV_currentkvarLimit_kvarNEG.dss` 已按显式
+Snapshot、`line_model=exact` 和 Radial 求解发布为 schema v2 portable bundle。源文件 SHA-256 为
+`8f3e3389ded5a057984f3efbdfce1962508bda51fea52b6c5bdc7ea457d35a79`；固定上游提交仍为
+`3b208397160213cae4a9e2d0a7d1aa3528ce26e1`。
+
+本案例使用独立 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 reference，并在 2 次迭代内收敛。
+`kvar=-500` 通过 `kvarmaxabs=300` 被限制为三相合计 `-300 kvar`，与正向 sibling 的
+`kvarmax=200` 分支分开验证。3 个母线相电压最大归一化复数误差为
+`3.3801475356637357e-10`；PV 相最大有功/无功绝对误差分别为
+`5.820766091346741e-11 W` 和 `1.4551915228366852e-11 var`。
+
+release binary SHA-256 为 `876ce8e214cec6ad56c541a658406648b3b5eca63cfb618e600459e0596dcc34`。
+严格检查确认 12 条语句和 1 个 solve epoch；搬迁 bundle 自执行输出 3 行电压，closure 不含来源树、
+`/tmp` 或工作区绝对路径。目录只将 NEG 行由 `not_standalone_entry` 改为 `converted`：发布数由
+152 增至 153，独立入口分母由 260 增至 261，尚未发布数仍为 108。
+
+## 2026-11-07 CurrentkvarLimite Volt-Var Snapshot 发布
+
+未修改的官方
+`Examples/InverterModels/PVSystem/CurrentkvarLimite/PV_currentkvarLimit_VV.dss` 已按显式
+Snapshot、`line_model=exact` 和 Radial 求解发布。源文件 SHA-256 为
+`ae05f52408aff3795dba85ffe655e16b4711f13aa9daff30b0d524cd3a5af353`。现有 release
+严格检查 15 条语句和 1 个 solve epoch；搬迁 bundle 自执行输出 3 行电压，closure 无绝对路径。
+
+独立 OpenDSS reference 在 56 次迭代、28 次控制迭代后收敛。3 个母线相电压最大归一化误差为
+`3.3801558328329703e-10`；PV 相 P/Q 以 1.2 MVA 为基准的最大归一化误差为
+`3.6963573337257865e-6`，通过 `1e-5` 门限。catalog 只修改该 VV 行，当前计数为
+154 `converted`、108 `unsupported`、586 `not_standalone_entry`；独立入口分母为 262。
+
+新的 42 条模型入口扫描报告设置 `publishes_cases=false`：7 条可完成显式 Snapshot 转换和检查，
+本轮仅 VV 具备完整独立数值与搬移证据。Kundur 的深入探测则推翻了“只补 Monitor”判断：其后还有
+外部 Generator DynamicEq/DynOut 和 Monitor 端口/mode 合同，内置模型替代的 5 秒转速轨迹也与
+原生明显分离，因此降级为需要专用动态模型闭合的中大型候选。
+
+## 2026-11-07 IEEE30 Master Snapshot 发布
+
+模型入口 `IEEETestCases/IEEE 30 Bus/Master.dss` 已按显式 Snapshot、Newton-Raphson 与
+`line_model=exact` 发布。官方源 SHA-256
+`bb0b864c3e63955cad3c6f289832421c24cc0d4dccaf9f66c3be51e8c22d1aba` 与 PSA 锁定 fixture
+完全相同；严格检查覆盖 101 条语句、1 个 solve epoch 和 Circuit bootstrap。
+
+已有 `projection_evidence.json` 证明官方 Master 与 PSA 可执行投影的七类原生输出逐文件字节一致，
+`dss_import::ieee30_snapshot_matches_locked_native_reference` 则以显式 Exact 线路模型比较 90 个节点、
+264 个端口电流、264 个端口功率、65 个元件损耗/功率以及汇总和控制状态。portable bundle 的
+closure 只包含 Master 与五个 Redirect 依赖；不含 `Run_IEEE30.DSS`。catalog 当前为
+155 `converted`、108 `unsupported`、585 `not_standalone_entry`，独立入口分母为 263。
+
+## 2026-11-07 IEEE8500 Master-unbal Snapshot 发布
+
+模型入口 `IEEETestCases/8500-Node/Master-unbal.dss` 已按显式 Snapshot、Radial 与
+`line_model=exact` 发布。官方源与已有 PSA fixture 的 SHA-256 都是
+`8cbb671b1e353b72d445f361547bd43ac8ed3c90878d7c8dced26ba3bc55f043`；严格检查覆盖
+7,590 条语句、1 个 solve epoch 和 Circuit bootstrap。
+
+既有 unbalanced native reference 覆盖 8,531 个节点电压、24,195 个端口电流/功率、7,275 个
+元件损耗、7,280 个对象、3,579 个控制状态与 11 个汇总值；Exact consumer 逐项要求全部原生节点
+存在。portable closure 共 14 个 manifest 文件，不含 wrapper/GFM sibling 和绝对路径；搬移后完整
+PSA `bus_phase` 输出 11,038 行。catalog 当前为 156 `converted`、108 `unsupported`、584
+`not_standalone_entry`，独立入口分母为 264，尚未发布数仍为 108。
+
+## 2026-11-07 五个模型入口 Snapshot 批量闭合
+
+两个 CurrentkvarLimite 固定 kvar 模型入口、GFM IEEE8500 unbalanced Master、官方 IEEE8500
+balanced Master 和 GFM balanced Master 均已按显式 Snapshot、Radial、`line_model=exact` 发布。
+CurrentkvarLimite 的两个 exact-source consumer 锁定全部 3 个复电压与 3 个 PV 相 P/Q；其中
+`kvarNEG` 官方源仍是正向 `kvar=500`，不作为负 kvar 证据。
+
+IEEE8500 balanced/unbalanced 共用既有原生 reference consumer，分别覆盖 8,531 个节点、
+15,882 个端口电流、15,882 个端口功率以及元件功率/损耗和汇总。GFM balanced 的唯一电气源差异
+是一个没有消费者的 `LoadShapes.dss` redirect；portable closure 保留该文件和 `LoadShape1.CSV`，
+搬移结果与官方 balanced Master 按 `bus + phase` 对齐的 11,038 个复电压最大归一化误差为
+`1.2399434592283917e-16`，属于一 ULP 量级。
+
+五条 catalog 行由 `not_standalone_entry` 改为 `converted` 后，当前为 161 `converted`、108
+`unsupported`、579 `not_standalone_entry`；独立入口分母为 269。完整证据见
+[`five_model_snapshot_publication_evidence.md`](five_model_snapshot_publication_evidence.md)。
+
+## 2026-11-08 五个执行入口闭合
+
+Ckt5、Storage Quasi-Static Demo、IEEE123 `Run_YearlySim`、IEEE13 Assets 与 Ckt24 已从当前
+`unsupported` 集合闭合。通用改造覆盖未引用无效导体过滤、`Ins` 电缆缩写、Solve RPN 表达式、
+序分量 LineCode 相数扩展、布尔 `RegControl.DebugTrace`，以及仅限 `New EnergyMeter` 的幂等 Clear；
+被引用无效导体、显式矩阵猜测扩维、非法布尔值和后续 Meter Clear 仍保持失败关闭。
+
+五个 portable bundle 均从独立 `/tmp` 父目录执行成功；72 个 manifest 文件从 `sparrowzz` HEAD
+Git blob 复算 SHA-256 后零不匹配。固定 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 比较覆盖
+3,437 / 3,437 / 278 / 41 / 7,522 个原生最终节点，最大归一化复电压误差依次为
+`8.20624e-4`、`9.34665e-4`、`2.10120e-6`、`2.75110e-3` 和 `3.10352e-2`。
+catalog 当前为 166 `converted`、103 `unsupported`、579 `not_standalone_entry`。
+完整证据见
+[`next_five_candidate_publication_evidence.md`](next_five_candidate_publication_evidence.md)。
+
+## 2026-11-08 第二批五个执行入口闭合
+
+Ckt24 MemoryMapping 示例的 non-MM、CSV-P、CSV-PQ 三个完整 Daily 入口、Paulo IEEE13 Daily 和
+Matlab IEEE 519 初始化 Snapshot 已从 `unsupported` 集合闭合。通用改造包括：把 BusMarker 归入
+输出副作用；保留 `MinIterations`；按 OpenDSS 默认补全 SwtControl `Normal`/`State`/`Reset` 并接受
+`Lock=Open`；Meter 电压基准忽略只由 disabled 对象形成的 ghost bus；把 LoadShape
+`MemoryMapping` 限定为不改变曲线样本的存储提示。非法布尔值、真实引用的 ghost bus 和未表示的
+动态/外部编排仍然失败关闭。
+
+五个 portable bundle 搬移执行分别输出 752,200 / 1,025 / 24 / 752,200 / 752,200 行电压；
+103 个 manifest 声明 Git blob 复算 SHA-256 后零不匹配。显式 `line_model=exact` 的锁定参考覆盖
+三个 Ckt24 各 7,522 个最终节点、Paulo 两个 epoch 各 41 个节点、IEEE 519 的 24 个节点，以及
+每个状态的三相源端 P/Q。Matlab 案例只证明 `.DSS` 文件自身的初始化 Snapshot，不证明外部
+`Main_Script.m` 谐波循环。
+
+catalog 当前为 171 `converted`、98 `unsupported`、579 `not_standalone_entry`。完整证据见
+[`next_five_batch_2_publication_evidence.md`](next_five_batch_2_publication_evidence.md)。
+
+## 2026-11-08 第三批五个执行入口闭合
+
+Ckt24 MemoryMapping 示例剩余的 TXT-P、TXT-PQ、DBL-P、SNG-P 和旧式直接 SNG 五个完整
+100 步 Yearly 入口已从 `unsupported` 集合闭合。通用改造为 LoadShape 增加有界的小端
+float32/float64 资产物化，并把直接及嵌入式 `SngFile`/`DblFile` 纳入同一依赖来源与 bundle
+改写合同；非法宽度、空文件、非有限值、缺失文件和超限点数继续失败关闭。
+
+五个 portable bundle 搬移并改名后均独立执行，分别输出 752,200 行电压；schema-v2 manifest
+共声明 123 个文件，从 `sparrowzz` Git blob 复算 SHA-256 后零不匹配，二进制资产与官方源
+逐字节一致。显式 `line_model=exact` 的锁定参考对每例比较 7,522 个最终母线相及三相源端
+P/Q，最大/RMS 复电压相对误差为 `1.92567e-2` / `2.08902e-3`，源功率最大误差为
+`1.20918e-2`。
+
+catalog 当前为 176 `converted`、93 `unsupported`、579 `not_standalone_entry`。这些入口只
+执行 100 个一小时时点，不能据此声明 8,760 小时性能。完整证据见
+[`next_five_batch_3_publication_evidence.md`](next_five_batch_3_publication_evidence.md)。
+
+## 2026-11-08 YYD Direct 故障 continuation 闭合
+
+`IEEETestCases/4Bus-YYD/YYD-Master.DSS` 已由未修改官方入口生成 schema-v2 portable
+bundle。执行计划保留 Snapshot 初始化和后续 Direct 单相接地故障两个有序 epoch；Direct
+epoch 使用专用 `DirectFault` 投影，full、stream、trace-stream 和 diagnosed API 返回一致的
+故障后电压、支路和 fault state。禁用的 Fault 声明不会扩大“单个启用故障”合同，非法计划在
+数值执行前失败关闭。
+
+原目录和搬移改名后的 bundle 均输出 36 行 `bus_phase`，规范化 CSV SHA-256 为
+`9dbd2d7f5f742e13b7de4492b3a6202f92a1597a7f6a35dab117b5e1a671853a`。最终故障 epoch
+相对 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 的最大去共模复电压误差为
+`5.258653887720258e-9`，故障电流误差为 `3.763079292555971e-8`。没有故障后合同的
+Snapshot source/transformer/conductor/loss/violation/summary 表不会作为 Direct 结果发布。
+
+catalog 当前为 178 `converted`、91 `unsupported`、579 `not_standalone_entry`。该合同只覆盖
+官方两 epoch YYD 案例，不扩展为任意多故障、保护动作或 8,760 小时 QSTS 性能声明。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
    避免只维护诊断码白名单。
 2. 首批 12 个入口已通过严格转换并全部发布 bundle；第二批 8 个候选中有 6 个完成
-   V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD 完整入口和 InductionMachine
-   则分别等待 Direct/Fault continuation
-   与 Dynamic/保护动作执行合同，不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 110 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+   V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD Direct/Fault
+   continuation 已按上述有界合同发布；InductionMachine 仍等待 Dynamic/保护动作执行合同，
+   不能降低门禁后发布。
+3. 每消除一个首诊断都重扫当前 91 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

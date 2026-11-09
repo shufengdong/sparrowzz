@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "static_power_flow",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/CurrentkvarLimite/PV_currentkvarLimit_VV.dss",
+    "root": "dss",
+    "tree_sha256": "ab7a3b71b1bec026e226aaf315e52ce77918e0c2cb35614fa4450b3a497079d4"
+  },
+  "projection": {
+    "source_function": "ds_radial_pf",
+    "profile": "dss_static_radial_v1",
+    "projector": "project_dss_static_model",
+    "target_function": "ds_radial_pf",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/CurrentkvarLimite/PV_currentkvarLimit_VV.dss",
+      "role": "dss-entry",
+      "sha256": "ae05f52408aff3795dba85ffe655e16b4711f13aa9daff30b0d524cd3a5af353"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "762831516a0d605a966ef3984655ce9a63221b6991811cb6560faddc89e55473"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "d8dca808ed045ffdd0ff3b88911de7d6dfc902137b06df30185867a789d6105f"
+    }
+  ],
+  "inputs": []
+}

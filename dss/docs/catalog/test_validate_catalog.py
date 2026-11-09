@@ -47,6 +47,12 @@ class CatalogValidatorTests(unittest.TestCase):
     def facade(self, catalog, function):
         return next(item for item in catalog["facades"] if item["function"] == function)
 
+    def dsa_contract(self, catalog, function):
+        return next(
+            item for item in catalog["dsa_functions"]
+            if function in item["names"]
+        )
+
     def constraint(self, facade, kind):
         return next(item for item in facade["resultConstraints"] if item["type"] == kind)
 
@@ -173,7 +179,117 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             self.read("study_facades.json"),
             self.read("dataframes.json"),
         )
-        self.assertEqual(count, 144)
+        self.assertEqual(count, 150)
+
+    def test_network_dynamics_catalog_publishes_v13_monitor_additively(self):
+        functions = self.read("functions.json")
+        facades = self.read("study_facades.json")
+        projections = self.read("case_projections.json")
+
+        contract = self.dsa_contract(functions, "ds_network_dynamics")
+        facade = self.facade(facades, "ds_network_dynamics")
+        projection = next(
+            item for item in projections["profiles"]
+            if item["id"] == "dss_dynamic_plan_v1"
+        )
+
+        self.assertEqual(contract["arity"], 30)
+        self.assertEqual(contract["arguments"][-2:], ["para", "monitor"])
+        self.assertEqual(len(contract["results"]), 16)
+        self.assertEqual(contract["results"][-1], "monitor")
+        self.assertIn("V12", contract["behavior"])
+        self.assertIn("V13", contract["behavior"])
+
+        self.assertIn("V13", facade["title"])
+        self.assertEqual(len(facade["inputs"]), 30)
+        self.assertEqual(
+            facade["inputs"][-1],
+            {
+                "id": "monitor",
+                "alias": "monitor_input",
+                "inputKind": "model",
+                "schemaRef": "frames.monitor",
+                "required": True,
+                "position": 30,
+                "description": "Dynamic V13 的 PVSystem/Storage mode 0、1、3 Monitor 定义。",
+            },
+        )
+        self.assertEqual(len(facade["results"]), 16)
+        self.assertEqual(facade["results"][-1]["name"], "monitor")
+        self.assertEqual(
+            facade["results"][-1]["schemaRef"],
+            "result_frames.qsts_monitor",
+        )
+        self.assertTrue(any("V12" in item and "29" in item for item in facade["differences"]))
+        self.assertEqual(projection["inputs"], facade["inputs"])
+        self.assertEqual(projection["results"], facade["results"])
+
+    def test_enabled_case_projections_select_managed_projection_results(self):
+        catalog = self.read("case_projections.json")
+        selectors = {
+            profile["id"]: profile["resultSelector"]["valueSource"]
+            for profile in catalog["profiles"]
+            if profile["compatibility"]["status"] == "enabled"
+        }
+        self.assertTrue(selectors)
+        self.assertEqual(
+            set(selectors.values()),
+            {"profile.resultMap(manifest.projection.results)"},
+        )
+
+    def test_native_dynamic_catalog_publishes_v13_monitor(self):
+        functions = self.read("functions.json")
+        dataframes = self.read("dataframes.json")
+        contract = self.dsa_contract(functions, "ds_dss_dynamic_plan")
+
+        self.assertIn("V13", contract["behavior"])
+        self.assertEqual(len(contract["results"]), 16)
+        self.assertEqual(contract["results"][-1], "monitor")
+        monitor = dataframes["result_frames"]["qsts_monitor"]
+        self.assertIn("ds_network_dynamics", monitor["context"])
+        self.assertIn("ds_dss_dynamic_plan", monitor["context"])
+        self.assertEqual(monitor["schema_source"], "psa/src/dsa/monitor_output.rs")
+        self.assertEqual(monitor["contract"]["source"], ["psa/src/dsa/monitor_output.rs"])
+
+    def test_manifest_dynamic_result_contract_accepts_v13_and_legacy_v12(self):
+        profile = next(
+            item for item in self.read("case_projections.json")["profiles"]
+            if item["id"] == "dss_dynamic_plan_v1"
+        )
+        native_v13 = list(profile["bundleResultMap"])
+        managed_v12 = [
+            {"source": name, "target": profile["bundleResultMap"][name], "binding": f"result_{name}"}
+            for name in native_v13[:-1]
+        ]
+
+        self.validator.validate_manifest_result_contract(
+            "v13", profile, native_v13, managed_v12
+        )
+        self.validator.validate_manifest_result_contract(
+            "v12", profile, native_v13[:-1], managed_v12
+        )
+
+    def test_manifest_dynamic_result_contract_rejects_malformed_sets(self):
+        profile = next(
+            item for item in self.read("case_projections.json")["profiles"]
+            if item["id"] == "dss_dynamic_plan_v1"
+        )
+        native_v13 = list(profile["bundleResultMap"])
+        managed_v12 = [
+            {"source": name, "target": profile["bundleResultMap"][name], "binding": f"result_{name}"}
+            for name in native_v13[:-1]
+        ]
+        malformed = {
+            "unknown": (native_v13[:-1] + ["unknown"], managed_v12),
+            "missing": (native_v13[:-2], managed_v12[:-1]),
+            "duplicate": (native_v13 + ["monitor"], managed_v12),
+            "reordered": (native_v13, [managed_v12[1], managed_v12[0], *managed_v12[2:]]),
+        }
+        for name, (source_results, projected_results) in malformed.items():
+            with self.subTest(name=name), self.assertRaises(AssertionError):
+                self.validator.validate_manifest_result_contract(
+                    name, profile, source_results, projected_results
+                )
 
     def test_rejects_case_projection_contract_drift(self):
         catalog = self.read("case_projections.json")
@@ -507,11 +623,103 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
                     self.assertIn("nullable", column, f"{result['schemaRef']}.{column.get('name')}")
                     self.assertIn("unit", column, f"{result['schemaRef']}.{column.get('name')}")
 
+    def test_branch_flow_contract_matches_runtime_schema_through_execution_inheritance(self):
+        dataframes = self.read("dataframes.json")
+        base = [
+            ("branch", "u32", True, False, "not_applicable"),
+            ("element", "str", True, True, "not_applicable"),
+            ("bus_from", "str", True, False, "not_applicable"),
+            ("bus_to", "str", True, False, "not_applicable"),
+            ("phase_from", "str", True, False, "not_applicable"),
+            ("phase_to", "str", True, False, "not_applicable"),
+            ("v_from_re", "f64", True, False, "V"),
+            ("v_from_im", "f64", True, False, "V"),
+            ("v_to_re", "f64", True, False, "V"),
+            ("v_to_im", "f64", True, False, "V"),
+            ("i_from_re", "f64", True, False, "A"),
+            ("i_from_im", "f64", True, False, "A"),
+            ("i_from_mag", "f64", True, False, "A"),
+            ("i_to_re", "f64", True, False, "A"),
+            ("i_to_im", "f64", True, False, "A"),
+            ("i_to_mag", "f64", True, False, "A"),
+            ("p_from", "f64", True, False, "W"),
+            ("q_from", "f64", True, False, "var"),
+            ("p_to", "f64", True, False, "W"),
+            ("q_to", "f64", True, False, "var"),
+            ("p_loss", "f64", True, False, "W"),
+            ("q_loss", "f64", True, False, "var"),
+            ("winding_1_phase", "u32", True, True, "not_applicable"),
+            ("winding_1_v_re", "f64", True, True, "not_applicable"),
+            ("winding_1_v_im", "f64", True, True, "not_applicable"),
+            ("winding_1_i_re", "f64", True, True, "not_applicable"),
+            ("winding_1_i_im", "f64", True, True, "not_applicable"),
+            ("winding_1_tap", "f64", True, True, "not_applicable"),
+            ("winding_2_phase", "u32", True, True, "not_applicable"),
+            ("winding_2_v_re", "f64", True, True, "not_applicable"),
+            ("winding_2_v_im", "f64", True, True, "not_applicable"),
+            ("winding_2_i_re", "f64", True, True, "not_applicable"),
+            ("winding_2_i_im", "f64", True, True, "not_applicable"),
+            ("winding_2_tap", "f64", True, True, "not_applicable"),
+        ]
+        qsts = [
+            ("time", "f64", True, False, "s"),
+            ("load_multiplier", "f64", True, False, "pu"),
+            ("generation_multiplier", "f64", True, False, "pu"),
+        ]
+        execution = [
+            ("epoch_index", "u64", True, False, "not_applicable"),
+            ("solve_event_sequence", "u64", True, False, "not_applicable"),
+        ]
+
+        def metadata(reference):
+            return [
+                (
+                    column["name"],
+                    column["dtype"],
+                    column["required"],
+                    column["nullable"],
+                    column["unit"],
+                )
+                for column in self.validator.resolve_contract_columns(dataframes, reference)
+            ]
+
+        self.assertEqual(metadata("result_frames.branch_flow"), base)
+        self.assertEqual(
+            dataframes["qsts_outputs"]["branch_flow"]["base_schema"],
+            "result_frames.branch_flow",
+        )
+        self.assertEqual(metadata("qsts_outputs.branch_flow"), base + qsts)
+        self.assertEqual(
+            dataframes["execution_outputs"]["branch_flow"]["base_schema"],
+            "qsts_outputs.branch_flow",
+        )
+        self.assertEqual(
+            metadata("execution_outputs.branch_flow"),
+            base + qsts + execution,
+        )
+
     def test_rejects_undeclared_dtype_with_affected_facade_and_field(self):
         catalog = self.read("dataframes.json")
         catalog["frames"]["bus"]["contract"]["columns"][0]["dtype"] = "decimal128"
         self.write("dataframes.json", catalog)
         self.assert_invalid(r"undeclared dtype decimal128.*frames\.bus\.id.*ds_radial_pf")
+
+    def test_dtype_grammar_declares_runtime_u8_execution_field(self):
+        catalog = self.read("dataframes.json")
+        self.assertEqual(
+            catalog["dtype_grammar"]["primitives"]["u8"],
+            {
+                "arrow": "UInt8",
+                "parquet": "INT32/UINT_8",
+                "logical": "Unsigned 8-bit integer",
+            },
+        )
+        target_terminal = next(
+            column
+            for column in catalog["result_frames"]["execution_trace"]["contract"]["columns"]
+            if column["name"] == "target_terminal"
+        )
+        self.assertEqual(target_terminal["dtype"], "u8")
 
     def test_rejects_malformed_dtype_expression(self):
         catalog = self.read("dataframes.json")
@@ -541,7 +749,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         self.assertEqual(stats["facades"], 18)
         self.assertEqual(stats["models"], 77)
         self.assertEqual(stats["structs"], 9)
-        self.assertEqual(stats["results"], 126)
+        self.assertEqual(stats["results"], 127)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):
