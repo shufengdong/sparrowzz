@@ -1,0 +1,119 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/EPRITestCircuits/ckt5/Run_ckt5.dss",
+    "root": "dss",
+    "tree_sha256": "40b7e3fc04a2ade0fe06fbbe50c4bed6491685538a59985ae48d37ac4be95175"
+  },
+  "projection": {
+    "source_function": "ds_radial_dss_plan",
+    "profile": "dss_execution_radial_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_radial_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Buscoords_ckt5.dss",
+      "role": "data-asset",
+      "sha256": "efb1330719f7048fdd5de53a4a4908f5869759a53e2eb9b05c115ececbbde89d"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Capacitors_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "bbc3ec04fa4c292f2198fa4e61a06625d04755307624925aab3011187aa80e55"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Generators_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "9024f36ee01deadcde965038e4c275c0f61a8f9a9f4e2f5e20e0dc43ae0a94c6"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/LineCodes_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "27e26f60a4b22f4557424f601b94a81a1971496622519d65c66611139af082e3"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/LineGeometry_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "e69e0db6af0acc2314a45b68c025e416c4db6c0f65debf0acc28d28593f11726"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Lines_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "c84a1af20854d1f2c7defd09baddb62fcde68a2a9476513654719f84dc7027d8"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Loads_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "3bd21b205acf26213a97dc612c219024128e2f4c5b92f1940ba1f399d1839159"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Loadshapes_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "ae32c21dc5659b8336e0efb1805e07179bda66f185929e699f9701102f0be387"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Master_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "db5702950f036250cc00a9b6ad1ae7af3c05b6b1a2568747375af134be3f2bf5"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Regulators_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "cca5076e5b6a072b518f7af5e6f4b357a3e91a9daebcc0904e356427682b1423"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Run_ckt5.dss",
+      "role": "dss-entry",
+      "sha256": "6fc218c3849f02c655fdbdedb6a35cd13cece50dcbd8bde5223c47d20726c9be"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/Transformers_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "f4a0d2c6c2630de37db767d4f0fe7bfd769e1253274b552466bdf53607fadc7d"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/WireData_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "5a49e0e80cb1253cf47d6e01d6b328a93a3e3d593b0f8642b968d04070442142"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt5/XFR_Loads_ckt5.dss",
+      "role": "dss-source",
+      "sha256": "f4de7a03ac21dc1d498aad3b828d59cbf940669ab0f3bd7e0675f275aa7e0df5"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "4edcd1ce001ee19bb84f5edac13be4cfa1fff2d7e82592ebcc9bc5ac24d03db0"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
+    }
+  ],
+  "inputs": []
+}

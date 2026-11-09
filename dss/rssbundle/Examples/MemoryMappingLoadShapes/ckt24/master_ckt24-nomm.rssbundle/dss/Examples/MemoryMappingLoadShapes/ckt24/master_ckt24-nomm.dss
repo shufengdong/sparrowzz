@@ -1,0 +1,4 @@
+// Test case for MemoryMapping: no memory mapping; read PMult from txt file
+Clear
+var @loadshape_script_dss=LS_PhaseA-nomm.dss
+redirect main_template.dss

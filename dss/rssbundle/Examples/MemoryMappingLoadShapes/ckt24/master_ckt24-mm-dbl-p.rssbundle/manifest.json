@@ -1,0 +1,164 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/MemoryMappingLoadShapes/ckt24/master_ckt24-mm-dbl-p.dss",
+    "root": "dss",
+    "tree_sha256": "8acd144897de3ae0503397ad9e169eee7837fce6e748ffcfc20767e1c064aaf7"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/EPRITestCircuits/ckt24/Allocated_Loads_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "1d39430b1c00ea297449303aa670efc4973b81aadb11368c13cb41c2c97f337d"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/AllocationFactors_Base.Txt",
+      "role": "dss-source",
+      "sha256": "0facd26da9f19514557ffae56f3ab5142d27efe0dcbb2bcf0746691d5d677105"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/LS_PhaseB.txt",
+      "role": "data-asset",
+      "sha256": "beaba094c7a083f7c4ce928c3a33e2b84d923ef3818ac18bd8d3abfb1c43aea3"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/LS_PhaseC.txt",
+      "role": "data-asset",
+      "sha256": "d6b57395a3e0da7689bae17573ed50f0213b53f03aeafef0f7f3aba562fa8794"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/LS_ThreePhase.txt",
+      "role": "data-asset",
+      "sha256": "c723679c352d1a0a08582527ea135a50602a624d4f04dff64918d88ced151b6a"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/Linecodes_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "29dc4b140d1d505ca2a97c9c8dfa62f2be72ff75f3458c0a6c367d45fc46f987"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/Linegeometry_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "099a052657522fed6d122e69c68769efe49d7af7c56ae368061665bc1a86c59e"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/Monitors_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "b92081a9a20290ab6e6d2ad3f549f87f232e109f3a45df5ffd3ebbfabbb82f29"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/Other_Bus_Load.txt",
+      "role": "data-asset",
+      "sha256": "7bf5ef25519ae0f27dd9e9a394a42b393e5951ca4cbafb671d86e1add478ffef"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/Other_Load_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "4d395e121c573e803e7900c3568bc9a577852f38cb9e8525fa52a91c0b76aba2"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/TriplexLineCodes_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "87771df44af2358bec0b2b4c2883a1d5b8fd47bbd91469281f69867e52a8647f"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/Wiredata_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "03717fa7b082f767a3a69e7bbad4b8aa1da8b9d9ec3f9d9418e8ca03aedf8ef5"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/buscoords_ckt24.dss",
+      "role": "data-asset",
+      "sha256": "a28c32c908d9597a6541104d6ff063fc0a1a20707bd3bea3d284a2fb0081d06e"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/capacitors_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "3fb302ba85a5efa14350136e47f85135be487e9d38414a838704727a7469dcb1"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/lines_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "98e4112b7a50ad555370c13c847f6b790550292b2a07c439bf346655945cffa2"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/sec_serv_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "8a49b1052aaa56a177fc781081a87892031867a083d1ed4bb47eba88fafeac72"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/stepxfmrs_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "313f8a165a802ea24262f3decbc6d38a33ea45ff4774dea3f0a89d1f9730193e"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/substation_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "36ff38a775f537a7d5863e768f9de3bd2d5f6d3554241ed5f11f57f50f602305"
+    },
+    {
+      "path": "dss/EPRITestCircuits/ckt24/transformers_ckt24.dss",
+      "role": "dss-source",
+      "sha256": "52f9e9ae30f61372217fb96eedbf2b308b7a74129c90bca83047d04dbd3d5913"
+    },
+    {
+      "path": "dss/Examples/MemoryMappingLoadShapes/ckt24/LS_PhaseA-mm-dbl-p.dss",
+      "role": "dss-source",
+      "sha256": "bf6e05854ee9495ef8d25446bc0c4c0b551c037caf77ee0a8b0515019b335beb"
+    },
+    {
+      "path": "dss/Examples/MemoryMappingLoadShapes/ckt24/main_template.dss",
+      "role": "dss-source",
+      "sha256": "5032593a233e564b8fa95720ea88a0a051027de3945bde951e04ef438e376424"
+    },
+    {
+      "path": "dss/Examples/MemoryMappingLoadShapes/ckt24/master_ckt24-mm-dbl-p.dss",
+      "role": "dss-entry",
+      "sha256": "e469503699a443459cf92501695288c0e704c984dc53e386c662ea11a09b6f34"
+    },
+    {
+      "path": "dss/Examples/MemoryMappingLoadShapes/ckt24/myDBL.dbl",
+      "role": "data-asset",
+      "sha256": "ff45d4109dc2dcbae17c2e0d3ac1a55a9cdac1bc86beea3632457b9c4f6512fd"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "fba438413fbf811f2d87b8acb762da42c3aabaebdb9bf1f692e55653be9b3b99"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b"
+    }
+  ],
+  "inputs": []
+}

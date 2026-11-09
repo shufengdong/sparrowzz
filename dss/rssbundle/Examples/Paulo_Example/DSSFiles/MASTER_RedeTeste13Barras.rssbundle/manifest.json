@@ -1,0 +1,144 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "radial",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/Paulo_Example/DSSFiles/MASTER_RedeTeste13Barras.dss",
+    "root": "dss",
+    "tree_sha256": "d8a3667d430226a7b9c4038133b93c71a2e5d8f1ae5f02108a078579870b4060"
+  },
+  "projection": {
+    "source_function": "ds_radial_dss_plan",
+    "profile": "dss_execution_radial_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_radial_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/IEEE13Node_BusXY.csv",
+      "role": "data-asset",
+      "sha256": "53f334fca510fb908c2d0eb5e7118f37f6c69bf03ebac76163364c3b041602ee"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/MASTER_RedeTeste13Barras.dss",
+      "role": "dss-entry",
+      "sha256": "4f89440ea97eaa762baa6463a2c1852296abc80ebbc75b95964b3351594201ac"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/capacitors.dss",
+      "role": "dss-source",
+      "sha256": "632a23766d7ed7b4f44a080d31dcaa395a149e43600a24ae867c3d0098943bd1"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/command_monitor_storage.dss",
+      "role": "dss-source",
+      "sha256": "a43eae0b8f0460153c4da7969b459d74e0b6070e0252cdde7138dbba61787a73"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/command_monitor_sub.dss",
+      "role": "dss-source",
+      "sha256": "2025fe62cdfb4a3f238400556bbb6fd2f661b9ecff217b3a3bb4cfc7c01f22c1"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/linecodes.dss",
+      "role": "dss-source",
+      "sha256": "fb01a83eddb027c98e0d458e2e4ff19b15cf3d5461990fd1de2d07ca8d2b04c1"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/lines.dss",
+      "role": "dss-source",
+      "sha256": "2fe048f17ce14b0a2e1589bd0fe5caca0a47032aca1184f859ef95f6f93aaf40"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/loads.dss",
+      "role": "dss-source",
+      "sha256": "a873fd9a9d8a003852de5e3763ca87613542b83d7b77845e94b1f2b76e8486cf"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/loadshape.dss",
+      "role": "dss-source",
+      "sha256": "60368d13591fe5d31b7fd10e1ce2143861b32041a1c3d67160d8246ad158bb45"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/monitor_storage.dss",
+      "role": "dss-source",
+      "sha256": "893d9acecf75c53dabe747f00d0ab9af7b8fc3decf2eb194656658507ebf94ca"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/monitor_sub.dss",
+      "role": "dss-source",
+      "sha256": "428086af4825f270d365b1acba03f46846367dd0a8e0ff591de9b6de4c99af8d"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/regulators.dss",
+      "role": "dss-source",
+      "sha256": "b09ff83ff82fb08a7ca3aac5c2407dcb96ccf55956b1400a6345a26fb47f60d9"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/solve_daily.dss",
+      "role": "dss-source",
+      "sha256": "0b5176394ea5c80f20a35e1c42d6fab7c79bdc02766a890e099bc392f523ab8d"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/storage_power.dss",
+      "role": "dss-source",
+      "sha256": "fb76cc403013b4b205a935d49a24aa8df5be73a39cc8d31adb9b58c6368216fc"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/subestacao.dss",
+      "role": "dss-source",
+      "sha256": "31435d750a21a074441b950dfe614274c6f651fce35a05007f03e20fa8c22f92"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/switches.dss",
+      "role": "dss-source",
+      "sha256": "7463a2551afa2e8c8932c8b3f287ae6d4c66878a0e835abdc488ba0136dbf6f9"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/tensao_base.dss",
+      "role": "dss-source",
+      "sha256": "a8abe60060d60cbb9c4ca0dc022d7a22e4b7e13527d2368d12fdc847cb2a835c"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/transformer.dss",
+      "role": "dss-source",
+      "sha256": "71fe354090527ebc93ce055b0b632776b5a5b95cf8832c2702cbe1cb27b611cb"
+    },
+    {
+      "path": "dss/Examples/Paulo_Example/DSSFiles/transformer_sub.dss",
+      "role": "dss-source",
+      "sha256": "a628e6653b76f875a1ec2ef17dbcb7882ce162d147681114f7149f2c4c7d4ec4"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "3a7c05cc6df66235b436b95f8cf9eba50708a025527e511b7b406b911b572354"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
+    }
+  ],
+  "inputs": []
+}
