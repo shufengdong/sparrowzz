@@ -18,18 +18,18 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 179 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 GFMSnap-C 三时点 Storage GFM 恢复入口 |
-| 当前尚未发布的独立入口 | 90 | 269 个独立入口扣除 179 个已发布入口 |
+| 已转换并发布 bundle | 180 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 EPRI M1 无 PV 两快照终态入口 |
+| 当前尚未发布的独立入口 | 89 | 269 个独立入口扣除 180 个已发布入口 |
 | 超时 | 0 | 无 |
 
-179 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
+180 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
 manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 179 个发布入口；
-其余 90 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 180 个发布入口；
+其余 89 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 ## 首轮改造进展
@@ -1429,6 +1429,29 @@ retained-trace API 均保留三个 epoch；公开 `bus_phase` 投影不会泄漏
 catalog 只修改这一行，当前为 179 `converted`、90 `unsupported`、579
 `not_standalone_entry`，独立入口分母仍为 269。本案例只有三个有界 Snapshot，不声明 8,760
 小时性能。
+
+### 第五十六轮 EPRI M1 无 PV 两快照终态发布
+
+本轮发布官方入口 `EPRITestCircuits/epri_dpv/M1/Master_NoPV.dss`。未修改的固定上游入口生成
+schema-v2 bundle，严格检查覆盖 4,279 条 DSS 语句、两个有序 Snapshot epoch 和 Circuit
+bootstrap。公开 `main.rss` 与托管入口都显式使用 `line_model=exact`；原目录及搬移改名后的
+bundle 各输出 6,356 行，结果逐字节相同。
+
+最终 epoch 的 OpenDSS 门禁比较 3,153 个母线相复电压、`Line.temp2` 端口和 M1 变压器两侧的
+三组复功率、全网复损耗、调压器 tap 与三个电容器状态。电压最大/RMS 归一化复误差为
+`9.141043688582145e-5` / `2.7928383278329492e-5`，接口功率为
+`6.054447326642671e-5` / `3.934058746697034e-5`，总损耗最大归一化误差为
+`2.8505834749390895e-4`；tap 精确一致，电容状态为 `Cap1=[0]`、`Cap2=[1]`、`Cap3=[1]`。
+25 个禁用开关端点由 PSA 显式保留为精确零电压，而 OpenDSS 不把它们列入 `AllBusNames`；门禁只
+允许这组固定键，且要求每个键存在并精确为零。M1 变压器不出现在 PSA 的
+`transformer_winding_flow` 投影中，因此其两侧功率从具有固定 SourceBus→temp 方向的
+`branch_flow` 求和，并继续要求 transformer winding 输出表存在。
+
+catalog 只将该入口一行由 `unsupported` 改为 `converted`，当前为 180 `converted`、89
+`unsupported`、579 `not_standalone_entry`，独立入口分母仍为 269。完整身份、哈希、搬移和
+数值证据见 [`epri_m1_no_pv_publication_evidence.md`](epri_m1_no_pv_publication_evidence.md)。
+本合同只覆盖无 PV 入口第二个 Snapshot 的最终电气状态；不声明 PV、可靠性、Monitor 通道等价、
+QSTS 轨迹或 8,760 小时/年度性能。
 
 #### 三个同名 `IEEE_519.DSS` 的边界
 
