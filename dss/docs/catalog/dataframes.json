@@ -35975,6 +35975,7 @@
         "name",
         "bus",
         "phases",
+        "terminal_map_to",
         "configuration",
         "kv",
         "bus_to",
@@ -36024,6 +36025,13 @@
           },
           {
             "name": "phases",
+            "dtype": "list<str>",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "terminal_map_to",
             "dtype": "list<str>",
             "required": true,
             "nullable": true,

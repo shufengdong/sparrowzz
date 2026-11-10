@@ -95,6 +95,27 @@ class CatalogValidatorTests(unittest.TestCase):
         self.assertTrue(any("ds_dss_study_sequence" in item["names"] for item in functions["dsa_functions"]))
         self.assertIn("project_dss_study_sequence", json.dumps(functions))
 
+    def test_study_sequence_reactor_preserves_to_terminal_incidence(self):
+        dataframes = self.read("dataframes.json")
+        reactor = dataframes["sequence_inputs"]["reactor"]
+        self.assertEqual(reactor["columns"][2:4], ["phases", "terminal_map_to"])
+        columns = reactor["contract"]["columns"]
+        self.assertEqual(columns[3], {
+            "name": "terminal_map_to", "dtype": "list<str>",
+            "required": True, "nullable": True, "unit": "not_applicable",
+        })
+        self.validator.validate_study_sequence_catalog(
+            self.read("functions.json"), dataframes,
+            self.read("study_facades.json"), self.read("case_projections.json"),
+        )
+        reactor["columns"].remove("terminal_map_to")
+        columns.pop(3)
+        with self.assertRaisesRegex(AssertionError, r"physical schema differs at sequence_inputs\.reactor"):
+            self.validator.validate_study_sequence_catalog(
+                self.read("functions.json"), dataframes,
+                self.read("study_facades.json"), self.read("case_projections.json"),
+            )
+
     def test_study_sequence_catalog_rejects_fixed_slot_order_drift(self):
         catalog = self.read("case_projections.json")
         profile = next(p for p in catalog["profiles"] if p["id"] == "dss_study_sequence_v1")
