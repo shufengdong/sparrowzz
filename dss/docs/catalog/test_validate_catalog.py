@@ -116,6 +116,20 @@ class CatalogValidatorTests(unittest.TestCase):
                 self.read("study_facades.json"), self.read("case_projections.json"),
             )
 
+    def test_reactor_to_terminals_are_optional_in_inherited_v2_contracts(self):
+        dataframes = self.read("dataframes.json")
+        for reference in ("frames.reactor", "execution_inputs.reactor", "harmonic_snapshot_inputs.reactor"):
+            columns = self.validator.resolve_contract_columns(dataframes, reference)
+            endpoints = [column for column in columns if column["name"] == "terminal_map_to"]
+            self.assertEqual(endpoints, [{
+                "name": "terminal_map_to", "dtype": "list<str>",
+                "required": False, "nullable": True, "unit": "not_applicable",
+            }], reference)
+        for family in ("execution_inputs", "harmonic_snapshot_inputs"):
+            self.assertEqual(dataframes[family]["reactor"]["contract"]["columnPolicy"], {
+                "mode": "closed", "unknownColumns": "forbidden",
+            })
+
     def test_study_sequence_catalog_rejects_fixed_slot_order_drift(self):
         catalog = self.read("case_projections.json")
         profile = next(p for p in catalog["profiles"] if p["id"] == "dss_study_sequence_v1")

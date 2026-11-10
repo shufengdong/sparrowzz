@@ -3976,6 +3976,13 @@
             "unit": "not_applicable"
           },
           {
+            "name": "terminal_map_to",
+            "dtype": "list<str>",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
             "name": "enabled",
             "dtype": "bool",
             "required": false,
