@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：176 个入口已经发布 bundle，93 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：182 个入口已经发布 bundle，88 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -69,7 +69,7 @@ bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另�
 结论分成三层：
 
 - IEEE34 Mod1/Mod2、三个 IEEE123 入口和 IEEE37 均已完成改造及发布。
-- YYD 完整入口和 InductionMachine 入口仍有跨研究或动态能力缺口，不能按转换器别名修复处理。
+- YYD 完整入口已按显式有序 study sequence 闭合；InductionMachine 入口仍有动态能力缺口，不能按转换器别名修复处理。
 
 | 入口 | 当前原文件结果 | 最小探测及结果 | 判断 |
 |---|---|---|---|
@@ -79,7 +79,7 @@ bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另�
 | `IEEETestCases/123Bus/P174_Run_VoltageProfile.DSS` | 通过；379 条语句，ExecutionPlan，2 个 epoch | 100%/40% 工作点电压最大误差 `1.37e-5`，7 组 tap 一致 | 已发布 |
 | `IEEETestCases/123Bus/P174_Run_SolarRamp.DSS` | 通过；380 条语句，3 个 epoch、300 点 Duty | `Mode` 重置时钟并恢复 Duty 的 Time 控制队列；12 次 tap 变化、最终档位、Generator 和 300 个 Monitor 样本一致 | 已发布 |
 | `IEEETestCases/ShortCircuitCases/ieee37_SC_Currents.dss` | 通过；170 条语句，FaultStudy，175 个场景 | `F` 与 `FaultStudy` 统一规范化；全母线去共模电压误差 `1.61e-7`、故障电流缩放误差 `1.51e-4`、正负序阻抗误差 `8.46e-12` | 已发布 |
-| `IEEETestCases/4Bus-YYD/YYD-Master.DSS` | `Mode=Direct` 无适配器 | 临时改成 Snapshot 后依次暴露 `Show/Export/FileEdit`、`BatchEdit`、Fault 原生默认值；继续等价展开后，epoch 1 在 fault-study protection measurement 求解失败 | 中到大改造；需要有序副作用策略、BatchEdit 展开、Fault 默认值和 Direct/显式故障专用执行合同，不能把 Direct 简单改名为 Snapshot 或 FaultStudy |
+| `IEEETestCases/4Bus-YYD/YYD-Master.DSS` | 通过；`Snapshot → Direct` 两阶段 schema-v3 sequence | DirectFault continuation、原始 Solve 序号和两阶段 `bus_phase` 兼容聚合均已锁定 | 已发布；公开 `voltage` 仍为 36 行 |
 | `Examples/InductionMachine/Run.dss` | 两次 Dynamic solve 均被生命周期分类器拒绝 | `LoadShape Action=Normalize` 已在导入期物化；原脚本仍含两次 Dynamic solve、5001 步、IndMach012、临时故障、Fuse/Recloser、Voltage/46/47 Relay 和 Monitor mode 3 | 大改造；需要专用 Dynamic adapter、曲线预处理、保护动作时序和 Monitor 通道合同，现阶段不能承诺完整等价转换 |
 
 ### 近期 6 个入口的已完成改造
@@ -98,9 +98,9 @@ bundle 自执行和 OpenDSS 数值比较，并按官方相对路径发布。另�
 
 ### 两个较远入口的前置条件
 
-- YYD 需要定义 `Direct` 的结果表和 continuation 语义。第一段普通潮流的 Show/Export 是输出
-  副作用，第二段 Fault、负荷禁用和 Direct solve 是电气状态变化；两者必须保持顺序。当前把
-  Direct 改成 Snapshot 后出现的 fault-study protection measurement 失败说明求解路径也尚未闭合。
+- YYD 已定义 `Direct` 的结果表和 continuation 语义，并以 schema-v3 `Snapshot → Direct` 顺序
+  保存。第一段和第二段 `bus_phase` 通过 manifest compatibility aggregate 继续发布为单一
+  `voltage` 表；没有把 Direct 改名为 Snapshot 或 FaultStudy。
 - InductionMachine 不能复用普通 QSTS 名称来绕过 Dynamic。验收至少要覆盖 0.3 s 故障投入、
   约 0.4 s 保护隔离、5001 个动态步、转差率/电机状态、Fuse/Recloser/三类 Relay 动作和原脚本
   请求的 Monitor 通道。`Action=Normalize` 已按 OpenDSS 在导入期处理曲线数据；剩余门禁集中在 Dynamic 和保护时序。
@@ -859,8 +859,8 @@ catalog 当前为 176 `converted`、93 `unsupported`、579 `not_standalone_entry
 
 ## 2026-11-08 YYD Direct 故障 continuation 闭合
 
-`IEEETestCases/4Bus-YYD/YYD-Master.DSS` 已由未修改官方入口生成 schema-v2 portable
-bundle。执行计划保留 Snapshot 初始化和后续 Direct 单相接地故障两个有序 epoch；Direct
+`IEEETestCases/4Bus-YYD/YYD-Master.DSS` 最初由未修改官方入口生成 schema-v2 portable
+bundle，本批已在同一路径提升为 schema-v3 study sequence。执行计划保留 Snapshot 初始化和后续 Direct 单相接地故障两个有序 epoch；Direct
 epoch 使用专用 `DirectFault` 投影，full、stream、trace-stream 和 diagnosed API 返回一致的
 故障后电压、支路和 fault state。禁用的 Fault 声明不会扩大“单个启用故障”合同，非法计划在
 数值执行前失败关闭。
@@ -904,9 +904,10 @@ OpenDSS/PSA `(bus, phase)` 键完全一致，最大归一化复电压误差 `2.2
 `DeltaQ_Factor=-1`、重复 X 的 PF 符号阶跃及能力圆投影前的可用有功基准。三相最大归一化复电压
 误差为 `2.95244e-7`，搬移输出字节一致。
 
-最终 release 对 YYD、IEEE123/IEEE37 FaultStudy、FreqScan 和两个既有 HarmonicT bundle 的原地与
-搬移执行也全部通过，公开结果列表及行数不变。HarmonicsTMode 的独立浮点重算最大差异为
-`1.13687e-13 V`，其余兼容输出逐文件字节一致。
+最终 release 已把 YYD、IEEE123/IEEE37 FaultStudy、FreqScan 和两个既有 HarmonicT bundle 在原路径
+提升为 schema-v3 study sequence；原地与搬移执行全部通过，公开结果列表及行数不变。前四例输出
+逐文件字节一致；两个 HarmonicT 例的稳定键、schema 和非浮点值一致，独立浮点重算差异小于
+`1e-12`。
 
 当前 catalog 为 182 `converted`、88 `unsupported`、578 `not_standalone_entry`。完整命令、
 SHA-256 和候选替换说明见
@@ -920,7 +921,7 @@ SHA-256 和候选替换说明见
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD Direct/Fault
    continuation 已按上述有界合同发布；InductionMachine 仍等待 Dynamic/保护动作执行合同，
    不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 91 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 88 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

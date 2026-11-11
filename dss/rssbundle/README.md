@@ -18,13 +18,13 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 182 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 NEV 多 study 与 WATTPF Snapshot |
+| 已转换并发布 bundle | 182 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新把六个既有多阶段入口原路径提升为 schema-v3 study sequence |
 | 当前尚未发布的独立入口 | 88 | 当前报告中的 unsupported 独立入口；WATTPF 从 model-only 显式提升为 Snapshot 案例 |
 | 超时 | 0 | 无 |
 
 182 个成功入口按官方发行树的相对路径保存在本目录；单 study `.rssbundle` 使用 schema v2，NEV
-有序多 study bundle 使用 schema v3；两者都包含 manifest、原始复放 `main.rss`、路径无关的 V4
-`managed.rss`、DSS 导入来源和数据资产，并在
+及本批 YYD、IEEE123/IEEE37 FaultStudy、FreqScan、两个 HarmonicT 有序多 study bundle 使用
+schema v3；两者都包含 manifest、原始复放 `main.rss`、路径无关的 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
@@ -38,9 +38,10 @@
 schema v3 保存 `Snapshot → FaultStudy → Harmonic` 有序研究；WATTPF 是从 model-only 入口显式提升并完成
 OpenDSSDirect 数值对标的 Snapshot bundle。
 
-最终 release 还在原目录和搬移目录重跑 YYD、IEEE123/IEEE37 FaultStudy、FreqScan 及两个既有
-HarmonicT bundle，公开结果列表和行数均保持不变。除 HarmonicsTMode 两张电压表存在最多
-`1.13687e-13 V` 的独立浮点重算差异外，其余搬移输出逐文件字节一致；完整表形状见上述证据。
+最终 release 在原目录和搬移目录重跑这六个已提升的 schema-v3 bundle，公开结果列表和行数均
+保持不变；每个 bundle 都冻结 48 个输入。YYD、IEEE123/IEEE37 FaultStudy 与 FreqScan 输出逐文件
+字节一致；两个 HarmonicT bundle 的稳定键、schema 和非浮点值一致，独立浮点重算差异小于
+`1e-12`。完整阶段和表形状见上述证据。
 
 ## 首轮改造进展
 
@@ -48,7 +49,7 @@ HarmonicT bundle，公开结果列表和行数均保持不变。除 HarmonicsTMo
 
 - 所有原生 `Solve`（包括单次 Snapshot）统一进入 PSA execution plan；`Snap` 已归一化，
   Snapshot 初始化后继续 Daily/Duty 不再被分类器预先拒绝。
-- `tensoreval --study snapshot|execution|harmonic|auto-add|relcalc|dynamic` 已对外开放；纯模型入口可用
+- `tensoreval --study snapshot|execution|fault-study|harmonic|study-sequence|auto-add|relcalc|dynamic` 已对外开放；纯模型入口可用
   `--study snapshot` 明确要求单次静态研究。
 - `EarthModel`、`Algorithm`、`MaxIter/MaxIterations`、`MaxControlIter/MaxControlI` 和
   `Tolerance` 由 PSA 统一校验。后三项按 epoch 写入实际潮流参数，生成 RSS 和转换期校验

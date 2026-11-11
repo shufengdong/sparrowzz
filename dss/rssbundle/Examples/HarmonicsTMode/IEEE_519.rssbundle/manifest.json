@@ -1,11 +1,11 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "artifact": "mems.dss-rss-bundle",
   "generator": "mems/0.1.0",
   "psa_contract_version": "0.1.0",
   "entry": "main.rss",
   "study": {
-    "kind": "harmonic",
+    "kind": "study_sequence",
     "compatibility": "opendss-native",
     "results": [
       "bus_voltage",
@@ -14,12 +14,80 @@
       "bus_sequence",
       "branch_sequence",
       "monitor"
+    ],
+    "stages": [
+      {
+        "index": 0,
+        "id": "s0_snapshot",
+        "kind": "snapshot",
+        "compatibility": "opendss-native",
+        "results": [],
+        "input_state": "source",
+        "output_state": "fundamental_0"
+      },
+      {
+        "index": 1,
+        "id": "s1_harmonic",
+        "kind": "harmonic",
+        "compatibility": "opendss-native",
+        "results": [
+          "bus_voltage",
+          "branch_flow",
+          "conductor_flow",
+          "bus_sequence",
+          "branch_sequence",
+          "monitor"
+        ],
+        "input_state": "fundamental_0",
+        "output_state": "harmonic_1"
+      }
     ]
   },
   "source": {
     "entry": "dss/Examples/HarmonicsTMode/IEEE_519.DSS",
     "root": "dss",
-    "tree_sha256": "36791e7e2950c8045332448d79a242e8972efa6d29073b622d46249149fe1b3b"
+    "tree_sha256": "1d4fc8c996297be289743d058a10dbfad5b1835274c94abcdae1c927499f2c85"
+  },
+  "projection": {
+    "source_function": "ds_dss_study_sequence",
+    "profile": "dss_study_sequence_v1",
+    "projector": "project_dss_study_sequence",
+    "target_function": "ds_study_sequence",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "1.bus_voltage",
+        "target": "bus_voltage",
+        "binding": "bus_voltage"
+      },
+      {
+        "source": "1.branch_flow",
+        "target": "branch_flow",
+        "binding": "branch_flow"
+      },
+      {
+        "source": "1.conductor_flow",
+        "target": "conductor_flow",
+        "binding": "conductor_flow"
+      },
+      {
+        "source": "1.bus_sequence",
+        "target": "bus_sequence",
+        "binding": "bus_sequence"
+      },
+      {
+        "source": "1.branch_sequence",
+        "target": "branch_sequence",
+        "binding": "branch_sequence"
+      },
+      {
+        "source": "1.monitor",
+        "target": "monitor",
+        "binding": "monitor"
+      }
+    ]
   },
   "files": [
     {
@@ -50,54 +118,350 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "0073b715192bc8419ca0acc9745958becd2eb84e735fd4717754613df57e7e03"
+      "sha256": "3a695989f4a3b3e14c4df713518863a56d20c339369a48a7706471c9b5dd9769"
     },
     {
       "path": "managed.rss",
       "role": "managed-rss",
-      "sha256": "43ba5dc2ec4c701e102c53f5fa7f0407a8c99be873778f8e0c1171820c0fba20"
+      "sha256": "c013bca841cc27281deaa149dcfe15a87878ec2954017de190bba314d6ab0b3c"
     }
   ],
-  "inputs": [],
-  "projection": {
-    "source_function": "ds_dss_harmonic_plan",
-    "profile": "dss_harmonic_plan_v1",
-    "projector": "project_dss_harmonic_plan",
-    "target_function": "ds_harmonic_execution_plan",
-    "managed_entry": "managed.rss",
-    "status": "enabled",
-    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
-    "results": [
-      {
-        "source": "bus_voltage",
-        "target": "bus_voltage",
-        "binding": "result_bus_voltage"
-      },
-      {
-        "source": "branch_flow",
-        "target": "branch_flow",
-        "binding": "result_branch_flow"
-      },
-      {
-        "source": "conductor_flow",
-        "target": "conductor_flow",
-        "binding": "result_conductor_flow"
-      },
-      {
-        "source": "bus_sequence",
-        "target": "bus_sequence",
-        "binding": "result_bus_sequence"
-      },
-      {
-        "source": "branch_sequence",
-        "target": "branch_sequence",
-        "binding": "result_branch_sequence"
-      },
-      {
-        "source": "monitor",
-        "target": "monitor",
-        "binding": "result_monitor"
-      }
-    ]
-  }
+  "inputs": [
+    {
+      "name": "sequence_plan",
+      "path": "inputs/sequence_plan.parquet",
+      "format": "parquet",
+      "sha256": "d9cf1a40700ee1fdbea6f48b33d108eca2b07d958d186a0ee7d91eba01e56283",
+      "schema_sha256": "bb5855badd7b7a7146cc3c8980796a5dc777ab1873280ea37152152ae0adb8d8"
+    },
+    {
+      "name": "sequence_transition",
+      "path": "inputs/sequence_transition.parquet",
+      "format": "parquet",
+      "sha256": "e10b0680010aac3146fe5c63d0a3652943289e98c04cffd8b2570e1ef7dbe3f9",
+      "schema_sha256": "9ca0413f45a3d8c26d9fd8ef6b13d09c1854198f3d706146a72df515e8e4686e"
+    },
+    {
+      "name": "bus",
+      "path": "inputs/bus.parquet",
+      "format": "parquet",
+      "sha256": "d6ed03ee73d5edcd627f4f0dcd0101d52f11493282ea4f37b964f9aa715ed7f0",
+      "schema_sha256": "e45fef357853289a101b5f163312c44bba8f75d0fcddba716fb2b46f1f42a99c"
+    },
+    {
+      "name": "line",
+      "path": "inputs/line.parquet",
+      "format": "parquet",
+      "sha256": "8e5f600c66ccfac5d7a07586a0a922416e1021fac3d38fbccc84dfefbc47955d",
+      "schema_sha256": "39bbfebd993f46537392f458ed7ac763b8b72a4a21d2babeaa2a4b995dd8c45d"
+    },
+    {
+      "name": "linecode",
+      "path": "inputs/linecode.parquet",
+      "format": "parquet",
+      "sha256": "9c5f933d27c20c576c6b9e57bd9f78ab74581cf01d0aed4a242249a7c6d1ac8c",
+      "schema_sha256": "6b8e944b777397d46c208650c34f27581b14d3056716b2e12766c05ffdff3eab"
+    },
+    {
+      "name": "load",
+      "path": "inputs/load.parquet",
+      "format": "parquet",
+      "sha256": "c3a0af2291d8dd6fab41182a6398cddc46afab49a6f90d710b07844d2bce8edf",
+      "schema_sha256": "181e5fdf6882e3699efc7699c82b021ad17ff97d754fa41d379202cf40007200"
+    },
+    {
+      "name": "transformer",
+      "path": "inputs/transformer.parquet",
+      "format": "parquet",
+      "sha256": "e93217dd989d76844b81f9f65a9314f8180965ae26b9585d51c368004582f103",
+      "schema_sha256": "ae0c9f7f49879ee54e666258865abfa91767f2d48e709fc5fcd820337c370b71"
+    },
+    {
+      "name": "voltage_source",
+      "path": "inputs/voltage_source.parquet",
+      "format": "parquet",
+      "sha256": "2bf40caeaf39d05080ff411745a43c3e0be9f073c61423e53fd0540c707357d9",
+      "schema_sha256": "4882057c70264c7ba48a4848ce4057fecca53f5c049d1854f48e1c4a8dadc79b"
+    },
+    {
+      "name": "motor",
+      "path": "inputs/motor.parquet",
+      "format": "parquet",
+      "sha256": "d2c30709fab73d57873506cb1053dceb960ca47be808fbd29ccbbfa6cd76e61e",
+      "schema_sha256": "ecfc18af0600d87b15184d22e1a16dc404f7b71f2898ed2c48dc84413e3b31ac"
+    },
+    {
+      "name": "transformer_winding",
+      "path": "inputs/transformer_winding.parquet",
+      "format": "parquet",
+      "sha256": "166f29db2b3f84dd64c1b2b6d5ae825e721fdd495b7fef460fc5f122078d2285",
+      "schema_sha256": "d4d6b41a08b7e74503e8cfe0403b1646a7bbb0353b7c83c8eab7f398dc6fd668"
+    },
+    {
+      "name": "transformer_impedance",
+      "path": "inputs/transformer_impedance.parquet",
+      "format": "parquet",
+      "sha256": "61716244249f995728875b5e81198d119392ffe49a810a5e4a86e1d63ba5f5ac",
+      "schema_sha256": "4195df1b82100ae484c0847293013063cb60defaa552236207e526bb6ac7bd02"
+    },
+    {
+      "name": "current_source",
+      "path": "inputs/current_source.parquet",
+      "format": "parquet",
+      "sha256": "35689c0ab0113250ec13bfd88a7f5cbfb400eace05dbbbdff82d5714d270bada",
+      "schema_sha256": "e56cafa8ea84c7e7765e944b80764033267249274cb74b2a68cabd5110878622"
+    },
+    {
+      "name": "generator",
+      "path": "inputs/generator.parquet",
+      "format": "parquet",
+      "sha256": "3388e49c499c9c576b2b727b0051f1cbe5a7cead59c43d92a947bf90bcd35b51",
+      "schema_sha256": "8183f8f0c44c1951d5a20372ece22461347b464c0eb670ad1ede2412083bb932"
+    },
+    {
+      "name": "ibr",
+      "path": "inputs/ibr.parquet",
+      "format": "parquet",
+      "sha256": "306b38f35616414cc8faa96b4ba4ce51b7339fd9391eb42455dd558c9c3da020",
+      "schema_sha256": "8b7d06d52865a65a3728a109a6332d590fbf53072b1f59028100f6fa01b24295"
+    },
+    {
+      "name": "switch",
+      "path": "inputs/switch.parquet",
+      "format": "parquet",
+      "sha256": "192e13984a5cd22e46608542582ff6998a22bd96eee66febcf08c36acf6ab60f",
+      "schema_sha256": "fa94997708f5a46b69a8390ee893d406fba89a231f79b8b57fbdcb13cc7a6944"
+    },
+    {
+      "name": "shunt",
+      "path": "inputs/shunt.parquet",
+      "format": "parquet",
+      "sha256": "71f359557a6a2ecc8d89301e2792b16b2b42f6c9671d922354d6f37f18a77f7f",
+      "schema_sha256": "8e7cdec6ba6bb217a0f44df7ca5c3eff2df01e730eb3d1f7215a40779e01f94b"
+    },
+    {
+      "name": "capacitor",
+      "path": "inputs/capacitor.parquet",
+      "format": "parquet",
+      "sha256": "03b804c83913e58576686dcd720d8cad2650c1fb216fc8f93aeeaf300bac7259",
+      "schema_sha256": "960e6ea12b95de6e387d5e809621cf9bcb558491ca839c498f32991fe2a94833"
+    },
+    {
+      "name": "reactor",
+      "path": "inputs/reactor.parquet",
+      "format": "parquet",
+      "sha256": "1494903db93694740c5d08d7d21c827dc30ac26a22328bfaf4054a488565203a",
+      "schema_sha256": "5f69a6e9db2b022d4de01d70d38daa9f43a9fb2f1018094b31c5be2843106828"
+    },
+    {
+      "name": "spectrum",
+      "path": "inputs/spectrum.parquet",
+      "format": "parquet",
+      "sha256": "fabd6298d4dfe5c81ca033f3eb77be0cc6e66d27219f1c8017c9e5597e4236ae",
+      "schema_sha256": "a3dadf6fff0d54f5a3566319d8b3d7ea1744b001d39cd1fd0f671b2b6b381c5c"
+    },
+    {
+      "name": "control_profile",
+      "path": "inputs/control_profile.parquet",
+      "format": "parquet",
+      "sha256": "a3857b22c0cc946fbb82e54ee829a3c9986eb25695fee8dbcc576f1d4c8e316f",
+      "schema_sha256": "314c6df0ac905d658954efaa642015ca76aa5a1f20b02fb782a5cdf5aa42db00"
+    },
+    {
+      "name": "xy_curve",
+      "path": "inputs/xy_curve.parquet",
+      "format": "parquet",
+      "sha256": "7f3114ca06a31abe770de9487d4d917f7af0f1de7cfd9e25723447c78054dda8",
+      "schema_sha256": "21ad8ebf7f3a1bdc119a5aad3515526501210738a06f9c3c734be8651e832f9f"
+    },
+    {
+      "name": "storage",
+      "path": "inputs/storage.parquet",
+      "format": "parquet",
+      "sha256": "e73142f1bab0b1ff0d470839d023c94b63d5b995a5b1e00f54e504368a220df8",
+      "schema_sha256": "f1de6af819b79d01c86c874ae8939d7478571361f76a0d17b39e98bed50e56e7"
+    },
+    {
+      "name": "solution",
+      "path": "inputs/solution.parquet",
+      "format": "parquet",
+      "sha256": "9fcd20214d3d30ebac5aba50da96545b2e1418644c86fbc7041cb637f2c43dfd",
+      "schema_sha256": "5ee120b90f87f9f6a6d5a4f3d3d55621127ef49591b63ee971b5a1f9e29f234e"
+    },
+    {
+      "name": "load_shape",
+      "path": "inputs/load_shape.parquet",
+      "format": "parquet",
+      "sha256": "b671443400841c9476ecca9842219dda0cc0354d960a3c3903acbb10b94223e4",
+      "schema_sha256": "7e5f864c193b6c661d595563aa6425188e58f90900c9efae3d3e45ad2999e765"
+    },
+    {
+      "name": "shape_assignment",
+      "path": "inputs/shape_assignment.parquet",
+      "format": "parquet",
+      "sha256": "9a654c5509bc6f4cd73f3906c97718e58d3ee7ad9a22560d0342f963ede48ab4",
+      "schema_sha256": "9f909a34ccc97d0bf9fc1b65dd58328eabb7cfc990369965df6c7b8f5a00a03d"
+    },
+    {
+      "name": "storage_controller",
+      "path": "inputs/storage_controller.parquet",
+      "format": "parquet",
+      "sha256": "1065e94323959e3ef0976844697f203a2461f0bd98509e3ac561e3fc5570d8c5",
+      "schema_sha256": "b56e7c314421963df070c2e028a54e7ad32a23c7f68143f4a8a25c6fa7710b99"
+    },
+    {
+      "name": "switch_control",
+      "path": "inputs/switch_control.parquet",
+      "format": "parquet",
+      "sha256": "7ee8ed85c9e57503d842224a5ca1e08524eef307d15e9f67377c186c218a0893",
+      "schema_sha256": "f1de6a1c0f0fa82998d1b401445e402796ef68385abdef7b241df154a025739d"
+    },
+    {
+      "name": "tcc_curve",
+      "path": "inputs/tcc_curve.parquet",
+      "format": "parquet",
+      "sha256": "606ac04890df0c0a6a0918ab750ff63c723e2888894a8081913392629d3e0a23",
+      "schema_sha256": "498e42fb1ba7c1e12662d00cfd619779f1c6af326930a479d83d4ecf495b20a4"
+    },
+    {
+      "name": "fuse",
+      "path": "inputs/fuse.parquet",
+      "format": "parquet",
+      "sha256": "4b93abd5bc988b47c806aaea5d511e0f5cfe79af673efccdb86fcebfc71abbcd",
+      "schema_sha256": "6f09c46c57dc69bac0aa3f1314a7aa7f7df11ceeb5e125e4ae60f33fa83472e4"
+    },
+    {
+      "name": "recloser",
+      "path": "inputs/recloser.parquet",
+      "format": "parquet",
+      "sha256": "fcbf609e9ef88a5775322e7397da6233e61e2dd7ad26a80078a64bd46a060b63",
+      "schema_sha256": "d079823d50b45d98ca7791dac84a9df71c52c8a9518bfd376a6c1bbb0059473d"
+    },
+    {
+      "name": "relay",
+      "path": "inputs/relay.parquet",
+      "format": "parquet",
+      "sha256": "b73ded22128ed47de1fb1c472060cb82258d0f8c8969868400810e651f3bb4b7",
+      "schema_sha256": "628165157ea31891466794acfa49653b470916e5232342da9402b5a85ab56f9b"
+    },
+    {
+      "name": "monitor_input",
+      "path": "inputs/monitor_input.parquet",
+      "format": "parquet",
+      "sha256": "b8b12885531fa06326cc98111ad327c5ed605aaee9a15917fd4a8c030fefe88c",
+      "schema_sha256": "5b277aff95dd0137c323ed01a9a2fcbde6fe1bd5e99c0e2f64f3667bc3d76d0e"
+    },
+    {
+      "name": "energy_meter_input",
+      "path": "inputs/energy_meter_input.parquet",
+      "format": "parquet",
+      "sha256": "535fbb4e98e4d7f3199dfe959a9cc43d667c809c1bb6678d52ab119759385a05",
+      "schema_sha256": "e48cc8b7debe606d0f924baf2a51878ce9eba589cac9d4c5075b7a3fc5e46c29"
+    },
+    {
+      "name": "fault",
+      "path": "inputs/fault.parquet",
+      "format": "parquet",
+      "sha256": "cb4bafedfb4cfb96ad2fb2653b47cca1fc8925c762ecc33e19dd148b388abf16",
+      "schema_sha256": "be3e4fc27cd80272a2d92a372c924b0ff54bdf4d8577947269c69eeb729cdb16"
+    },
+    {
+      "name": "execution_epoch",
+      "path": "inputs/execution_epoch.parquet",
+      "format": "parquet",
+      "sha256": "2346b167117fe839c0cdf30d4d06c7360c704ac5f344505b897c15d2d6598bbd",
+      "schema_sha256": "1e7baead7eed46da8857ca1bd0e29493c5e1f08b85dd1f7a5eddce3a843d9cf2"
+    },
+    {
+      "name": "execution_setting",
+      "path": "inputs/execution_setting.parquet",
+      "format": "parquet",
+      "sha256": "5b605e58451d1e2a9ec42a3b572e208c09598cf90b050b62920cbc0623e86e70",
+      "schema_sha256": "b4707826da292c64d851302afb0bfdfe4d1b92a45c78977093adb0dc86a6b7d0"
+    },
+    {
+      "name": "execution_mutation",
+      "path": "inputs/execution_mutation.parquet",
+      "format": "parquet",
+      "sha256": "bbcc64a439e09a90fb6f217f14d75b05e1892c58880813a45d8d7a2942051aeb",
+      "schema_sha256": "7452a8da8d579dc7283d253b63f83f20d1e887dfdf38854619759746659f5090"
+    },
+    {
+      "name": "post_solve_action",
+      "path": "inputs/post_solve_action.parquet",
+      "format": "parquet",
+      "sha256": "4dba955fd50610f6c311baf16e75f31b0b7d7d862f9c1043fc1bd48715c3ad9f",
+      "schema_sha256": "1aa3fce404ff17467311043ad471700d0859da0bffed8f2066a398ef551dc7fd"
+    },
+    {
+      "name": "execution_reference",
+      "path": "inputs/execution_reference.parquet",
+      "format": "parquet",
+      "sha256": "70cd4932ef2c4e93d3e8386f764a418eb749ccbb56dd2b8920dd270603136671",
+      "schema_sha256": "efa865ba280de76aef1f68cd4ec0c7dad14df0febac39987f793e2e873a6e22c"
+    },
+    {
+      "name": "execution_event",
+      "path": "inputs/execution_event.parquet",
+      "format": "parquet",
+      "sha256": "f08b783af085fb96b61a00d6244519baf591183cf6a316d8485d6b37222d8bef",
+      "schema_sha256": "2b61a73f47b7852dc1d95a11369b74183b2c0b806d21ab9a6cbca5fce95d78cf"
+    },
+    {
+      "name": "harmonic_plan",
+      "path": "inputs/harmonic_plan.parquet",
+      "format": "parquet",
+      "sha256": "248c10d590a4e4c9f01cb7e99ce170b5f1ec7da3d4cf909c9cb6fee5f0762504",
+      "schema_sha256": "be010e8c445dfd6ccd34df79da995f5eb88f5904a117fa202ebc6e121ada33c4"
+    },
+    {
+      "name": "frequency_axis",
+      "path": "inputs/frequency_axis.parquet",
+      "format": "parquet",
+      "sha256": "0208c2666d86326e15e4ef086b60d2507ee629cec0cb3916e531fe89f76bcebd",
+      "schema_sha256": "45a92069be05ac18cfb0eee82441ead0641c40b4e820a0a13cef502bc747fc04"
+    },
+    {
+      "name": "frequency_spectrum",
+      "path": "inputs/frequency_spectrum.parquet",
+      "format": "parquet",
+      "sha256": "7dcf9f002c2cf69ab2f430c060e1d4d1e6d54f31540a00e81b834418a5b55713",
+      "schema_sha256": "409387159b25f1ec3faddbedf6f9cf7fce321e713ec5725d9807c5f724e073d5"
+    },
+    {
+      "name": "harmonic_monitor",
+      "path": "inputs/harmonic_monitor.parquet",
+      "format": "parquet",
+      "sha256": "8527b6d32a5461cc2d97ac3c24acd67120fb1183f8b19fffcff8df5968b157df",
+      "schema_sha256": "86b5541b0528b61d96595138759cf891e17bc5fa8178069c4564b71864590964"
+    },
+    {
+      "name": "harmonic_snapshot",
+      "path": "inputs/harmonic_snapshot.parquet",
+      "format": "parquet",
+      "sha256": "bd215bdd3ad85d85a45f1b76bae3e90c66eb8552aabccba388020c46e8bc3364",
+      "schema_sha256": "01f1670d0e293fb03efe6b019d6936f202022986ffaa0c3049a93d1a68cc0c8e"
+    },
+    {
+      "name": "sequence_request",
+      "path": "inputs/sequence_request.parquet",
+      "format": "parquet",
+      "sha256": "d21573eb33a2446c8e62268a30316025e825e26a8d836616c0caea52a662d52f",
+      "schema_sha256": "eaca829a6f83fc7831eb8dc95eca479baaa11156d97139c7ef28edad842213eb"
+    },
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "b60157ed21afaf34ecbbe460b2e4a97095ed3cd3088611d75e96bd4ca00abf53",
+      "schema_sha256": "f58c5d3b6062fb24818adf10f235f25113b7de53a17aee819a79eedcfae191cb"
+    },
+    {
+      "name": "sequence_diagnostic",
+      "path": "inputs/sequence_diagnostic.parquet",
+      "format": "parquet",
+      "sha256": "438b3fbc88e066f264f10ee76d61cf2c080b5f2710b389beb0bdff9a7cdee258",
+      "schema_sha256": "b851ba360654d46d032bb07898859101f85995a0c8b6a736efacec34822c17fc"
+    }
+  ]
 }

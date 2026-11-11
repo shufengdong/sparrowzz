@@ -286,6 +286,18 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         manifest, profile = self.sequence_manifest_and_profile()
         self.validator.validate_sequence_manifest_contract("nev", manifest, profile)
 
+    def test_schema_v3_sequence_manifest_contract_accepts_legacy_compatibility_bindings(self):
+        _, profile = self.sequence_manifest_and_profile()
+        roots = CATALOG_DIR.parent.parent / "rssbundle"
+        for relative in (
+            "IEEETestCases/4Bus-YYD/YYD-Master.rssbundle/manifest.json",
+            "IEEETestCases/ShortCircuitCases/IEEE123Master-SC.rssbundle/manifest.json",
+            "Examples/FreqScan/Run_Scan.rssbundle/manifest.json",
+        ):
+            with self.subTest(relative=relative):
+                manifest = json.loads((roots / relative).read_text(encoding="utf-8"))
+                self.validator.validate_sequence_manifest_contract(relative, manifest, profile)
+
     def test_schema_v3_sequence_manifest_contract_rejects_non_sequence_study(self):
         manifest, profile = self.sequence_manifest_and_profile()
         manifest["study"]["kind"] = "snapshot"
@@ -298,9 +310,12 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         noncontiguous["study"]["stages"][1]["index"] = 2
         undeclared = copy.deepcopy(manifest)
         undeclared["projection"]["results"][0]["source"] = "0.bus_voltage"
+        empty_binding = copy.deepcopy(manifest)
+        empty_binding["projection"]["results"][0]["binding"] = ""
         for name, candidate, expected in (
             ("noncontiguous stage", noncontiguous, "contiguous"),
             ("undeclared result", undeclared, "not declared by its stage"),
+            ("empty managed binding", empty_binding, "non-empty unique identifiers"),
         ):
             with self.subTest(name=name), self.assertRaisesRegex(AssertionError, expected):
                 self.validator.validate_sequence_manifest_contract("nev", candidate, profile)

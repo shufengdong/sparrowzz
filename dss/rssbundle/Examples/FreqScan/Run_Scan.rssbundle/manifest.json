@@ -1,11 +1,11 @@
 {
-  "schema_version": 2,
+  "schema_version": 3,
   "artifact": "mems.dss-rss-bundle",
   "generator": "mems/0.1.0",
   "psa_contract_version": "0.1.0",
   "entry": "main.rss",
   "study": {
-    "kind": "harmonic",
+    "kind": "study_sequence",
     "compatibility": "opendss-native",
     "results": [
       "bus_voltage",
@@ -15,6 +15,34 @@
       "branch_sequence",
       "monitor",
       "monitor_save"
+    ],
+    "stages": [
+      {
+        "index": 0,
+        "id": "s0_snapshot",
+        "kind": "snapshot",
+        "compatibility": "opendss-native",
+        "results": [],
+        "input_state": "source",
+        "output_state": "fundamental_0"
+      },
+      {
+        "index": 1,
+        "id": "s1_harmonic",
+        "kind": "harmonic",
+        "compatibility": "opendss-native",
+        "results": [
+          "bus_voltage",
+          "branch_flow",
+          "conductor_flow",
+          "bus_sequence",
+          "branch_sequence",
+          "monitor",
+          "monitor_save"
+        ],
+        "input_state": "fundamental_0",
+        "output_state": "harmonic_1"
+      }
     ]
   },
   "source": {
@@ -23,48 +51,48 @@
     "tree_sha256": "ff311a2b978f30099b63fb4209dbd91107407a2d2fe15223d4fb3471e5f1ea22"
   },
   "projection": {
-    "source_function": "ds_dss_harmonic_plan",
-    "profile": "dss_harmonic_plan_v1",
-    "projector": "project_dss_harmonic_plan",
-    "target_function": "ds_harmonic_execution_plan",
+    "source_function": "ds_dss_study_sequence",
+    "profile": "dss_study_sequence_v1",
+    "projector": "project_dss_study_sequence",
+    "target_function": "ds_study_sequence",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
     "results": [
       {
-        "source": "bus_voltage",
+        "source": "1.bus_voltage",
         "target": "bus_voltage",
-        "binding": "result_bus_voltage"
+        "binding": "bus_voltage"
       },
       {
-        "source": "branch_flow",
+        "source": "1.branch_flow",
         "target": "branch_flow",
-        "binding": "result_branch_flow"
+        "binding": "branch_flow"
       },
       {
-        "source": "conductor_flow",
+        "source": "1.conductor_flow",
         "target": "conductor_flow",
-        "binding": "result_conductor_flow"
+        "binding": "conductor_flow"
       },
       {
-        "source": "bus_sequence",
+        "source": "1.bus_sequence",
         "target": "bus_sequence",
-        "binding": "result_bus_sequence"
+        "binding": "bus_sequence"
       },
       {
-        "source": "branch_sequence",
+        "source": "1.branch_sequence",
         "target": "branch_sequence",
-        "binding": "result_branch_sequence"
+        "binding": "branch_sequence"
       },
       {
-        "source": "monitor",
+        "source": "1.monitor",
         "target": "monitor",
-        "binding": "result_monitor"
+        "binding": "monitor"
       },
       {
-        "source": "monitor_save",
+        "source": "1.monitor_save",
         "target": "monitor_save",
-        "binding": "result_monitor_save"
+        "binding": "monitor_save"
       }
     ]
   },
@@ -112,13 +140,350 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "4dae960b23ffaab480e5cee613ea0de1039615523c4d0dc12c5694cfb89cc199"
+      "sha256": "6965f36ea5f314aef6bbcf852aa094710be5f957a4b1d67aa90674b5ffbc269f"
     },
     {
       "path": "managed.rss",
       "role": "managed-rss",
-      "sha256": "ce5f039cc77e02dee73481618f0cac3850b853c93d5122f39c9a03b94afae5c0"
+      "sha256": "3ab97e21b2bae1bc53b1b7bcb60b4f6a7917b54dd3b051fd3b25d10138e93bda"
     }
   ],
-  "inputs": []
+  "inputs": [
+    {
+      "name": "sequence_plan",
+      "path": "inputs/sequence_plan.parquet",
+      "format": "parquet",
+      "sha256": "d404987e4c82fa1e244a0844c4d9bcf686a33909185178d7785e1c47a1e3cab2",
+      "schema_sha256": "bb5855badd7b7a7146cc3c8980796a5dc777ab1873280ea37152152ae0adb8d8"
+    },
+    {
+      "name": "sequence_transition",
+      "path": "inputs/sequence_transition.parquet",
+      "format": "parquet",
+      "sha256": "e10b0680010aac3146fe5c63d0a3652943289e98c04cffd8b2570e1ef7dbe3f9",
+      "schema_sha256": "9ca0413f45a3d8c26d9fd8ef6b13d09c1854198f3d706146a72df515e8e4686e"
+    },
+    {
+      "name": "bus",
+      "path": "inputs/bus.parquet",
+      "format": "parquet",
+      "sha256": "6a8852fc80d9671be4467b0feddaeb0dac5f6f0720217a6012aa357a1712e1f6",
+      "schema_sha256": "e45fef357853289a101b5f163312c44bba8f75d0fcddba716fb2b46f1f42a99c"
+    },
+    {
+      "name": "line",
+      "path": "inputs/line.parquet",
+      "format": "parquet",
+      "sha256": "fd26db163030ce6de56dfea47d094c47de72edda4372598028ced2ae8ded7fe7",
+      "schema_sha256": "39bbfebd993f46537392f458ed7ac763b8b72a4a21d2babeaa2a4b995dd8c45d"
+    },
+    {
+      "name": "linecode",
+      "path": "inputs/linecode.parquet",
+      "format": "parquet",
+      "sha256": "e6f805a41b6d86116583893f845483344dd81b79613e139212c2c5e67204d642",
+      "schema_sha256": "6b8e944b777397d46c208650c34f27581b14d3056716b2e12766c05ffdff3eab"
+    },
+    {
+      "name": "load",
+      "path": "inputs/load.parquet",
+      "format": "parquet",
+      "sha256": "ffde1182d5f91a87cdcafc848c5892ebd29a6efbe45b09aeefc0ad7c9d8c2694",
+      "schema_sha256": "181e5fdf6882e3699efc7699c82b021ad17ff97d754fa41d379202cf40007200"
+    },
+    {
+      "name": "transformer",
+      "path": "inputs/transformer.parquet",
+      "format": "parquet",
+      "sha256": "244ff2f2382abbbb08f3c8452a46a23878330dbeab996d48a84edb6f10e7d9b2",
+      "schema_sha256": "ae0c9f7f49879ee54e666258865abfa91767f2d48e709fc5fcd820337c370b71"
+    },
+    {
+      "name": "voltage_source",
+      "path": "inputs/voltage_source.parquet",
+      "format": "parquet",
+      "sha256": "c83aa313fd9afacac5f8fdb68163780d826a2fc3da7d229c97a7f17242657aba",
+      "schema_sha256": "4882057c70264c7ba48a4848ce4057fecca53f5c049d1854f48e1c4a8dadc79b"
+    },
+    {
+      "name": "motor",
+      "path": "inputs/motor.parquet",
+      "format": "parquet",
+      "sha256": "d2c30709fab73d57873506cb1053dceb960ca47be808fbd29ccbbfa6cd76e61e",
+      "schema_sha256": "ecfc18af0600d87b15184d22e1a16dc404f7b71f2898ed2c48dc84413e3b31ac"
+    },
+    {
+      "name": "transformer_winding",
+      "path": "inputs/transformer_winding.parquet",
+      "format": "parquet",
+      "sha256": "166f29db2b3f84dd64c1b2b6d5ae825e721fdd495b7fef460fc5f122078d2285",
+      "schema_sha256": "d4d6b41a08b7e74503e8cfe0403b1646a7bbb0353b7c83c8eab7f398dc6fd668"
+    },
+    {
+      "name": "transformer_impedance",
+      "path": "inputs/transformer_impedance.parquet",
+      "format": "parquet",
+      "sha256": "61716244249f995728875b5e81198d119392ffe49a810a5e4a86e1d63ba5f5ac",
+      "schema_sha256": "4195df1b82100ae484c0847293013063cb60defaa552236207e526bb6ac7bd02"
+    },
+    {
+      "name": "current_source",
+      "path": "inputs/current_source.parquet",
+      "format": "parquet",
+      "sha256": "7cc1d59fc6cfc1ef3f6daa209878c1de466efd2f32ef0629a7d598a0e353f6b8",
+      "schema_sha256": "e56cafa8ea84c7e7765e944b80764033267249274cb74b2a68cabd5110878622"
+    },
+    {
+      "name": "generator",
+      "path": "inputs/generator.parquet",
+      "format": "parquet",
+      "sha256": "3388e49c499c9c576b2b727b0051f1cbe5a7cead59c43d92a947bf90bcd35b51",
+      "schema_sha256": "8183f8f0c44c1951d5a20372ece22461347b464c0eb670ad1ede2412083bb932"
+    },
+    {
+      "name": "ibr",
+      "path": "inputs/ibr.parquet",
+      "format": "parquet",
+      "sha256": "306b38f35616414cc8faa96b4ba4ce51b7339fd9391eb42455dd558c9c3da020",
+      "schema_sha256": "8b7d06d52865a65a3728a109a6332d590fbf53072b1f59028100f6fa01b24295"
+    },
+    {
+      "name": "switch",
+      "path": "inputs/switch.parquet",
+      "format": "parquet",
+      "sha256": "192e13984a5cd22e46608542582ff6998a22bd96eee66febcf08c36acf6ab60f",
+      "schema_sha256": "fa94997708f5a46b69a8390ee893d406fba89a231f79b8b57fbdcb13cc7a6944"
+    },
+    {
+      "name": "shunt",
+      "path": "inputs/shunt.parquet",
+      "format": "parquet",
+      "sha256": "3aa93c8178a5fcca7b3e745066e44ba97aba8038b3e8d5cf51565da9bb1cad58",
+      "schema_sha256": "8e7cdec6ba6bb217a0f44df7ca5c3eff2df01e730eb3d1f7215a40779e01f94b"
+    },
+    {
+      "name": "capacitor",
+      "path": "inputs/capacitor.parquet",
+      "format": "parquet",
+      "sha256": "03b804c83913e58576686dcd720d8cad2650c1fb216fc8f93aeeaf300bac7259",
+      "schema_sha256": "960e6ea12b95de6e387d5e809621cf9bcb558491ca839c498f32991fe2a94833"
+    },
+    {
+      "name": "reactor",
+      "path": "inputs/reactor.parquet",
+      "format": "parquet",
+      "sha256": "1494903db93694740c5d08d7d21c827dc30ac26a22328bfaf4054a488565203a",
+      "schema_sha256": "5f69a6e9db2b022d4de01d70d38daa9f43a9fb2f1018094b31c5be2843106828"
+    },
+    {
+      "name": "spectrum",
+      "path": "inputs/spectrum.parquet",
+      "format": "parquet",
+      "sha256": "d464819e02bdb1b86b6ce941adb2ca37ac7d4fa4069e7ddf21a4dce8246c5215",
+      "schema_sha256": "a3dadf6fff0d54f5a3566319d8b3d7ea1744b001d39cd1fd0f671b2b6b381c5c"
+    },
+    {
+      "name": "control_profile",
+      "path": "inputs/control_profile.parquet",
+      "format": "parquet",
+      "sha256": "a3857b22c0cc946fbb82e54ee829a3c9986eb25695fee8dbcc576f1d4c8e316f",
+      "schema_sha256": "314c6df0ac905d658954efaa642015ca76aa5a1f20b02fb782a5cdf5aa42db00"
+    },
+    {
+      "name": "xy_curve",
+      "path": "inputs/xy_curve.parquet",
+      "format": "parquet",
+      "sha256": "7f3114ca06a31abe770de9487d4d917f7af0f1de7cfd9e25723447c78054dda8",
+      "schema_sha256": "21ad8ebf7f3a1bdc119a5aad3515526501210738a06f9c3c734be8651e832f9f"
+    },
+    {
+      "name": "storage",
+      "path": "inputs/storage.parquet",
+      "format": "parquet",
+      "sha256": "e73142f1bab0b1ff0d470839d023c94b63d5b995a5b1e00f54e504368a220df8",
+      "schema_sha256": "f1de6af819b79d01c86c874ae8939d7478571361f76a0d17b39e98bed50e56e7"
+    },
+    {
+      "name": "solution",
+      "path": "inputs/solution.parquet",
+      "format": "parquet",
+      "sha256": "1cdf31d57f4644a0c0a4a83cbd8a41c360e6fc04046b3c3111470a80f0d93f67",
+      "schema_sha256": "5ee120b90f87f9f6a6d5a4f3d3d55621127ef49591b63ee971b5a1f9e29f234e"
+    },
+    {
+      "name": "load_shape",
+      "path": "inputs/load_shape.parquet",
+      "format": "parquet",
+      "sha256": "b671443400841c9476ecca9842219dda0cc0354d960a3c3903acbb10b94223e4",
+      "schema_sha256": "7e5f864c193b6c661d595563aa6425188e58f90900c9efae3d3e45ad2999e765"
+    },
+    {
+      "name": "shape_assignment",
+      "path": "inputs/shape_assignment.parquet",
+      "format": "parquet",
+      "sha256": "9a654c5509bc6f4cd73f3906c97718e58d3ee7ad9a22560d0342f963ede48ab4",
+      "schema_sha256": "9f909a34ccc97d0bf9fc1b65dd58328eabb7cfc990369965df6c7b8f5a00a03d"
+    },
+    {
+      "name": "storage_controller",
+      "path": "inputs/storage_controller.parquet",
+      "format": "parquet",
+      "sha256": "1065e94323959e3ef0976844697f203a2461f0bd98509e3ac561e3fc5570d8c5",
+      "schema_sha256": "b56e7c314421963df070c2e028a54e7ad32a23c7f68143f4a8a25c6fa7710b99"
+    },
+    {
+      "name": "switch_control",
+      "path": "inputs/switch_control.parquet",
+      "format": "parquet",
+      "sha256": "604c799858b9ce70d052bbee62dbe5ad5140bcd248269b78665852cad2698881",
+      "schema_sha256": "f1de6a1c0f0fa82998d1b401445e402796ef68385abdef7b241df154a025739d"
+    },
+    {
+      "name": "tcc_curve",
+      "path": "inputs/tcc_curve.parquet",
+      "format": "parquet",
+      "sha256": "606ac04890df0c0a6a0918ab750ff63c723e2888894a8081913392629d3e0a23",
+      "schema_sha256": "498e42fb1ba7c1e12662d00cfd619779f1c6af326930a479d83d4ecf495b20a4"
+    },
+    {
+      "name": "fuse",
+      "path": "inputs/fuse.parquet",
+      "format": "parquet",
+      "sha256": "4b93abd5bc988b47c806aaea5d511e0f5cfe79af673efccdb86fcebfc71abbcd",
+      "schema_sha256": "6f09c46c57dc69bac0aa3f1314a7aa7f7df11ceeb5e125e4ae60f33fa83472e4"
+    },
+    {
+      "name": "recloser",
+      "path": "inputs/recloser.parquet",
+      "format": "parquet",
+      "sha256": "fcbf609e9ef88a5775322e7397da6233e61e2dd7ad26a80078a64bd46a060b63",
+      "schema_sha256": "d079823d50b45d98ca7791dac84a9df71c52c8a9518bfd376a6c1bbb0059473d"
+    },
+    {
+      "name": "relay",
+      "path": "inputs/relay.parquet",
+      "format": "parquet",
+      "sha256": "b73ded22128ed47de1fb1c472060cb82258d0f8c8969868400810e651f3bb4b7",
+      "schema_sha256": "628165157ea31891466794acfa49653b470916e5232342da9402b5a85ab56f9b"
+    },
+    {
+      "name": "monitor_input",
+      "path": "inputs/monitor_input.parquet",
+      "format": "parquet",
+      "sha256": "0acf948ad07c744ab05775cfa553c14fe95cec31cffab2a26b6fcc130e918de9",
+      "schema_sha256": "5b277aff95dd0137c323ed01a9a2fcbde6fe1bd5e99c0e2f64f3667bc3d76d0e"
+    },
+    {
+      "name": "energy_meter_input",
+      "path": "inputs/energy_meter_input.parquet",
+      "format": "parquet",
+      "sha256": "535fbb4e98e4d7f3199dfe959a9cc43d667c809c1bb6678d52ab119759385a05",
+      "schema_sha256": "e48cc8b7debe606d0f924baf2a51878ce9eba589cac9d4c5075b7a3fc5e46c29"
+    },
+    {
+      "name": "fault",
+      "path": "inputs/fault.parquet",
+      "format": "parquet",
+      "sha256": "cb4bafedfb4cfb96ad2fb2653b47cca1fc8925c762ecc33e19dd148b388abf16",
+      "schema_sha256": "be3e4fc27cd80272a2d92a372c924b0ff54bdf4d8577947269c69eeb729cdb16"
+    },
+    {
+      "name": "execution_epoch",
+      "path": "inputs/execution_epoch.parquet",
+      "format": "parquet",
+      "sha256": "d16e7e5351e393d389d278dc639ed70287b3af9b9b825b380b0be2ab00717501",
+      "schema_sha256": "1e7baead7eed46da8857ca1bd0e29493c5e1f08b85dd1f7a5eddce3a843d9cf2"
+    },
+    {
+      "name": "execution_setting",
+      "path": "inputs/execution_setting.parquet",
+      "format": "parquet",
+      "sha256": "424d1e312427900d09faa518656443172d568a1a4485e6e66d65e0692b424639",
+      "schema_sha256": "b4707826da292c64d851302afb0bfdfe4d1b92a45c78977093adb0dc86a6b7d0"
+    },
+    {
+      "name": "execution_mutation",
+      "path": "inputs/execution_mutation.parquet",
+      "format": "parquet",
+      "sha256": "f558c2c01882f7221eb8c91f093c32e96aa8c27c45114c4eef43c29bc0352eb2",
+      "schema_sha256": "7452a8da8d579dc7283d253b63f83f20d1e887dfdf38854619759746659f5090"
+    },
+    {
+      "name": "post_solve_action",
+      "path": "inputs/post_solve_action.parquet",
+      "format": "parquet",
+      "sha256": "4dba955fd50610f6c311baf16e75f31b0b7d7d862f9c1043fc1bd48715c3ad9f",
+      "schema_sha256": "1aa3fce404ff17467311043ad471700d0859da0bffed8f2066a398ef551dc7fd"
+    },
+    {
+      "name": "execution_reference",
+      "path": "inputs/execution_reference.parquet",
+      "format": "parquet",
+      "sha256": "f85a07429a5859b7086baf890f242e63fb06821065eee7c34334f6ab5cfab2bf",
+      "schema_sha256": "efa865ba280de76aef1f68cd4ec0c7dad14df0febac39987f793e2e873a6e22c"
+    },
+    {
+      "name": "execution_event",
+      "path": "inputs/execution_event.parquet",
+      "format": "parquet",
+      "sha256": "d257cfb19f6038c7d599ca83255f11af9706aac7fb30b22ea0fad55241f90ef7",
+      "schema_sha256": "2b61a73f47b7852dc1d95a11369b74183b2c0b806d21ab9a6cbca5fce95d78cf"
+    },
+    {
+      "name": "harmonic_plan",
+      "path": "inputs/harmonic_plan.parquet",
+      "format": "parquet",
+      "sha256": "c15f90a4161d6c554ff6e09fcc92a9fb86ba39b210e37036f2f2f9d7afea3b87",
+      "schema_sha256": "be010e8c445dfd6ccd34df79da995f5eb88f5904a117fa202ebc6e121ada33c4"
+    },
+    {
+      "name": "frequency_axis",
+      "path": "inputs/frequency_axis.parquet",
+      "format": "parquet",
+      "sha256": "aaa3578b7f52ce8e387b22d38139c89835c6828a114027cd61c2268b1ecf2c13",
+      "schema_sha256": "45a92069be05ac18cfb0eee82441ead0641c40b4e820a0a13cef502bc747fc04"
+    },
+    {
+      "name": "frequency_spectrum",
+      "path": "inputs/frequency_spectrum.parquet",
+      "format": "parquet",
+      "sha256": "f4b1dc980d228f7eeced29cf5e70c510e1cd679557a412cecb30c7a145daee70",
+      "schema_sha256": "409387159b25f1ec3faddbedf6f9cf7fce321e713ec5725d9807c5f724e073d5"
+    },
+    {
+      "name": "harmonic_monitor",
+      "path": "inputs/harmonic_monitor.parquet",
+      "format": "parquet",
+      "sha256": "4ad85afa6088d581da003e8142bccc46e9377181e7777ecd2a469936a4a3dd05",
+      "schema_sha256": "86b5541b0528b61d96595138759cf891e17bc5fa8178069c4564b71864590964"
+    },
+    {
+      "name": "harmonic_snapshot",
+      "path": "inputs/harmonic_snapshot.parquet",
+      "format": "parquet",
+      "sha256": "5b0895ae7b134f09f6e42cadf6e71b95088453748500b26a1eb89e884a2bc3c0",
+      "schema_sha256": "01f1670d0e293fb03efe6b019d6936f202022986ffaa0c3049a93d1a68cc0c8e"
+    },
+    {
+      "name": "sequence_request",
+      "path": "inputs/sequence_request.parquet",
+      "format": "parquet",
+      "sha256": "b25c61061196212422bb8242447a4b3dd8e79095dfe20cb4173c019508fc8133",
+      "schema_sha256": "eaca829a6f83fc7831eb8dc95eca479baaa11156d97139c7ef28edad842213eb"
+    },
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "b60157ed21afaf34ecbbe460b2e4a97095ed3cd3088611d75e96bd4ca00abf53",
+      "schema_sha256": "f58c5d3b6062fb24818adf10f235f25113b7de53a17aee819a79eedcfae191cb"
+    },
+    {
+      "name": "sequence_diagnostic",
+      "path": "inputs/sequence_diagnostic.parquet",
+      "format": "parquet",
+      "sha256": "2f3199857e0024f4ab9fbda82146596faa1876cf3c11013cd210f4b9497e29e4",
+      "schema_sha256": "b851ba360654d46d032bb07898859101f85995a0c8b6a736efacec34822c17fc"
+    }
+  ]
 }

@@ -1335,6 +1335,14 @@ def validate_sequence_manifest_contract(label, manifest, profile):
         ):
             fail(f"{label} compatibility aggregates require unique names and sources")
         aggregate_names.add(name)
+        for source in sources:
+            match = re.fullmatch(r"([0-9]+)\.([A-Za-z0-9_]+)", source) if isinstance(source, str) else None
+            if match is None:
+                fail(f"{label} compatibility aggregate {name} has an invalid source")
+            stage_index = int(match.group(1))
+            stage_result = match.group(2)
+            if stage_index >= len(stages) or stage_result not in stages[stage_index]["results"]:
+                fail(f"{label} compatibility aggregate {name} uses an undeclared source {source}")
 
     projected_results = manifest.get("projection", {}).get("results")
     if (
@@ -1348,12 +1356,18 @@ def validate_sequence_manifest_contract(label, manifest, profile):
         for result in profile.get("results", [])
     }
     projected_sources = set()
-    for expected_binding, result in zip(selected_results, projected_results):
+    projected_bindings = set()
+    for expected_public, result in zip(selected_results, projected_results):
         source = result.get("source")
         target = result.get("target")
         binding = result.get("binding")
-        if binding != expected_binding:
-            fail(f"{label} sequence bindings must match study.results in order")
+        if (
+            not isinstance(binding, str)
+            or re.fullmatch(r"[A-Za-z0-9_]+", binding) is None
+            or binding in projected_bindings
+        ):
+            fail(f"{label} sequence projection bindings must be non-empty unique identifiers")
+        projected_bindings.add(binding)
         if not isinstance(source, str) or not source or source in projected_sources:
             fail(f"{label} sequence projection sources must be unique")
         projected_sources.add(source)
@@ -1362,7 +1376,7 @@ def validate_sequence_manifest_contract(label, manifest, profile):
                 fail(f"{label} study_status must retain its public target and binding")
             continue
         if source in aggregate_names:
-            if not isinstance(target, str) or not target:
+            if source != expected_public or not isinstance(target, str) or not target:
                 fail(f"{label} compatibility aggregate {source} requires a public target")
             continue
         match = re.fullmatch(r"([0-9]+)\.([A-Za-z0-9_]+)", source)
@@ -1379,8 +1393,6 @@ def validate_sequence_manifest_contract(label, manifest, profile):
         stage_family = "execution" if stage_kind in ("snapshot", "direct") else stage_kind
         if target != stage_result or (stage_family, target) not in public_results:
             fail(f"{label} cannot map sequence result {source} through {profile['id']}")
-        if binding != f"s{stage_index}_{stage_result}":
-            fail(f"{label} uses a non-canonical sequence binding for {source}")
 
 
 def validate_rssbundles(case_projections, study_facades, dataframes):
@@ -1447,10 +1459,36 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
         ):
             managed_inputs = facade["inputs"][:-1]
         expected_arguments = ", ".join(item["alias"] for item in managed_inputs)
-        expected_bindings = ", ".join(result["binding"] for result in projected_results)
-        expected_left = expected_bindings if len(projected_results) == 1 else f"[{expected_bindings}]"
+        if schema_version == 3:
+            aggregates = {
+                aggregate["name"]: aggregate["sources"]
+                for aggregate in manifest["study"].get("compatibility_aggregates", [])
+            }
+            call_bindings = []
+            aggregate_statements = []
+            for result in projected_results:
+                sources = aggregates.get(result["source"])
+                if sources is None:
+                    call_bindings.append(result["binding"])
+                    continue
+                parts = [
+                    f"compat_{result['source']}_{index}"
+                    for index in range(len(sources))
+                ]
+                call_bindings.extend(parts)
+                aggregate_statements.append(
+                    f"{result['binding']} = concat(\"diagonal\", {', '.join(parts)});"
+                )
+            expected_left = f"[{', '.join(call_bindings)}]"
+        else:
+            expected_bindings = ", ".join(result["binding"] for result in projected_results)
+            expected_left = expected_bindings if len(projected_results) == 1 else f"[{expected_bindings}]"
+            aggregate_statements = []
         if f"{expected_left} = {profile['targetFunction']}({expected_arguments});" not in script:
             fail(f"{label} managed entry differs from its DataFrame facade contract")
+        for statement in aggregate_statements:
+            if statement not in script:
+                fail(f"{label} managed entry omits compatibility aggregate assembly")
         declared = [item for item in manifest.get("files", []) if item.get("path") == projection["managed_entry"]]
         if len(declared) != 1 or declared[0].get("role") != "managed-rss":
             fail(f"{label} must declare managed.rss with role managed-rss")

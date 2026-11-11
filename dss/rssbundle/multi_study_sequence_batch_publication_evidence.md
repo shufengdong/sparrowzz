@@ -2,7 +2,7 @@
 
 本批固定上游为 `electricdss-tst@3b208397160213cae4a9e2d0a7d1aa3528ce26e1`，发布构建命令显式使用
 `--no-default-features --features tensoreval-cli,with_dsa_mumps`。release `tensoreval` SHA-256 为
-`1bcfef83385e58ab582836cbcb64966d8c96166464153f95ddcecf416f8210e8`。
+`042a91a0e62dadbf27097c9de246e0c5f01d0205844ffcaaadaf9721fe64acdb`。
 
 ## 新增 bundle
 
@@ -38,26 +38,41 @@ WATTPF manifest SHA-256 为 `a450266c29de0f948beda3540d36c5639b213892a5165ece636
 OpenDSSDirect 与 PSA 三相键集合完全一致，最大复电压绝对误差 `0.00230571 V`、归一化误差
 `2.95244e-7`、幅值误差 `0.00195421 V`、角度误差 `8.97758e-6°`。
 
-## 既有 bundle 兼容性
+## 六个既有 bundle 的 schema-v3 提升
 
-最终 release 同时在原目录和搬移改名目录执行了六个既有 schema-v2 bundle，公开结果列表和行数均
-保持不变：
+六个原 schema-v2 bundle 已在原路径提升为 v3 / `study_sequence`，每个清单都包含 48 个固定
+DataFrame 输入。Snapshot 初始化阶段仍在阶段清单中，但不泄漏新的公开结果；公开结果列表、顺序、
+schema 和行数保持不变：
 
 | bundle | 公开结果与行数 | 搬移比较 |
 |---|---|---|
-| `IEEETestCases/4Bus-YYD/YYD-Master.rssbundle` | `voltage` 36 | Parquet 字节一致 |
-| `IEEETestCases/ShortCircuitCases/IEEE123Master-SC.rssbundle` | `fault` 414 | Parquet 字节一致 |
-| `IEEETestCases/ShortCircuitCases/ieee37_SC_Currents.rssbundle` | `fault` 175 | Parquet 字节一致 |
+| `IEEETestCases/4Bus-YYD/YYD-Master.rssbundle` | `voltage` 36；`Snapshot → Direct` | Parquet 字节一致 |
+| `IEEETestCases/ShortCircuitCases/IEEE123Master-SC.rssbundle` | `fault` 414；`Snapshot → FaultStudy` | Parquet 字节一致 |
+| `IEEETestCases/ShortCircuitCases/ieee37_SC_Currents.rssbundle` | `fault` 175；`Snapshot → FaultStudy` | Parquet 字节一致 |
 | `Examples/FreqScan/Run_Scan.rssbundle` | 7 张表；`bus_voltage` 52,264、`branch_flow` 103,400、`conductor_flow` 0、`bus_sequence` 40,044、`branch_sequence` 77,832、`monitor` 564、`monitor_save` 0 | 全部 Parquet 字节一致 |
-| `Examples/HarmonicsTMode/IEEE_519.rssbundle` | 6 张表；`bus_voltage`/`bus_sequence` 各 1,080、`branch_flow`/`branch_sequence` 各 1,890、`conductor_flow` 0、`monitor` 135 | 稳定键完全一致；独立求解最大差异仅 `voltage_im=1.13687e-13 V`、`voltage_angle=8.88178e-16°`，其他电压量与 THD 精确一致 |
-| `Examples/HarmonicsVariableLoad/IEEE_519.rssbundle` | 6 张表；`bus_voltage`/`bus_sequence` 各 720、`branch_flow`/`branch_sequence` 各 1,260、`conductor_flow` 0、`monitor` 90 | 全部 Parquet 字节一致 |
+| `Examples/HarmonicsTMode/IEEE_519.rssbundle` | 6 张表；`bus_voltage`/`bus_sequence` 各 1,080、`branch_flow`/`branch_sequence` 各 1,890、`conductor_flow` 0、`monitor` 135；`Snapshot → Harmonic` | 稳定键/schema/非浮点值一致；独立求解浮点差异小于 `1e-12` |
+| `Examples/HarmonicsVariableLoad/IEEE_519.rssbundle` | 6 张表；`bus_voltage`/`bus_sequence` 各 720、`branch_flow`/`branch_sequence` 各 1,260、`conductor_flow` 0、`monitor` 90；`Snapshot → Harmonic` | 稳定键/schema/非浮点值一致；独立求解浮点差异小于 `1e-12` |
+
+升级前后的 manifest SHA-256 如下：
+
+| bundle | schema-v2 | schema-v3 |
+|---|---|---|
+| YYD | `897249e49583963ea7aba0f45f255484c0c5b141a6f9330c47994d10cc920f01` | `b55eadf28b1dad7f385d7930a9137c9872f3291a33b2dfd00b7e97a8a2632939` |
+| IEEE123 SC | `356a7e5a144223c56bf05171a914ea3d55ceff728d545907ef95a97059f18c12` | `9f92ddad1c423252a47e39060fc1900fdb80a50c58ac1037659e3eaf0726bc13` |
+| IEEE37 SC | `ee0665f9f834fb66982352fcfdc5701c79c599b5f9cf059568286d9aef2bedc0` | `b40441bc7ae1f4c6ee9fe7fc74138c5782953ee77af146e235e5e7736f4aaca6` |
+| FreqScan | `f7dbb661c9506e426a26c5e1af42eb5ef1cf709f799af0dd102bd53c82d45e93` | `69a94b3456aa7dfbe3d0e8fd882e7fd6141b4d5001bd7d56a8060c3a8de230c0` |
+| HarmonicsTMode | `e85ae1b2606e6333f316b2adcdaae05bd9e8576cc6e925f705a226fab75f0b4d` | `737283c5be6eed3fa8d7476ad41169ff7e3c388d9bcff3b01ddf52d488c65a21` |
+| HarmonicsVariableLoad | `fa290ce1700ecc793aeaca8aa888c7c697d0363cc82d21c56c80b0a4e79b1c1e` | `524dff8bfcdeeef53b12e16cde9167603279fae3a8a059ddbf091d1517520ea6` |
+
+六案例兼容矩阵分别执行旧/新 linked、新 managed 和搬迁副本，
+并逐表校验上述公开合同。release 搬迁复跑中前四例输出逐文件字节一致；两个 HarmonicT 例仅
+`bus_voltage`/`bus_sequence` Parquet 因独立浮点求解不同，其余文件字节一致。
 
 兼容门禁还锁定了 ordinary grounded-Wye、未物化 synthetic return 和显式 neutral 三种 RegControl
 量测语义，避免 full-conductor neutral 扩展使既有 IEEE123 基波控制失效。
 
-两个 bundle 均扫描确认不包含 `/tmp`、仓库或 worktree 绝对路径。目录报告由
-`180 converted / 89 unsupported / 579 not_standalone_entry` 更新为
-`182 converted / 88 unsupported / 578 not_standalone_entry`。
+六个升级 bundle 均扫描确认不包含 `/tmp`、仓库或 worktree 绝对路径。本次只提升既有 artifact，
+目录计数保持 `182 converted / 88 unsupported / 578 not_standalone_entry` 不变。
 
 ## 候选替换说明
 
