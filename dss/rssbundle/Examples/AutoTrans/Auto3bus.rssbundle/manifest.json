@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/AutoTrans/Auto3bus.dss",
+    "root": "dss",
+    "tree_sha256": "05f4e6625abba1dfab011576a130cbde858dcccd8c1b07eaeed1c8426d5d77be"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/Examples/AutoTrans/Auto3bus.dss",
+      "role": "dss-entry",
+      "sha256": "6dd3e0bee54d57363f8ff942f90eacb929d995fd438df12c385c1a412c357ef5"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "04a2cb65619dba06d003258edc1463ba660e64bccc504aac21bbceb2785b7716"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b"
+    }
+  ],
+  "inputs": []
+}
