@@ -886,10 +886,31 @@ PSA 额外保留的 25 个禁用开关端点全部为精确零，门禁按固定
 使用具有固定 SourceBus→temp 方向的 `branch_flow`，因为该变压器不出现在
 `transformer_winding_flow` 投影中。portable bundle 原地和搬移改名后均输出 6,356 行且字节相同。
 
-catalog 当前为 180 `converted`、89 `unsupported`、579 `not_standalone_entry`，独立入口分母
-仍为 269。完整证据见
+当时 catalog 为 180 `converted`、89 `unsupported`、579 `not_standalone_entry`，独立入口分母
+为 269。完整证据见
 [`epri_m1_no_pv_publication_evidence.md`](epri_m1_no_pv_publication_evidence.md)。该闭合只覆盖无
 PV 入口最终 Snapshot；不覆盖 PV、可靠性、Monitor 通道、QSTS 轨迹或 8,760 小时年度性能。
+
+## 2026-11-11 NEV 多 study 与 WATTPF Snapshot
+
+`IEEETestCases/NEVTestCase/Run_NEV.dss` 现由 schema-v3 bundle 依次执行 Snapshot、FaultStudy 和
+Harmonic，九张公开结果在原路径与搬移路径的 Parquet 文件逐字节一致。Snapshot 的全部 192 个
+OpenDSS/PSA `(bus, phase)` 键完全一致，最大归一化复电压误差 `2.21931e-5`，最大角度误差
+`0.000707223°`。清单校验覆盖 12 个文件和 48 个固定输入，并禁止最后一个 Harmonic 成功掩盖
+缺失或失败的 FaultStudy。
+
+`Examples/InverterModels/PVSystem/InvControl/watt-pf_watt-var/dss/SnapShot_wattpf.dss` 从 model-only
+入口以显式 Snapshot 发布。它锁定省略 `kVA` 的 OpenDSS 500 kVA 默认、singleton DERList、
+`DeltaQ_Factor=-1`、重复 X 的 PF 符号阶跃及能力圆投影前的可用有功基准。三相最大归一化复电压
+误差为 `2.95244e-7`，搬移输出字节一致。
+
+最终 release 对 YYD、IEEE123/IEEE37 FaultStudy、FreqScan 和两个既有 HarmonicT bundle 的原地与
+搬移执行也全部通过，公开结果列表及行数不变。HarmonicsTMode 的独立浮点重算最大差异为
+`1.13687e-13 V`，其余兼容输出逐文件字节一致。
+
+当前 catalog 为 182 `converted`、88 `unsupported`、578 `not_standalone_entry`。完整命令、
+SHA-256 和候选替换说明见
+[`multi_study_sequence_batch_publication_evidence.md`](multi_study_sequence_batch_publication_evidence.md)。
 
 ## 建议的实现门禁
 

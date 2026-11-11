@@ -1,0 +1,54 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "static_power_flow",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/watt-pf_watt-var/dss/SnapShot_wattpf.dss",
+    "root": "dss",
+    "tree_sha256": "8db53171824c11fdd906709358fa36aef9c5092b457dbec90d4bd2c7b56026ec"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_pf",
+    "profile": "dss_static_newton_v1",
+    "projector": "project_dss_static_model",
+    "target_function": "ds_newton_raphson_pf",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/Examples/InverterModels/PVSystem/InvControl/watt-pf_watt-var/dss/SnapShot_wattpf.dss",
+      "role": "dss-entry",
+      "sha256": "27a16bc6e2b0006697eb212f4a7fdf781dc1999b18303cbdcaa7d5eef2dab61d"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "8d4961433fbd86ecd46f915133eab02d1fa9cf753dbd9d4fa1dd2bd3c715f95d"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "f0c024478c0f6f5470baa24bedd5d77bebb400f5d55bfaafe7604ebda3965369"
+    }
+  ],
+  "inputs": []
+}

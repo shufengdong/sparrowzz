@@ -18,19 +18,29 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 180 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新闭合 EPRI M1 无 PV 两快照终态入口 |
-| 当前尚未发布的独立入口 | 89 | 269 个独立入口扣除 180 个已发布入口 |
+| 已转换并发布 bundle | 182 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 NEV 多 study 与 WATTPF Snapshot |
+| 当前尚未发布的独立入口 | 88 | 当前报告中的 unsupported 独立入口；WATTPF 从 model-only 显式提升为 Snapshot 案例 |
 | 超时 | 0 | 无 |
 
-180 个成功入口按官方发行树的相对路径保存在本目录；每个 `.rssbundle` 都包含 schema v2
-manifest、原始复放 `main.rss`、路径无关的 V4 `managed.rss`、DSS 导入来源和数据资产，并在
+182 个成功入口按官方发行树的相对路径保存在本目录；单 study `.rssbundle` 使用 schema v2，NEV
+有序多 study bundle 使用 schema v3；两者都包含 manifest、原始复放 `main.rss`、路径无关的 V4
+`managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 180 个发布入口；
-其余 89 个入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 182 个发布入口；
+其余 88 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
+
+本批两个新案例的阶段、数值、哈希和搬移复跑记录见
+[`multi_study_sequence_batch_publication_evidence.md`](multi_study_sequence_batch_publication_evidence.md)。NEV 首次以
+schema v3 保存 `Snapshot → FaultStudy → Harmonic` 有序研究；WATTPF 是从 model-only 入口显式提升并完成
+OpenDSSDirect 数值对标的 Snapshot bundle。
+
+最终 release 还在原目录和搬移目录重跑 YYD、IEEE123/IEEE37 FaultStudy、FreqScan 及两个既有
+HarmonicT bundle，公开结果列表和行数均保持不变。除 HarmonicsTMode 两张电压表存在最多
+`1.13687e-13 V` 的独立浮点重算差异外，其余搬移输出逐文件字节一致；完整表形状见上述证据。
 
 ## 首轮改造进展
 
@@ -1577,8 +1587,8 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 ## 逐文件结果
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
-其中 579 个是模型片段或公共依赖，不进入本文的案例统计。本文只讨论剩余 269 个独立入口：
-179 个 `converted` 和 90 个 `unsupported`：
+显式 Snapshot 提升后的当前状态为 182 个 `converted`、88 个 `unsupported` 和
+578 个 `not_standalone_entry`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
 - `status`：独立入口使用 `converted` 或 `unsupported`，模型片段和公共依赖使用

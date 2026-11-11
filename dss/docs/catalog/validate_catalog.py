@@ -1264,6 +1264,125 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
             fail(f"case projection {profile['id']} must declare the para.result manifest mapping")
 
 
+def validate_sequence_manifest_contract(label, manifest, profile):
+    if manifest.get("schema_version") != 3:
+        fail(f"{label} study_sequence bundles must use bundle schema_version 3")
+    study = manifest.get("study")
+    if not isinstance(study, dict) or study.get("kind") != "study_sequence":
+        fail(f"{label} bundle schema_version 3 is reserved for study_sequence")
+    if profile.get("id") != "dss_study_sequence_v1":
+        fail(f"{label} schema_version 3 must use dss_study_sequence_v1")
+    if study.get("compatibility") != "opendss-native":
+        fail(f"{label} study_sequence must remain opendss-native")
+
+    selected_results = study.get("results")
+    if (
+        not isinstance(selected_results, list)
+        or not selected_results
+        or any(
+            not isinstance(result, str)
+            or re.fullmatch(r"[A-Za-z0-9_]+", result) is None
+            for result in selected_results
+        )
+        or len(selected_results) != len(set(selected_results))
+    ):
+        fail(f"{label} study.results must contain unique identifier bindings")
+
+    stages = study.get("stages")
+    if not isinstance(stages, list) or not stages:
+        fail(f"{label} study_sequence requires at least one ordered stage")
+    stage_ids = set()
+    for expected_index, stage in enumerate(stages):
+        if not isinstance(stage, dict) or stage.get("index") != expected_index:
+            fail(f"{label} stage indexes must be contiguous and ordered from zero")
+        stage_id = stage.get("id")
+        if not isinstance(stage_id, str) or not stage_id or stage_id in stage_ids:
+            fail(f"{label} stage ids must be non-empty and unique")
+        stage_ids.add(stage_id)
+        if stage.get("kind") not in ("snapshot", "direct", "fault_study", "harmonic"):
+            fail(f"{label} stage {stage_id} has an unsupported kind")
+        if stage.get("compatibility") != "opendss-native":
+            fail(f"{label} stage {stage_id} must remain opendss-native")
+        stage_results = stage.get("results")
+        if (
+            not isinstance(stage_results, list)
+            or any(
+                not isinstance(result, str)
+                or re.fullmatch(r"[A-Za-z0-9_]+", result) is None
+                for result in stage_results
+            )
+            or len(stage_results) != len(set(stage_results))
+        ):
+            fail(f"{label} stage {stage_id} results must be unique identifier names")
+        if not isinstance(stage.get("input_state"), str) or not stage["input_state"]:
+            fail(f"{label} stage {stage_id} requires an input state identity")
+        if not isinstance(stage.get("output_state"), str) or not stage["output_state"]:
+            fail(f"{label} stage {stage_id} requires an output state identity")
+
+    aggregates = study.get("compatibility_aggregates", [])
+    if not isinstance(aggregates, list):
+        fail(f"{label} compatibility_aggregates must be a list")
+    aggregate_names = set()
+    for aggregate in aggregates:
+        name = aggregate.get("name") if isinstance(aggregate, dict) else None
+        sources = aggregate.get("sources") if isinstance(aggregate, dict) else None
+        if (
+            not isinstance(name, str)
+            or not name
+            or name in aggregate_names
+            or not isinstance(sources, list)
+            or not sources
+        ):
+            fail(f"{label} compatibility aggregates require unique names and sources")
+        aggregate_names.add(name)
+
+    projected_results = manifest.get("projection", {}).get("results")
+    if (
+        not isinstance(projected_results, list)
+        or len(projected_results) != len(selected_results)
+        or any(not isinstance(result, dict) for result in projected_results)
+    ):
+        fail(f"{label} sequence projection results must match study.results")
+    public_results = {
+        (result.get("stageFamily"), result.get("publicName"))
+        for result in profile.get("results", [])
+    }
+    projected_sources = set()
+    for expected_binding, result in zip(selected_results, projected_results):
+        source = result.get("source")
+        target = result.get("target")
+        binding = result.get("binding")
+        if binding != expected_binding:
+            fail(f"{label} sequence bindings must match study.results in order")
+        if not isinstance(source, str) or not source or source in projected_sources:
+            fail(f"{label} sequence projection sources must be unique")
+        projected_sources.add(source)
+        if source == "study_status":
+            if target != "study_status" or binding != "study_status":
+                fail(f"{label} study_status must retain its public target and binding")
+            continue
+        if source in aggregate_names:
+            if not isinstance(target, str) or not target:
+                fail(f"{label} compatibility aggregate {source} requires a public target")
+            continue
+        match = re.fullmatch(r"([0-9]+)\.([A-Za-z0-9_]+)", source)
+        if match is None:
+            fail(f"{label} sequence result source {source} is undeclared")
+        stage_index = int(match.group(1))
+        stage_result = match.group(2)
+        if (
+            stage_index >= len(stages)
+            or stage_result not in stages[stage_index]["results"]
+        ):
+            fail(f"{label} sequence result source {source} is not declared by its stage")
+        stage_kind = stages[stage_index]["kind"]
+        stage_family = "execution" if stage_kind in ("snapshot", "direct") else stage_kind
+        if target != stage_result or (stage_family, target) not in public_results:
+            fail(f"{label} cannot map sequence result {source} through {profile['id']}")
+        if binding != f"s{stage_index}_{stage_result}":
+            fail(f"{label} uses a non-canonical sequence binding for {source}")
+
+
 def validate_rssbundles(case_projections, study_facades, dataframes):
     profiles = {profile["id"]: profile for profile in case_projections["profiles"]}
     facades = {facade["function"]: facade for facade in study_facades["facades"]}
@@ -1273,8 +1392,9 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
     for path in manifests:
         manifest = load_json(path)
         label = str(path.relative_to(RSSBUNDLES))
-        if manifest.get("schema_version") != 2:
-            fail(f"{label} must use bundle schema_version 2")
+        schema_version = manifest.get("schema_version")
+        if schema_version not in (2, 3):
+            fail(f"{label} must use bundle schema_version 2 or 3")
         projection = manifest.get("projection")
         if not isinstance(projection, dict):
             fail(f"{label} lacks a projection contract")
@@ -1296,14 +1416,22 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
             schema_at(dataframes, item["schemaRef"])
         source_results = manifest.get("study", {}).get("results")
         projected_results = projection.get("results")
-        validate_manifest_result_contract(label, profile, source_results, projected_results)
-        expected_map = profile["bundleResultMap"]
-        for result in projected_results:
-            source = result.get("source")
-            if result.get("target") != expected_map.get(source):
-                fail(f"{label} cannot map published result {source} through {profile['id']}")
-            if result.get("binding") != f"result_{source}":
-                fail(f"{label} uses a non-canonical managed result binding for {source}")
+        if schema_version == 3:
+            validate_sequence_manifest_contract(label, manifest, profile)
+        else:
+            if (
+                manifest.get("study", {}).get("kind") == "study_sequence"
+                or profile["id"] == "dss_study_sequence_v1"
+            ):
+                fail(f"{label} study_sequence fields require bundle schema_version 3")
+            validate_manifest_result_contract(label, profile, source_results, projected_results)
+            expected_map = profile["bundleResultMap"]
+            for result in projected_results:
+                source = result.get("source")
+                if result.get("target") != expected_map.get(source):
+                    fail(f"{label} cannot map published result {source} through {profile['id']}")
+                if result.get("binding") != f"result_{source}":
+                    fail(f"{label} uses a non-canonical managed result binding for {source}")
         managed = path.parent / projection["managed_entry"]
         if not managed.is_file():
             fail(f"{label} is missing {projection['managed_entry']}")

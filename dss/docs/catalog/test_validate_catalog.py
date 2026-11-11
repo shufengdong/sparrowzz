@@ -268,7 +268,42 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             self.read("study_facades.json"),
             self.read("dataframes.json"),
         )
-        self.assertEqual(count, 180)
+        self.assertEqual(count, 182)
+
+    def sequence_manifest_and_profile(self):
+        manifest_path = (
+            CATALOG_DIR.parent.parent
+            / "rssbundle/IEEETestCases/NEVTestCase/Run_NEV.rssbundle/manifest.json"
+        )
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        profile = next(
+            item for item in self.read("case_projections.json")["profiles"]
+            if item["id"] == "dss_study_sequence_v1"
+        )
+        return manifest, profile
+
+    def test_schema_v3_sequence_manifest_contract_accepts_published_nev_bundle(self):
+        manifest, profile = self.sequence_manifest_and_profile()
+        self.validator.validate_sequence_manifest_contract("nev", manifest, profile)
+
+    def test_schema_v3_sequence_manifest_contract_rejects_non_sequence_study(self):
+        manifest, profile = self.sequence_manifest_and_profile()
+        manifest["study"]["kind"] = "snapshot"
+        with self.assertRaisesRegex(AssertionError, "reserved for study_sequence"):
+            self.validator.validate_sequence_manifest_contract("nev", manifest, profile)
+
+    def test_schema_v3_sequence_manifest_contract_rejects_stage_and_projection_drift(self):
+        manifest, profile = self.sequence_manifest_and_profile()
+        noncontiguous = copy.deepcopy(manifest)
+        noncontiguous["study"]["stages"][1]["index"] = 2
+        undeclared = copy.deepcopy(manifest)
+        undeclared["projection"]["results"][0]["source"] = "0.bus_voltage"
+        for name, candidate, expected in (
+            ("noncontiguous stage", noncontiguous, "contiguous"),
+            ("undeclared result", undeclared, "not declared by its stage"),
+        ):
+            with self.subTest(name=name), self.assertRaisesRegex(AssertionError, expected):
+                self.validator.validate_sequence_manifest_contract("nev", candidate, profile)
 
     def test_network_dynamics_catalog_publishes_v13_monitor_additively(self):
         functions = self.read("functions.json")
