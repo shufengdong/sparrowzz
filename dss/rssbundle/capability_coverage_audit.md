@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：182 个入口已经发布 bundle，88 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：184 个入口已经发布 bundle，86 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -913,6 +913,23 @@ OpenDSS/PSA `(bus, phase)` 键完全一致，最大归一化复电压误差 `2.2
 SHA-256 和候选替换说明见
 [`multi_study_sequence_batch_publication_evidence.md`](multi_study_sequence_batch_publication_evidence.md)。
 
+## 2026-11-11 Auto1bus / Auto3bus 全导体八 epoch 闭合
+
+`Examples/AutoTrans/Auto1bus.dss` 和 `Auto3bus.dss` 已从历史
+`PSA.DSS.NODE.PHASE_LABEL_UNSUPPORTED` 状态闭合为两个新的 schema-v2 execution-plan bundle，
+不是既有 artifact 升级。两者分别保留 52/50 条语句和 8 个 Solve epoch；活动故障量测在没有
+保护控制器且只有一个活动故障时借用已收敛 `SolvedConductorState`，不伪造尚未实现的全导体
+故障支路流。带 Fuse/Recloser/Relay 或并发多故障的全导体量测继续失败关闭。
+
+显式 `line_model="exact"` 的原生门禁由 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 生成，
+覆盖 351 个故障电流、公共母线复电压、绕组 V/I 和复损耗量；两例全部量最大归一化误差分别为
+`0.002178116360`、`0.002179617589`，均低于 `0.005`。原位置与搬移位置输出分别为 120/96
+行、均含 epoch 0–7，且各自逐字节相同。完整证据见
+[`autotrans_multi_epoch_publication_evidence.md`](autotrans_multi_epoch_publication_evidence.md)。
+
+当前 catalog 为 184 `converted`、86 `unsupported`、578 `not_standalone_entry`。相邻
+`AutoAuto.dss` 仍由独立的 AutoTrans 接法缩写边界阻断，不属于本次运行时闭合。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -921,7 +938,7 @@ SHA-256 和候选替换说明见
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD Direct/Fault
    continuation 已按上述有界合同发布；InductionMachine 仍等待 Dynamic/保护动作执行合同，
    不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 88 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 86 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
