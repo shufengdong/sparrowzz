@@ -1,0 +1,124 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Examples/Microgrid/ISource/Master.DSS",
+    "root": "dss",
+    "tree_sha256": "a7dea85b9d92defb18d24296ddf413b0554fe2a0a031632d014d248735cfc3c5"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/Examples/Microgrid/ISource/BusCoords.dss",
+      "role": "data-asset",
+      "sha256": "89f198448da28bfed3528dab9f635d7611604c628ede8a7b4f15a2bf8fdb5abe"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/BusVoltageBases.DSS",
+      "role": "dss-source",
+      "sha256": "f267d9a880b59c17eb196f9457dbf96b591d8af0fd63f01e35af5e1d4e359ac6"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/Capacitor.DSS",
+      "role": "dss-source",
+      "sha256": "73c4d6e8abe4a025bd0c035e883b2fa39e7649aa0eef557e1531bbdf3fc776fa"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/GrowthShape.DSS",
+      "role": "dss-source",
+      "sha256": "41b019f3062ae332e35984c84fb3144df22b0dc4a9722e94bc37f975959f59ec"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/Isource.DSS",
+      "role": "dss-source",
+      "sha256": "f02cfce759264d716b182e9fd025c4e1f66248101ca82ea0f7a8aea05e20f5c4"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/Line.DSS",
+      "role": "dss-source",
+      "sha256": "2f996be4c6da31e0271e1b2fff6d57ba8117855115469b416f7bedd9c40154ef"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/LineCode.DSS",
+      "role": "dss-source",
+      "sha256": "247591631fdb3d275c502ec136dc99f45a374d5c6b804c16edc4b5a6794ebb80"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/Load.DSS",
+      "role": "dss-source",
+      "sha256": "03d806d00dad09e458a997bc77271604d122f1b30bf006c1d70fe817a4b5eb35"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/LoadShape.DSS",
+      "role": "dss-source",
+      "sha256": "ac19a8258d942e002ffbbd802c590344ed7d90d10f6aa43e2c00b55b1f402023"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/Master.DSS",
+      "role": "dss-entry",
+      "sha256": "5190965373a8b96877b327c27ff072da1f824dbd6c665225df4b7a3659d4c45d"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/RegControl.DSS",
+      "role": "dss-source",
+      "sha256": "78af1c67ff9ad5a1a2a5a01d68eb115913128aed703c8f822ea5d1f52d04457b"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/Spectrum.DSS",
+      "role": "dss-source",
+      "sha256": "d0a01558a272003b91d79af55a43de8fe1e0e925f01e7957c8687b3752f40766"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/TCC_Curve.DSS",
+      "role": "dss-source",
+      "sha256": "fd9c6414a29caaede4368044f6a430179ae07595142973def747521c01b59e6c"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/Transformer.DSS",
+      "role": "dss-source",
+      "sha256": "b645068f1408bd83af2a1116019b82d047c0fc1fdb0e54dd0b1aaf145abac493"
+    },
+    {
+      "path": "dss/Examples/Microgrid/ISource/Vsource.dss",
+      "role": "dss-source",
+      "sha256": "4e7fb17dba23fa042bcaa9a3c0427c0910f3db2a331c35b9f09938babe0e2e5a"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "d3d14474b638f5bcd44f1fbaa0636efa925036794bf1870f223bf9657ab2b87b"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b"
+    }
+  ],
+  "inputs": []
+}
