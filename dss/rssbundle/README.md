@@ -18,19 +18,19 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 188 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 EPRI K1 无 PV bundle |
-| 当前尚未发布的独立入口 | 82 | 当前报告中的 unsupported 独立入口；IEEE8500 GFM 的中间 epoch 原生不收敛，尚未发布 |
+| 已转换并发布 bundle | 189 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 ISource 微电网 Daily bundle |
+| 当前尚未发布的独立入口 | 81 | 当前报告中的 unsupported 独立入口；IEEE8500 GFM 的中间 epoch 原生不收敛，尚未发布 |
 | 超时 | 0 | 无 |
 
-188 个成功入口按官方发行树的相对路径保存在本目录；单 study `.rssbundle` 使用 schema v2，NEV
+189 个成功入口按官方发行树的相对路径保存在本目录；单 study `.rssbundle` 使用 schema v2，NEV
 及本批 YYD、IEEE123/IEEE37 FaultStudy、FreqScan、两个 HarmonicT 有序多 study bundle 使用
 schema v3；两者都包含 manifest、原始复放 `main.rss`、路径无关的 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 188 个发布入口；
-其余 82 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 189 个发布入口；
+其余 81 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 上一批两个新案例的阶段、数值、哈希和搬移复跑记录见
@@ -54,6 +54,13 @@ K1 官方单 epoch ExecutionPlan、8 个 Monitor 和 1 个 EnergyMeter。原地�
 1,750 行电压且逐字节一致；全部公共节点相量的最大缩放误差为 `0.00825964194813738`，低于
 `1%` 门限。T2 RegControl 仍以稳定 Warning 声明为未支持边界，详见
 [`epri_k1_no_pv_publication_evidence.md`](epri_k1_no_pv_publication_evidence.md)。
+
+本批新增 [`Master.rssbundle`](Examples/Microgrid/ISource/Master.rssbundle)，原样保留 ISource
+微电网的 Snapshot 初始化、端口 2 开路、Monitor 声明和 24 步 Daily 求解。25 次 Newton 求解
+全部收敛，原位与改名搬移执行都输出 1,025×11 的电压表且逐字节一致。带电节点最大归一化
+复电压误差为 `7.851799552545358e-5`；开路后的 6 个孤岛相位和 3 个 ISource 按去电状态及
+OpenDSS 数值残差上限锁定。完整范围、哈希和边界见
+[`isource_microgrid_publication_evidence.md`](isource_microgrid_publication_evidence.md)。
 
 本批新增两个 IEEE123 GFM 四 epoch bundle，覆盖开关动作、GFL/GFM 模式切换和恢复/重复求解。
 两者在原目录与改名搬移目录的输出逐字节一致，并对全部 epoch 完成 OpenDSS 电压和 Storage
@@ -1601,7 +1608,6 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 1 | `unsupported` | `PSA.DSS.LOADSHAPE.ACTION_ORDER_UNSUPPORTED` | `Action=Normalize` 后继续修改曲线，最终向量不能重建原命令顺序。 |
 | 1 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | Storage-target InvControl 不能由当前 PVSystem-only typed runtime 无损表达。 |
 | 1 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage `AmpLimit` 尚无当前运行时映射。 |
-| 1 | `unsupported` | `PSA.DSS.TRANSFORMER.PROPERTY_UNSUPPORTED` | Transformer 属性尚无当前 owned table 的无损映射。 |
 | 1 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.POST_SOLVE_MUTATION` | 独立入口在首次 Solve 后修改模型，尚无 execution-plan 映射。 |
 | 1 | `unsupported` | `READINESS.SOURCE.DEFAULTED` | 关键源参数需要默认值，严格 profile 不能证明等价。 |
 | 1 | `unsupported` | `PSA.DSS.GENERATOR.USER_MODEL_UNSUPPORTED` | Generator 用户模型依赖外部实现，PSA 无法无损执行。 |
@@ -1610,7 +1616,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 ## 逐文件结果
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
-显式 Snapshot 提升后的当前状态为 188 个 `converted`、82 个 `unsupported` 和
+显式 Snapshot 提升后的当前状态为 189 个 `converted`、81 个 `unsupported` 和
 578 个 `not_standalone_entry`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
