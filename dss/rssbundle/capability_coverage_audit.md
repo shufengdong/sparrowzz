@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：184 个入口已经发布 bundle，86 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：186 个入口已经发布 bundle，84 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -930,6 +930,19 @@ SHA-256 和候选替换说明见
 当前 catalog 为 184 `converted`、86 `unsupported`、578 `not_standalone_entry`。相邻
 `AutoAuto.dss` 仍由独立的 AutoTrans 接法缩写边界阻断，不属于本次运行时闭合。
 
+## 2026-11-12 IEEE123 GFM 四 epoch 闭合
+
+`GFM_IEEE123/Run_IEEE123Bus_GFMSnap.DSS` 和
+`GFM_AmpsLimit_123/Run_IEEE123Bus_GFMSnap.DSS` 已发布为两个新的 schema-v2 execution-plan
+bundle。两者都保留 4 个 Snapshot epoch，覆盖指定开关动作、GFL/GFM 模式切换和恢复或重复
+求解；原目录与改名搬移目录输出逐字节一致，并完成全部 epoch 的 OpenDSS 电压和 Storage
+复功率比较。完整证据见
+[`gfm_multi_epoch_publication_evidence.md`](gfm_multi_epoch_publication_evidence.md)。
+
+当前 catalog 为 186 `converted`、84 `unsupported`、578 `not_standalone_entry`。AmpLimit
+目录的这个 Snapshot 入口没有声明 `AmpLimit`/`AmpLimitGain`，不扩大为属性支持结论；
+IEEE8500 GFM 候选因原生中间 epoch 不收敛而未发布。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -938,7 +951,7 @@ SHA-256 和候选替换说明见
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD Direct/Fault
    continuation 已按上述有界合同发布；InductionMachine 仍等待 Dynamic/保护动作执行合同，
    不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 86 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 84 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
