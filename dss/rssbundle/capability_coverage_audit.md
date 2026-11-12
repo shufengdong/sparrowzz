@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：187 个入口已经发布 bundle，83 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：188 个入口已经发布 bundle，82 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -957,6 +957,21 @@ IEEE8500 GFM 候选因原生中间 epoch 不收敛而未发布。
 `b620ea10d157d973f40f9ecc0925b2b9b2b6358f129958d950f13fc3aaae5761`。
 
 当前 catalog 为 187 `converted`、83 `unsupported`、578 `not_standalone_entry`。
+
+## 2026-11-12 EPRI K1 无 PV 全导体闭合
+
+`EPRITestCircuits/epri_dpv/K1/Master_NoPV.dss` 已发布为 schema-v2 Newton execution-plan
+bundle。通用修复恢复了提升电容器的额定值、从数值未知量中排除只由禁用线路引用的母线，并让
+多绕组变压器和显式接地电容器 Monitor 使用全导体结果。未修改的官方入口、bundle 原地执行及
+改名搬移执行均通过，后两者的 1,750×11 电压结果逐字节一致。
+
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 收敛于 9 次迭代和 3 次控制迭代。1,750 个公共
+母线相键的最大/RMS 缩放复电压误差分别为 `0.00825964194813738` 和
+`0.008081250648405888`，低于 `1%` 门限；唯一原生专有键 `K_LSB.4` 是 PSA 接地回路消元的
+显式中性点。OpenDSS 的 T2 RegControl 终态 tap 为 `0.95625`，PSA 当前保持书写 tap，并通过
+`READ.DSS.VALUE_UNSUPPORTED` 明确披露该控制边界，不把它记录为 tap 等价。
+
+当前 catalog 为 188 `converted`、82 `unsupported`、578 `not_standalone_entry`。
 
 ## 建议的实现门禁
 
