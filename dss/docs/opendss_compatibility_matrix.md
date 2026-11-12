@@ -23,9 +23,9 @@ OpenDSS 语言兼容。状态含义如下：
 | `Load` | `load` | 有界 | 支持已实现的负荷模型、电压边界、曲线和 spectrum 绑定 |
 | `Generator` | `generator` | 有界 | 已实现 operating model、Model 3 和 GenDispatcher 子集；组合限制会显式报错 |
 | `PVSystem` | `ibr`, `control_profile`, `xy_curve` | 有界 | DC operating point、曲线和 InvControl/ExpControl 的已声明子集；省略 `%CutIn/%CutOut` 时按 OpenDSS `20%/20%` 导入 |
-| `Storage` | `storage` | 显式表 | PSA/QSTS 有储能契约；RSDss `import_dss` 的静态 21 返回值中该表当前固定为空 |
+| `Storage` | `storage` | 显式表/有界 | PSA/QSTS 有储能契约；执行型导入支持一相、三相及 GFL/PQ 模式的两相 Wye，其他两相接法和 GFM 继续 fail-closed；RSDss `import_dss` 的静态 21 返回值中该表当前固定为空 |
 | `IndMach012` | `motor` | 有界 | 稳态和动态所需的已支持参数 |
-| `Capacitor` | `capacitor` | 有界 | 固定/分级状态和已支持控制字段 |
+| `Capacitor` | `capacitor` | 有界 | 固定/分级状态和已支持控制字段；省略多步 `states` 时按 OpenDSS 把全部 `numsteps` 初始为投入，显式长度或内容非法仍 fail-closed |
 | `Reactor` | `reactor`, `xy_curve` | 有界 | 包括按频率曲线采样的已支持形式 |
 | `Spectrum` | `spectrum` | 直接/有界 | `h`, `mag_pct`, `angle_deg` 及设备引用 |
 | `XYCurve` | `xy_curve` | 直接 | 每曲线多行点表 |

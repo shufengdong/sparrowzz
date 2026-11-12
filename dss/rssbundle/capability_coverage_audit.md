@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：189 个入口已经发布 bundle，81 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：190 个入口已经发布 bundle，80 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -993,6 +993,25 @@ OpenDSS 绝对残差不超过 `3.878383456657604 VA`。原位置和改名搬移�
 
 当前 catalog 为 189 `converted`、81 `unsupported`、578 `not_standalone_entry`。
 
+## 2026-11-12 Civinlar 十步电容默认状态闭合
+
+`Examples/civinlar model/regulator.dss` 已发布为 schema-v2 Radial execution-plan bundle。改造只在
+Capacitor 未显式书写 `states` 时，把全部 `numsteps` 初始化为投入；显式状态数量或内容非法继续
+失败关闭。固定官方入口严格检查识别 25 条语句和一个 Snapshot epoch，原位置与改名搬移后的
+bundle 都输出 12×11 电压表且逐字节一致。
+
+显式 `line_model="exact"` 的 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 门禁比较 12 个母线相
+复电压、源端复功率、全网复损耗、调压器 tap 和电容终态。三项最大归一化误差分别为
+`4.336207768984044e-7`、`1.8861771742005504e-5` 和 `3.086740648099175e-5`；tap 为
+`0.9925`，十步电容最终投入一级，均与原生结果一致。完整证据见
+[`civinlar_regulator_publication_evidence.md`](civinlar_regulator_publication_evidence.md)。
+
+同批 `Examples/CIM/IEEE13_CDPSM.dss` 已通过有界的两相 Wye GFL/PQ Storage 导入，但完整入口
+仍在 epoch 0 数值不收敛；探针确认还有空载三次绕组及分相 PV/Storage 交互，故不生成 bundle。
+本轮不包含任何 GFM 修改。
+
+当前 catalog 为 190 `converted`、80 `unsupported`、578 `not_standalone_entry`。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -1001,7 +1020,7 @@ OpenDSS 绝对残差不超过 `3.878383456657604 VA`。原位置和改名搬移�
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD Direct/Fault
    continuation 已按上述有界合同发布；InductionMachine 仍等待 Dynamic/保护动作执行合同，
    不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 81 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 80 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
