@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：186 个入口已经发布 bundle，84 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：187 个入口已经发布 bundle，83 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -943,6 +943,21 @@ bundle。两者都保留 4 个 Snapshot epoch，覆盖指定开关动作、GFL/G
 目录的这个 Snapshot 入口没有声明 `AmpLimit`/`AmpLimitGain`，不扩大为属性支持结论；
 IEEE8500 GFM 候选因原生中间 epoch 不收敛而未发布。
 
+## 2026-11-12 AutoAuto 原生接法缩写闭合
+
+`Examples/AutoTrans/AutoAuto.dss` 已发布为 schema-v2 Newton execution-plan bundle，原样保留
+46 条语句和 8 个 Solve epoch。唯一新增解析能力是把 OpenDSS 原生 `s/w/d` 分别归一化为既有
+`series/wye/delta`；三绕组顺序、接法组合和其他属性边界均未放宽。历史候选扫描保留原始首诊断，
+当前发布状态由 `conversion_report.csv`、bundle manifest 和发布证据共同锁定。
+
+显式 `line_model="exact"` 的 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 门禁比较非故障 epoch
+的 60 个母线相复电压和 45 个绕组相复功率，并比较故障 epoch 1/3/5 的 Fault.test 电流。
+最大误差分别为 `5.028390533e-9`、`0.131 VA` 和 `1.026e-9`。原地和采集根不可见的搬移执行
+均产生 96 行、epoch 0–7 的电压，输出 SHA-256 均为
+`b620ea10d157d973f40f9ecc0925b2b9b2b6358f129958d950f13fc3aaae5761`。
+
+当前 catalog 为 187 `converted`、83 `unsupported`、578 `not_standalone_entry`。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -951,7 +966,7 @@ IEEE8500 GFM 候选因原生中间 epoch 不收敛而未发布。
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD Direct/Fault
    continuation 已按上述有界合同发布；InductionMachine 仍等待 Dynamic/保护动作执行合同，
    不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 84 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 83 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。

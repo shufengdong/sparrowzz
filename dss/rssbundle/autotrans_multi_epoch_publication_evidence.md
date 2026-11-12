@@ -56,3 +56,31 @@ Auto1bus 共比较 183 个量，其中 75 个母线复电压的最大/RMS 归一
 本批确实新增两个 bundle 路径，而不是把既有 bundle 的 schema 升级计作新增。catalog 仅把这两个
 入口从 `unsupported` 改为 `converted`，最终计数为 184 / 86 / 578。该合同不声称已支持带
 Fuse/Recloser/Relay 的全导体故障支路量测、并发多故障或 `AutoAuto.dss` 的接法缩写边界。
+
+## 2026-11-12 AutoAuto 后续发布
+
+`Examples/AutoTrans/AutoAuto.dss` 随后以未修改的官方 CRLF 字节发布为
+[`AutoAuto.rssbundle`](Examples/AutoTrans/AutoAuto.rssbundle)。源 SHA-256 为
+`d0a21b0dccd34b29a295926ef15c9578c17e01cef792f693bb13e771f5874050`；本次仅把原生
+`s/w/d` 接法缩写映射到既有 `series/wye/delta`，错误绕组顺序和不支持拓扑继续失败关闭。
+
+release `tensoreval` 使用 `--no-default-features --features tensoreval-cli,with_dsa_mumps`
+构建，SHA-256 为 `020abb0dfe94ef06f1e58ff087ddcd49290231748172419458c835d93569a04e`。
+严格检查识别 46 条语句和 8 个 epoch；Newton bundle manifest SHA-256 为
+`9a625e4e99b056745ccefb858fe9e131f2a369fbb9cfe5a2ec52540ef251933a`。
+原地执行与采集根临时不可见时的搬移执行都产生 96×11 电压表，epoch 0–7 各 12 行，输出
+SHA-256 均为 `b620ea10d157d973f40f9ecc0925b2b9b2b6358f129958d950f13fc3aaae5761`；
+artifact 不含 `/tmp`、工作树或采集根绝对路径。
+
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 参考锁定 96 条电压、72 条三绕组端口功率和
+3 条故障电流。PSA 显式设置 `line_model="exact"`；epoch 0/2/4/6/7 的 60 个复电压最大/RMS
+归一化误差为 `5.028390533e-9` / `2.840536255e-9`，最大绝对误差 `0.000963288460 V`；
+45 个绕组相复功率最大误差 `0.131 VA`；epoch 1/3/5 故障电流最大归一化误差
+`1.026e-9`。参考 CSV SHA-256 分别为
+`5705b2f91d29ebd6519585e1093c026e5c979766ccf88e90d56edc4a5071cb5e`、
+`b59ec3b7fe47139dfb328f73e28c0305bf1081b5c99469abb4554cbc5332c716`、
+`588336120ccdc48324ee62bfd4589bce0a0bdaf391a25ea4da94297ac74f0771`。
+
+发布后 catalog 为 187 `converted`、83 `unsupported`、578 `not_standalone_entry`。历史扫描
+JSON 保留当时的失败结果作为诊断来源，不回写成事后成功记录；当前状态以 conversion report、
+数值表、bundle manifest 和本节发布证据为准。
