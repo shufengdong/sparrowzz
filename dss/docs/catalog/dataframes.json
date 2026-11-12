@@ -32932,6 +32932,8 @@
         "bus_to",
         "terminal_map_from",
         "terminal_map_to",
+        "open_from",
+        "open_to",
         "v_nom_from",
         "v_nom_to",
         "s_rating",
@@ -32951,6 +32953,7 @@
         "xsc_pct",
         "enabled",
         "xr_const",
+        "dss_rdc_ohms",
         "lead_lag",
         "dss_class",
         "autotrans_base_ratio",
@@ -33050,6 +33053,20 @@
           {
             "name": "terminal_map_to",
             "dtype": "list<str>",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_from",
+            "dtype": "list<bool>",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_to",
+            "dtype": "list<bool>",
             "required": true,
             "nullable": true,
             "unit": "not_applicable"
@@ -33186,6 +33203,13 @@
             "required": true,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "dss_rdc_ohms",
+            "dtype": "list<f64>",
+            "required": true,
+            "nullable": true,
+            "unit": "ohm"
           },
           {
             "name": "lead_lag",
