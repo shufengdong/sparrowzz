@@ -18,20 +18,28 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 187 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 AutoAuto 八 epoch bundle |
-| 当前尚未发布的独立入口 | 83 | 当前报告中的 unsupported 独立入口；IEEE8500 GFM 的中间 epoch 原生不收敛，尚未发布 |
+| 已转换并发布 bundle | 191 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增 DG Protection Snapshot bundle |
+| 当前尚未发布的独立入口 | 79 | 当前报告中的 unsupported 独立入口；IEEE8500 GFM 的中间 epoch 原生不收敛，尚未发布 |
 | 超时 | 0 | 无 |
 
-187 个成功入口按官方发行树的相对路径保存在本目录；单 study `.rssbundle` 使用 schema v2，NEV
+191 个成功入口按官方发行树的相对路径保存在本目录；单 study `.rssbundle` 使用 schema v2，NEV
 及本批 YYD、IEEE123/IEEE37 FaultStudy、FreqScan、两个 HarmonicT 有序多 study bundle 使用
 schema v3；两者都包含 manifest、原始复放 `main.rss`、路径无关的 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 187 个发布入口；
-其余 83 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 191 个发布入口；
+其余 79 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
+
+本批新增 [`DG_Prot_Fdr.rssbundle`](IEEETestCases/DG_Protection/DG_Prot_Fdr.rssbundle)，原样保留
+官方 Snapshot、三相 Fault、`Transformer.Tg` 端子 2 开路和全部禁用保护对象。原位置与改名搬移
+执行都输出 26×11 电压表且逐字节一致；显式 `line_model="exact"` 的 26 节点 OpenDSS 门禁最大
+复电压相对误差为 `0.005259176861490091`，故障母线低电压最大绝对幅值为
+`0.0765114979168519 V`。完整来源、端子/控制状态、哈希和搬移证据见
+[`dg_protection_publication_evidence.md`](dg_protection_publication_evidence.md)。本发布不触碰或声明
+GFM 能力。
 
 上一批两个新案例的阶段、数值、哈希和搬移复跑记录见
 [`multi_study_sequence_batch_publication_evidence.md`](multi_study_sequence_batch_publication_evidence.md)。NEV 首次以
@@ -48,6 +56,19 @@ OpenDSSDirect 数值对标的 Snapshot bundle。
 AutoTrans 的 8 个 Solve epoch。改造只接受 OpenDSS 原生 `s/w/d` 作为既有
 `series/wye/delta` 的等价拼写；错误绕组顺序及其他拓扑仍失败关闭。原地与采集根不可见时的
 搬移执行均返回 96 行电压且逐字节一致，完整数值和哈希证据续记在同一 AutoTrans 证据文件。
+
+本批新增 [`Master_NoPV.rssbundle`](EPRITestCircuits/epri_dpv/K1/Master_NoPV.rssbundle)，保留 EPRI
+K1 官方单 epoch ExecutionPlan、8 个 Monitor 和 1 个 EnergyMeter。原地与改名搬移执行均返回
+1,750 行电压且逐字节一致；全部公共节点相量的最大缩放误差为 `0.00825964194813738`，低于
+`1%` 门限。T2 RegControl 仍以稳定 Warning 声明为未支持边界，详见
+[`epri_k1_no_pv_publication_evidence.md`](epri_k1_no_pv_publication_evidence.md)。
+
+本批新增 [`Master.rssbundle`](Examples/Microgrid/ISource/Master.rssbundle)，原样保留 ISource
+微电网的 Snapshot 初始化、端口 2 开路、Monitor 声明和 24 步 Daily 求解。25 次 Newton 求解
+全部收敛，原位与改名搬移执行都输出 1,025×11 的电压表且逐字节一致。带电节点最大归一化
+复电压误差为 `7.851799552545358e-5`；开路后的 6 个孤岛相位和 3 个 ISource 按去电状态及
+OpenDSS 数值残差上限锁定。完整范围、哈希和边界见
+[`isource_microgrid_publication_evidence.md`](isource_microgrid_publication_evidence.md)。
 
 本批新增两个 IEEE123 GFM 四 epoch bundle，覆盖开关动作、GFL/GFM 模式切换和恢复/重复求解。
 两者在原目录与改名搬移目录的输出逐字节一致，并对全部 epoch 完成 OpenDSS 电压和 Storage
@@ -1480,6 +1501,25 @@ catalog 只将该入口一行由 `unsupported` 改为 `converted`，当前为 18
 本合同只覆盖无 PV 入口第二个 Snapshot 的最终电气状态；不声明 PV、可靠性、Monitor 通道等价、
 QSTS 轨迹或 8,760 小时/年度性能。
 
+### 第五十七轮 Civinlar 十步电容默认状态发布
+
+本轮发布官方入口 `Examples/civinlar model/regulator.dss`。有界改造只补齐省略多步
+Capacitor `states` 时的 OpenDSS 默认值：`numsteps=10` 先形成十个投入状态，再由原有 CapControl
+运行时执行；显式状态数量不足或内容非法继续失败关闭。未修改官方源，也未触碰 GFM 合同。
+
+严格检查展开 25 条 DSS 语句和一个 Snapshot epoch。显式 `line_model=exact` 的原生门禁比较
+全部 12 个母线相复电压、源端复功率、全网复损耗、调压器 tap 与十步电容终态；最大归一化误差
+依次为 `4.336207768984044e-7`、`1.8861771742005504e-5` 和
+`3.086740648099175e-5`，tap 为 `0.9925`、电容终态为 `1/10` 步投入，均与 OpenDSS 一致。
+原位置和改名搬移后的 bundle 都输出 12×11 电压表且逐字节一致，SHA-256 为
+`e38ce30b134f9a319c8fc30cd1a472537cfcded1d70ed9eb1c8e8baa04ab97d6`。
+
+catalog 当前为 190 `converted`、80 `unsupported`、578 `not_standalone_entry`。同批 CIM
+`IEEE13_CDPSM.dss` 的两相 Wye Storage 导入已解锁，但完整官方入口仍因既有空载三次绕组及
+分相 PV/Storage 数值交互不收敛，保持未发布。完整身份、哈希、搬移和阻塞证据见
+[`civinlar_regulator_publication_evidence.md`](civinlar_regulator_publication_evidence.md)。本案例只有
+一个 Snapshot，不声明 QSTS 轨迹或 8,760 小时/年度性能。
+
 #### 三个同名 `IEEE_519.DSS` 的边界
 
 三个文件名称相同，但入口合同和发布结论不同：
@@ -1564,7 +1604,7 @@ QSTS 轨迹或 8,760 小时/年度性能。
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 90 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 79 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -1574,15 +1614,15 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 数量 | 分类 | 诊断码 | 原因 |
 |---:|---|---|---|
 | 12 | `unsupported` | `TENSOREVAL.DSS.CLASSIFY.NATIVE_LIFECYCLE_UNSUPPORTED` | 保存的完整检查请求 Dynamic、Direct 等尚未完成入口合同的生命周期；IEEE123 GFL Daily 已发布，Direct 仍未支持。 |
-| 11 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
+| 7 | `unsupported` | `READ.DSS.RETAINED_SOURCE_ONLY` | 属性只保留在源信息中，当前计算合同不会消费。 |
 | 9 | `unsupported` | `PSA.DSS.EXECUTION.INCLUDE_LOAD_FAILED` | 展开后的 include 在 execution epoch 中无法便携重建。 |
-| 7 | `unsupported` | `PSA.DSS.NODE.PHASE_LABEL_UNSUPPORTED` | 节点/相导体编号超出当前网络表约束。 |
+| 4 | `unsupported` | `PSA.DSS.NODE.PHASE_LABEL_UNSUPPORTED` | 节点/相导体编号超出当前网络表约束。 |
 | 3 | `unsupported` | `PSA.DSS.LINE.GEOMETRY_INVALID` | LineGeometry 引用或导体位置不能形成有效线路参数。 |
 | 6 | `unsupported` | `PSA.DSS.EXECUTION.ORDER_UNREPRESENTABLE` | 首次 Solve 后新增网络对象，不能降为一个不可变 NetworkTables epoch；含 5 个 DOCTechNote 入口。 |
 | 6 | `unsupported` | `READ.IO.OPEN` | 官方快照引用的数据文件确实缺失。 |
 | 5 | `unsupported` | `PSA.DSS.SET.UNSUPPORTED` | PSA execution plan 不支持该 Set 选项。 |
-| 3 | `unsupported` | `READ.DSS.VALUE_UNSUPPORTED` | 对象值或控制行为被识别，但当前计算合同不能保持。 |
-| 3 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 模型可导入，但所选求解器不支持该拓扑、后端不可用或未收敛。 |
+| 2 | `unsupported` | `READ.DSS.VALUE_UNSUPPORTED` | 对象值或控制行为被识别，但当前计算合同不能保持。 |
+| 4 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SOLVE_FAILED` | 模型可导入，但所选求解器不支持该拓扑、后端不可用或未收敛。 |
 | 3 | `unsupported` | `PSA.DSS.LINECODE.RELIABILITY_RETAINED` | LineCode 可靠性字段尚未进入所选计算合同。 |
 | 2 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.SET_UNSUPPORTED` | `Set` 选项尚无可验证的 RSS 执行语义。 |
 | 3 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.COMMAND_UNSUPPORTED` | 运行命令尚无可验证的 RSS 映射。 |
@@ -1590,21 +1630,17 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 | 2 | `unsupported` | `READ.DSS.PROPERTY_UNKNOWN` | 包含导入器未知的对象属性。 |
 | 2 | `unsupported` | `PSA.DSS.OBJECT.UNSUPPORTED` | 使用了当前 importer 未覆盖的 DSS 对象。 |
 | 1 | `unsupported` | `PSA.DSS.REGCONTROL.PROPERTY_UNSUPPORTED` | RegControl 属性尚无 transformer/control 表语义。 |
-| 1 | `unsupported` | `PSA.DSS.AUTOTRANS.CONNECTION_UNSUPPORTED` | AutoTrans 绕组接法超出当前受支持组合。 |
-| 1 | `unsupported` | `PSA.DSS.STORAGE.PHASES_UNSUPPORTED` | Storage 相数超出当前一相或三相模型。 |
 | 1 | `unsupported` | `PSA.DSS.LOADSHAPE.ACTION_ORDER_UNSUPPORTED` | `Action=Normalize` 后继续修改曲线，最终向量不能重建原命令顺序。 |
 | 1 | `unsupported` | `PSA.DSS.PROPERTY.SEMANTIC_UNREPRESENTABLE` | Storage-target InvControl 不能由当前 PVSystem-only typed runtime 无损表达。 |
 | 1 | `unsupported` | `PSA.DSS.STORAGE.PROPERTY_UNSUPPORTED` | Storage `AmpLimit` 尚无当前运行时映射。 |
-| 1 | `unsupported` | `PSA.DSS.TRANSFORMER.PROPERTY_UNSUPPORTED` | Transformer 属性尚无当前 owned table 的无损映射。 |
 | 1 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.POST_SOLVE_MUTATION` | 独立入口在首次 Solve 后修改模型，尚无 execution-plan 映射。 |
 | 1 | `unsupported` | `READINESS.SOURCE.DEFAULTED` | 关键源参数需要默认值，严格 profile 不能证明等价。 |
 | 1 | `unsupported` | `PSA.DSS.GENERATOR.USER_MODEL_UNSUPPORTED` | Generator 用户模型依赖外部实现，PSA 无法无损执行。 |
-| 1 | `unsupported` | `TENSOREVAL.DSS.TRANSLATE.MIXED_STUDY_UNSUPPORTED` | 单个入口混合了当前不能由一个 bundle 表达的多类 study。 |
 
 ## 逐文件结果
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
-显式 Snapshot 提升后的当前状态为 187 个 `converted`、83 个 `unsupported` 和
+显式 Snapshot 提升后的当前状态为 191 个 `converted`、79 个 `unsupported` 和
 578 个 `not_standalone_entry`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；

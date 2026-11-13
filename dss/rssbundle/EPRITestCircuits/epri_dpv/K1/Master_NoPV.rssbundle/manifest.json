@@ -1,0 +1,114 @@
+{
+  "schema_version": 2,
+  "artifact": "mems.dss-rss-bundle",
+  "generator": "mems/0.1.0",
+  "psa_contract_version": "0.1.0",
+  "entry": "main.rss",
+  "study": {
+    "kind": "execution_plan",
+    "compatibility": "opendss-native",
+    "solver": "newton-raphson",
+    "results": [
+      "voltage"
+    ]
+  },
+  "source": {
+    "entry": "dss/Master_NoPV.dss",
+    "root": "dss",
+    "tree_sha256": "afec90c9bc34b08d22e2842dd7a09e526b9d896d901b7fe375a62380836bdbc5"
+  },
+  "projection": {
+    "source_function": "ds_newton_raphson_dss_plan",
+    "profile": "dss_execution_newton_v1",
+    "projector": "project_dss_execution_plan",
+    "target_function": "ds_newton_raphson_execution_plan",
+    "managed_entry": "managed.rss",
+    "status": "enabled",
+    "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
+    "results": [
+      {
+        "source": "voltage",
+        "target": "bus_phase",
+        "binding": "result_voltage"
+      }
+    ]
+  },
+  "files": [
+    {
+      "path": "dss/AllocationFactors.Txt",
+      "role": "dss-source",
+      "sha256": "b7de4d63331349b1104e620beae6b5022ecc213671b3108128b63d329a146774"
+    },
+    {
+      "path": "dss/Buscoords.dss",
+      "role": "data-asset",
+      "sha256": "bb75048b59e442ce7cfdcaeecd6fd684918bac3793ca7b7c169434ee20f5421c"
+    },
+    {
+      "path": "dss/Capacitors.dss",
+      "role": "dss-source",
+      "sha256": "d6a6c1c78740aa75d8a818e5ce8d218c32c2e2277175f8c875b0770198b74b99"
+    },
+    {
+      "path": "dss/LineCodes.dss",
+      "role": "dss-source",
+      "sha256": "41e344f218e815252943f56dc28215a6e3e13716d558f9e5122d5d76f69ddaae"
+    },
+    {
+      "path": "dss/Lines.dss",
+      "role": "dss-source",
+      "sha256": "f1dd376e4a3c9697fa071929d800ab757782da50c952c55ada9170637f8cdc26"
+    },
+    {
+      "path": "dss/Master_NoPV.dss",
+      "role": "dss-entry",
+      "sha256": "c48080699ae641b45dc009e540072e77f97bd7623aedcc617a7c0249186cebb8"
+    },
+    {
+      "path": "dss/Substation.dss",
+      "role": "dss-source",
+      "sha256": "6556b11da2fbe708e5015d5c43a453d10feca9493921ca12f05de8805f092091"
+    },
+    {
+      "path": "dss/loads.dss",
+      "role": "dss-source",
+      "sha256": "24bbbd56bb725772efe87144deda7b082b055397ed4d8ecd3d3f6616dc931b8a"
+    },
+    {
+      "path": "dss/loadshapes.dss",
+      "role": "dss-source",
+      "sha256": "9b63a9e1284f36677fe6276b71004e5c3628f2df4dd3afdb8fc205a96e4f46b2"
+    },
+    {
+      "path": "dss/services.dss",
+      "role": "dss-source",
+      "sha256": "3d61c67d6327b46195f52e142dbad316321f078cef7c40124a015ce2001d74ae"
+    },
+    {
+      "path": "dss/triplexlinecodes.dss",
+      "role": "dss-source",
+      "sha256": "28d12b7efd2a3ad0595fd1c3979cf79b894edbb91945a780d64cb6d609e1a0d2"
+    },
+    {
+      "path": "dss/vbases.dss",
+      "role": "dss-source",
+      "sha256": "5eefe46367f57e5899ebba0c94f688ee83d59c95217252d017de8e73793e9262"
+    },
+    {
+      "path": "dss/xfmrs.dss",
+      "role": "dss-source",
+      "sha256": "2d97e499403a6243a461974c896d0b424da6b9ecccf509700da6876656d876ff"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "761da6066d7a3815ff0194a6ae2ef3f7cde651c4452adacf9fe2c49b70b3de76"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b"
+    }
+  ],
+  "inputs": []
+}

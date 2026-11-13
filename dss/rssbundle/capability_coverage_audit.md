@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：187 个入口已经发布 bundle，83 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：191 个入口已经发布 bundle，79 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。
@@ -958,6 +958,81 @@ IEEE8500 GFM 候选因原生中间 epoch 不收敛而未发布。
 
 当前 catalog 为 187 `converted`、83 `unsupported`、578 `not_standalone_entry`。
 
+## 2026-11-12 EPRI K1 无 PV 全导体闭合
+
+`EPRITestCircuits/epri_dpv/K1/Master_NoPV.dss` 已发布为 schema-v2 Newton execution-plan
+bundle。通用修复恢复了提升电容器的额定值、从数值未知量中排除只由禁用线路引用的母线，并让
+多绕组变压器和显式接地电容器 Monitor 使用全导体结果。未修改的官方入口、bundle 原地执行及
+改名搬移执行均通过，后两者的 1,750×11 电压结果逐字节一致。
+
+OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 收敛于 9 次迭代和 3 次控制迭代。1,750 个公共
+母线相键的最大/RMS 缩放复电压误差分别为 `0.00825964194813738` 和
+`0.008081250648405888`，低于 `1%` 门限；唯一原生专有键 `K_LSB.4` 是 PSA 接地回路消元的
+显式中性点。OpenDSS 的 T2 RegControl 终态 tap 为 `0.95625`，PSA 当前保持书写 tap，并通过
+`READ.DSS.VALUE_UNSUPPORTED` 明确披露该控制边界，不把它记录为 tap 等价。
+
+当前 catalog 为 188 `converted`、82 `unsupported`、578 `not_standalone_entry`。
+
+## 2026-11-12 ISource 微电网 Snapshot + Daily 闭合
+
+`Examples/Microgrid/ISource/Master.DSS` 已发布为 schema-v2 Newton execution-plan bundle。
+有界改造只覆盖三项已有合同的接线：continuation epoch 中 `Open` 后、下一次 `Solve` 前的声明
+继续按源顺序回放；显式 AC `%R` 完整存在时把有限非负 `RdcOhms` 保留为非电气 provenance；
+ISource 的负 LoadShape 倍数以非负电流幅值加 180° 相角表达。缺少 AC 电阻、非法 DC 电阻及
+更宽的 post-solve 变更仍失败关闭，本轮不包含任何 GFM 支持。
+
+固定官方入口严格检查识别 117 条语句、2 个 epoch 和 25 次收敛求解。显式
+`line_model="exact"` 的原生门禁覆盖全部 41 个最终母线相键：35 个带电键最大归一化复电压误差
+为 `7.851799552545358e-5`；端口 2 开路形成的 6 个源自由孤岛键由 PSA 明确置零，OpenDSS
+数值稳定化残差不超过 `6.529222945397018 V`。三个 ISource 在该孤岛中的 PSA 功率为零，
+OpenDSS 绝对残差不超过 `3.878383456657604 VA`。原位置和改名搬移后的 bundle 都输出
+1,025×11 电压，SHA-256 同为
+`4dea5dc7ecaf7e201a66388fce747189a6f9c8d40b7a2d25c9546b0f66076edf`，且 artifact 不含采集根、
+`/tmp` 或工作树绝对路径。完整证据见
+[`isource_microgrid_publication_evidence.md`](isource_microgrid_publication_evidence.md)。
+
+当前 catalog 为 189 `converted`、81 `unsupported`、578 `not_standalone_entry`。
+
+## 2026-11-12 Civinlar 十步电容默认状态闭合
+
+`Examples/civinlar model/regulator.dss` 已发布为 schema-v2 Radial execution-plan bundle。改造只在
+Capacitor 未显式书写 `states` 时，把全部 `numsteps` 初始化为投入；显式状态数量或内容非法继续
+失败关闭。固定官方入口严格检查识别 25 条语句和一个 Snapshot epoch，原位置与改名搬移后的
+bundle 都输出 12×11 电压表且逐字节一致。
+
+显式 `line_model="exact"` 的 OpenDSSDirect.py 0.9.4 / DSS C-API 0.14.5 门禁比较 12 个母线相
+复电压、源端复功率、全网复损耗、调压器 tap 和电容终态。三项最大归一化误差分别为
+`4.336207768984044e-7`、`1.8861771742005504e-5` 和 `3.086740648099175e-5`；tap 为
+`0.9925`，十步电容最终投入一级，均与原生结果一致。完整证据见
+[`civinlar_regulator_publication_evidence.md`](civinlar_regulator_publication_evidence.md)。
+
+同批 `Examples/CIM/IEEE13_CDPSM.dss` 已通过有界的两相 Wye GFL/PQ Storage 导入，但完整入口
+仍在 epoch 0 数值不收敛；探针确认还有空载三次绕组及分相 PV/Storage 交互，故不生成 bundle。
+本轮不包含任何 GFM 修改。
+
+当前 catalog 为 190 `converted`、80 `unsupported`、578 `not_standalone_entry`。
+
+## 2026-11-12 DG Protection Snapshot 发布
+
+`IEEETestCases/DG_Protection/DG_Prot_Fdr.dss` 已从未修改官方入口发布为 schema-v2 Newton
+execution-plan bundle。改造边界只覆盖显式限定的初始 Transformer 端子动作、Recloser Like 后续
+直接 `enabled` 编辑、孤立三线电源的公共模基准，以及无启用保护时活动 Fault 的最终 Snapshot
+电气表投影；其他对象、动作副作用和保护时序继续失败关闭。
+
+固定入口严格检查识别 69 条 DSS 语句和一个 Snapshot epoch。OpenDSSDirect.py 0.9.4 /
+DSS C-API 0.14.5 门禁以 `line_model="exact"` 比较 26 个母线相复电压，最大相对误差为
+`0.005259176861490091`；原生幅值小于 1 V 的故障母线键在 PSA 中最大为
+`0.0765114979168519 V`。三个 Recloser、两个 Fuse 和一个 Relay 均保持禁用，
+`Transformer.Tg` 端子 2 的三相导体打开而中性导体闭合。
+
+release `tensoreval` 使用 `--no-default-features --features tensoreval-cli,with_dsa_mumps` 构建。
+原位置和独立改名搬移执行均输出 26×11 电压表，SHA-256 同为
+`c4a6024f721f8d02e2f24b12fc8c776abe9567d4b0d546babe38f1daa0f8309f`，artifact 不含绝对采集路径。
+完整证据见 [`dg_protection_publication_evidence.md`](dg_protection_publication_evidence.md)。本轮没有
+修改或发布任何 GFM 案例。
+
+当前 catalog 为 191 `converted`、79 `unsupported`、578 `not_standalone_entry`。
+
 ## 建议的实现门禁
 
 1. 为每个候选保存“原入口 SHA-256、转换模式、PSA 证据 case、首诊断、修复后诊断”关系，
@@ -966,7 +1041,7 @@ IEEE8500 GFM 候选因原生中间 epoch 不收敛而未发布。
    V/I/P/Q/loss、控制终态或 FaultStudy 专用结果比较并发布 bundle。YYD Direct/Fault
    continuation 已按上述有界合同发布；InductionMachine 仍等待 Dynamic/保护动作执行合同，
    不能降低门禁后发布。
-3. 每消除一个首诊断都重扫当前 83 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
+3. 每消除一个首诊断都重扫当前 79 个尚未发布入口，并对受影响文件继续探测第二层诊断；成功数量相同
    不代表改造没有改变失败原因。
 4. 对 Plot、Show、Export、FileEdit、BusCoords 等副作用采用 manifest 记录；电气状态修改
    `Open/Close/Edit/BatchEdit` 必须进入执行计划，不能按输出副作用忽略。
