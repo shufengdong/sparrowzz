@@ -20,8 +20,8 @@
 - 发布构建命令为
   `cargo build -p mems --release --no-default-features --features tensoreval-cli,with_dsa_mumps --bin tensoreval`；
   可执行文件 SHA-256 为
-  `f7006e1fdfb2482c2e228f04feae6362619fcc2b7fd481e7a34378159646830d`；内嵌
-  `version-rs` 身份为提交 `ed4cc45bc`，提交时间 `2026-11-16 02:40:59 +00:00`。
+  `2878f90035d8387eee419e39e2337218c751992ea5746621e63a2a4f450bbf86`；内嵌
+  `version-rs` 身份为提交 `4d677d55a`，提交时间 `2026-11-16 03:38:02 +00:00`。
 
 ## 执行、所有权与限流
 
@@ -65,7 +65,12 @@ AmpLimit Daily 只比较并网 step 0..10。归一化复电压门限为 `1e-5`�
 `30f4b4492f42d0f629532b5823740786d5d723de4c378ff9d9e04ef6d1d863a4`。候选目录原样安装后，
 又在改名父目录中、上游采集根不可见时重新执行；两组 `bus_phase` / `island_status` Parquet
 逐字节一致，bundle 内绝对构建路径匹配数为 0。发布检查器还直接读取两组 Parquet，核对
-attempt key、行数、outcome 分布、owner 序列和 Storage 限流行数，确认搬移前后语义一致。
+完整 schema/dtype、每次 284 个唯一且顺序稳定的 bus/phase 坐标、有限乘数、终止岛全 NaN
+电压、epoch/step/time 顺序，以及逐 attempt 的 island ordinal、outcome/reason、限流标志、
+reference kind/device、owner 和模型身份。AmpLimit Daily 的 capacity 精确发生在全局 attempt
+12、13（epoch 2 的局部 step 1、2）；此时所有 GFM 支路已转为 PQ，故公共
+`reference_kind=NONE`，但仍保留 `Storage.mystorage` 与 `psa_gfm_approx_v1` 作为 capacity
+证据。检查器还拒绝符号链接或哈希不符的 `--tensoreval`，并确认搬移前后语义一致。
 
 ## Catalog 与范围边界
 
