@@ -44,7 +44,9 @@ bundle。两者均保留官方 25 次求解，分别输出 31/49 条 typed `isla
 本批继续发布两个 `Run_IEEE123Bus_GFMDailySwapRef` 和一个带 `AmpLimit=500` 的
 `Run_IEEE123Bus_GFMDaily` schema-v2 bundle。两个 SwapRef 入口均锁定
 Storage→PVSystem→Storage 的已完成求解边界所有权；AmpLimit Daily 至少出现一条 typed
-`i_limited=true` 记录。三个入口各完成 25 次求解、原位置和改名搬移执行以及精确线路模型的有界
+`i_limited=true` 记录，最终状态分布为 29 条 `ENERGIZED_CONVERGED` 和 2 条
+`GFM_CAPACITY_INSUFFICIENT`，没有把全支路限流重标为普通收敛。三个入口各完成 25 次求解、
+原位置和改名搬移执行以及精确线路模型的有界
 OpenDSS 数值门禁。完整源身份、release、manifest、结果哈希、限流证据和非目标范围见
 [`gfm_ieee123_swapref_amplimit_publication_evidence.md`](gfm_ieee123_swapref_amplimit_publication_evidence.md)。
 
