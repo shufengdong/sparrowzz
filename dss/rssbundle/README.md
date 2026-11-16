@@ -18,19 +18,19 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 193 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增两个 IEEE123 GFM QSTS bundle |
-| 当前尚未发布的独立入口 | 77 | 当前报告中的 unsupported 独立入口；IEEE8500 GFM 的中间 epoch 原生不收敛，尚未发布 |
+| 已转换并发布 bundle | 196 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增三个 IEEE123 GFM SwapRef/AmpLimit bundle |
+| 当前尚未发布的独立入口 | 74 | 当前报告中的 unsupported 独立入口；IEEE8500 GFM 的中间 epoch 原生不收敛，尚未发布 |
 | 超时 | 0 | 无 |
 
-193 个成功入口按官方发行树的相对路径保存在本目录；单 study `.rssbundle` 使用 schema v2，NEV
+196 个成功入口按官方发行树的相对路径保存在本目录；单 study `.rssbundle` 使用 schema v2，NEV
 及本批 YYD、IEEE123/IEEE37 FaultStudy、FreqScan、两个 HarmonicT 有序多 study bundle 使用
 schema v3；两者都包含 manifest、原始复放 `main.rss`、路径无关的 `managed.rss`、DSS 导入来源和数据资产，并在
 原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
 另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 193 个发布入口；
-其余 77 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 196 个发布入口；
+其余 74 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 本批新增 `Run_IEEE123Bus_GFMDaily` 和 `Run_IEEE123Bus_GFMWholeDaily` 两个 schema-v2
@@ -40,6 +40,15 @@ bundle。两者均保留官方 25 次求解，分别输出 31/49 条 typed `isla
 `bus_phase`/`island_status` Parquet 输出逐字节一致，完整来源、适用 native 数值窗口、哈希、
 范围边界和未实施项见
 [`gfm_ieee123_qsts_publication_evidence.md`](gfm_ieee123_qsts_publication_evidence.md)。
+
+本批继续发布两个 `Run_IEEE123Bus_GFMDailySwapRef` 和一个带 `AmpLimit=500` 的
+`Run_IEEE123Bus_GFMDaily` schema-v2 bundle。两个 SwapRef 入口均锁定
+Storage→PVSystem→Storage 的已完成求解边界所有权；AmpLimit Daily 至少出现一条 typed
+`i_limited=true` 记录，最终状态分布为 29 条 `ENERGIZED_CONVERGED` 和 2 条
+`GFM_CAPACITY_INSUFFICIENT`，没有把全支路限流重标为普通收敛。三个入口各完成 25 次求解、
+原位置和改名搬移执行以及精确线路模型的有界
+OpenDSS 数值门禁。完整源身份、release、manifest、结果哈希、限流证据和非目标范围见
+[`gfm_ieee123_swapref_amplimit_publication_evidence.md`](gfm_ieee123_swapref_amplimit_publication_evidence.md)。
 
 上一批新增 [`DG_Prot_Fdr.rssbundle`](IEEETestCases/DG_Protection/DG_Prot_Fdr.rssbundle)，原样保留
 官方 Snapshot、三相 Fault、`Transformer.Tg` 端子 2 开路和全部禁用保护对象。原位置与改名搬移
@@ -1612,7 +1621,7 @@ catalog 当前为 190 `converted`、80 `unsupported`、578 `not_standalone_entry
 
 后续回归门禁应直接使用上述已识别官方入口，并把验证分成三层：转换和 bundle 自执行、PSA 与
 OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest 精确比较。每修复一个首要阻断都要
-重扫当前 77 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
+重扫当前 74 个尚未发布入口，因为当前报告只保证首个稳定诊断，不能据此推断该文件后面没有第二个缺口。
 
 ## 主要原因
 
@@ -1648,7 +1657,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 ## 逐文件结果
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
-GFM QSTS 提升后的当前状态为 193 个 `converted`、77 个 `unsupported` 和
+GFM SwapRef/AmpLimit 提升后的当前状态为 196 个 `converted`、74 个 `unsupported` 和
 578 个 `not_standalone_entry`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；
