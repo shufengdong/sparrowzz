@@ -5563,7 +5563,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 0.000001
+                "value": 1e-06
               },
               "unit": {
                 "state": "not_applicable"
@@ -12631,7 +12631,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 0.000001
+                "value": 1e-06
               },
               "unit": {
                 "state": "not_applicable"
@@ -13505,7 +13505,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 1E-10
+                "value": 1e-10
               },
               "unit": {
                 "state": "not_applicable"
@@ -13569,7 +13569,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 1E-8
+                "value": 1e-08
               },
               "unit": {
                 "state": "value",
@@ -14002,7 +14002,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 0.000001
+                "value": 1e-06
               },
               "unit": {
                 "state": "not_applicable"
@@ -28706,6 +28706,7 @@
         "line_model": "str"
       },
       "optional": {
+        "solver": "str",
         "max_iter": "u32_semantics",
         "max_control_iter": "u32_semantics",
         "tol": "f64",
@@ -28713,6 +28714,7 @@
       },
       "constraints": [
         "exactly one row",
+        "solver is radial or newton (case-insensitive) when present; omitted means newton",
         "line_model is modified or exact",
         "max_iter and max_control_iter are positive integers when present",
         "tol is finite and positive when present",
@@ -28729,6 +28731,39 @@
           "unknownColumns": "ignored"
         },
         "columns": [
+          {
+            "name": "solver",
+            "dtype": "str",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable",
+            "card": {
+              "default": {
+                "state": "value",
+                "value": "newton"
+              },
+              "unit": {
+                "state": "not_applicable"
+              },
+              "range": {
+                "state": "not_applicable"
+              },
+              "enum": {
+                "state": "values",
+                "values": [
+                  "radial",
+                  "newton"
+                ],
+                "caseInsensitive": true
+              },
+              "visibleWhen": {
+                "state": "always"
+              },
+              "enabledWhen": {
+                "state": "always"
+              }
+            }
+          },
           {
             "name": "line_model",
             "dtype": "str",
@@ -28834,7 +28869,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 0.000001
+                "value": 1e-06
               },
               "unit": {
                 "state": "not_applicable"
@@ -28892,6 +28927,15 @@
           "numeric_to_u32_semantics"
         ],
         "rules": [
+          {
+            "type": "enum",
+            "field": "solver",
+            "values": [
+              "radial",
+              "newton"
+            ],
+            "caseInsensitive": true
+          },
           {
             "type": "positive",
             "fields": [
@@ -31179,6 +31223,176 @@
         "rules": [],
         "source": [
           "mems/src/ml/expr_df/frame_ops.rs"
+        ],
+        "shape": "uniform"
+      }
+    },
+    "island_status": {
+      "description": "Authoritative per-island Newton solve outcome for each execution epoch and time-series step.",
+      "contract": {
+        "kind": "result",
+        "rowCount": "zero_or_more",
+        "columnPolicy": {
+          "mode": "closed",
+          "unknownColumns": "forbidden"
+        },
+        "columns": [
+          {
+            "name": "epoch",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "step",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "time",
+            "dtype": "f64",
+            "required": true,
+            "nullable": false,
+            "unit": "s"
+          },
+          {
+            "name": "island",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "outcome",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "energized",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "converged",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "reference_kind",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "reference_devices",
+            "dtype": "list<str>",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "reason",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "p_limited",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "q_limited",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "s_limited",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "i_limited",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "model_identity",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          }
+        ],
+        "stableKeys": [
+          "epoch",
+          "step",
+          "island"
+        ],
+        "sortKeys": [
+          "epoch",
+          "step",
+          "island"
+        ],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [
+          {
+            "type": "unique",
+            "fields": [
+              "epoch",
+              "step",
+              "island"
+            ],
+            "caseInsensitive": []
+          },
+          {
+            "type": "enum",
+            "field": "outcome",
+            "values": [
+              "ENERGIZED_CONVERGED",
+              "DEENERGIZED_NO_REFERENCE",
+              "GFM_CAPACITY_INSUFFICIENT"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "reference_kind",
+            "values": [
+              "TRADITIONAL",
+              "GFM",
+              "NONE"
+            ]
+          },
+          {
+            "type": "finite",
+            "fields": [
+              "time"
+            ]
+          }
+        ],
+        "source": [
+          "psa/src/dsa/parse/dss_import/execution/model.rs",
+          "psa/src/dsa/parse/dss_import/execution/runner.rs"
         ],
         "shape": "uniform"
       }

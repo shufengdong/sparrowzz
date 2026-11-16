@@ -1261,21 +1261,18 @@
     },
     {
       "names": [
-        "ds_radial_dss_plan",
-        "ds_newton_raphson_dss_plan",
-        "ds_radial_dss_plan_url",
-        "ds_newton_raphson_dss_plan_url"
+        "ds_dss_execution_plan"
       ],
       "allowed_arities": [
         1,
         2
       ],
       "arguments": [
-        "path_or_url",
+        "source",
         "para_or_result_selector?"
       ],
-      "behavior": "import and execute a DSS command plan containing one or more Solve epochs while preserving runtime state between epochs",
-      "default_result": "bus_voltage",
+      "behavior": "load and execute one DSS command plan from a local path, file URI or HTTP(S) URL while preserving runtime state between Solve epochs",
+      "default_result": "bus_phase",
       "results": [
         "bus_voltage",
         "bus_phase",
@@ -1310,13 +1307,102 @@
         "load_duration",
         "execution_trace",
         "diagnostics",
-        "events"
+        "events",
+        "island_status"
       ],
       "appended_columns": [
         "epoch_index",
         "solve_event_sequence"
       ],
-      "restriction": "The optional second argument is either a parameter DataFrame or a comma-separated result string. The URL form downloads one source and cannot resolve remote relative includes."
+      "restriction": "The optional second argument is either a parameter DataFrame or a comma-separated result string. para.solver selects radial or newton and defaults to newton. Transport never selects the solver; unsupported URI schemes fail closed.",
+      "source_transport": {
+        "local_path": "supported",
+        "file_uri": "supported",
+        "http": "supported",
+        "https": "supported",
+        "other_uri_schemes": "TENSOREVAL.DSS.EXECUTION.SOURCE_SCHEME_UNSUPPORTED"
+      },
+      "result_availability": {
+        "default": "bus_phase",
+        "solverInput": "para.solver",
+        "solverDefault": "newton",
+        "island_status": {
+          "solver": [
+            "newton"
+          ],
+          "mode": [
+            "snapshot",
+            "daily",
+            "yearly",
+            "duty",
+            "peakday",
+            "ld1",
+            "ld2"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative"
+        },
+        "execution_trace": {
+          "buffering": [
+            "streaming"
+          ],
+          "unavailableWhen": [
+            "island_status_requested",
+            "plan_requires_island_status_v2"
+          ],
+          "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
+        },
+        "ordinary": {
+          "solver": [
+            "radial",
+            "newton"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "streaming",
+          "excludeResults": [
+            "island_status"
+          ]
+        },
+        "authoritativeBuffered": {
+          "triggerAny": [
+            "island_status_requested",
+            "plan_requires_island_status_v2"
+          ],
+          "solver": [
+            "newton"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative",
+          "unavailableResults": [
+            "execution_trace"
+          ]
+        },
+        "directFault": {
+          "solver": [
+            "radial",
+            "newton"
+          ],
+          "solveKind": [
+            "DirectFault"
+          ],
+          "results": [
+            "bus_voltage",
+            "bus_phase",
+            "branch_flow",
+            "fault_state",
+            "execution_trace",
+            "diagnostics",
+            "events"
+          ],
+          "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
+        }
+      }
     },
     {
       "names": [
@@ -1757,8 +1843,7 @@
     },
     {
       "names": [
-        "ds_radial_execution_plan",
-        "ds_newton_raphson_execution_plan"
+        "ds_execution_plan"
       ],
       "arity": 40,
       "arguments": [
@@ -1803,8 +1888,8 @@
         "projection_diagnostic",
         "para"
       ],
-      "behavior": "execute a path-independent projected DSS plan while preserving ordered Solve epochs, typed mutations and continuation state",
-      "default_result": "bus_voltage",
+      "behavior": "execute a path-independent projected DSS plan with the solver selected by para.solver while preserving ordered Solve epochs, typed mutations and continuation state",
+      "default_result": "bus_phase",
       "results": [
         "bus_voltage",
         "bus_phase",
@@ -1839,12 +1924,94 @@
         "load_duration",
         "execution_trace",
         "diagnostics",
-        "events"
+        "events",
+        "island_status"
       ],
       "appended_columns": [
         "epoch_index",
         "solve_event_sequence"
-      ]
+      ],
+      "result_availability": {
+        "default": "bus_phase",
+        "solverInput": "para.solver",
+        "solverDefault": "newton",
+        "island_status": {
+          "solver": [
+            "newton"
+          ],
+          "mode": [
+            "snapshot",
+            "daily",
+            "yearly",
+            "duty",
+            "peakday",
+            "ld1",
+            "ld2"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative"
+        },
+        "execution_trace": {
+          "buffering": [
+            "streaming"
+          ],
+          "unavailableWhen": [
+            "island_status_requested",
+            "plan_requires_island_status_v2"
+          ],
+          "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
+        },
+        "ordinary": {
+          "solver": [
+            "radial",
+            "newton"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "streaming",
+          "excludeResults": [
+            "island_status"
+          ]
+        },
+        "authoritativeBuffered": {
+          "triggerAny": [
+            "island_status_requested",
+            "plan_requires_island_status_v2"
+          ],
+          "solver": [
+            "newton"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative",
+          "unavailableResults": [
+            "execution_trace"
+          ]
+        },
+        "directFault": {
+          "solver": [
+            "radial",
+            "newton"
+          ],
+          "solveKind": [
+            "DirectFault"
+          ],
+          "results": [
+            "bus_voltage",
+            "bus_phase",
+            "branch_flow",
+            "fault_state",
+            "execution_trace",
+            "diagnostics",
+            "events"
+          ],
+          "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
+        }
+      }
     },
     {
       "names": [

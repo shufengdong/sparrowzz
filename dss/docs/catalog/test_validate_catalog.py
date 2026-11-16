@@ -1,5 +1,7 @@
 import contextlib
 import copy
+import base64
+import hashlib
 import importlib.util
 import io
 import json
@@ -501,7 +503,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         }
         self.assertEqual(
             set(execution_columns),
-            {"line_model", "max_iter", "max_control_iter", "tol", "result"},
+            {"solver", "line_model", "max_iter", "max_control_iter", "tol", "result"},
         )
         self.assertTrue(execution_columns["line_model"]["required"])
         self.assertFalse(execution_columns["result"]["nullable"])
@@ -516,18 +518,12 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         facades = self.read("study_facades.json")
         projections = self.read("case_projections.json")
 
-        for function in (
-            "ds_radial_execution_plan",
-            "ds_newton_raphson_execution_plan",
-        ):
+        for function in ("ds_execution_plan",):
             facade = self.facade(facades, function)
             para = next(item for item in facade["inputs"] if item["id"] == "para")
             self.assertEqual(para["schemaRef"], "execution_inputs.para")
 
-        for profile_id in (
-            "dss_execution_radial_v1",
-            "dss_execution_newton_v1",
-        ):
+        for profile_id in ("dss_execution",):
             profile = next(
                 item for item in projections["profiles"] if item["id"] == profile_id
             )
@@ -885,10 +881,10 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         facades = self.read("study_facades.json")
         stats = self.validator.validate_catalog_contracts(dataframes, facades)
         self.assertEqual(stats["facades"], len(facades["facades"]))
-        self.assertEqual(stats["facades"], 19)
+        self.assertEqual(stats["facades"], 18)
         self.assertEqual(stats["models"], 105)
         self.assertEqual(stats["structs"], 10)
-        self.assertEqual(stats["results"], 128)
+        self.assertEqual(stats["results"], 129)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):
@@ -916,6 +912,177 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         ):
             with contextlib.redirect_stdout(io.StringIO()):
                 self.assertEqual(self.validator.main(), 0)
+
+
+class UnifiedExecutionCatalogTests(unittest.TestCase):
+    @classmethod
+    def setUpClass(cls):
+        cls.validator = load_validator()
+
+    def read(self, name):
+        return json.loads((CATALOG_DIR / name).read_text(encoding="utf-8"))
+
+    def test_unified_execution_catalog_has_exact_public_names(self):
+        functions = self.read("functions.json")["dsa_functions"]
+        execution = [
+            item
+            for item in functions
+            if any("execution_plan" in name or "dss_plan" in name for name in item["names"])
+            and not any("harmonic" in name or "dynamic" in name for name in item["names"])
+        ]
+        self.assertEqual(
+            [item["names"] for item in execution],
+            [["ds_dss_execution_plan"], ["ds_execution_plan"]],
+        )
+        self.assertEqual(execution[0]["allowed_arities"], [1, 2])
+        self.assertEqual(execution[1]["arity"], 40)
+        self.assertEqual(execution[0]["default_result"], "bus_phase")
+        self.assertEqual(execution[1]["default_result"], "bus_phase")
+        self.assertEqual(execution[0]["results"][-1], "island_status")
+        self.assertEqual(execution[1]["results"], execution[0]["results"])
+
+    def test_unified_execution_para_publishes_solver_card(self):
+        para = self.read("dataframes.json")["execution_inputs"]["para"]
+        columns = {item["name"]: item for item in para["contract"]["columns"]}
+        self.assertEqual(para["optional"]["solver"], "str")
+        self.assertEqual(columns["solver"], {
+            "name": "solver",
+            "dtype": "str",
+            "required": False,
+            "nullable": False,
+            "unit": "not_applicable",
+            "card": {
+                "default": {"state": "value", "value": "newton"},
+                "unit": {"state": "not_applicable"},
+                "range": {"state": "not_applicable"},
+                "enum": {
+                    "state": "values",
+                    "values": ["radial", "newton"],
+                    "caseInsensitive": True,
+                },
+                "visibleWhen": {"state": "always"},
+                "enabledWhen": {"state": "always"},
+            },
+        })
+
+    def test_unified_execution_island_status_matches_psa_schema(self):
+        status = self.read("dataframes.json")["execution_outputs"]["island_status"]["contract"]
+        expected = [
+            ("epoch", "u64", False),
+            ("step", "u64", False),
+            ("time", "f64", False),
+            ("island", "u64", False),
+            ("outcome", "str", False),
+            ("energized", "bool", False),
+            ("converged", "bool", False),
+            ("reference_kind", "str", False),
+            ("reference_devices", "list<str>", False),
+            ("reason", "str", True),
+            ("p_limited", "bool", False),
+            ("q_limited", "bool", False),
+            ("s_limited", "bool", False),
+            ("i_limited", "bool", False),
+            ("model_identity", "str", True),
+        ]
+        self.assertEqual(
+            [(item["name"], item["dtype"], item["nullable"]) for item in status["columns"]],
+            expected,
+        )
+        self.assertEqual(status["columnPolicy"], {"mode": "closed", "unknownColumns": "forbidden"})
+        self.assertEqual(status["stableKeys"], ["epoch", "step", "island"])
+        self.assertEqual(status["sortKeys"], ["epoch", "step", "island"])
+        self.assertEqual(status["columns"][2]["unit"], "s")
+        self.assertIn("psa/src/dsa/parse/dss_import/execution/model.rs", status["source"])
+
+    def test_unified_execution_profile_is_the_only_execution_profile(self):
+        profiles = self.read("case_projections.json")["profiles"]
+        execution = [item for item in profiles if item["projector"] == "project_dss_execution_plan"]
+        self.assertEqual(len(execution), 1)
+        profile = execution[0]
+        self.assertEqual(profile["id"], "dss_execution")
+        self.assertEqual(profile["sourceFunction"], "ds_dss_execution_plan")
+        self.assertEqual(profile["targetFunction"], "ds_execution_plan")
+        self.assertEqual(profile["defaultResult"], "bus_phase")
+        self.assertEqual(profile["frozenInputOverrides"], ["para"])
+        self.assertEqual(profile["frozenInputContracts"]["para"]["values"], {
+            "solver": "manifest.study.solver: radial|newton-raphson -> radial|newton",
+            "line_model": "exact",
+            "result": "ordered profile.bundleResultMap(manifest.study.results)",
+        })
+        self.assertEqual(profile["resultAvailability"]["island_status"], {
+            "solver": ["newton"],
+            "mode": ["snapshot", "daily", "yearly", "duty", "peakday", "ld1", "ld2"],
+            "solveKind": ["SnapshotOrQsts"],
+            "buffering": "authoritative",
+        })
+        self.assertEqual(profile["resultAvailability"]["directFault"]["results"], [
+            "bus_voltage", "bus_phase", "branch_flow", "fault_state",
+            "execution_trace", "diagnostics", "events",
+        ])
+        self.assertEqual(
+            profile["resultAvailability"]["authoritativeBuffered"]["unavailableResults"],
+            ["execution_trace"],
+        )
+
+    def test_unified_execution_rejects_non_para_frozen_override(self):
+        profile = next(
+            item
+            for item in self.read("case_projections.json")["profiles"]
+            if item["projector"] == "project_dss_execution_plan"
+        )
+        with self.assertRaisesRegex(AssertionError, "projector-owned alias bus"):
+            self.validator.validate_projector_input_overrides(
+                "fixture", {"inputs": [{"name": "bus"}]}, profile
+            )
+        manifest = {"inputs": [{
+                "name": "para",
+                "path": "inputs/para.parquet",
+                "format": "parquet",
+                "sha256": "a" * 64,
+                "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de",
+            }]}
+        self.validator.validate_projector_input_overrides("fixture", manifest, profile)
+        bad_schema = copy.deepcopy(manifest)
+        bad_schema["inputs"][0]["schema_sha256"] = "b" * 64
+        with self.assertRaisesRegex(AssertionError, "schema hash differs"):
+            self.validator.validate_projector_input_overrides("fixture", bad_schema, profile)
+
+        with tempfile.TemporaryDirectory() as directory:
+            bundle_dir = Path(directory)
+            para_path = bundle_dir / "inputs/para.parquet"
+            para_path.parent.mkdir()
+            para_path.write_bytes(b"PAR1not-a-parquet-footerPAR1")
+            fake = copy.deepcopy(manifest)
+            fake["inputs"][0]["sha256"] = hashlib.sha256(para_path.read_bytes()).hexdigest()
+            with self.assertRaisesRegex(AssertionError, "invalid Parquet"):
+                self.validator.validate_projector_input_overrides(
+                    "fixture", fake, profile, bundle_dir
+                )
+            contents = base64.b64decode(
+                "UEFSMRUEFRQVJkwVAhUAAAAotS/9IApRAAAGAAAAcmFkaWFsFQAVEBUiLBUCFRAVBhUGHDYAKAZyYWRpYWwYBnJhZGlhbAAAACi1L/0gCEEAAAIAAAACAQADFQwZNQAGEBkYBnNvbHZlchUMFgIWiAEWrAEmSCYIHDYAKAZyYWRpYWwYBnJhZGlhbAAAFQQVEhUkTBUCFQAAACi1L/0gCUkAAAUAAABleGFjdBUAFRAVIiwVAhUQFQYVBhw2ACgFZXhhY3QYBWV4YWN0AAAAKLUv/SAIQQAAAgAAAAIBAAMVDBk1AAYQGRgKbGluZV9tb2RlbBUMFgIWggEWpgEm2AImmgIcNgAoBWV4YWN0GAVleGFjdAAAFQQVGhUsTBUCFQAAACi1L/0gDWkAAAkAAABidXNfcGhhc2UVABUQFSIsFQIVEBUGFQYcNgAoCWJ1c19waGFzZRgJYnVzX3BoYXNlAAAAKLUv/SAIQQAAAgAAAAIBAAMVDBk1AAYQGRgGcmVzdWx0FQwWAhaaARa+ASb0BCauBBw2ACgJYnVzX3BoYXNlGAlidXNfcGhhc2UAABkRAhkYBnJhZGlhbBkYBnJhZGlhbBUAGRYAABkRAhkYBWV4YWN0GRgFZXhhY3QVABkWAAAZEQIZGAlidXNfcGhhc2UZGAlidXNfcGhhc2UVABkWAAAZHBZIFWwWAAAAGRwW2AIVaBYAAAAZHBb0BBV4FgAAABUCGUxIBHJvb3QVBgAVDCUCGAZzb2x2ZXIlAEwcAAAAFQwlAhgKbGluZV9tb2RlbCUATBwAAAAVDCUCGAZyZXN1bHQlAEwcAAAAFgIZHBk8JvQBHBUMGTUABhAZGAZzb2x2ZXIVDBYCFogBFqwBJkgmCBw2ACgGcmFkaWFsGAZyYWRpYWwAABaMCBUUFuIGFTYAJv4DHBUMGTUABhAZGApsaW5lX21vZGVsFQwWAhaCARamASbYAiaaAhw2ACgFZXhhY3QYBWV4YWN0AAAWoAgVFhaYBxUyACayBhwVDBk1AAYQGRgGcmVzdWx0FQwWAhaaARa+ASb0BCauBBw2ACgJYnVzX3BoYXNlGAlidXNfcGhhc2UAABa2CBUWFsoHFUIAFqQDFgImCBaQBBQAABkcGAxBUlJPVzpzY2hlbWEYnAIvLy8vLzhzQUFBQUVBQUFBOHYvLy94UUFBQUFFQUFFQUFBQUtBQXNBQ0FBS0FBUUErUC8vL3d3QUFBQUlBQWdBQUFBRUFBTUFBQUJnQUFBQU1BQUFBQVFBQUFDWS8vLy9HQUFBQUJBQUFBQUlBQUFBQVJnQUFBQUFBQUNZLy8vL0JnQUFBSEpsYzNWc2RBQUF3UC8vL3hnQUFBQVFBQUFBQ0FBQUFBRVlBQUFBQUFBQXdQLy8vd29BQUFCc2FXNWxYMjF2WkdWc0FBRHMvLy8vTEFBQUFDQUFBQUFZQUFBQUFSZ0FBQkFBRWdBRUFCQUFFUUFJQUFBQURBQUFBQUFBL1AvLy93UUFCQUFHQUFBQWMyOXNkbVZ5QUE9PQAYBlBvbGFycxk8HAAAHAAAHAAAAHMCAABQQVIx"
+            )
+            para_path.write_bytes(contents)
+            verified = copy.deepcopy(manifest)
+            verified["inputs"][0]["sha256"] = hashlib.sha256(contents).hexdigest()
+            verified["study"] = {
+                "kind": "execution_plan",
+                "solver": "radial",
+                "results": ["voltage"],
+            }
+            self.validator.validate_projector_input_overrides(
+                "fixture", verified, profile, bundle_dir
+            )
+            wrong_values = copy.deepcopy(verified)
+            wrong_values["study"]["solver"] = "newton-raphson"
+            with self.assertRaisesRegex(AssertionError, "frozen para values differ"):
+                self.validator.validate_projector_input_overrides(
+                    "fixture", wrong_values, profile, bundle_dir
+                )
+            verified["inputs"][0]["sha256"] = "0" * 64
+            with self.assertRaisesRegex(AssertionError, "hash is stale"):
+                self.validator.validate_projector_input_overrides(
+                    "fixture", verified, profile, bundle_dir
+                )
 
 
 if __name__ == "__main__":
