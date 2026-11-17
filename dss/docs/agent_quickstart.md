@@ -16,7 +16,7 @@
 | 环网、并联支路、多电源、PV/GFM 或通用静态潮流 | `ds_newton_raphson_pf` | 需要 MUMPS 或 MKL feature |
 | Daily/Yearly/Duty/PeakDay/LoadDuration 时序 | `ds_radial_qsts` | 网络满足 Radial 边界 |
 | 通用网络时序 | `ds_newton_raphson_qsts` | 需要 MUMPS 或 MKL feature |
-| 保留 DSS 单/多 `Solve` 命令流 | `ds_radial_dss_plan` / `ds_newton_raphson_dss_plan` | 输入满足 PSA ExecutionStudy 有界合同 |
+| 保留 DSS 单/多 `Solve` 命令流 | `ds_dss_execution_plan` | 输入满足 PSA ExecutionStudy 有界合同；由 `para.solver=radial|newton` 选择求解器 |
 | 谐波扫频 | `ds_harmonic_study` | 需要 Spectrum 和 `h_max` |
 | 故障/短路 | `ds_fault_study` | 显式构造 `fault` 表 |
 | WLS、MNMR、MCE 状态估计 | `ds_wls_se`、`ds_mnmr_se`、`ds_mce_se` | 需要 measurement 表和稀疏后端 |

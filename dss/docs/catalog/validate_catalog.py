@@ -4,6 +4,7 @@
 import json
 import hashlib
 import re
+import struct
 import sys
 from pathlib import Path
 from typing import Any, Dict, List, Optional, Set, Tuple
@@ -28,12 +29,8 @@ RESULT_CONSTANTS = {
     "NETWORK_DYNAMIC_RESULT_NAMES_V13": {"ds_network_dynamics", "ds_dss_dynamic_plan"},
     "PROTECTION_COORDINATION_RESULT_NAMES": {"ds_protection_coordination"},
     "DSS_PLAN_RESULT_NAMES": {
-        "ds_radial_dss_plan",
-        "ds_newton_raphson_dss_plan",
-        "ds_radial_dss_plan_url",
-        "ds_newton_raphson_dss_plan_url",
-        "ds_radial_execution_plan",
-        "ds_newton_raphson_execution_plan",
+        "ds_dss_execution_plan",
+        "ds_execution_plan",
     },
     "QSTS_RESULT_NAMES": {"ds_radial_qsts", "ds_newton_raphson_qsts"},
     "MONTE_CARLO_RESULT_NAMES": {"ds_monte_carlo"},
@@ -1079,7 +1076,7 @@ def validate_study_sequence_catalog(functions, dataframes, study_facades, case_p
             if actual != physical:
                 fail("study sequence physical schema differs at " + reference)
     frame_ops = FRAME_OPS.read_text()
-    execution = [n for n in result_constant(frame_ops, "DSS_PLAN_RESULT_NAMES") if n not in {"execution_trace", "diagnostics", "events"}]
+    execution = [n for n in result_constant(frame_ops, "DSS_PLAN_RESULT_NAMES") if n not in {"execution_trace", "diagnostics", "events", "island_status"}]
     harmonic = result_constant(frame_ops, "HARMONIC_RESULT_NAMES")
     expected_results = (["execution." + n for n in execution] + ["fault_study.fault_result"] +
                         ["harmonic." + n for n in harmonic] + ["study_status"])
@@ -1113,8 +1110,7 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
     expected_sources = {
         "ds_radial_pf",
         "ds_newton_raphson_pf",
-        "ds_radial_dss_plan",
-        "ds_newton_raphson_dss_plan",
+        "ds_dss_execution_plan",
         "ds_dss_fault_study",
         "ds_dss_harmonic_plan",
         "ds_dss_dynamic_plan",
@@ -1262,6 +1258,363 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
         expected_selector = ({"input": "sequence_request", "field": "result", "stageField": "study_index", "valueSource": "manifest.study_sequence.results"} if profile["id"] == "dss_study_sequence_v1" else {"input": "para", "field": "result", "valueSource": "profile.resultMap(manifest.projection.results)"})
         if selector != expected_selector:
             fail(f"case projection {profile['id']} must declare the para.result manifest mapping")
+
+
+class _CompactProtocolReader:
+    """Minimal Thrift compact reader for the Parquet footer metadata we audit."""
+    STOP = 0
+    BOOL_TRUE = 1
+    BOOL_FALSE = 2
+    BYTE = 3
+    I16 = 4
+    I32 = 5
+    I64 = 6
+    DOUBLE = 7
+    BINARY = 8
+    LIST = 9
+    SET = 10
+    MAP = 11
+    STRUCT = 12
+
+    def __init__(self, data):
+        self.data = data
+        self.position = 0
+
+    def byte(self):
+        value = self.data[self.position]
+        self.position += 1
+        return value
+
+    def varint(self):
+        value = 0
+        shift = 0
+        while True:
+            byte = self.byte()
+            value |= (byte & 0x7f) << shift
+            if byte < 0x80:
+                return value
+            shift += 7
+            if shift > 70:
+                raise ValueError("invalid compact-protocol varint")
+
+    def zigzag(self):
+        value = self.varint()
+        return (value >> 1) ^ -(value & 1)
+
+    def value(self, kind):
+        if kind in (self.BOOL_TRUE, self.BOOL_FALSE):
+            return kind == self.BOOL_TRUE
+        if kind == self.BYTE:
+            return struct.unpack("b", bytes([self.byte()]))[0]
+        if kind in (self.I16, self.I32, self.I64):
+            return self.zigzag()
+        if kind == self.DOUBLE:
+            value = struct.unpack_from("<d", self.data, self.position)[0]
+            self.position += 8
+            return value
+        if kind == self.BINARY:
+            length = self.varint()
+            value = self.data[self.position:self.position + length]
+            if len(value) != length:
+                raise ValueError("truncated compact-protocol binary")
+            self.position += length
+            return value
+        if kind in (self.LIST, self.SET):
+            header = self.byte()
+            length = header >> 4
+            element_kind = header & 0xf
+            if length == 15:
+                length = self.varint()
+            return [self.value(element_kind) for _ in range(length)]
+        if kind == self.MAP:
+            length = self.varint()
+            if length == 0:
+                return []
+            kinds = self.byte()
+            return [
+                (self.value(kinds >> 4), self.value(kinds & 0xf))
+                for _ in range(length)
+            ]
+        if kind == self.STRUCT:
+            return self.read_struct()
+        raise ValueError(f"unsupported compact-protocol type {kind}")
+
+    def read_struct(self):
+        fields = {}
+        previous_id = 0
+        while True:
+            header = self.byte()
+            if header == self.STOP:
+                return fields
+            delta = header >> 4
+            kind = header & 0xf
+            field_id = previous_id + delta if delta else self.zigzag()
+            previous_id = field_id
+            fields[field_id] = self.value(kind)
+
+
+def execution_para_values(path, label):
+    """Read one-row String values from Parquet schema/statistics without optional packages."""
+    contents = path.read_bytes()
+    if len(contents) < 12 or contents[:4] != b"PAR1" or contents[-4:] != b"PAR1":
+        fail(f"{label} frozen para input is not a Parquet file")
+    footer_length = int.from_bytes(contents[-8:-4], "little")
+    footer_start = len(contents) - 8 - footer_length
+    if footer_start < 4:
+        fail(f"{label} frozen para input has an invalid Parquet footer")
+    try:
+        reader = _CompactProtocolReader(contents[footer_start:-8])
+        metadata = reader.read_struct()
+    except (IndexError, struct.error, ValueError) as error:
+        fail(f"{label} frozen para input has invalid Parquet metadata: {error}")
+    if reader.position != footer_length or metadata.get(3) != 1:
+        fail(f"{label} frozen para input must contain exactly one row")
+    schema = metadata.get(2)
+    expected_schema = [(b"solver", 6, 1), (b"line_model", 6, 1), (b"result", 6, 1)]
+    actual_schema = [] if not isinstance(schema, list) else [
+        (field.get(4), field.get(1), field.get(3))
+        for field in schema[1:]
+        if isinstance(field, dict)
+    ]
+    if (
+        not isinstance(schema, list)
+        or not schema
+        or schema[0].get(4) != b"root"
+        or schema[0].get(5) != 3
+        or actual_schema != expected_schema
+    ):
+        fail(f"{label} frozen para input has an invalid solver/line_model/result schema")
+    row_groups = metadata.get(4)
+    if not isinstance(row_groups, list) or len(row_groups) != 1 or row_groups[0].get(3) != 1:
+        fail(f"{label} frozen para input must contain one one-row row group")
+    chunks = row_groups[0].get(1)
+    if not isinstance(chunks, list) or len(chunks) != 3:
+        fail(f"{label} frozen para input must contain three column chunks")
+    values = {}
+    for chunk in chunks:
+        column = chunk.get(3) if isinstance(chunk, dict) else None
+        path_parts = column.get(3) if isinstance(column, dict) else None
+        statistics = column.get(12) if isinstance(column, dict) else None
+        if (
+            not isinstance(column, dict)
+            or column.get(1) != 6
+            or column.get(5) != 1
+            or not isinstance(path_parts, list)
+            or len(path_parts) != 1
+            or not isinstance(path_parts[0], bytes)
+            or not isinstance(statistics, dict)
+            or statistics.get(3, 0) != 0
+        ):
+            fail(f"{label} frozen para column metadata differs from the one-row String contract")
+        minimum = statistics.get(6, statistics.get(2))
+        maximum = statistics.get(5, statistics.get(1))
+        if not isinstance(minimum, bytes) or minimum != maximum:
+            fail(f"{label} frozen para column lacks exact one-row statistics")
+        try:
+            values[path_parts[0].decode("utf-8")] = minimum.decode("utf-8")
+        except UnicodeDecodeError:
+            fail(f"{label} frozen para column value is not UTF-8")
+    return values, contents
+
+
+def validate_projector_input_overrides(label, manifest, profile, bundle_dir=None):
+    """Permit the unified execution bundle to freeze only its projected para Struct."""
+    if profile.get("projector") != "project_dss_execution_plan":
+        return
+    allowed = profile.get("frozenInputOverrides")
+    if allowed != ["para"]:
+        fail(f"{profile.get('id')} must allow only the para frozen input override")
+    projector_aliases = {
+        output.get("alias")
+        for output in profile.get("projectorOutputs", [])
+        if output.get("disposition") == "facade_input"
+    }
+    inputs = manifest.get("inputs")
+    if not isinstance(inputs, list):
+        fail(f"{label} inputs must be a list")
+    para_inputs = []
+    for item in inputs:
+        if not isinstance(item, dict) or not isinstance(item.get("name"), str):
+            fail(f"{label} bundle input must declare a name")
+        name = item["name"]
+        if name in projector_aliases and name not in allowed:
+            fail(f"{label} bundle input replaces projector-owned alias {name}")
+        if name == "para":
+            para_inputs.append(item)
+    if len(para_inputs) != 1:
+        fail(f"{label} unified execution bundle must freeze exactly one para input")
+    para = para_inputs[0]
+    contract = profile.get("frozenInputContracts", {}).get("para")
+    if not isinstance(contract, dict):
+        fail(f"{profile.get('id')} must publish the frozen para contract")
+    if para.get("path") != contract.get("path") or para.get("format") != contract.get("format"):
+        fail(f"{label} frozen para input must be inputs/para.parquet in parquet format")
+    for field in ("sha256", "schema_sha256"):
+        value = para.get(field)
+        if not isinstance(value, str) or re.fullmatch(r"[0-9a-f]{64}", value) is None:
+            fail(f"{label} frozen para input has invalid {field}")
+    schema_hasher = hashlib.sha256()
+    for column in contract.get("columns", []):
+        name = column.get("name") if isinstance(column, dict) else None
+        dtype = column.get("rustDtype") if isinstance(column, dict) else None
+        if not isinstance(name, str) or not isinstance(dtype, str):
+            fail(f"{profile.get('id')} frozen para contract has an invalid column")
+        schema_hasher.update(len(name).to_bytes(8, "big"))
+        schema_hasher.update(name.encode("utf-8"))
+        schema_hasher.update(len(dtype).to_bytes(8, "big"))
+        schema_hasher.update(dtype.encode("utf-8"))
+    if para["schema_sha256"] != schema_hasher.hexdigest():
+        fail(f"{label} frozen para input schema hash differs from the catalog contract")
+    if bundle_dir is not None:
+        para_path = bundle_dir / para["path"]
+        if not para_path.is_file():
+            fail(f"{label} is missing frozen para input {para['path']}")
+        values, contents = execution_para_values(para_path, label)
+        actual_hash = hashlib.sha256(contents).hexdigest()
+        if actual_hash != para["sha256"]:
+            fail(f"{label} frozen para input hash is stale")
+        solver = manifest.get("study", {}).get("solver")
+        expected_solver = {"radial": "radial", "newton-raphson": "newton"}.get(solver)
+        study_results = manifest.get("study", {}).get("results")
+        result_map = profile.get("bundleResultMap", {})
+        if expected_solver is None or not isinstance(study_results, list):
+            fail(f"{label} frozen para input lacks execution study solver/results")
+        try:
+            expected_result = ",".join(result_map[result] for result in study_results)
+        except KeyError as error:
+            fail(f"{label} frozen para input cannot map study result {error.args[0]}")
+        expected_values = {
+            "solver": expected_solver,
+            "line_model": "exact",
+            "result": expected_result,
+        }
+        if values != expected_values:
+            fail(f"{label} frozen para values differ: expected={expected_values}, actual={values}")
+
+
+def psa_island_status_columns():
+    source = (ROOT / "psa/src/dsa/parse/dss_import/execution/model.rs").read_text(encoding="utf-8")
+    match = re.search(
+        r"struct\s+DssIslandStatusRow\s*\{(.*?)\n\}",
+        source,
+        re.DOTALL,
+    )
+    if match is None:
+        fail("missing PSA DssIslandStatusRow schema")
+    fields = re.findall(r"pub\(crate\)\s+([a-z_]+):\s*([^,]+),", match.group(1))
+    dtypes = {
+        "usize": "u64",
+        "f64": "f64",
+        "bool": "bool",
+        "DssIslandSolveOutcome": "str",
+        "&'static str": "str",
+        "Vec<String>": "list<str>",
+        "Option<&'static str>": "str",
+        "Option<String>": "str",
+    }
+    columns = []
+    for name, rust_type in fields:
+        rust_type = rust_type.strip()
+        dtype = dtypes.get(rust_type)
+        if dtype is None:
+            fail(f"unsupported PSA island-status type {name}:{rust_type}")
+        columns.append((name, dtype, rust_type.startswith("Option<")))
+    return columns
+
+
+def validate_unified_execution_catalog(functions, dataframes, study_facades, case_projections):
+    old_names = {
+        "ds_" + suffix
+        for suffix in (
+            "radial_dss_plan", "newton_raphson_dss_plan",
+            "newton_raphson_dss_plan_v2", "radial_dss_plan_url",
+            "newton_raphson_dss_plan_url", "newton_raphson_dss_plan_v2_url",
+            "radial_execution_plan", "newton_raphson_execution_plan",
+            "newton_raphson_execution_plan_v2",
+        )
+    }
+    entries = functions["dsa_functions"]
+    active_names = {name for entry in entries for name in entry["names"]}
+    if active_names & old_names:
+        fail(f"removed execution facade names remain active: {sorted(active_names & old_names)}")
+    source = next((entry for entry in entries if entry["names"] == ["ds_dss_execution_plan"]), None)
+    target = next((entry for entry in entries if entry["names"] == ["ds_execution_plan"]), None)
+    if source is None or source.get("allowed_arities") != [1, 2]:
+        fail("ds_dss_execution_plan must be the sole 1|2-argument source execution facade")
+    if target is None or target.get("arity") != 40:
+        fail("ds_execution_plan must be the sole 40-input projected execution facade")
+    if source.get("default_result") != "bus_phase" or target.get("default_result") != "bus_phase":
+        fail("unified execution default result must be bus_phase")
+
+    para = dataframes["execution_inputs"]["para"]
+    solver = next((column for column in para["contract"]["columns"] if column["name"] == "solver"), None)
+    if (
+        para.get("optional", {}).get("solver") != "str"
+        or solver is None
+        or solver.get("required") is not False
+        or solver.get("nullable") is not False
+        or solver.get("card", {}).get("default") != {"state": "value", "value": "newton"}
+        or solver.get("card", {}).get("enum") != {
+            "state": "values", "values": ["radial", "newton"], "caseInsensitive": True,
+        }
+    ):
+        fail("execution_inputs.para must publish the exact radial|newton solver card")
+
+    status = dataframes["execution_outputs"].get("island_status", {}).get("contract")
+    expected_columns = psa_island_status_columns()
+    actual_columns = [] if not isinstance(status, dict) else [
+        (column.get("name"), column.get("dtype"), column.get("nullable"))
+        for column in status.get("columns", [])
+    ]
+    if actual_columns != expected_columns:
+        fail("execution_outputs.island_status differs from the PSA frame schema")
+    if status.get("stableKeys") != ["epoch", "step", "island"] or status.get("sortKeys") != ["epoch", "step", "island"]:
+        fail("execution_outputs.island_status must publish canonical stable and sort keys")
+
+    facades = [item for item in study_facades["facades"] if item.get("family") == "execution_plan"]
+    profiles = [item for item in case_projections["profiles"] if item.get("projector") == "project_dss_execution_plan"]
+    if len(facades) != 1 or facades[0].get("function") != "ds_execution_plan":
+        fail("catalog must publish exactly one projected execution facade")
+    if len(profiles) != 1 or profiles[0].get("id") != "dss_execution":
+        fail("catalog must publish exactly one dss_execution projection profile")
+    profile = profiles[0]
+    if profile.get("sourceFunction") != "ds_dss_execution_plan" or profile.get("targetFunction") != "ds_execution_plan":
+        fail("dss_execution profile must bind the unified source and target functions")
+    if profile.get("frozenInputOverrides") != ["para"]:
+        fail("dss_execution profile must allow only the para frozen input override")
+    if profile.get("frozenInputContracts", {}).get("para") != {
+        "path": "inputs/para.parquet",
+        "format": "parquet",
+        "rowCount": "one",
+        "columns": [
+            {"name": "solver", "dtype": "str", "rustDtype": "String"},
+            {"name": "line_model", "dtype": "str", "rustDtype": "String"},
+            {"name": "result", "dtype": "str", "rustDtype": "String"},
+        ],
+        "values": {
+            "solver": "manifest.study.solver: radial|newton-raphson -> radial|newton",
+            "line_model": "exact",
+            "result": "ordered profile.bundleResultMap(manifest.study.results)",
+        },
+    }:
+        fail("dss_execution frozen para contract differs from the generator contract")
+    availability = profile.get("resultAvailability", {})
+    island = availability.get("island_status", {})
+    if (
+        island.get("solver") != ["newton"]
+        or island.get("solveKind") != ["SnapshotOrQsts"]
+        or island.get("buffering") != "authoritative"
+    ):
+        fail("dss_execution island_status availability differs from the runtime")
+    direct = availability.get("directFault", {})
+    if direct.get("results") != [
+        "bus_voltage", "bus_phase", "branch_flow", "fault_state",
+        "execution_trace", "diagnostics", "events",
+    ]:
+        fail("dss_execution DirectFault result availability differs from the runtime")
+    buffered = availability.get("authoritativeBuffered", {})
+    if buffered.get("unavailableResults") != ["execution_trace"]:
+        fail("dss_execution buffered result availability differs from the runtime")
 
 
 def validate_sequence_manifest_contract(label, manifest, profile):
@@ -1413,6 +1766,7 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
         profile = profiles.get(projection.get("profile"))
         if profile is None:
             fail(f"{label} references unknown projection profile {projection.get('profile')}")
+        validate_projector_input_overrides(label, manifest, profile, path.parent)
         for manifest_key, profile_key in (
             ("source_function", "sourceFunction"),
             ("projector", "projector"),
@@ -1620,6 +1974,7 @@ def main():
     validate_study_facades(functions, dataframes, study_facades, dsa_by_name)
     contract_stats = validate_catalog_contracts(dataframes, study_facades, case_projections)
     validate_case_projections(case_projections, study_facades, dataframes, dsa_by_name, frame_ops, translate)
+    validate_unified_execution_catalog(functions, dataframes, study_facades, case_projections)
     bundle_count = validate_rssbundles(case_projections, study_facades, dataframes)
 
     for name in sorted(registered_dsa):

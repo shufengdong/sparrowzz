@@ -27,7 +27,7 @@ RSDss DataFrame 的执行路径。
 | DSS/BMOPF 导入 | `import_dss*`、`import_bmopf*` | 本地文件或单 URL source |
 | 辐射状/通用静态潮流 | `ds_radial_pf`、`ds_newton_raphson_pf` | 20 张网络表和 para |
 | Radial/Newton QSTS | `ds_radial_qsts`、`ds_newton_raphson_qsts` | 网络、solution、曲线、控制、保护、计量和 para |
-| DSS 单/多 Solve 执行计划 | `ds_radial_dss_plan*`、`ds_newton_raphson_dss_plan*` | 本地或 URL DSS 执行入口 |
+| DSS 单/多 Solve 执行计划 | `ds_dss_execution_plan`、`ds_execution_plan` | 自动识别本地路径/文件 URI/HTTPS；`para.solver` 选择求解器 |
 | 谐波与 DSS Harmonic/HarmonicT | `ds_harmonic_study`、`ds_dss_harmonic_plan` | Spectrum、Monitor 和研究参数 |
 | 短路与 DSS FaultStudy | `ds_fault_study`、`ds_dss_fault_study` | 网络、故障表或 DSS 生命周期 |
 | WLS/MNMR/MCE 状态估计 | `ds_wls_se`、`ds_mnmr_se`、`ds_mce_se` | 网络、量测和参数 |

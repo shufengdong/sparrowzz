@@ -5563,7 +5563,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 0.000001
+                "value": 1e-06
               },
               "unit": {
                 "state": "not_applicable"
@@ -9914,6 +9914,13 @@
         "q_limited",
         "s_limited",
         "i_limited",
+        "owner_class",
+        "owner_name",
+        "control_mode",
+        "electrical_model",
+        "source_model",
+        "numerical_parity",
+        "locked_source_revision",
         "time",
         "load_multiplier",
         "generation_multiplier"
@@ -12631,7 +12638,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 0.000001
+                "value": 1e-06
               },
               "unit": {
                 "state": "not_applicable"
@@ -13505,7 +13512,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 1E-10
+                "value": 1e-10
               },
               "unit": {
                 "state": "not_applicable"
@@ -13569,7 +13576,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 1E-8
+                "value": 1e-08
               },
               "unit": {
                 "state": "value",
@@ -14002,7 +14009,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 0.000001
+                "value": 1e-06
               },
               "unit": {
                 "state": "not_applicable"
@@ -16268,7 +16275,14 @@
         "p_limited",
         "q_limited",
         "s_limited",
-        "i_limited"
+        "i_limited",
+        "owner_class",
+        "owner_name",
+        "control_mode",
+        "electrical_model",
+        "source_model",
+        "numerical_parity",
+        "locked_source_revision"
       ],
       "schema_source": "psa/src/dsa/output/device_state.rs",
       "contract": {
@@ -16390,6 +16404,55 @@
             "required": true,
             "nullable": false,
             "unit": "A"
+          },
+          {
+            "name": "owner_class",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "owner_name",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "control_mode",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "electrical_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "source_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "numerical_parity",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "locked_source_revision",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
           }
         ],
         "stableKeys": [],
@@ -28706,6 +28769,7 @@
         "line_model": "str"
       },
       "optional": {
+        "solver": "str",
         "max_iter": "u32_semantics",
         "max_control_iter": "u32_semantics",
         "tol": "f64",
@@ -28713,6 +28777,7 @@
       },
       "constraints": [
         "exactly one row",
+        "solver is radial or newton (case-insensitive) when present; omitted means newton",
         "line_model is modified or exact",
         "max_iter and max_control_iter are positive integers when present",
         "tol is finite and positive when present",
@@ -28729,6 +28794,39 @@
           "unknownColumns": "ignored"
         },
         "columns": [
+          {
+            "name": "solver",
+            "dtype": "str",
+            "required": false,
+            "nullable": false,
+            "unit": "not_applicable",
+            "card": {
+              "default": {
+                "state": "value",
+                "value": "newton"
+              },
+              "unit": {
+                "state": "not_applicable"
+              },
+              "range": {
+                "state": "not_applicable"
+              },
+              "enum": {
+                "state": "values",
+                "values": [
+                  "radial",
+                  "newton"
+                ],
+                "caseInsensitive": true
+              },
+              "visibleWhen": {
+                "state": "always"
+              },
+              "enabledWhen": {
+                "state": "always"
+              }
+            }
+          },
           {
             "name": "line_model",
             "dtype": "str",
@@ -28834,7 +28932,7 @@
             "card": {
               "default": {
                 "state": "value",
-                "value": 0.000001
+                "value": 1e-06
               },
               "unit": {
                 "state": "not_applicable"
@@ -28892,6 +28990,15 @@
           "numeric_to_u32_semantics"
         ],
         "rules": [
+          {
+            "type": "enum",
+            "field": "solver",
+            "values": [
+              "radial",
+              "newton"
+            ],
+            "caseInsensitive": true
+          },
           {
             "type": "positive",
             "fields": [
@@ -31179,6 +31286,176 @@
         "rules": [],
         "source": [
           "mems/src/ml/expr_df/frame_ops.rs"
+        ],
+        "shape": "uniform"
+      }
+    },
+    "island_status": {
+      "description": "Authoritative per-island Newton solve outcome for each execution epoch and time-series step.",
+      "contract": {
+        "kind": "result",
+        "rowCount": "zero_or_more",
+        "columnPolicy": {
+          "mode": "closed",
+          "unknownColumns": "forbidden"
+        },
+        "columns": [
+          {
+            "name": "epoch",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "step",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "time",
+            "dtype": "f64",
+            "required": true,
+            "nullable": false,
+            "unit": "s"
+          },
+          {
+            "name": "island",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "outcome",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "energized",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "converged",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "reference_kind",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "reference_devices",
+            "dtype": "list<str>",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "reason",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "p_limited",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "q_limited",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "s_limited",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "i_limited",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "model_identity",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          }
+        ],
+        "stableKeys": [
+          "epoch",
+          "step",
+          "island"
+        ],
+        "sortKeys": [
+          "epoch",
+          "step",
+          "island"
+        ],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [
+          {
+            "type": "unique",
+            "fields": [
+              "epoch",
+              "step",
+              "island"
+            ],
+            "caseInsensitive": []
+          },
+          {
+            "type": "enum",
+            "field": "outcome",
+            "values": [
+              "ENERGIZED_CONVERGED",
+              "DEENERGIZED_NO_REFERENCE",
+              "GFM_CAPACITY_INSUFFICIENT"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "reference_kind",
+            "values": [
+              "TRADITIONAL",
+              "GFM",
+              "NONE"
+            ]
+          },
+          {
+            "type": "finite",
+            "fields": [
+              "time"
+            ]
+          }
+        ],
+        "source": [
+          "psa/src/dsa/parse/dss_import/execution/model.rs",
+          "psa/src/dsa/parse/dss_import/execution/runner.rs"
         ],
         "shape": "uniform"
       }
@@ -34888,6 +35165,16 @@
         "e_mag_pu",
         "e_angle_deg",
         "gfm_angle_source",
+        "gfm_owner_class",
+        "gfm_owner_name",
+        "gfm_approximation",
+        "gfm_electrical_model",
+        "gfm_source_model",
+        "gfm_numerical_parity",
+        "gfm_locked_source_revision",
+        "gfm_retained_native_fields",
+        "gfm_i_max",
+        "gfm_amp_limit_gain",
         "r_ohm",
         "x_ohm",
         "droop_p",
@@ -35112,6 +35399,76 @@
             "required": true,
             "nullable": true,
             "unit": "deg"
+          },
+          {
+            "name": "gfm_owner_class",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_owner_name",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_approximation",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_electrical_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_source_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_numerical_parity",
+            "dtype": "bool",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_locked_source_revision",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_retained_native_fields",
+            "dtype": "list<str>",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_i_max",
+            "dtype": "list<f64>",
+            "required": true,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "gfm_amp_limit_gain",
+            "dtype": "f64",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
           },
           {
             "name": "r_ohm",
@@ -36983,6 +37340,14 @@
         "dss_initial_p_w",
         "power_factor",
         "port_model",
+        "gfm_approximation",
+        "gfm_electrical_model",
+        "gfm_source_model",
+        "gfm_numerical_parity",
+        "gfm_locked_source_revision",
+        "gfm_retained_native_fields",
+        "gfm_i_max",
+        "gfm_amp_limit_gain",
         "dynamic_model",
         "dynamic_control_mode",
         "kvdc_kv",
@@ -37332,6 +37697,62 @@
           {
             "name": "port_model",
             "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_approximation",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_electrical_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_source_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_numerical_parity",
+            "dtype": "bool",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_locked_source_revision",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_retained_native_fields",
+            "dtype": "list<str>",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_i_max",
+            "dtype": "list<f64>",
+            "required": true,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "gfm_amp_limit_gain",
+            "dtype": "f64",
             "required": true,
             "nullable": true,
             "unit": "not_applicable"

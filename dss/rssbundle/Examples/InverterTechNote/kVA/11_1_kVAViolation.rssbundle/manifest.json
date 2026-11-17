@@ -13,33 +13,15 @@
     ]
   },
   "source": {
-    "entry": "dss/Examples/InverterTechNote/kVA/11_1_kVAViolation.dss",
+    "entry": "dss/dss/Examples/InverterTechNote/kVA/11_1_kVAViolation.dss",
     "root": "dss",
-    "tree_sha256": "9712fae2b7876a93a88ef1fe5bf8d4c0c6368aade71f752b2c9af45bdf296198"
+    "tree_sha256": "7cf4b67c47cf891743f9df9226be3435a84f0d991b4a552c06f75ae3063662ac"
   },
-  "files": [
-    {
-      "path": "dss/Examples/InverterTechNote/kVA/11_1_kVAViolation.dss",
-      "role": "dss-entry",
-      "sha256": "a0e6ed2c07abe0bf99923d7c223b677c73a762428a96daeb7644e0f4dac8ed2a"
-    },
-    {
-      "path": "main.rss",
-      "role": "main-rss",
-      "sha256": "121a155e2b2e41156c400500fd5b7b34ba5905be88e0c3e1ee0f57821ca04ecc"
-    },
-    {
-      "path": "managed.rss",
-      "role": "managed-rss",
-      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
-    }
-  ],
-  "inputs": [],
   "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -50,5 +32,31 @@
         "binding": "result_voltage"
       }
     ]
-  }
+  },
+  "files": [
+    {
+      "path": "dss/dss/Examples/InverterTechNote/kVA/11_1_kVAViolation.dss",
+      "role": "dss-entry",
+      "sha256": "a0e6ed2c07abe0bf99923d7c223b677c73a762428a96daeb7644e0f4dac8ed2a"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "5ce411b4b92eea6db60e8ad04070fbbec5a9c0c3f97616331726297be78ee56c"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "b54dc15dfc4a14400574dc8f8889619e1780d61f85a6de3b5de643e2cbe81bdf"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "cfdf2faae336afa4f8ae41eaa7b7768c5cfeac38dc9e040c2f2dfdc5006fcb07",
+      "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de"
+    }
+  ]
 }
