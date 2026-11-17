@@ -32,8 +32,8 @@ Radial/Newton、WLS/MNMR/MCE、网络动态/电机动态分别是独立门面。
 |---|---:|---|---|
 | `import_dss/import_dss_url/import_bmopf/import_bmopf_url` | 1 | 不适用 | 固定 21 |
 | `import_dss_execution/import_dss_execution_url` | 1 | 不适用 | 固定 35 |
-| `ds_radial_dss_plan* / ds_newton_raphson_dss_plan*` | 1 或 2 | `bus_voltage` | 由结果字符串或 `para.result` 决定 |
-| `ds_radial_execution_plan / ds_newton_raphson_execution_plan` | 40 | `bus_voltage` | 由 `para.result` 决定 |
+| `ds_dss_execution_plan` | 1 或 2 | `bus_voltage` | 由结果字符串或 `para.result` 决定；`para.solver` 选择 Radial/Newton |
+| `ds_execution_plan` | 40 | `bus_voltage` | 由 `para.result` 决定；只用于受管投影 |
 | `ds_dss_dynamic_plan` | 2 或 3 | `bus_voltage` | 由结果字符串或 `para.result` 决定 |
 | `ds_radial_pf/ds_newton_raphson_pf` | 21；兼容 6–11 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_radial_qsts/ds_newton_raphson_qsts` | 33 | `bus_voltage` | 由 `para.result` 决定 |
@@ -215,14 +215,14 @@ DSS execution-plan 入口。
 ### DSS execution plan
 
 ```text
-voltage = ds_radial_dss_plan("run.dss");
-voltage = ds_radial_dss_plan("run.dss", "bus_phase");
-[results...] = ds_radial_dss_plan("run.dss", para);
-[results...] = ds_newton_raphson_dss_plan("run.dss", para);
+voltage = ds_dss_execution_plan("run.dss");
+voltage = ds_dss_execution_plan("run.dss", "bus_phase");
+[results...] = ds_dss_execution_plan("run.dss", para);
+[results...] = ds_dss_execution_plan("https://example.test/run.dss", para);
 ```
 
-URL 形式为 `ds_radial_dss_plan_url` 和 `ds_newton_raphson_dss_plan_url`。入口导入并按顺序
-执行一个或多个 `Solve`，在 epoch 之间延续 PSA 已声明的 Storage、控制、保护、计量和
+入口根据字符串自动识别本地路径、`file:` URI 或 HTTPS URL，并按顺序执行一个或多个
+`Solve`，在 epoch 之间延续 PSA 已声明的 Storage、控制、保护、计量和
 设备状态。第二个参数可省略、传一张 `para` 表，或直接传一个逗号分隔的结果字符串。
 省略时默认返回 `bus_voltage`；字符串形式直接选择结果且不改变求解参数。`para.result`
 接受上面的全部 QSTS 结果，并额外接受
@@ -231,10 +231,12 @@ URL 形式为 `ds_radial_dss_plan_url` 和 `ds_newton_raphson_dss_plan_url`。�
 计划入口的诊断表也带 epoch 标识；全局事件表把每条事件映射到对应 epoch，最后一个
 `Solve` 之后尚未执行的 trailing events 的 epoch 列为空。
 
-V4 受管案例不得调用上述路径入口。`project_dss_execution_plan` 在导入阶段把完整计划投影为
+`para.solver` 只接受 `radial` 或 `newton`，省略时默认 `newton`；结果若不适用于所选求解器，
+以稳定诊断 `TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE` 失败关闭。V4 受管案例不得调用
+上述路径入口。`project_dss_execution_plan` 在导入阶段把完整计划投影为
 40 张 DataFrame：20 张按 `epoch_index` 分组的模型表、12 张研究表、7 张有序生命周期表和
-`para`。运行阶段使用 `ds_radial_execution_plan` 或 `ds_newton_raphson_execution_plan`；两者
-不会按拓扑互换求解器。投影保留 `solve_event_sequence`、continuation state、mutation、
+`para`。运行阶段统一使用 `ds_execution_plan` 和 profile `dss_execution`，求解器仍由
+`para.solver` 冻结，不会按拓扑互换。投影保留 `solve_event_sequence`、continuation state、mutation、
 Monitor/保护/计量/故障状态、trace、diagnostics 和 events。事件来源使用稳定的 `source:N`
 身份，已物化文件参数会被替换为 `<materialized-resource>`，运行时无需也不得恢复服务器路径。
 

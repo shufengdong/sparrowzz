@@ -46,7 +46,7 @@ OpenDSS 语言兼容。状态含义如下：
 `import_dss()` 只调用 `StaticPowerFlow` 并返回固定 21 项，因此这条路径要求 RSS 显式
 传入第 21–32 位的研究表；`import_dss_execution()` 可从受支持的单 `Solve` 命令流返回
 完整 33 项 QSTS bundle。V4 案例导入使用 `project_dss_execution_plan` 展开多 Solve 生命周期为
-40 张注入表，并由 `ds_radial_execution_plan` 或 `ds_newton_raphson_execution_plan` 执行；该路径
+40 张注入表，并由 `ds_execution_plan` 执行；该路径通过 `para.solver` 保留显式求解器，
 保留 epoch、continuation state、mutation、Monitor/保护/计量和诊断，不再读取 DSS 路径。
 
 ## 2. DSS 命令流
@@ -60,7 +60,7 @@ OpenDSS 语言兼容。状态含义如下：
 | `Redirect`, `Compile` | 本地入口支持相对 include 树 | 支持保留的 include | 使用本地 `import_dss` |
 | `Set DefaultBaseFrequency` | 支持 | 支持 | 导入为 `para.base_frequency_hz` |
 | 其他运行时 `Set` | fail-closed | 在执行契约内有界支持；`CaseName` 作为输出命名省略，`Maxi`/`MaxControli` 归一化为求解迭代参数 | 在 `solution`/`para` 中显式设置 |
-| `Solve` | fail-closed | 单 Solve profile 和多 Solve execution plan 均有 PSA API | 单 Solve 可用 `import_dss_execution`；多 Solve 可投影到 `ds_radial_execution_plan` / `ds_newton_raphson_execution_plan`，路径入口只负责首次导入 |
+| `Solve` | fail-closed | 单 Solve profile 和多 Solve execution plan 均有 PSA API | 单 Solve 可用 `import_dss_execution`；多 Solve 可投影到 `ds_execution_plan`，路径入口只负责首次导入 |
 | `Open`, `Close` | 静态最终状态必须可表示 | 显式开关的整设备动作及 epoch mutation 有界支持 | 修改显式开关表或使用 QSTS 控制表 |
 | `Enable`, `Disable` | 已支持对象的最终静态状态必须可表示 | 当前 execution profile 明确为 unsupported，遇到即 fail-closed | 在 RSS 中显式构造所需设备表 |
 | `CalcVoltageBases` | fail-closed | 在已声明执行契约中有界支持 | 降低为网络基准计算，不产生独立结果表 |
