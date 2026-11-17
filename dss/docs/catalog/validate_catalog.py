@@ -1524,11 +1524,14 @@ def psa_island_status_columns():
 
 def validate_unified_execution_catalog(functions, dataframes, study_facades, case_projections):
     old_names = {
-        "ds_radial_dss_plan", "ds_newton_raphson_dss_plan",
-        "ds_newton_raphson_dss_plan_v2", "ds_radial_dss_plan_url",
-        "ds_newton_raphson_dss_plan_url", "ds_newton_raphson_dss_plan_v2_url",
-        "ds_radial_execution_plan", "ds_newton_raphson_execution_plan",
-        "ds_newton_raphson_execution_plan_v2",
+        "ds_" + suffix
+        for suffix in (
+            "radial_dss_plan", "newton_raphson_dss_plan",
+            "newton_raphson_dss_plan_v2", "radial_dss_plan_url",
+            "newton_raphson_dss_plan_url", "newton_raphson_dss_plan_v2_url",
+            "radial_execution_plan", "newton_raphson_execution_plan",
+            "newton_raphson_execution_plan_v2",
+        )
     }
     entries = functions["dsa_functions"]
     active_names = {name for entry in entries for name in entry["names"]}
