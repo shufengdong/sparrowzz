@@ -63,10 +63,10 @@ bundle manifest schema v2 的 `projection` 包含 `source_function`、`profile`�
 ```json
 {
   "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -76,6 +76,17 @@ bundle manifest schema v2 的 `projection` 包含 `source_function`、`profile`�
   }
 }
 ```
+
+统一执行 profile 不再通过函数名区分 radial 与 Newton。bundle 必须提供一个经过哈希校验的
+`inputs/para.parquet`，其中 `solver` 显式为 `radial` 或 `newton`、`line_model` 为 `exact`，并按
+原顺序冻结 `result`。目录只允许这个 `para` Struct 覆盖 projector 的同名输出；任何模型表或
+数据表 alias 冲突都以 fail-closed 方式拒绝。直接调用省略 `solver` 时默认使用 `newton`，省略
+结果选择时默认返回 `bus_phase`。
+
+`island_status` 只在 `solver=newton` 的 authoritative buffered 路径可用；请求它或计划本身要求
+权威孤岛状态时，`execution_trace` 不可用。DirectFault 继续只提供 `bus_voltage`、`bus_phase`、
+`branch_flow`、`fault_state`、`execution_trace`、`diagnostics` 和 `events`。source facade 会从值本身
+识别本地路径、`file:` URI 和 HTTP(S)，传输方式不会改变求解器选择。
 
 宿主必须先以 `projector` 对 `source.entry` 做一次导入，严格按 `projectorOutputs[].position`
 解释返回值；将 `inputKind=model` 的表写入模型版本，将 `data|struct` 写入可替换本地资源，保存

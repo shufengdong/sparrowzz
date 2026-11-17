@@ -13,38 +13,15 @@
     ]
   },
   "source": {
-    "entry": "dss/SG2012.dss",
+    "entry": "dss/dss/SG2012.dss",
     "root": "dss",
-    "tree_sha256": "94a34335158b2a856e5b9306f7ff1249e20be93c21636c277b14073fde86d3a2"
+    "tree_sha256": "72babbdbf35114809a0d3d5b79552f4bd12fc1567a3bac777f3a3a72531137a4"
   },
-  "files": [
-    {
-      "path": "assets/SG2012_BusXY.csv",
-      "role": "data-asset",
-      "sha256": "519c17a3876c11c438a3461384095b72b2fdc620b0a446ddbf5435d7cfd119a1"
-    },
-    {
-      "path": "dss/SG2012.dss",
-      "role": "dss-entry",
-      "sha256": "ca6994f02f3349ec2fa07627798af103c6950896c30067c20a0dcc0ea5280048"
-    },
-    {
-      "path": "main.rss",
-      "role": "main-rss",
-      "sha256": "63a444170195b80b25aaf0f54198f65948b3e6662bd2097d5ac0bd3d1700226a"
-    },
-    {
-      "path": "managed.rss",
-      "role": "managed-rss",
-      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
-    }
-  ],
-  "inputs": [],
   "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -55,5 +32,36 @@
         "binding": "result_voltage"
       }
     ]
-  }
+  },
+  "files": [
+    {
+      "path": "dss/assets/SG2012_BusXY.csv",
+      "role": "data-asset",
+      "sha256": "519c17a3876c11c438a3461384095b72b2fdc620b0a446ddbf5435d7cfd119a1"
+    },
+    {
+      "path": "dss/dss/SG2012.dss",
+      "role": "dss-entry",
+      "sha256": "7eda343c0940237b4fe4e59977f71a57e492936362c8dacd9cacb971567ff25c"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "07c2f78e4cb97442a188798d131a7e5af731861bfc7cecd6b3290052f2dc5ae2"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "b54dc15dfc4a14400574dc8f8889619e1780d61f85a6de3b5de643e2cbe81bdf"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "cfdf2faae336afa4f8ae41eaa7b7768c5cfeac38dc9e040c2f2dfdc5006fcb07",
+      "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de"
+    }
+  ]
 }

@@ -4607,14 +4607,15 @@
       ]
     },
     {
-      "id": "execution_plan_radial",
-      "function": "ds_radial_execution_plan",
+      "id": "execution_plan",
+      "function": "ds_execution_plan",
       "family": "execution_plan",
-      "title": "径向 DSS 执行计划",
-      "description": "从已注入的路径无关 DataFrame 重放一个或多个 Solve，并显式使用前推回代求解器。",
+      "title": "统一 DSS 执行计划",
+      "description": "从已注入的路径无关 DataFrame 重放一个或多个 Solve，并由 para.solver 显式选择 radial 或 Newton 求解器。",
       "differences": [
         "保留 epoch 顺序、typed continuation、运行期 mutation、控制/保护/计量状态和 post-solve 动作。",
-        "门面不接收 DSS 路径，也不会根据拓扑替换用户选择的求解器。"
+        "门面不接收 DSS 路径；para.solver 默认为 newton，且不会根据拓扑、传输方式或结果选择自动切换。",
+        "island_status 仅由 Newton authoritative buffered 路径提供；该路径不提供 execution_trace。"
       ],
       "inputs": [
         {
@@ -4984,14 +4985,14 @@
           "name": "bus_voltage",
           "schemaRef": "execution_outputs.bus_voltage",
           "description": "带 epoch_index 和 solve_event_sequence 的 bus_voltage 结果。",
-          "recommended": true
+          "recommended": false
         },
         {
           "id": "bus_phase",
           "name": "bus_phase",
           "schemaRef": "execution_outputs.bus_phase",
           "description": "带 epoch_index 和 solve_event_sequence 的 bus_phase 结果。",
-          "recommended": false
+          "recommended": true
         },
         {
           "id": "load_state",
@@ -5216,632 +5217,12 @@
           "schemaRef": "execution_outputs.events",
           "description": "带 epoch_index 和 solve_event_sequence 的 events 结果。",
           "recommended": false
-        }
-      ],
-      "resultConstraints": [
-        {
-          "type": "ordered_unique_selection",
-          "selector": "para.result",
-          "minimum": 1,
-          "bindingCount": "selected_result_count"
-        },
-        {
-          "type": "default_results",
-          "results": [
-            "bus_voltage"
-          ]
-        }
-      ]
-    },
-    {
-      "id": "execution_plan_newton",
-      "function": "ds_newton_raphson_execution_plan",
-      "family": "execution_plan",
-      "title": "Newton DSS 执行计划",
-      "description": "从已注入的路径无关 DataFrame 重放一个或多个 Solve，并显式使用Newton-Raphson求解器。",
-      "differences": [
-        "保留 epoch 顺序、typed continuation、运行期 mutation、控制/保护/计量状态和 post-solve 动作。",
-        "门面不接收 DSS 路径，也不会根据拓扑替换用户选择的求解器。"
-      ],
-      "inputs": [
-        {
-          "id": "bus",
-          "alias": "bus",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.bus",
-          "required": true,
-          "position": 1,
-          "description": "按 epoch_index 分组的 bus 投影表。"
-        },
-        {
-          "id": "line",
-          "alias": "line",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.line",
-          "required": true,
-          "position": 2,
-          "description": "按 epoch_index 分组的 line 投影表。"
-        },
-        {
-          "id": "linecode",
-          "alias": "linecode",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.linecode",
-          "required": true,
-          "position": 3,
-          "description": "按 epoch_index 分组的 linecode 投影表。"
-        },
-        {
-          "id": "load",
-          "alias": "load",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.load",
-          "required": true,
-          "position": 4,
-          "description": "按 epoch_index 分组的 load 投影表。"
-        },
-        {
-          "id": "transformer",
-          "alias": "transformer",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.transformer",
-          "required": true,
-          "position": 5,
-          "description": "按 epoch_index 分组的 transformer 投影表。"
-        },
-        {
-          "id": "voltage_source",
-          "alias": "voltage_source",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.voltage_source",
-          "required": true,
-          "position": 6,
-          "description": "按 epoch_index 分组的 voltage_source 投影表。"
-        },
-        {
-          "id": "motor",
-          "alias": "motor",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.motor",
-          "required": true,
-          "position": 7,
-          "description": "按 epoch_index 分组的 motor 投影表。"
-        },
-        {
-          "id": "transformer_winding",
-          "alias": "transformer_winding",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.transformer_winding",
-          "required": true,
-          "position": 8,
-          "description": "按 epoch_index 分组的 transformer_winding 投影表。"
-        },
-        {
-          "id": "transformer_impedance",
-          "alias": "transformer_impedance",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.transformer_impedance",
-          "required": true,
-          "position": 9,
-          "description": "按 epoch_index 分组的 transformer_impedance 投影表。"
-        },
-        {
-          "id": "current_source",
-          "alias": "current_source",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.current_source",
-          "required": true,
-          "position": 10,
-          "description": "按 epoch_index 分组的 current_source 投影表。"
-        },
-        {
-          "id": "generator",
-          "alias": "generator",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.generator",
-          "required": true,
-          "position": 11,
-          "description": "按 epoch_index 分组的 generator 投影表。"
-        },
-        {
-          "id": "ibr",
-          "alias": "ibr",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.ibr",
-          "required": true,
-          "position": 12,
-          "description": "按 epoch_index 分组的 ibr 投影表。"
-        },
-        {
-          "id": "switch",
-          "alias": "switch",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.switch",
-          "required": true,
-          "position": 13,
-          "description": "按 epoch_index 分组的 switch 投影表。"
-        },
-        {
-          "id": "shunt",
-          "alias": "shunt",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.shunt",
-          "required": true,
-          "position": 14,
-          "description": "按 epoch_index 分组的 shunt 投影表。"
-        },
-        {
-          "id": "capacitor",
-          "alias": "capacitor",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.capacitor",
-          "required": true,
-          "position": 15,
-          "description": "按 epoch_index 分组的 capacitor 投影表。"
-        },
-        {
-          "id": "reactor",
-          "alias": "reactor",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.reactor",
-          "required": true,
-          "position": 16,
-          "description": "按 epoch_index 分组的 reactor 投影表。"
-        },
-        {
-          "id": "spectrum",
-          "alias": "spectrum",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.spectrum",
-          "required": true,
-          "position": 17,
-          "description": "按 epoch_index 分组的 spectrum 投影表。"
-        },
-        {
-          "id": "control_profile",
-          "alias": "control_profile",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.control_profile",
-          "required": true,
-          "position": 18,
-          "description": "按 epoch_index 分组的 control_profile 投影表。"
-        },
-        {
-          "id": "xy_curve",
-          "alias": "xy_curve",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.xy_curve",
-          "required": true,
-          "position": 19,
-          "description": "按 epoch_index 分组的 xy_curve 投影表。"
-        },
-        {
-          "id": "storage",
-          "alias": "storage",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.storage",
-          "required": true,
-          "position": 20,
-          "description": "按 epoch_index 分组的 storage 投影表。"
-        },
-        {
-          "id": "solution",
-          "alias": "solution",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.solution",
-          "required": true,
-          "position": 21,
-          "description": "按 epoch_index 分组的 solution 投影表。"
-        },
-        {
-          "id": "load_shape",
-          "alias": "load_shape",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.load_shape",
-          "required": true,
-          "position": 22,
-          "description": "按 epoch_index 分组的 load_shape 投影表。"
-        },
-        {
-          "id": "shape_assignment",
-          "alias": "shape_assignment",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.shape_assignment",
-          "required": true,
-          "position": 23,
-          "description": "按 epoch_index 分组的 shape_assignment 投影表。"
-        },
-        {
-          "id": "storage_controller",
-          "alias": "storage_controller",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.storage_controller",
-          "required": true,
-          "position": 24,
-          "description": "按 epoch_index 分组的 storage_controller 投影表。"
-        },
-        {
-          "id": "switch_control",
-          "alias": "switch_control",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.switch_control",
-          "required": true,
-          "position": 25,
-          "description": "按 epoch_index 分组的 switch_control 投影表。"
-        },
-        {
-          "id": "tcc_curve",
-          "alias": "tcc_curve",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.tcc_curve",
-          "required": true,
-          "position": 26,
-          "description": "按 epoch_index 分组的 tcc_curve 投影表。"
-        },
-        {
-          "id": "fuse",
-          "alias": "fuse",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.fuse",
-          "required": true,
-          "position": 27,
-          "description": "按 epoch_index 分组的 fuse 投影表。"
-        },
-        {
-          "id": "recloser",
-          "alias": "recloser",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.recloser",
-          "required": true,
-          "position": 28,
-          "description": "按 epoch_index 分组的 recloser 投影表。"
-        },
-        {
-          "id": "relay",
-          "alias": "relay",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.relay",
-          "required": true,
-          "position": 29,
-          "description": "按 epoch_index 分组的 relay 投影表。"
-        },
-        {
-          "id": "monitor",
-          "alias": "monitor_input",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.monitor",
-          "required": true,
-          "position": 30,
-          "description": "按 epoch_index 分组的 monitor 投影表。"
-        },
-        {
-          "id": "energy_meter",
-          "alias": "energy_meter_input",
-          "inputKind": "model",
-          "schemaRef": "execution_inputs.energy_meter",
-          "required": true,
-          "position": 31,
-          "description": "按 epoch_index 分组的 energy_meter 投影表。"
-        },
-        {
-          "id": "fault",
-          "alias": "fault",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.fault",
-          "required": true,
-          "position": 32,
-          "description": "按 epoch_index 分组的 fault 投影表。"
-        },
-        {
-          "id": "execution_epoch",
-          "alias": "execution_epoch",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.execution_epoch",
-          "required": true,
-          "position": 33,
-          "description": "DSS 执行计划的 execution_epoch 有序生命周期数据。"
-        },
-        {
-          "id": "execution_setting",
-          "alias": "execution_setting",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.execution_setting",
-          "required": true,
-          "position": 34,
-          "description": "DSS 执行计划的 execution_setting 有序生命周期数据。"
-        },
-        {
-          "id": "execution_mutation",
-          "alias": "execution_mutation",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.execution_mutation",
-          "required": true,
-          "position": 35,
-          "description": "DSS 执行计划的 execution_mutation 有序生命周期数据。"
-        },
-        {
-          "id": "post_solve_action",
-          "alias": "post_solve_action",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.post_solve_action",
-          "required": true,
-          "position": 36,
-          "description": "DSS 执行计划的 post_solve_action 有序生命周期数据。"
-        },
-        {
-          "id": "execution_reference",
-          "alias": "execution_reference",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.execution_reference",
-          "required": true,
-          "position": 37,
-          "description": "DSS 执行计划的 execution_reference 有序生命周期数据。"
-        },
-        {
-          "id": "execution_event",
-          "alias": "execution_event",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.execution_event",
-          "required": true,
-          "position": 38,
-          "description": "DSS 执行计划的 execution_event 有序生命周期数据。"
-        },
-        {
-          "id": "projection_diagnostic",
-          "alias": "projection_diagnostic",
-          "inputKind": "data",
-          "schemaRef": "execution_inputs.projection_diagnostic",
-          "required": true,
-          "position": 39,
-          "description": "DSS 执行计划的 projection_diagnostic 有序生命周期数据。"
-        },
-        {
-          "id": "para",
-          "alias": "para",
-          "inputKind": "struct",
-          "schemaRef": "execution_inputs.para",
-          "required": true,
-          "position": 40,
-          "description": "求解参数和有序结果选择。"
-        }
-      ],
-      "results": [
-        {
-          "id": "bus_voltage",
-          "name": "bus_voltage",
-          "schemaRef": "execution_outputs.bus_voltage",
-          "description": "带 epoch_index 和 solve_event_sequence 的 bus_voltage 结果。",
-          "recommended": true
-        },
-        {
-          "id": "bus_phase",
-          "name": "bus_phase",
-          "schemaRef": "execution_outputs.bus_phase",
-          "description": "带 epoch_index 和 solve_event_sequence 的 bus_phase 结果。",
-          "recommended": false
-        },
-        {
-          "id": "load_state",
-          "name": "load_state",
-          "schemaRef": "execution_outputs.load_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 load_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "generator_state",
-          "name": "generator_state",
-          "schemaRef": "execution_outputs.generator_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 generator_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "branch_flow",
-          "name": "branch_flow",
-          "schemaRef": "execution_outputs.branch_flow",
-          "description": "带 epoch_index 和 solve_event_sequence 的 branch_flow 结果。",
-          "recommended": false
-        },
-        {
-          "id": "source_flow",
-          "name": "source_flow",
-          "schemaRef": "execution_outputs.source_flow",
-          "description": "带 epoch_index 和 solve_event_sequence 的 source_flow 结果。",
-          "recommended": false
-        },
-        {
-          "id": "transformer_winding_flow",
-          "name": "transformer_winding_flow",
-          "schemaRef": "execution_outputs.transformer_winding_flow",
-          "description": "带 epoch_index 和 solve_event_sequence 的 transformer_winding_flow 结果。",
-          "recommended": false
-        },
-        {
-          "id": "conductor_flow",
-          "name": "conductor_flow",
-          "schemaRef": "execution_outputs.conductor_flow",
-          "description": "带 epoch_index 和 solve_event_sequence 的 conductor_flow 结果。",
-          "recommended": false
-        },
-        {
-          "id": "regulator_state",
-          "name": "regulator_state",
-          "schemaRef": "execution_outputs.regulator_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 regulator_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "capacitor_state",
-          "name": "capacitor_state",
-          "schemaRef": "execution_outputs.capacitor_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 capacitor_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "reactor_state",
-          "name": "reactor_state",
-          "schemaRef": "execution_outputs.reactor_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 reactor_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "ibr_state",
-          "name": "ibr_state",
-          "schemaRef": "execution_outputs.ibr_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 ibr_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "gfm_state",
-          "name": "gfm_state",
-          "schemaRef": "execution_outputs.gfm_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 gfm_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "violations",
-          "name": "violations",
-          "schemaRef": "execution_outputs.violations",
-          "description": "带 epoch_index 和 solve_event_sequence 的 violations 结果。",
-          "recommended": false
-        },
-        {
-          "id": "summary",
-          "name": "summary",
-          "schemaRef": "execution_outputs.summary",
-          "description": "带 epoch_index 和 solve_event_sequence 的 summary 结果。",
-          "recommended": false
-        },
-        {
-          "id": "storage_state",
-          "name": "storage_state",
-          "schemaRef": "execution_outputs.storage_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 storage_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "storage_controller_state",
-          "name": "storage_controller_state",
-          "schemaRef": "execution_outputs.storage_controller_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 storage_controller_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "switch_control_state",
-          "name": "switch_control_state",
-          "schemaRef": "execution_outputs.switch_control_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 switch_control_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "fuse_state",
-          "name": "fuse_state",
-          "schemaRef": "execution_outputs.fuse_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 fuse_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "recloser_state",
-          "name": "recloser_state",
-          "schemaRef": "execution_outputs.recloser_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 recloser_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "relay_state",
-          "name": "relay_state",
-          "schemaRef": "execution_outputs.relay_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 relay_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "fault_state",
-          "name": "fault_state",
-          "schemaRef": "execution_outputs.fault_state",
-          "description": "带 epoch_index 和 solve_event_sequence 的 fault_state 结果。",
-          "recommended": false
-        },
-        {
-          "id": "monitor",
-          "name": "monitor",
-          "schemaRef": "execution_outputs.monitor",
-          "description": "带 epoch_index 和 solve_event_sequence 的 monitor 结果。",
-          "recommended": false
-        },
-        {
-          "id": "monitor_save",
-          "name": "monitor_save",
-          "schemaRef": "execution_outputs.monitor_save",
-          "description": "带 epoch_index 和 solve_event_sequence 的 monitor_save 结果。",
-          "recommended": false
-        },
-        {
-          "id": "energy_meter",
-          "name": "energy_meter",
-          "schemaRef": "execution_outputs.energy_meter",
-          "description": "带 epoch_index 和 solve_event_sequence 的 energy_meter 结果。",
-          "recommended": false
-        },
-        {
-          "id": "meter_loss_breakdown",
-          "name": "meter_loss_breakdown",
-          "schemaRef": "execution_outputs.meter_loss_breakdown",
-          "description": "带 epoch_index 和 solve_event_sequence 的 meter_loss_breakdown 结果。",
-          "recommended": false
-        },
-        {
-          "id": "reliability",
-          "name": "reliability",
-          "schemaRef": "execution_outputs.reliability",
-          "description": "带 epoch_index 和 solve_event_sequence 的 reliability 结果。",
-          "recommended": false
-        },
-        {
-          "id": "meter_zone",
-          "name": "meter_zone",
-          "schemaRef": "execution_outputs.meter_zone",
-          "description": "带 epoch_index 和 solve_event_sequence 的 meter_zone 结果。",
-          "recommended": false
-        },
-        {
-          "id": "meter_phase_voltage",
-          "name": "meter_phase_voltage",
-          "schemaRef": "execution_outputs.meter_phase_voltage",
-          "description": "带 epoch_index 和 solve_event_sequence 的 meter_phase_voltage 结果。",
-          "recommended": false
-        },
-        {
-          "id": "meter_save",
-          "name": "meter_save",
-          "schemaRef": "execution_outputs.meter_save",
-          "description": "带 epoch_index 和 solve_event_sequence 的 meter_save 结果。",
-          "recommended": false
-        },
-        {
-          "id": "load_duration",
-          "name": "load_duration",
-          "schemaRef": "execution_outputs.load_duration",
-          "description": "带 epoch_index 和 solve_event_sequence 的 load_duration 结果。",
-          "recommended": false
-        },
-        {
-          "id": "execution_trace",
-          "name": "execution_trace",
-          "schemaRef": "execution_outputs.execution_trace",
-          "description": "带 epoch_index 和 solve_event_sequence 的 execution_trace 结果。",
-          "recommended": false
-        },
-        {
-          "id": "diagnostics",
-          "name": "diagnostics",
-          "schemaRef": "execution_outputs.diagnostics",
-          "description": "带 epoch_index 和 solve_event_sequence 的 diagnostics 结果。",
-          "recommended": false
         },
         {
-          "id": "events",
-          "name": "events",
-          "schemaRef": "execution_outputs.events",
-          "description": "带 epoch_index 和 solve_event_sequence 的 events 结果。",
+          "id": "island_status",
+          "name": "island_status",
+          "schemaRef": "execution_outputs.island_status",
+          "description": "每个 epoch、step 和 island 的权威 Newton 求解状态及 GFM 限幅证据。",
           "recommended": false
         }
       ],
@@ -5855,10 +5236,91 @@
         {
           "type": "default_results",
           "results": [
-            "bus_voltage"
+            "bus_phase"
           ]
         }
-      ]
+      ],
+      "resultAvailability": {
+        "default": "bus_phase",
+        "solverInput": "para.solver",
+        "solverDefault": "newton",
+        "island_status": {
+          "solver": [
+            "newton"
+          ],
+          "mode": [
+            "snapshot",
+            "daily",
+            "yearly",
+            "duty",
+            "peakday",
+            "ld1",
+            "ld2"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative"
+        },
+        "execution_trace": {
+          "buffering": [
+            "streaming"
+          ],
+          "unavailableWhen": [
+            "island_status_requested",
+            "plan_requires_island_status_v2"
+          ],
+          "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
+        },
+        "ordinary": {
+          "solver": [
+            "radial",
+            "newton"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "streaming",
+          "excludeResults": [
+            "island_status"
+          ]
+        },
+        "authoritativeBuffered": {
+          "triggerAny": [
+            "island_status_requested",
+            "plan_requires_island_status_v2"
+          ],
+          "solver": [
+            "newton"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative",
+          "unavailableResults": [
+            "execution_trace"
+          ]
+        },
+        "directFault": {
+          "solver": [
+            "radial",
+            "newton"
+          ],
+          "solveKind": [
+            "DirectFault"
+          ],
+          "results": [
+            "bus_voltage",
+            "bus_phase",
+            "branch_flow",
+            "fault_state",
+            "execution_trace",
+            "diagnostics",
+            "events"
+          ],
+          "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
+        }
+      }
     },
     {
       "id": "harmonic_execution_plan",

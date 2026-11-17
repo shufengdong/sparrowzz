@@ -13,33 +13,15 @@
     ]
   },
   "source": {
-    "entry": "dss/Examples/InverterModels/PVSystem/NewFeatures/ConstantPF/SnapShot_PFP_Standard-PV2.dss",
+    "entry": "dss/dss/Examples/InverterModels/PVSystem/NewFeatures/ConstantPF/SnapShot_PFP_Standard-PV2.dss",
     "root": "dss",
-    "tree_sha256": "83da7d6664d476613ff23f7c29c318162becfa06b190db0549fbcbfa6eacdb58"
+    "tree_sha256": "5ec9864a33abd2b233f9e931786d4ea62be55874b8ed1c19b858b7cf60e9265d"
   },
-  "files": [
-    {
-      "path": "dss/Examples/InverterModels/PVSystem/NewFeatures/ConstantPF/SnapShot_PFP_Standard-PV2.dss",
-      "role": "dss-entry",
-      "sha256": "2623da843f9ec03cd6b12baf0d9b2eb5eefce40195b49e7e773f31b4efc2d7d3"
-    },
-    {
-      "path": "main.rss",
-      "role": "main-rss",
-      "sha256": "41c1bc0a76e4575092f082963baf8b668693c4003443beb2231eef7448eebd2c"
-    },
-    {
-      "path": "managed.rss",
-      "role": "managed-rss",
-      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
-    }
-  ],
-  "inputs": [],
   "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -50,5 +32,31 @@
         "binding": "result_voltage"
       }
     ]
-  }
+  },
+  "files": [
+    {
+      "path": "dss/dss/Examples/InverterModels/PVSystem/NewFeatures/ConstantPF/SnapShot_PFP_Standard-PV2.dss",
+      "role": "dss-entry",
+      "sha256": "2623da843f9ec03cd6b12baf0d9b2eb5eefce40195b49e7e773f31b4efc2d7d3"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "0a2b4371bf6b2218a9c9e5bc5b138ecc082783e2ea4ece6ea63729e487cd79a3"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "b54dc15dfc4a14400574dc8f8889619e1780d61f85a6de3b5de643e2cbe81bdf"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "cfdf2faae336afa4f8ae41eaa7b7768c5cfeac38dc9e040c2f2dfdc5006fcb07",
+      "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de"
+    }
+  ]
 }

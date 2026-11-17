@@ -19,7 +19,9 @@ cargo build -p mems --release --no-default-features \
 ```
 
 本次 `tensoreval` SHA-256 为
-`9ce8a62abe3b7b1935944eb1bc7884c0561459be455869d4285304c0b2941a5b`。
+`c49f525e34a0b077f269d81e5039b1b5e666741beb2d22a297cf2c1285697950`。两个 bundle 均使用
+`ds_dss_execution_plan`、profile `dss_execution` 和 `ds_execution_plan`，唯一 `para` 输入冻结
+Newton/exact 合同。
 完整 GFM 入口严格验证 397 条展开语句和 4 个 epoch；AmpLimit 目录入口严格验证 392 条
 展开语句和 4 个 epoch。两个 bundle 的原目录 `main.rss` 均独立执行成功，各产生 1,136
 条 `voltage.csv` 数据记录。
@@ -56,9 +58,11 @@ cargo build -p mems --release --no-default-features \
 | 项目 | GFM_IEEE123 | GFM_AmpsLimit_123 |
 |---|---|---|
 | 官方入口 SHA-256 | `77934030e3010702d88ca381c2c63d5e82c5e8a718ba7dea0d53f9b2103fa1fd` | `505b6be8391ff8c62368524e8a365e915d5f934ad3ed5d7fe3a69c214a80c1ed` |
-| `manifest.json` | `5013ee7013fc1244cc1e12a04d6e132ece2441c6d5d987bfe59e47f9959141b1` | `9fdb3ede83776eb7be3267a092b23b5f71089f00cd43d0d900dc646bea5fe8a5` |
-| `main.rss` | `93f67c13107f1ce18c7b2aaf3f509913f738a4ddcb129f5b8729e3f19daae3f6` | `02c494bfdfba2fa4b810359efaf013524bbcac72505ab59f2706e2d75dd27db2` |
-| `managed.rss` | `57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b` | `57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b` |
+| source tree | `a95930b9e48c5143596425de20f42c11b2b0d3a50a661eee7449b8a7605685e9` | `d24c0e728c35c83f0d534c68d23f9a13a3e566900369e74024a140cd62885117` |
+| `manifest.json` | `2ae87bf9433ef83c77291141625551346e78de7762f763cb33204de51aeaf497` | `c73fc755919a977931f9df68c1d5a46041250933a054c32e233bce9a20ba4e7e` |
+| `main.rss` | `c4be3ed98c52b5358d906db694e3cd62adb7a83699b6b39531c9e01b6fd31ccb` | `4170dd83fe8736bce44b0c6c34a02b36988d0eced46be4929fae99388fb0b1d0` |
+| `managed.rss` | `00fa875a893eba2ed26109e944041b55b0d4e375c3adb433189c2aaaefc15de9` | `00fa875a893eba2ed26109e944041b55b0d4e375c3adb433189c2aaaefc15de9` |
+| `inputs/para.parquet` | `fd573beba2734d15a52873540b351ab1255364c219916bc3ea61683d1fcc1184` | `fd573beba2734d15a52873540b351ab1255364c219916bc3ea61683d1fcc1184` |
 
 锁定参考包含 2,272 条电压数据和 8 条 Storage 状态，SHA-256 分别为
 `d74d416127f1efa6311fc544e7bdef26dc42d68f0fc9f30f9db4e118a1c73356` 与
