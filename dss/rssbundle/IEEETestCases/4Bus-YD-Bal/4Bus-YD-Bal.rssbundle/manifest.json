@@ -7,39 +7,21 @@
   "study": {
     "kind": "execution_plan",
     "compatibility": "opendss-native",
-    "solver": "radial",
+    "solver": "newton-raphson",
     "results": [
       "voltage"
     ]
   },
   "source": {
-    "entry": "dss/4Bus-YD-Bal.DSS",
+    "entry": "dss/dss/4Bus-YD-Bal.DSS",
     "root": "dss",
-    "tree_sha256": "83e90b5e37057f22d348946fa5e2ed57d67a167bc75da8465b2fe7e218b77990"
+    "tree_sha256": "508d17ed75437160e365c870c83b424ed879cadda9256adf4940810141abd10f"
   },
-  "files": [
-    {
-      "path": "dss/4Bus-YD-Bal.DSS",
-      "role": "dss-entry",
-      "sha256": "919f00df223d670f3d7eb3df9583a68a1aab0ddba11216e4328e0b490cb238d9"
-    },
-    {
-      "path": "main.rss",
-      "role": "main-rss",
-      "sha256": "acae333f05fdd11023a2734f15ab2352f60ba6f6407b12171d53b53092ee59df"
-    },
-    {
-      "path": "managed.rss",
-      "role": "managed-rss",
-      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
-    }
-  ],
-  "inputs": [],
   "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -50,5 +32,31 @@
         "binding": "result_voltage"
       }
     ]
-  }
+  },
+  "files": [
+    {
+      "path": "dss/dss/4Bus-YD-Bal.DSS",
+      "role": "dss-entry",
+      "sha256": "919f00df223d670f3d7eb3df9583a68a1aab0ddba11216e4328e0b490cb238d9"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "5eaa12daab1c21d1870496d598b6d28a5b39e55b482b21bb0b8766b201fa27d7"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "b54dc15dfc4a14400574dc8f8889619e1780d61f85a6de3b5de643e2cbe81bdf"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "1fb0799f036a5187817584496fcdb10e643d60a6b106f0c04c13000cae2d7357",
+      "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de"
+    }
+  ]
 }

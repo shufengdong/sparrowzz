@@ -9914,6 +9914,13 @@
         "q_limited",
         "s_limited",
         "i_limited",
+        "owner_class",
+        "owner_name",
+        "control_mode",
+        "electrical_model",
+        "source_model",
+        "numerical_parity",
+        "locked_source_revision",
         "time",
         "load_multiplier",
         "generation_multiplier"
@@ -16268,7 +16275,14 @@
         "p_limited",
         "q_limited",
         "s_limited",
-        "i_limited"
+        "i_limited",
+        "owner_class",
+        "owner_name",
+        "control_mode",
+        "electrical_model",
+        "source_model",
+        "numerical_parity",
+        "locked_source_revision"
       ],
       "schema_source": "psa/src/dsa/output/device_state.rs",
       "contract": {
@@ -16390,6 +16404,55 @@
             "required": true,
             "nullable": false,
             "unit": "A"
+          },
+          {
+            "name": "owner_class",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "owner_name",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "control_mode",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "electrical_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "source_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "numerical_parity",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "locked_source_revision",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
           }
         ],
         "stableKeys": [],
@@ -35102,6 +35165,16 @@
         "e_mag_pu",
         "e_angle_deg",
         "gfm_angle_source",
+        "gfm_owner_class",
+        "gfm_owner_name",
+        "gfm_approximation",
+        "gfm_electrical_model",
+        "gfm_source_model",
+        "gfm_numerical_parity",
+        "gfm_locked_source_revision",
+        "gfm_retained_native_fields",
+        "gfm_i_max",
+        "gfm_amp_limit_gain",
         "r_ohm",
         "x_ohm",
         "droop_p",
@@ -35326,6 +35399,76 @@
             "required": true,
             "nullable": true,
             "unit": "deg"
+          },
+          {
+            "name": "gfm_owner_class",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_owner_name",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_approximation",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_electrical_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_source_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_numerical_parity",
+            "dtype": "bool",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_locked_source_revision",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_retained_native_fields",
+            "dtype": "list<str>",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_i_max",
+            "dtype": "list<f64>",
+            "required": true,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "gfm_amp_limit_gain",
+            "dtype": "f64",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
           },
           {
             "name": "r_ohm",
@@ -37197,6 +37340,14 @@
         "dss_initial_p_w",
         "power_factor",
         "port_model",
+        "gfm_approximation",
+        "gfm_electrical_model",
+        "gfm_source_model",
+        "gfm_numerical_parity",
+        "gfm_locked_source_revision",
+        "gfm_retained_native_fields",
+        "gfm_i_max",
+        "gfm_amp_limit_gain",
         "dynamic_model",
         "dynamic_control_mode",
         "kvdc_kv",
@@ -37546,6 +37697,62 @@
           {
             "name": "port_model",
             "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_approximation",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_electrical_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_source_model",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_numerical_parity",
+            "dtype": "bool",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_locked_source_revision",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_retained_native_fields",
+            "dtype": "list<str>",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_i_max",
+            "dtype": "list<f64>",
+            "required": true,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "gfm_amp_limit_gain",
+            "dtype": "f64",
             "required": true,
             "nullable": true,
             "unit": "not_applicable"

@@ -18,10 +18,10 @@
     "tree_sha256": "99b167c1b50e6a6e7c631a699ef9219cf6ebd67bd697105a29c6ad81d7939777"
   },
   "projection": {
-    "source_function": "ds_newton_raphson_dss_plan",
-    "profile": "dss_execution_newton_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_newton_raphson_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -147,13 +147,21 @@
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "628b373411aaa871e86ec218200f777736672dec32b36e8bc462eaedc2864927"
+      "sha256": "9312333057550e7341cb0612420ec0d3ab16e87ec1f503cdf981c8c44548e38e"
     },
     {
       "path": "managed.rss",
       "role": "managed-rss",
-      "sha256": "57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b"
+      "sha256": "b54dc15dfc4a14400574dc8f8889619e1780d61f85a6de3b5de643e2cbe81bdf"
     }
   ],
-  "inputs": []
+  "inputs": [
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "1fb0799f036a5187817584496fcdb10e643d60a6b106f0c04c13000cae2d7357",
+      "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de"
+    }
+  ]
 }

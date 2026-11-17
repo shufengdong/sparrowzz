@@ -244,19 +244,18 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         self.write("study_facades.json", catalog)
         self.assert_invalid(r"ds_motor_dynamics input alias bus_voltage collides with a result name")
 
-    def test_five_path_lifecycles_have_fail_closed_dataframe_projections(self):
+    def test_four_path_lifecycles_have_fail_closed_dataframe_projections(self):
         catalog = self.read("case_projections.json")
         lifecycle_sources = {
-            "ds_radial_dss_plan", "ds_newton_raphson_dss_plan", "ds_dss_fault_study",
+            "ds_dss_execution_plan", "ds_dss_fault_study",
             "ds_dss_harmonic_plan", "ds_dss_dynamic_plan",
         }
         path_profiles = [item for item in catalog["profiles"] if item["sourceFunction"] in lifecycle_sources]
-        self.assertEqual(len(path_profiles), 5)
+        self.assertEqual(len(path_profiles), 4)
         self.assertEqual(
             {item["sourceFunction"] for item in path_profiles},
             {
-                "ds_radial_dss_plan",
-                "ds_newton_raphson_dss_plan",
+                "ds_dss_execution_plan",
                 "ds_dss_fault_study",
                 "ds_dss_harmonic_plan",
                 "ds_dss_dynamic_plan",
@@ -270,7 +269,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             self.read("study_facades.json"),
             self.read("dataframes.json"),
         )
-        self.assertEqual(count, 184)
+        self.assertEqual(count, 196)
 
     def sequence_manifest_and_profile(self):
         manifest_path = (

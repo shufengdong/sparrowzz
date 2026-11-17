@@ -1784,6 +1784,7 @@
       },
       "bundleResultMap": {
         "voltage": "bus_phase",
+        "bus_phase": "bus_phase",
         "island_status": "island_status"
       },
       "projectorOutputs": [
