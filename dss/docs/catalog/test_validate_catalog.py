@@ -269,7 +269,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             self.read("study_facades.json"),
             self.read("dataframes.json"),
         )
-        self.assertEqual(count, 196)
+        self.assertEqual(count, 199)
 
     def sequence_manifest_and_profile(self):
         manifest_path = (
