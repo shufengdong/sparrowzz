@@ -31459,6 +31459,183 @@
         ],
         "shape": "uniform"
       }
+    },
+    "solve_attempt": {
+      "description": "Authoritative publication ledger with one row for every accepted source solve attempt.",
+      "contract": {
+        "kind": "result",
+        "rowCount": "one_or_more",
+        "columnPolicy": {
+          "mode": "closed",
+          "unknownColumns": "forbidden"
+        },
+        "columns": [
+          {
+            "name": "epoch",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "solve_event_sequence",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "step",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "time",
+            "dtype": "f64",
+            "required": true,
+            "nullable": false,
+            "unit": "s"
+          },
+          {
+            "name": "outcome",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "electrical_rows",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "state_commit",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "continued",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "recovery_mode",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "continuation_source_epoch",
+            "dtype": "u64",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "continuation_source_step",
+            "dtype": "u64",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "reason",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "diagnostic_code",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          }
+        ],
+        "stableKeys": [
+          "epoch",
+          "solve_event_sequence",
+          "step"
+        ],
+        "sortKeys": [
+          "epoch",
+          "solve_event_sequence",
+          "step"
+        ],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [
+          {
+            "type": "unique",
+            "fields": [
+              "epoch",
+              "solve_event_sequence",
+              "step"
+            ],
+            "caseInsensitive": []
+          },
+          {
+            "type": "finite",
+            "fields": [
+              "time"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "outcome",
+            "values": [
+              "SOLVED",
+              "CLASSIFIED_TERMINAL"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "electrical_rows",
+            "values": [
+              "FULL"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "state_commit",
+            "values": [
+              "NUMERIC_AND_DECLARATIVE"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "recovery_mode",
+            "values": [
+              "INITIAL",
+              "CONTINUATION",
+              "REMAPPED_CHECKPOINT",
+              "COLD_START"
+            ]
+          },
+          {
+            "type": "paired_presence",
+            "fields": [
+              "continuation_source_epoch",
+              "continuation_source_step"
+            ]
+          }
+        ],
+        "source": [
+          "psa/src/dsa/parse/dss_import/execution/model.rs",
+          "psa/src/dsa/parse/dss_import/execution/runner.rs"
+        ],
+        "shape": "uniform"
+      }
     }
   },
   "harmonic_snapshot_inputs": {

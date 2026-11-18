@@ -4615,7 +4615,7 @@
       "differences": [
         "保留 epoch 顺序、typed continuation、运行期 mutation、控制/保护/计量状态和 post-solve 动作。",
         "门面不接收 DSS 路径；para.solver 默认为 newton，且不会根据拓扑、传输方式或结果选择自动切换。",
-        "island_status 仅由 Newton authoritative buffered 路径提供；该路径不提供 execution_trace。"
+        "island_status 和 solve_attempt 仅由 Newton authoritative buffered 路径提供；该路径不提供 execution_trace。"
       ],
       "inputs": [
         {
@@ -5224,6 +5224,13 @@
           "schemaRef": "execution_outputs.island_status",
           "description": "每个 epoch、step 和 island 的权威 Newton 求解状态及 GFM 限幅证据。",
           "recommended": false
+        },
+        {
+          "id": "solve_attempt",
+          "name": "solve_attempt",
+          "schemaRef": "execution_outputs.solve_attempt",
+          "description": "每个源 Solve 尝试的权威发布状态、恢复方式和 continuation 来源。",
+          "recommended": false
         }
       ],
       "resultConstraints": [
@@ -5262,12 +5269,31 @@
           ],
           "buffering": "authoritative"
         },
+        "solve_attempt": {
+          "solver": [
+            "newton"
+          ],
+          "mode": [
+            "snapshot",
+            "daily",
+            "yearly",
+            "duty",
+            "peakday",
+            "ld1",
+            "ld2"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative"
+        },
         "execution_trace": {
           "buffering": [
             "streaming"
           ],
           "unavailableWhen": [
             "island_status_requested",
+            "solve_attempt_requested",
             "plan_requires_island_status_v2"
           ],
           "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
@@ -5282,12 +5308,14 @@
           ],
           "buffering": "streaming",
           "excludeResults": [
-            "island_status"
+            "island_status",
+            "solve_attempt"
           ]
         },
         "authoritativeBuffered": {
           "triggerAny": [
             "island_status_requested",
+            "solve_attempt_requested",
             "plan_requires_island_status_v2"
           ],
           "solver": [

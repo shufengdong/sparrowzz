@@ -1076,7 +1076,7 @@ def validate_study_sequence_catalog(functions, dataframes, study_facades, case_p
             if actual != physical:
                 fail("study sequence physical schema differs at " + reference)
     frame_ops = FRAME_OPS.read_text()
-    execution = [n for n in result_constant(frame_ops, "DSS_PLAN_RESULT_NAMES") if n not in {"execution_trace", "diagnostics", "events", "island_status"}]
+    execution = [n for n in result_constant(frame_ops, "DSS_PLAN_RESULT_NAMES") if n not in {"execution_trace", "diagnostics", "events", "island_status", "solve_attempt"}]
     harmonic = result_constant(frame_ops, "HARMONIC_RESULT_NAMES")
     expected_results = (["execution." + n for n in execution] + ["fault_study.fault_result"] +
                         ["harmonic." + n for n in harmonic] + ["study_status"])
@@ -1522,6 +1522,24 @@ def psa_island_status_columns():
     return columns
 
 
+def psa_solve_attempt_columns():
+    return [
+        ("epoch", "u64", False),
+        ("solve_event_sequence", "u64", False),
+        ("step", "u64", False),
+        ("time", "f64", False),
+        ("outcome", "str", False),
+        ("electrical_rows", "str", False),
+        ("state_commit", "str", False),
+        ("continued", "bool", False),
+        ("recovery_mode", "str", False),
+        ("continuation_source_epoch", "u64", True),
+        ("continuation_source_step", "u64", True),
+        ("reason", "str", True),
+        ("diagnostic_code", "str", True),
+    ]
+
+
 def validate_unified_execution_catalog(functions, dataframes, study_facades, case_projections):
     old_names = {
         "ds_" + suffix
@@ -1571,6 +1589,17 @@ def validate_unified_execution_catalog(functions, dataframes, study_facades, cas
     if status.get("stableKeys") != ["epoch", "step", "island"] or status.get("sortKeys") != ["epoch", "step", "island"]:
         fail("execution_outputs.island_status must publish canonical stable and sort keys")
 
+    attempt = dataframes["execution_outputs"].get("solve_attempt", {}).get("contract")
+    actual_attempt_columns = [] if not isinstance(attempt, dict) else [
+        (column.get("name"), column.get("dtype"), column.get("nullable"))
+        for column in attempt.get("columns", [])
+    ]
+    if actual_attempt_columns != psa_solve_attempt_columns():
+        fail("execution_outputs.solve_attempt differs from the public frame schema")
+    attempt_keys = ["epoch", "solve_event_sequence", "step"]
+    if attempt.get("stableKeys") != attempt_keys or attempt.get("sortKeys") != attempt_keys:
+        fail("execution_outputs.solve_attempt must publish canonical stable and sort keys")
+
     facades = [item for item in study_facades["facades"] if item.get("family") == "execution_plan"]
     profiles = [item for item in case_projections["profiles"] if item.get("projector") == "project_dss_execution_plan"]
     if len(facades) != 1 or facades[0].get("function") != "ds_execution_plan":
@@ -1606,6 +1635,13 @@ def validate_unified_execution_catalog(functions, dataframes, study_facades, cas
         or island.get("buffering") != "authoritative"
     ):
         fail("dss_execution island_status availability differs from the runtime")
+    attempt_availability = availability.get("solve_attempt", {})
+    if (
+        attempt_availability.get("solver") != ["newton"]
+        or attempt_availability.get("solveKind") != ["SnapshotOrQsts"]
+        or attempt_availability.get("buffering") != "authoritative"
+    ):
+        fail("dss_execution solve_attempt availability differs from the runtime")
     direct = availability.get("directFault", {})
     if direct.get("results") != [
         "bus_voltage", "bus_phase", "branch_flow", "fault_state",

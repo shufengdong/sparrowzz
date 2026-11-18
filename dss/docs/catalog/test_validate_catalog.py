@@ -883,7 +883,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         self.assertEqual(stats["facades"], 18)
         self.assertEqual(stats["models"], 105)
         self.assertEqual(stats["structs"], 10)
-        self.assertEqual(stats["results"], 129)
+        self.assertEqual(stats["results"], 130)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):
@@ -937,7 +937,7 @@ class UnifiedExecutionCatalogTests(unittest.TestCase):
         self.assertEqual(execution[1]["arity"], 40)
         self.assertEqual(execution[0]["default_result"], "bus_phase")
         self.assertEqual(execution[1]["default_result"], "bus_phase")
-        self.assertEqual(execution[0]["results"][-1], "island_status")
+        self.assertEqual(execution[0]["results"][-2:], ["island_status", "solve_attempt"])
         self.assertEqual(execution[1]["results"], execution[0]["results"])
 
     def test_unified_execution_para_publishes_solver_card(self):
@@ -993,6 +993,36 @@ class UnifiedExecutionCatalogTests(unittest.TestCase):
         self.assertEqual(status["columns"][2]["unit"], "s")
         self.assertIn("psa/src/dsa/parse/dss_import/execution/model.rs", status["source"])
 
+    def test_unified_execution_solve_attempt_matches_public_schema(self):
+        attempt = self.read("dataframes.json")["execution_outputs"]["solve_attempt"]["contract"]
+        expected = [
+            ("epoch", "u64", False),
+            ("solve_event_sequence", "u64", False),
+            ("step", "u64", False),
+            ("time", "f64", False),
+            ("outcome", "str", False),
+            ("electrical_rows", "str", False),
+            ("state_commit", "str", False),
+            ("continued", "bool", False),
+            ("recovery_mode", "str", False),
+            ("continuation_source_epoch", "u64", True),
+            ("continuation_source_step", "u64", True),
+            ("reason", "str", True),
+            ("diagnostic_code", "str", True),
+        ]
+        self.assertEqual(
+            [(item["name"], item["dtype"], item["nullable"]) for item in attempt["columns"]],
+            expected,
+        )
+        self.assertEqual(attempt["stableKeys"], ["epoch", "solve_event_sequence", "step"])
+        self.assertEqual(attempt["sortKeys"], ["epoch", "solve_event_sequence", "step"])
+        rules = {rule.get("field"): rule for rule in attempt["rules"] if rule["type"] == "enum"}
+        self.assertEqual(rules["outcome"]["values"], ["SOLVED", "CLASSIFIED_TERMINAL"])
+        self.assertEqual(
+            rules["recovery_mode"]["values"],
+            ["INITIAL", "CONTINUATION", "REMAPPED_CHECKPOINT", "COLD_START"],
+        )
+
     def test_unified_execution_profile_is_the_only_execution_profile(self):
         profiles = self.read("case_projections.json")["profiles"]
         execution = [item for item in profiles if item["projector"] == "project_dss_execution_plan"]
@@ -1009,6 +1039,12 @@ class UnifiedExecutionCatalogTests(unittest.TestCase):
             "result": "ordered profile.bundleResultMap(manifest.study.results)",
         })
         self.assertEqual(profile["resultAvailability"]["island_status"], {
+            "solver": ["newton"],
+            "mode": ["snapshot", "daily", "yearly", "duty", "peakday", "ld1", "ld2"],
+            "solveKind": ["SnapshotOrQsts"],
+            "buffering": "authoritative",
+        })
+        self.assertEqual(profile["resultAvailability"]["solve_attempt"], {
             "solver": ["newton"],
             "mode": ["snapshot", "daily", "yearly", "duty", "peakday", "ld1", "ld2"],
             "solveKind": ["SnapshotOrQsts"],

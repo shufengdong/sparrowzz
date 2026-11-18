@@ -1308,7 +1308,8 @@
         "execution_trace",
         "diagnostics",
         "events",
-        "island_status"
+        "island_status",
+        "solve_attempt"
       ],
       "appended_columns": [
         "epoch_index",
@@ -1344,12 +1345,31 @@
           ],
           "buffering": "authoritative"
         },
+        "solve_attempt": {
+          "solver": [
+            "newton"
+          ],
+          "mode": [
+            "snapshot",
+            "daily",
+            "yearly",
+            "duty",
+            "peakday",
+            "ld1",
+            "ld2"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative"
+        },
         "execution_trace": {
           "buffering": [
             "streaming"
           ],
           "unavailableWhen": [
             "island_status_requested",
+            "solve_attempt_requested",
             "plan_requires_island_status_v2"
           ],
           "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
@@ -1364,12 +1384,14 @@
           ],
           "buffering": "streaming",
           "excludeResults": [
-            "island_status"
+            "island_status",
+            "solve_attempt"
           ]
         },
         "authoritativeBuffered": {
           "triggerAny": [
             "island_status_requested",
+            "solve_attempt_requested",
             "plan_requires_island_status_v2"
           ],
           "solver": [
@@ -1925,7 +1947,8 @@
         "execution_trace",
         "diagnostics",
         "events",
-        "island_status"
+        "island_status",
+        "solve_attempt"
       ],
       "appended_columns": [
         "epoch_index",
@@ -1953,12 +1976,31 @@
           ],
           "buffering": "authoritative"
         },
+        "solve_attempt": {
+          "solver": [
+            "newton"
+          ],
+          "mode": [
+            "snapshot",
+            "daily",
+            "yearly",
+            "duty",
+            "peakday",
+            "ld1",
+            "ld2"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative"
+        },
         "execution_trace": {
           "buffering": [
             "streaming"
           ],
           "unavailableWhen": [
             "island_status_requested",
+            "solve_attempt_requested",
             "plan_requires_island_status_v2"
           ],
           "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
@@ -1973,12 +2015,14 @@
           ],
           "buffering": "streaming",
           "excludeResults": [
-            "island_status"
+            "island_status",
+            "solve_attempt"
           ]
         },
         "authoritativeBuffered": {
           "triggerAny": [
             "island_status_requested",
+            "solve_attempt_requested",
             "plan_requires_island_status_v2"
           ],
           "solver": [
