@@ -18,11 +18,11 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 196 | 严格转换、求解、OpenDSS 数值门禁和 bundle 自执行全部通过；最新新增三个 IEEE123 GFM SwapRef/AmpLimit bundle |
-| 当前尚未发布的独立入口 | 74 | 当前报告中的 unsupported 独立入口；IEEE8500 GFM 的中间 epoch 原生不收敛，尚未发布 |
+| 已转换并发布 bundle | 197 | 严格转换、求解、适用数值/语义门禁和 bundle 自执行全部通过；最新新增 IEEE8500 GFM Snapshot bundle |
+| 当前尚未发布的独立入口 | 73 | 当前报告中的 unsupported 独立入口；IEEE8500 GFM Daily 与 DailySmallerPV 仍未发布 |
 | 超时 | 0 | 无 |
 
-196 个成功入口按官方发行树的相对路径保存在本目录；所有 execution-plan bundle 统一由
+197 个成功入口按官方发行树的相对路径保存在本目录；所有 execution-plan bundle 统一由
 `ds_dss_execution_plan` 导入、profile `dss_execution` 投影并由 `ds_execution_plan` 执行。
 求解器固定在 `inputs/para.parquet` 的 `solver=radial|newton`，调用方只有显式提供新的 `para`
 才会覆盖；`source` 字符串自动识别本地路径、文件 URI 和 HTTPS。Radial 不提供的结果会以
@@ -31,12 +31,12 @@
 单 study `.rssbundle` 使用 schema v2，NEV
 及本批 YYD、IEEE123/IEEE37 FaultStudy、FreqScan、两个 HarmonicT 有序多 study bundle 使用
 schema v3；两者都包含 manifest、原始复放 `main.rss`、路径无关的 `managed.rss`、DSS 导入来源和数据资产，并在
-原子发布前完成一次自执行。当前完整 catalog 审计确认 196 个已发布入口均有可用投影，
+原子发布前完成一次自执行。当前完整 catalog 审计确认 197 个已发布入口均有可用投影，
 稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 196 个发布入口；
-其余 74 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 197 个发布入口；
+其余 73 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 本批新增 `Run_IEEE123Bus_GFMDaily` 和 `Run_IEEE123Bus_GFMWholeDaily` 两个 schema-v2
@@ -55,6 +55,14 @@ Storage→PVSystem→Storage 的已完成求解边界所有权；AmpLimit Daily 
 原位置和改名搬移执行以及精确线路模型的有界
 OpenDSS 数值门禁。完整源身份、release、manifest、结果哈希、限流证据和非目标范围见
 [`gfm_ieee123_swapref_amplimit_publication_evidence.md`](gfm_ieee123_swapref_amplimit_publication_evidence.md)。
+
+本批新增 IEEE8500 `Run_8500Node_GFMSnap` failure-aware schema-v2 bundle，冻结 Newton、
+`line_model=exact` 和有序三结果 `bus_phase,island_status,solve_attempt`。三次 source attempt
+全部完成并保留 `SOLVED → CLASSIFIED_TERMINAL → SOLVED`，中间无参考岛不再造成整次运行丢失；
+最终输出为 25,620 行 bus phase、5 行 typed island status 和 3 行 attempt ledger。原位置执行
+用时 43.34 秒、最大常驻内存 741,720,064 字节，改名搬移和独立再生成均通过。完整来源、
+manifest、审计、哈希和范围边界见
+[`gfm_ieee8500_publication_evidence.md`](gfm_ieee8500_publication_evidence.md)。
 
 上一批新增 [`DG_Prot_Fdr.rssbundle`](IEEETestCases/DG_Protection/DG_Prot_Fdr.rssbundle)，原样保留
 官方 Snapshot、三相 Fault、`Transformer.Tg` 端子 2 开路和全部禁用保护对象。原位置与改名搬移
