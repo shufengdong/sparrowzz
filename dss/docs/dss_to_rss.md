@@ -89,8 +89,7 @@ schema v2 中，`main.rss` 是原始 DSS 生命周期的便携复放入口；`ma
 
 | DSS 来源函数 | profile | DataFrame 门面 |
 |---|---|---|
-| `ds_radial_dss_plan` | `dss_execution_radial_v1` | `ds_radial_execution_plan` |
-| `ds_newton_raphson_dss_plan` | `dss_execution_newton_v1` | `ds_newton_raphson_execution_plan` |
+| `ds_dss_execution_plan` | `dss_execution` | `ds_execution_plan` |
 | `ds_dss_fault_study` | `dss_fault_study_v1` | `ds_fault_study` |
 | `ds_dss_harmonic_plan` | `dss_harmonic_plan_v1` | `ds_harmonic_execution_plan` |
 | `ds_dss_dynamic_plan` | `dss_dynamic_plan_v1` | `ds_network_dynamics` |
@@ -104,8 +103,8 @@ schema v2 中，`main.rss` 是原始 DSS 生命周期的便携复放入口；`ma
 
 | DSS 输入 | 生成的 RSS | 条件 |
 |---|---|---|
-| Daily/Yearly/Duty/PeakDay/LD1/LD2 单个或多个 `Solve` | `ds_radial_dss_plan` 或 Newton 版本 | 整个命令流满足 PSA ExecutionStudy 合同；LD1/LD2 必须显式设置 `LDCurve` |
-| 一个普通 Snapshot `Solve` | `ds_radial_dss_plan` 或 Newton 版本 | 使用 PSA 的单 epoch Snapshot 执行计划，保留控制和有序命令语义 |
+| Daily/Yearly/Duty/PeakDay/LD1/LD2 单个或多个 `Solve` | `ds_dss_execution_plan` | 整个命令流满足 PSA ExecutionStudy 合同；`para.solver` 冻结求解器；LD1/LD2 必须显式设置 `LDCurve` |
+| 一个普通 Snapshot `Solve` | `ds_dss_execution_plan` | 使用 PSA 的单 epoch Snapshot 执行计划，保留控制和有序命令语义 |
 | 没有研究命令的纯模型 + `--study snapshot` | `import_dss` 后调用 `ds_radial_pf` 或 Newton 版本 | 原始模型入口必须满足 StaticPowerFlow 导入合同 |
 | `Mode=Harmonic/HarmonicT` | `ds_dss_harmonic_plan` | 满足 PSA 原生谐波执行合同 |
 | `Mode=AutoAdd` | `ds_dss_auto_add` | 满足 PSA 有界单次 AutoAdd 合同 |

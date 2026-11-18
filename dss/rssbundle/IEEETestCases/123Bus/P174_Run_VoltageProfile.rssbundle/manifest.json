@@ -13,58 +13,15 @@
     ]
   },
   "source": {
-    "entry": "dss/IEEETestCases/123Bus/P174_Run_VoltageProfile.DSS",
+    "entry": "dss/dss/IEEETestCases/123Bus/P174_Run_VoltageProfile.DSS",
     "root": "dss",
-    "tree_sha256": "2160194791567f812a2839e50c73814a411e984f1a799e1848941b0a50cb9f0c"
+    "tree_sha256": "c987f805fdc406ec050b46023ad76ca7213d341f1fc28893fbd008f15303fdff"
   },
-  "files": [
-    {
-      "path": "dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
-      "role": "dss-source",
-      "sha256": "fd28f52836205506a1980b52c5a7e12ca585aa626c52a6249502c1c3b2fc2255"
-    },
-    {
-      "path": "dss/IEEETestCases/123Bus/IEEE123Master.dss",
-      "role": "dss-source",
-      "sha256": "c92a69d9b218b1b2646ec7911783826229309038e72f16b848304c0457c0a54d"
-    },
-    {
-      "path": "dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
-      "role": "dss-source",
-      "sha256": "cd6ad77980dc018631ce39faab528afce40b0b9a50a6bc1c9ac8049ffb8207d7"
-    },
-    {
-      "path": "dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
-      "role": "dss-source",
-      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
-    },
-    {
-      "path": "dss/IEEETestCases/123Bus/P174_Run_VoltageProfile.DSS",
-      "role": "dss-entry",
-      "sha256": "88699d72204689ec035a8f82c4c697632bb9fb71949d24175d5286cd00048842"
-    },
-    {
-      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
-      "role": "dss-source",
-      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
-    },
-    {
-      "path": "main.rss",
-      "role": "main-rss",
-      "sha256": "d818ba80b83d4b3014ef2531d836434c97537959a669627d37dee0f3fcd2cbf2"
-    },
-    {
-      "path": "managed.rss",
-      "role": "managed-rss",
-      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
-    }
-  ],
-  "inputs": [],
   "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -75,5 +32,56 @@
         "binding": "result_voltage"
       }
     ]
-  }
+  },
+  "files": [
+    {
+      "path": "dss/dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
+      "role": "dss-source",
+      "sha256": "fd28f52836205506a1980b52c5a7e12ca585aa626c52a6249502c1c3b2fc2255"
+    },
+    {
+      "path": "dss/dss/IEEETestCases/123Bus/IEEE123Master.dss",
+      "role": "dss-source",
+      "sha256": "c92a69d9b218b1b2646ec7911783826229309038e72f16b848304c0457c0a54d"
+    },
+    {
+      "path": "dss/dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
+      "role": "dss-source",
+      "sha256": "cd6ad77980dc018631ce39faab528afce40b0b9a50a6bc1c9ac8049ffb8207d7"
+    },
+    {
+      "path": "dss/dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
+    },
+    {
+      "path": "dss/dss/IEEETestCases/123Bus/P174_Run_VoltageProfile.DSS",
+      "role": "dss-entry",
+      "sha256": "88699d72204689ec035a8f82c4c697632bb9fb71949d24175d5286cd00048842"
+    },
+    {
+      "path": "dss/dss/IEEETestCases/IEEELineCodes.DSS",
+      "role": "dss-source",
+      "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "9bb1b540606f55abba33aeeee9af6470f5437fd6465de0e5f414daf3dcf0daf7"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "b54dc15dfc4a14400574dc8f8889619e1780d61f85a6de3b5de643e2cbe81bdf"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "cfdf2faae336afa4f8ae41eaa7b7768c5cfeac38dc9e040c2f2dfdc5006fcb07",
+      "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de"
+    }
+  ]
 }

@@ -13,15 +13,15 @@
     ]
   },
   "source": {
-    "entry": "dss/IEEETestCases/123Bus/Run_IEEE123Bus.DSS",
+    "entry": "dss/dss/IEEETestCases/123Bus/Run_IEEE123Bus.DSS",
     "root": "dss",
-    "tree_sha256": "618c334fda2897700a4ee4a16888eeb37e91d04dc271d228501dfa49b8d03c52"
+    "tree_sha256": "12b55b1690ed78d407b0a146066ee9c404672036c086ddaa4d0dbffffcac84d1"
   },
   "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -35,50 +35,58 @@
   },
   "files": [
     {
-      "path": "dss/IEEETestCases/123Bus/BusCoords.dat",
+      "path": "dss/dss/IEEETestCases/123Bus/BusCoords.dat",
       "role": "data-asset",
       "sha256": "0b409c0e5d99f365c0140bf38280c1d64932032f1ecb8ef83ae54d4ed0d2716f"
     },
     {
-      "path": "dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
+      "path": "dss/dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
       "role": "dss-source",
       "sha256": "fd28f52836205506a1980b52c5a7e12ca585aa626c52a6249502c1c3b2fc2255"
     },
     {
-      "path": "dss/IEEETestCases/123Bus/IEEE123Master.dss",
+      "path": "dss/dss/IEEETestCases/123Bus/IEEE123Master.dss",
       "role": "dss-source",
       "sha256": "c92a69d9b218b1b2646ec7911783826229309038e72f16b848304c0457c0a54d"
     },
     {
-      "path": "dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
+      "path": "dss/dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
       "role": "dss-source",
       "sha256": "cd6ad77980dc018631ce39faab528afce40b0b9a50a6bc1c9ac8049ffb8207d7"
     },
     {
-      "path": "dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
+      "path": "dss/dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
       "role": "dss-source",
       "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
     },
     {
-      "path": "dss/IEEETestCases/123Bus/Run_IEEE123Bus.DSS",
+      "path": "dss/dss/IEEETestCases/123Bus/Run_IEEE123Bus.DSS",
       "role": "dss-entry",
       "sha256": "2da735529effecf2fe3aa340d0429c7ae50fa84a5d33aaea82947f6b1a824e0b"
     },
     {
-      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
+      "path": "dss/dss/IEEETestCases/IEEELineCodes.DSS",
       "role": "dss-source",
       "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
     },
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "9401bfdd86c2da8c594c50eefea6b6240942ae3f46e0c2dc26d5ebe59620b862"
+      "sha256": "2bcd502735afa8adc8b6c6e7e2d530c998d5feaa6f30bd4b52b6a4e1e854511b"
     },
     {
       "path": "managed.rss",
       "role": "managed-rss",
-      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
+      "sha256": "b54dc15dfc4a14400574dc8f8889619e1780d61f85a6de3b5de643e2cbe81bdf"
     }
   ],
-  "inputs": []
+  "inputs": [
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "cfdf2faae336afa4f8ae41eaa7b7768c5cfeac38dc9e040c2f2dfdc5006fcb07",
+      "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de"
+    }
+  ]
 }

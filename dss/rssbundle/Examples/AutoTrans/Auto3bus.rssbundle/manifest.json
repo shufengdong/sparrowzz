@@ -13,15 +13,15 @@
     ]
   },
   "source": {
-    "entry": "dss/Examples/AutoTrans/Auto3bus.dss",
+    "entry": "dss/dss/Examples/AutoTrans/Auto3bus.dss",
     "root": "dss",
-    "tree_sha256": "05f4e6625abba1dfab011576a130cbde858dcccd8c1b07eaeed1c8426d5d77be"
+    "tree_sha256": "a6dfb63d03d03151227bbe9bedc7873579fabed71fc59dbb028f9a50969e01be"
   },
   "projection": {
-    "source_function": "ds_newton_raphson_dss_plan",
-    "profile": "dss_execution_newton_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_newton_raphson_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -35,20 +35,28 @@
   },
   "files": [
     {
-      "path": "dss/Examples/AutoTrans/Auto3bus.dss",
+      "path": "dss/dss/Examples/AutoTrans/Auto3bus.dss",
       "role": "dss-entry",
       "sha256": "6dd3e0bee54d57363f8ff942f90eacb929d995fd438df12c385c1a412c357ef5"
     },
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "04a2cb65619dba06d003258edc1463ba660e64bccc504aac21bbceb2785b7716"
+      "sha256": "85d285962f3b31f57ea787b150932c9bc3f1194f9d9e6e82d7f8b8d44d2ebc88"
     },
     {
       "path": "managed.rss",
       "role": "managed-rss",
-      "sha256": "57a5f46d534568742cd79622f2dbc3cd4e8379605bb169883f15060644157a5b"
+      "sha256": "b54dc15dfc4a14400574dc8f8889619e1780d61f85a6de3b5de643e2cbe81bdf"
     }
   ],
-  "inputs": []
+  "inputs": [
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "1fb0799f036a5187817584496fcdb10e643d60a6b106f0c04c13000cae2d7357",
+      "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de"
+    }
+  ]
 }

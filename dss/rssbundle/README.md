@@ -22,11 +22,17 @@
 | 当前尚未发布的独立入口 | 74 | 当前报告中的 unsupported 独立入口；IEEE8500 GFM 的中间 epoch 原生不收敛，尚未发布 |
 | 超时 | 0 | 无 |
 
-196 个成功入口按官方发行树的相对路径保存在本目录；单 study `.rssbundle` 使用 schema v2，NEV
+196 个成功入口按官方发行树的相对路径保存在本目录；所有 execution-plan bundle 统一由
+`ds_dss_execution_plan` 导入、profile `dss_execution` 投影并由 `ds_execution_plan` 执行。
+求解器固定在 `inputs/para.parquet` 的 `solver=radial|newton`，调用方只有显式提供新的 `para`
+才会覆盖；`source` 字符串自动识别本地路径、文件 URI 和 HTTPS。Radial 不提供的结果会以
+`TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE` 失败关闭，不会切换求解器或伪造输出。
+
+单 study `.rssbundle` 使用 schema v2，NEV
 及本批 YYD、IEEE123/IEEE37 FaultStudy、FreqScan、两个 HarmonicT 有序多 study bundle 使用
 schema v3；两者都包含 manifest、原始复放 `main.rss`、路径无关的 `managed.rss`、DSS 导入来源和数据资产，并在
-原子发布前完成一次自执行。上一轮完整 catalog 审计确认 144 个路径型入口的 DataFrame 投影，
-另 1 个静态入口直接使用 Newton DataFrame 门面，稳定禁用和投影失败均为 0；本轮新增的 Stevenson
+原子发布前完成一次自执行。当前完整 catalog 审计确认 196 个已发布入口均有可用投影，
+稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
 静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 196 个发布入口；

@@ -25,7 +25,9 @@ cargo build -p mems --release --no-default-features \
 ```
 
 release `tensoreval` SHA-256 为
-`647f5178c0dbbbcf2111f00fbad6a4a4a1479b4431572b702f37bad9a160d1dc`。
+`c49f525e34a0b077f269d81e5039b1b5e666741beb2d22a297cf2c1285697950`。
+两个 bundle 均使用 `ds_dss_execution_plan`、profile `dss_execution` 和
+`ds_execution_plan`；唯一 `para` 输入显式冻结 `solver=newton` 与 `line_model=exact`。
 
 | 入口 | 求解尝试 | `island_status` 行 | `ENERGIZED_CONVERGED` | `DEENERGIZED_NO_REFERENCE` | `GFM_CAPACITY_INSUFFICIENT` |
 |---|---:|---:|---:|---:|---:|
@@ -53,10 +55,11 @@ GFMDaily 小时 18-20 是显式 post-GFM 过渡排除：OpenDSS 的 GFM SOC 轨�
 
 | 项目 | GFMDaily | GFMWholeDaily |
 |---|---|---|
-| source tree | `c322ea464ebd70b66093556924c223bce0f6e8f024c176c7529cc4b8af676c0d` | `d130bbdcd083e7531f6441dd6067892009f4c804e9043bb71528d3687ab2999c` |
-| `manifest.json` | `9d4d4cf1c08747b374af3a61d2f4e62d880452cec88e657a9bd49a0a9dd2d80b` | `ba480eac9f79ccc2e5043c8c398ab47ac0bc949f49e4fdbd3331aeae67215601` |
-| `main.rss` | `580e2a57b28065e146655c8d5d9a0aa4662f3d8380e25ef18a5f4feb2e22d32d` | `07b9dc0799de082a8ba9f174d8546281b7623c9fc458c8a8887ff101255a62c4` |
-| `managed.rss` | `30f4b4492f42d0f629532b5823740786d5d723de4c378ff9d9e04ef6d1d863a4` | `30f4b4492f42d0f629532b5823740786d5d723de4c378ff9d9e04ef6d1d863a4` |
+| source tree | `b0a9d69d8975b4efe02177d200a7fe4aa50a3208cb039645acfd2ffae98c8f76` | `88a38148d32ea72883a7463306674a8388d2961cd0da29ad2918fd10e2ac238f` |
+| `manifest.json` | `4e7600f89ccd230169f7e643507e8c8a86587331c17cf83a0dd01969c70c6bb7` | `774087dc8dd4ab7042935c4b71a082403bba63716a4fe7f96121583fa687f2fe` |
+| `main.rss` | `cc661d48873fad055eb38ae7594e6cd7a16b88f3047e66d2fbde71095bee77f8` | `e20f5b96b3407dc1e1ab39fec632d17c25be47e9b43d7548f6f8e9fe4bb4dd62` |
+| `managed.rss` | `00fa875a893eba2ed26109e944041b55b0d4e375c3adb433189c2aaaefc15de9` | `00fa875a893eba2ed26109e944041b55b0d4e375c3adb433189c2aaaefc15de9` |
+| `inputs/para.parquet` | `fd573beba2734d15a52873540b351ab1255364c219916bc3ea61683d1fcc1184` | `fd573beba2734d15a52873540b351ab1255364c219916bc3ea61683d1fcc1184` |
 | `bus_phase.parquet` | `8593268dd93370f2b910855ecbb9ae061f141aa1ce2dbb2ef0cb1b6839572750` | `9051b4767ee9140985ad5f179407eafe2a7d7c6ef0704fd321b7b7487b8f26a5` |
 | `island_status.parquet` | `cabe6d6bf1f1bdbaad765270b2e1ac1c91f4379cd3ccc9eac7befcf7f7bc1bdf` | `21cf9e38d05b0ff24eefd5bc598e7f4b65ca2b552bc80d3bc8ce042affd47503` |
 
@@ -67,9 +70,9 @@ artifact 全量文本扫描均未发现 acquisition、临时目录或 worktree �
 ## Catalog 与范围边界
 
 `conversion_report.csv` 只把上述两行从 `unsupported` 改为 `converted`，清空旧诊断并记录
-bounded V2/native/搬移证据。全表仍为 848 行，计数为 193 `converted`、77 `unsupported`、
+bounded V2/native/搬移证据。全表仍为 848 行，当前计数为 196 `converted`、74 `unsupported`、
 578 `not_standalone_entry`；其余 846 行的规范化 SHA-256 为
-`cd5ad9a4a5a16c50565e12df746c3177bcb9465a60a4bcb96ae7273d04783294`。
+`f131615c9914dea4ca3c49ea2b7fe20a368c8cb9f336cb64e9d90b073d5b5900`。
 
 本次明确不声明或实施：SwapRef、AmpLimit Daily、IEEE8500 GFM、Dynamic GFM、PVSystem GFM、
 radial GFM、任意 Daily GFM，以及最终十五入口审计闭环。这两个有界官方 QSTS 入口的发布不会

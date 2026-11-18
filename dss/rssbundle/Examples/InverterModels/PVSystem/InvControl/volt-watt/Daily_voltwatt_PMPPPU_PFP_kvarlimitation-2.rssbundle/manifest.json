@@ -13,33 +13,15 @@
     ]
   },
   "source": {
-    "entry": "dss/Examples/InverterModels/PVSystem/InvControl/volt-watt/Daily_voltwatt_PMPPPU_PFP_kvarlimitation-2.dss",
+    "entry": "dss/dss/Examples/InverterModels/PVSystem/InvControl/volt-watt/Daily_voltwatt_PMPPPU_PFP_kvarlimitation-2.dss",
     "root": "dss",
-    "tree_sha256": "9c894ff2517654838793d31fa2aab1c5b5cf4a7fc21f157dd5ade7b9ed3ade52"
+    "tree_sha256": "f4261155144017abd2141a6685066273ac6f3eb38d065fefb07c225deab79b5f"
   },
-  "files": [
-    {
-      "path": "dss/Examples/InverterModels/PVSystem/InvControl/volt-watt/Daily_voltwatt_PMPPPU_PFP_kvarlimitation-2.dss",
-      "role": "dss-entry",
-      "sha256": "e96cdc0bc9be9fd9bbb2a4f80e44a7f675f67dfd870a9a9bf9142e010f11c39c"
-    },
-    {
-      "path": "main.rss",
-      "role": "main-rss",
-      "sha256": "2e0126564624b6c6baef5b6ec24d1c56d945741143ed687e3078f335147fa614"
-    },
-    {
-      "path": "managed.rss",
-      "role": "managed-rss",
-      "sha256": "a36d885a0c77198a0518b3e81955a336e04ff6b875a352b631eb2cce069c64f9"
-    }
-  ],
-  "inputs": [],
   "projection": {
-    "source_function": "ds_radial_dss_plan",
-    "profile": "dss_execution_radial_v1",
+    "source_function": "ds_dss_execution_plan",
+    "profile": "dss_execution",
     "projector": "project_dss_execution_plan",
-    "target_function": "ds_radial_execution_plan",
+    "target_function": "ds_execution_plan",
     "managed_entry": "managed.rss",
     "status": "enabled",
     "stable_diagnostic": "PSA.DSS.PROJECTION.INVALID",
@@ -50,5 +32,31 @@
         "binding": "result_voltage"
       }
     ]
-  }
+  },
+  "files": [
+    {
+      "path": "dss/dss/Examples/InverterModels/PVSystem/InvControl/volt-watt/Daily_voltwatt_PMPPPU_PFP_kvarlimitation-2.dss",
+      "role": "dss-entry",
+      "sha256": "e96cdc0bc9be9fd9bbb2a4f80e44a7f675f67dfd870a9a9bf9142e010f11c39c"
+    },
+    {
+      "path": "main.rss",
+      "role": "main-rss",
+      "sha256": "164935fd86bd4c32cae528c8d5eefcdae564d7400c504cde9aa7bcc18aa703de"
+    },
+    {
+      "path": "managed.rss",
+      "role": "managed-rss",
+      "sha256": "b54dc15dfc4a14400574dc8f8889619e1780d61f85a6de3b5de643e2cbe81bdf"
+    }
+  ],
+  "inputs": [
+    {
+      "name": "para",
+      "path": "inputs/para.parquet",
+      "format": "parquet",
+      "sha256": "cfdf2faae336afa4f8ae41eaa7b7768c5cfeac38dc9e040c2f2dfdc5006fcb07",
+      "schema_sha256": "5922f11efa74938db8c9776c8844ef1e0aefcb48416195a51d936ad85c4bd7de"
+    }
+  ]
 }

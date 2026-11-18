@@ -22,7 +22,7 @@ flowchart LR
     C --> D[ds_radial_pf / ds_newton_raphson_pf]
     C --> E[ds_harmonic_study / ds_fault_study]
     C --> F[QSTS 和其他分析入口]
-    A -->|ds_*_dss_plan| F
+    A -->|ds_dss_execution_plan| F
     D --> G[具名 DataFrame 结果]
     E --> G
     F --> G
@@ -35,7 +35,7 @@ flowchart LR
 | --- | --- |
 | `Compile` 或 `Redirect` 主文件 | `import_dss("path/to/Master.dss")` |
 | `Solution.Solve()` | `ds_radial_pf(...)` 或 `ds_newton_raphson_pf(...)` |
-| 一个或多个时序 `Solve` | `ds_radial_dss_plan(...)` 或 `ds_newton_raphson_dss_plan(...)` |
+| 一个或多个时序 `Solve` | `ds_dss_execution_plan(source, para_or_results)`；`para.solver` 选择求解器 |
 | 原生 `Solve mode=harmonic/harmonict` 命令流 | `ds_dss_harmonic_plan(path, para_or_results)` |
 | 已显式准备网络与频谱表的谐波研究 | `ds_harmonic_study(...)` |
 | 原生 `Solve mode=autoadd` | `ds_dss_auto_add(path, para_or_results)` |
@@ -48,7 +48,7 @@ flowchart LR
 
 `import_dss` 是转换器，不是 OpenDSS 命令解释器。它使用
 `DssImportProfile::StaticPowerFlow`，把声明式模型转换为 PSA 的 DataFrame 网络契约；
-求解由后续 `ds_*` 函数完成。执行型 `import_dss_execution` 和 `ds_*_dss_plan` 则使用
+求解由后续 `ds_*` 函数完成。执行型 `import_dss_execution` 和 `ds_dss_execution_plan` 则使用
 PSA 的有界 ExecutionStudy 契约保留 `Solve`、控制、保护和计量状态。这个边界让脚本中的数据依赖和结果都能进入宿主流程图，
 也防止无法等价表示的 OpenDSS 命令被静默忽略。
 
@@ -80,7 +80,7 @@ Newton 潮流、Newton QSTS 和状态估计需要包含 MUMPS 或 MKL 稀疏线�
 
 仓库已验证模型允许在入口开头使用 `Clear` 重置 DSS 声明环境；它不会转换成运行期
 DataFrame 动作。需要保留多个 `Solve` 及其间的有序变更时，不能用静态 `import_dss`
-表达，应改用 `ds_radial_dss_plan` 或 `ds_newton_raphson_dss_plan`。无法无损进入 PSA typed
+表达，应改用 `ds_dss_execution_plan`。无法无损进入 PSA typed
 continuation contract 的动作仍会 fail closed。
 
 推荐把旧文件拆成两层：
@@ -413,7 +413,7 @@ monitor, energy_meter, fault, para
 
 ```text
 # plan_para.result = "bus_phase,summary,execution_trace,diagnostics,events"
-[voltage, summary, trace, diagnostics, events] = ds_radial_dss_plan(
+[voltage, summary, trace, diagnostics, events] = ds_dss_execution_plan(
     "case/run.dss",
     plan_para
 );
@@ -436,7 +436,7 @@ LoadShape 绑定，并请求逐母线逐相电压；测试将 36 行复电压与
 | 径向/弱网静态潮流 | `ds_radial_pf` |
 | 通用 Newton 静态潮流 | `ds_newton_raphson_pf` |
 | Daily/Yearly/Duty 时序 | `ds_radial_qsts` / `ds_newton_raphson_qsts` |
-| 保留原 DSS Daily/Yearly/Duty/PeakDay/LD1/LD2 命令流 | `ds_radial_dss_plan` / `ds_newton_raphson_dss_plan` |
+| 保留原 DSS Daily/Yearly/Duty/PeakDay/LD1/LD2 命令流 | `ds_dss_execution_plan`；`para.solver=radial|newton` |
 | 谐波扫描 | `ds_harmonic_study` |
 | 保留原 DSS Harmonic/HarmonicT 命令流 | `ds_dss_harmonic_plan` |
 | 原生 AutoAdd / RelCalc | `ds_dss_auto_add` / `ds_dss_relcalc` |

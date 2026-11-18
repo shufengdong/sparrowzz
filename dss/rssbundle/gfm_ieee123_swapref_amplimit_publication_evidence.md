@@ -20,7 +20,9 @@
 - 发布构建命令为
   `cargo build -p mems --release --no-default-features --features tensoreval-cli,with_dsa_mumps --bin tensoreval`；
   可执行文件 SHA-256 为
-  `2878f90035d8387eee419e39e2337218c751992ea5746621e63a2a4f450bbf86`；内嵌
+  `c49f525e34a0b077f269d81e5039b1b5e666741beb2d22a297cf2c1285697950`。三个 bundle 统一使用
+  `ds_dss_execution_plan` → `dss_execution` → `ds_execution_plan`，并由唯一 `para` 输入冻结
+  Newton/exact 合同；内嵌
   `version-rs` 身份为提交 `4d677d55a`，提交时间 `2026-11-16 03:38:02 +00:00`。
 
 ## 执行、所有权与限流
@@ -57,12 +59,13 @@ AmpLimit Daily 只比较并网 step 0..10。归一化复电压门限为 `1e-5`�
 
 | 案例 | source tree | manifest | main.rss | bus_phase Parquet | island_status Parquet |
 |---|---|---|---|---|---|
-| IEEE123 SwapRef | `dba60efe8f4875996a800e1a165000cccd1919894b7edeb9318cc5ebeb609a3c` | `26bec20ed208cd83d8600a71d70fd8048be2585951c6d4c041a6c77c48f1e07c` | `56980e4d11d37dfca3ee9cfa4911e426c78f165d8ee5b1877ef16a69abc626e1` | `50b4fe950a86491d05d8a1f91644f3d14dd39ccde4ae88520165283161b99242` | `93aac04c8afd379867404fa3809f79e35a99d0ac1d2e4c6f3b72bb49596ea06a` |
-| AmpLimit SwapRef | `eb3e4f3662864de4321e6fd0a61444ced48bb3c9e8179c5b871cca897c135404` | `c42c46d6e50cdd0a663840a534cb5996cfcaec286772fe684eb83d25a743d35a` | `9876bd167bc9cb1fdcddcefadb9daa7dbd0b10a9e94f4aeef565db34c573fce5` | `dd23e0a28ba578844a5b67ecd947f178be7100b61df3ea5445181ca948d6df2d` | `93aac04c8afd379867404fa3809f79e35a99d0ac1d2e4c6f3b72bb49596ea06a` |
-| AmpLimit Daily | `4c09fe1223a18bbd2bf35c5620f6b9e11d4016a99fc69aa53041e07a7d4b3c09` | `4521d667c80aaf6ef8e28e0dfee6f1d05c0eddedecf8351f495ad355c847222c` | `83eccff0a4ba9eb8df52704cc5aa655966d89785f941a9e93252a8a4f8839145` | `4a692a43fe3e94d990974b42d62f193da7e160ab97a72b9db3ecf61e67aa2837` | `726e655569f2a08875eaeffb1da8bba4f514b16ac13da82ba55acd490de64b00` |
+| IEEE123 SwapRef | `c912295fc9b42f357060ed723b1f51191a089981ad77469f84718738bc233e6e` | `d63d86ebfab97aee209a603d113f39b4e8e483e20a22d105cfca5b8f502c0b1f` | `0f8af0ea2f1673385ce549a39e08e0a83d48e5a33c4fd9ab1ef879f919c6baf9` | `50b4fe950a86491d05d8a1f91644f3d14dd39ccde4ae88520165283161b99242` | `93aac04c8afd379867404fa3809f79e35a99d0ac1d2e4c6f3b72bb49596ea06a` |
+| AmpLimit SwapRef | `f4dd7e6b02e8989223335f5a22536e5fd281cc635bb6490e3cc9e0936eb8389b` | `88fa5dd8733807a28357c68fd4a12ceaa085770b154a5700dfffb34ee17e26be` | `8c6515a2d0752baf43a8d7039cac9ed7a621d3a85842151df3eeb149c23de8ea` | `dd23e0a28ba578844a5b67ecd947f178be7100b61df3ea5445181ca948d6df2d` | `93aac04c8afd379867404fa3809f79e35a99d0ac1d2e4c6f3b72bb49596ea06a` |
+| AmpLimit Daily | `fa70afafae966b43e31291eb3dab78881350f94859da1265d9809d7acd796965` | `602c8426e0a5425ab45f001972774e1e5196c625155df0d0ddb283bcf366756f` | `087499b3374c799cbed5a2b90968960a84920a0743c77169168e4b797b8308d2` | `4a692a43fe3e94d990974b42d62f193da7e160ab97a72b9db3ecf61e67aa2837` | `726e655569f2a08875eaeffb1da8bba4f514b16ac13da82ba55acd490de64b00` |
 
 三个 bundle 共用 `managed.rss` SHA-256
-`30f4b4492f42d0f629532b5823740786d5d723de4c378ff9d9e04ef6d1d863a4`。候选目录原样安装后，
+`00fa875a893eba2ed26109e944041b55b0d4e375c3adb433189c2aaaefc15de9`；共用
+`inputs/para.parquet` SHA-256 为 `fd573beba2734d15a52873540b351ab1255364c219916bc3ea61683d1fcc1184`。候选目录原样安装后，
 又在改名父目录中、上游采集根不可见时重新执行；两组 `bus_phase` / `island_status` Parquet
 逐字节一致，bundle 内绝对构建路径匹配数为 0。发布检查器还直接读取两组 Parquet，核对
 完整 schema/dtype、每次 284 个唯一且顺序稳定的 bus/phase 坐标、有限乘数、终止岛全 NaN
