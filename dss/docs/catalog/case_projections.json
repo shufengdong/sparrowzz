@@ -13,7 +13,59 @@
   "profileAliases": {
     "dss_dynamic_plan_v14": {
       "base": "dss_dynamic_plan_v1",
-      "contract": "current_facade"
+      "contract": "current_facade",
+      "projectorOutputExtensions": [
+        {
+          "id": "handoff_bus_phase",
+          "alias": "handoff_bus_phase",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_handoff_bus_phase",
+          "required": true,
+          "position": 31,
+          "disposition": "facade_input",
+          "targetInput": "handoff_bus_phase"
+        },
+        {
+          "id": "handoff_storage_state",
+          "alias": "handoff_storage_state",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_handoff_storage_state",
+          "required": true,
+          "position": 32,
+          "disposition": "facade_input",
+          "targetInput": "handoff_storage_state"
+        },
+        {
+          "id": "handoff_control_state",
+          "alias": "handoff_control_state",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_handoff_control_state",
+          "required": true,
+          "position": 33,
+          "disposition": "facade_input",
+          "targetInput": "handoff_control_state"
+        },
+        {
+          "id": "prelude_island_status",
+          "alias": "prelude_island_status",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_prelude_island_status",
+          "required": true,
+          "position": 34,
+          "disposition": "facade_input",
+          "targetInput": "prelude_island_status"
+        },
+        {
+          "id": "dynamic_handoff",
+          "alias": "dynamic_handoff",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_handoff",
+          "required": true,
+          "position": 35,
+          "disposition": "facade_input",
+          "targetInput": "dynamic_handoff"
+        }
+      ]
     }
   },
   "profiles": [

@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 """Validate the public RSDss documentation catalogs against the dispatch source."""
 
+import copy
 import json
 import hashlib
 import re
@@ -725,7 +726,7 @@ def validate_catalog_contracts(dataframes, study_facades, case_projections=None)
                 _contract_error(affected, reference, f"schema used as both {expected[reference]} and {kind}")
             expected[reference] = kind
     if case_projections is not None:
-        for profile in case_projections["profiles"]:
+        for profile in expand_case_projection_profiles(case_projections, study_facades).values():
             for output in profile.get("projectorOutputs", []):
                 reference = output["schemaRef"]
                 kind = output["inputKind"]
@@ -1105,6 +1106,66 @@ def validate_study_sequence_catalog(functions, dataframes, study_facades, case_p
         fail("study sequence profile results differ from facade")
 
 
+def expand_case_projection_profiles(case_projections, study_facades):
+    profiles = {profile["id"]: copy.deepcopy(profile) for profile in case_projections["profiles"]}
+    aliases = case_projections.get("profileAliases", {})
+    facades = {facade["function"]: facade for facade in study_facades["facades"]}
+    for alias, definition in aliases.items():
+        if (
+            not isinstance(alias, str)
+            or not alias
+            or alias in profiles
+            or not isinstance(definition, dict)
+            or set(definition) != {"base", "contract", "projectorOutputExtensions"}
+            or definition.get("base") not in profiles
+            or definition.get("contract") != "current_facade"
+        ):
+            fail(f"invalid current-facade case projection alias {alias}")
+        base = profiles[definition["base"]]
+        facade = facades.get(base.get("targetFunction"))
+        if facade is None:
+            fail(f"current-facade case projection alias {alias} has no target facade")
+        base_inputs = base.get("inputs")
+        if not isinstance(base_inputs, list) or facade["inputs"][:len(base_inputs)] != base_inputs:
+            fail(f"current-facade case projection alias {alias} base inputs are not a facade prefix")
+        missing_inputs = facade["inputs"][len(base_inputs):]
+        expected_extensions = [
+            {
+                "id": item["id"],
+                "alias": item["alias"],
+                "inputKind": item["inputKind"],
+                "schemaRef": item["schemaRef"],
+                "required": item["required"],
+                "position": item["position"],
+                "disposition": "facade_input",
+                "targetInput": item["id"],
+            }
+            for item in missing_inputs
+        ]
+        if definition["projectorOutputExtensions"] != expected_extensions:
+            fail(f"current-facade case projection alias {alias} projector extensions differ from the facade tail")
+        outputs = base.get("projectorOutputs")
+        if not isinstance(outputs, list):
+            fail(f"current-facade case projection alias {alias} base has no projector outputs")
+        diagnostics = [output for output in outputs if output.get("disposition") == "diagnostic"]
+        facade_outputs = [output for output in outputs if output.get("disposition") != "diagnostic"]
+        if len(diagnostics) != 1 or outputs[-1] != diagnostics[0]:
+            fail(f"current-facade case projection alias {alias} requires one trailing diagnostic output")
+        diagnostic = copy.deepcopy(diagnostics[0])
+        diagnostic["position"] = len(facade["inputs"]) + 1
+        profile = copy.deepcopy(base)
+        profile["id"] = alias
+        profile["inputs"] = copy.deepcopy(facade["inputs"])
+        profile["results"] = copy.deepcopy(facade["results"])
+        result_names = [result["name"] for result in facade["results"]]
+        profile["sourceResults"] = result_names
+        profile["resultMap"] = {name: name for name in result_names}
+        profile["bundleResultMap"] = {name: name for name in result_names}
+        profile["projectorOutputs"] = facade_outputs + copy.deepcopy(expected_extensions) + [diagnostic]
+        profiles[alias] = profile
+    return profiles
+
+
 def validate_case_projections(case_projections, study_facades, dataframes, dsa_by_name, frame_ops, translate):
     if case_projections.get("schema_version") != 2:
         fail("case_projections.json must use schema_version 2")
@@ -1138,17 +1199,8 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
             f"missing={sorted(expected_sources - set(sources))}, "
             f"extra={sorted(set(sources) - expected_sources)}"
         )
-    for alias, definition in profile_aliases.items():
-        if (
-            not isinstance(alias, str)
-            or not alias
-            or alias in ids
-            or not isinstance(definition, dict)
-            or definition.get("base") not in ids
-            or definition.get("contract") != "current_facade"
-        ):
-            fail(f"invalid current-facade case projection alias {alias}")
-    for profile in profiles:
+    expanded_profiles = expand_case_projection_profiles(case_projections, study_facades)
+    for profile in expanded_profiles.values():
         source = profile["sourceFunction"]
         target = profile.get("targetFunction")
         projector = profile.get("projector")
@@ -1806,8 +1858,7 @@ def validate_sequence_manifest_contract(label, manifest, profile):
 
 
 def validate_rssbundles(case_projections, study_facades, dataframes):
-    profiles = {profile["id"]: profile for profile in case_projections["profiles"]}
-    profile_aliases = case_projections.get("profileAliases", {})
+    profiles = expand_case_projection_profiles(case_projections, study_facades)
     facades = {facade["function"]: facade for facade in study_facades["facades"]}
     manifests = sorted(RSSBUNDLES.glob("**/manifest.json"))
     if not manifests:
@@ -1823,19 +1874,6 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
             fail(f"{label} lacks a projection contract")
         profile_id = projection.get("profile")
         profile = profiles.get(profile_id)
-        alias = profile_aliases.get(profile_id)
-        if profile is None and isinstance(alias, dict):
-            base = profiles.get(alias.get("base"))
-            if base is not None and alias.get("contract") == "current_facade":
-                facade = facades[base["targetFunction"]]
-                profile = dict(base)
-                profile["id"] = profile_id
-                profile["inputs"] = facade["inputs"]
-                profile["results"] = facade["results"]
-                result_names = [result["name"] for result in facade["results"]]
-                profile["sourceResults"] = result_names
-                profile["resultMap"] = {name: name for name in result_names}
-                profile["bundleResultMap"] = {name: name for name in result_names}
         if profile is None:
             fail(f"{label} references unknown projection profile {profile_id}")
         validate_projector_input_overrides(label, manifest, profile, path.parent)

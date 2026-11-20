@@ -364,9 +364,19 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         self.assertEqual(projection["inputs"], facade["inputs"][:30])
         self.assertEqual(projection["results"], facade["results"][:16])
         self.assertEqual(
-            projections["profileAliases"]["dss_dynamic_plan_v14"],
+            {
+                key: value
+                for key, value in projections["profileAliases"]["dss_dynamic_plan_v14"].items()
+                if key != "projectorOutputExtensions"
+            },
             {"base": "dss_dynamic_plan_v1", "contract": "current_facade"},
         )
+        extensions = projections["profileAliases"]["dss_dynamic_plan_v14"]["projectorOutputExtensions"]
+        self.assertEqual(
+            [item["targetInput"] for item in extensions],
+            ["handoff_bus_phase", "handoff_storage_state", "handoff_control_state", "prelude_island_status", "dynamic_handoff"],
+        )
+        self.assertEqual([item["position"] for item in extensions], [31, 32, 33, 34, 35])
 
     def test_enabled_case_projections_select_managed_projection_results(self):
         catalog = self.read("case_projections.json")
@@ -380,6 +390,12 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             set(selectors.values()),
             {"profile.resultMap(manifest.projection.results)", "manifest.study_sequence.results"},
         )
+
+    def test_rejects_current_facade_alias_projector_extension_drift(self):
+        catalog = self.read("case_projections.json")
+        catalog["profileAliases"]["dss_dynamic_plan_v14"]["projectorOutputExtensions"].pop()
+        self.write("case_projections.json", catalog)
+        self.assert_invalid("projector extensions differ from the facade tail")
 
     def test_native_dynamic_catalog_publishes_v14_results(self):
         functions = self.read("functions.json")
