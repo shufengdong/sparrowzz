@@ -18,11 +18,11 @@
 
 | 状态 | 文件数 | 含义 |
 |---|---:|---|
-| 已转换并发布 bundle | 199 | 严格转换、求解、适用数值/语义门禁和 bundle 自执行全部通过；最新补齐 IEEE8500 GFM Snapshot 与两个 Yearly bundle |
-| 当前尚未发布的独立入口 | 71 | 当前报告中的 unsupported 独立入口；每条仍需独立通过适用的执行、数值或语义门禁 |
+| 已转换并发布 bundle | 202 | 严格转换、求解、适用数值/语义门禁和 bundle 自执行全部通过；最新补齐三个 IEEE123 GFM Dynamic bundle |
+| 当前尚未发布的独立入口 | 68 | 当前报告中的 unsupported 独立入口；每条仍需独立通过适用的执行、数值或语义门禁 |
 | 超时 | 0 | 无 |
 
-199 个成功入口按官方发行树的相对路径保存在本目录；所有 execution-plan bundle 统一由
+202 个成功入口按官方发行树的相对路径保存在本目录；所有 execution-plan bundle 统一由
 `ds_dss_execution_plan` 导入、profile `dss_execution` 投影并由 `ds_execution_plan` 执行。
 求解器固定在 `inputs/para.parquet` 的 `solver=radial|newton`，调用方只有显式提供新的 `para`
 才会覆盖；`source` 字符串自动识别本地路径、文件 URI 和 HTTPS。Radial 不提供的结果会以
@@ -31,12 +31,12 @@
 单 study `.rssbundle` 使用 schema v2，NEV
 及本批 YYD、IEEE123/IEEE37 FaultStudy、FreqScan、两个 HarmonicT 有序多 study bundle 使用
 schema v3；两者都包含 manifest、原始复放 `main.rss`、路径无关的 `managed.rss`、DSS 导入来源和数据资产，并在
-原子发布前完成一次自执行。当前完整 catalog 审计确认 199 个已发布入口均有可用投影，
+原子发布前完成一次自执行。当前完整 catalog 审计确认 202 个已发布入口均有可用投影，
 稳定禁用和投影失败均为 0；本轮新增的 Stevenson
 和 P174 路径型 manifest 已单独检查并由现成 release 完成搬移执行，但按用户要求没有重新编译测试版
 `tensoreval`，因此没有重跑全 bundle 投影单测。已经位于 `sparrowzz/dss/models` 的
-静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 199 个发布入口；
-其余 71 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
+静态化案例不计入这些官方原始入口。`conversion_report.csv` 的 `status` 已同步当前 202 个发布入口；
+其余 68 个 unsupported 入口记录当前转换或数值门禁诊断。历史首诊断用于说明改造来源，
 当前发布状态以 `status`、本节和实际 manifest 为准。
 
 本批新增 `Run_IEEE123Bus_GFMDaily` 和 `Run_IEEE123Bus_GFMWholeDaily` 两个 schema-v2
@@ -66,6 +66,14 @@ owner 序列均为 `null → null → Storage.mystorage → null`，没有 gener
 原位置 Parquet 逐字节一致，独立再生成的 19 个 bundle 文件也逐字节一致。完整来源、manifest、
 审计、哈希和范围边界见
 [`gfm_ieee8500_publication_evidence.md`](gfm_ieee8500_publication_evidence.md)。
+
+本批新增 `Examples/IBRDynamics_Cases` 下三个 IEEE123 GFM Dynamic schema-v2 bundle，统一冻结
+V14、Newton、`line_model=exact`、`psa_gfm_approx_v1`、`numerical_parity=false` 和上游提交
+`3b208397160213cae4a9e2d0a7d1aa3528ce26e1`。Daily 完成 201 个采样并输出
+57,084/201/405 行 `bus_voltage/gfm_state/island_status`；CannotPickUpLoad 与 CurrentLimit
+均在 Dynamic step 0 形成容量终止，输出 50,652/1/205 行，后者额外锁定 `i_limited=true`。
+三个入口的 source、原位 bundle 和改名搬移 bundle 均通过 V14 语义审计且三张 Parquet 逐字节一致；
+两次独立生成的 33 个文件也逐字节一致。固定 GFM 发布清单由此达到 15/15。
 
 上一批新增 [`DG_Prot_Fdr.rssbundle`](IEEETestCases/DG_Protection/DG_Prot_Fdr.rssbundle)，原样保留
 官方 Snapshot、三相 Fault、`Transformer.Tg` 端子 2 开路和全部禁用保护对象。原位置与改名搬移
@@ -1674,7 +1682,7 @@ OpenDSS 的 V/I/P/Q/loss/control 数值比较、被省略副作用的 manifest �
 ## 逐文件结果
 
 [`conversion_report.csv`](conversion_report.csv) 包含官方树中 848 个 `.dss` 文件的分类结果；
-IEEE8500 GFM Yearly 提升后的当前状态为 199 个 `converted`、71 个 `unsupported` 和
+IEEE123 GFM Dynamic 提升后的当前状态为 202 个 `converted`、68 个 `unsupported` 和
 578 个 `not_standalone_entry`：
 
 - `source_path`：相对于官方 `Version8/Distrib` 的路径；

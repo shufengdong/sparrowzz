@@ -269,7 +269,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             self.read("study_facades.json"),
             self.read("dataframes.json"),
         )
-        self.assertEqual(count, 199)
+        self.assertEqual(count, 202)
 
     def sequence_manifest_and_profile(self):
         manifest_path = (
@@ -321,7 +321,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             with self.subTest(name=name), self.assertRaisesRegex(AssertionError, expected):
                 self.validator.validate_sequence_manifest_contract("nev", candidate, profile)
 
-    def test_network_dynamics_catalog_publishes_v13_monitor_additively(self):
+    def test_network_dynamics_catalog_publishes_unified_v14_additively(self):
         functions = self.read("functions.json")
         facades = self.read("study_facades.json")
         projections = self.read("case_projections.json")
@@ -333,36 +333,40 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             if item["id"] == "dss_dynamic_plan_v1"
         )
 
-        self.assertEqual(contract["arity"], 30)
-        self.assertEqual(contract["arguments"][-2:], ["para", "monitor"])
-        self.assertEqual(len(contract["results"]), 16)
-        self.assertEqual(contract["results"][-1], "monitor")
+        self.assertEqual(contract["arity"], 35)
+        self.assertEqual(contract["legacy_arities"], [29, 30])
+        self.assertEqual(
+            contract["arguments"][-5:],
+            ["handoff_bus_phase", "handoff_storage_state", "handoff_control_state", "prelude_island_status", "dynamic_handoff"],
+        )
+        self.assertEqual(len(contract["results"]), 18)
+        self.assertEqual(contract["results"][-2:], ["gfm_state", "island_status"])
         self.assertIn("V12", contract["behavior"])
         self.assertIn("V13", contract["behavior"])
 
-        self.assertIn("V13", facade["title"])
-        self.assertEqual(len(facade["inputs"]), 30)
+        self.assertIn("统一", facade["title"])
+        self.assertEqual(len(facade["inputs"]), 35)
         self.assertEqual(
-            facade["inputs"][-1],
+            facade["inputs"][-5:][0],
             {
-                "id": "monitor",
-                "alias": "monitor_input",
-                "inputKind": "model",
-                "schemaRef": "frames.monitor",
+                "id": "handoff_bus_phase",
+                "alias": "handoff_bus_phase",
+                "inputKind": "data",
+                "schemaRef": "analysis_inputs.dynamic_handoff_bus_phase",
                 "required": True,
-                "position": 30,
-                "description": "Dynamic V13 的 PVSystem/Storage mode 0、1、3 Monitor 定义。",
+                "position": 31,
+                "description": "最终成功 Snapshot 检查点的逐母线逐相复电压。",
             },
         )
-        self.assertEqual(len(facade["results"]), 16)
-        self.assertEqual(facade["results"][-1]["name"], "monitor")
-        self.assertEqual(
-            facade["results"][-1]["schemaRef"],
-            "result_frames.qsts_monitor",
-        )
+        self.assertEqual(len(facade["results"]), 18)
+        self.assertEqual([item["name"] for item in facade["results"][-2:]], ["gfm_state", "island_status"])
         self.assertTrue(any("V12" in item and "29" in item for item in facade["differences"]))
-        self.assertEqual(projection["inputs"], facade["inputs"])
-        self.assertEqual(projection["results"], facade["results"])
+        self.assertEqual(projection["inputs"], facade["inputs"][:30])
+        self.assertEqual(projection["results"], facade["results"][:16])
+        self.assertEqual(
+            projections["profileAliases"]["dss_dynamic_plan_v14"],
+            {"base": "dss_dynamic_plan_v1", "contract": "current_facade"},
+        )
 
     def test_enabled_case_projections_select_managed_projection_results(self):
         catalog = self.read("case_projections.json")
@@ -377,14 +381,14 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             {"profile.resultMap(manifest.projection.results)", "manifest.study_sequence.results"},
         )
 
-    def test_native_dynamic_catalog_publishes_v13_monitor(self):
+    def test_native_dynamic_catalog_publishes_v14_results(self):
         functions = self.read("functions.json")
         dataframes = self.read("dataframes.json")
         contract = self.dsa_contract(functions, "ds_dss_dynamic_plan")
 
-        self.assertIn("V13", contract["behavior"])
-        self.assertEqual(len(contract["results"]), 16)
-        self.assertEqual(contract["results"][-1], "monitor")
+        self.assertIn("V14", contract["behavior"])
+        self.assertEqual(len(contract["results"]), 18)
+        self.assertEqual(contract["results"][-2:], ["gfm_state", "island_status"])
         monitor = dataframes["result_frames"]["qsts_monitor"]
         self.assertIn("ds_network_dynamics", monitor["context"])
         self.assertIn("ds_dss_dynamic_plan", monitor["context"])
@@ -883,7 +887,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         self.assertEqual(stats["facades"], 18)
         self.assertEqual(stats["models"], 105)
         self.assertEqual(stats["structs"], 10)
-        self.assertEqual(stats["results"], 130)
+        self.assertEqual(stats["results"], 131)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):

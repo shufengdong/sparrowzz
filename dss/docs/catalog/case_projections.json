@@ -10,6 +10,12 @@
     "managedScripts": "DataFrame aliases only",
     "classification": "copied from study_facades.json and validated for equality"
   },
+  "profileAliases": {
+    "dss_dynamic_plan_v14": {
+      "base": "dss_dynamic_plan_v1",
+      "contract": "current_facade"
+    }
+  },
   "profiles": [
     {
       "id": "dss_static_newton_v1",

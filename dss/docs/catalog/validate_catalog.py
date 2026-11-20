@@ -26,7 +26,7 @@ NATIVE_DSS = RUNTIME_SRC / "ml/expr_df/frame_ops/dsa/native_dss.rs"
 
 RESULT_CONSTANTS = {
     "MOTOR_DYNAMIC_RESULT_NAMES": {"ds_motor_dynamics"},
-    "NETWORK_DYNAMIC_RESULT_NAMES_V13": {"ds_network_dynamics", "ds_dss_dynamic_plan"},
+    "NETWORK_DYNAMIC_RESULT_NAMES_V14": {"ds_network_dynamics", "ds_dss_dynamic_plan"},
     "PROTECTION_COORDINATION_RESULT_NAMES": {"ds_protection_coordination"},
     "DSS_PLAN_RESULT_NAMES": {
         "ds_dss_execution_plan",
@@ -53,6 +53,11 @@ INPUT_KIND_BY_SCHEMA = {
     "frames.shape_assignment": "model",
     "frames.storage_controller": "model",
     "frames.switch_control": "model",
+    "analysis_inputs.dynamic_handoff_bus_phase": "data",
+    "analysis_inputs.dynamic_handoff_storage_state": "data",
+    "analysis_inputs.dynamic_handoff_control_state": "data",
+    "analysis_inputs.dynamic_prelude_island_status": "data",
+    "analysis_inputs.dynamic_handoff": "data",
     "frames.tcc_curve": "data",
     "frames.fuse": "model",
     "frames.recloser": "model",
@@ -1107,6 +1112,9 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
     if not isinstance(profiles, list) or not profiles:
         fail("case_projections.profiles must be a non-empty list")
     facade_by_function = {facade["function"]: facade for facade in study_facades["facades"]}
+    profile_aliases = case_projections.get("profileAliases", {})
+    if not isinstance(profile_aliases, dict):
+        fail("case_projections.profileAliases must be an object")
     expected_sources = {
         "ds_radial_pf",
         "ds_newton_raphson_pf",
@@ -1130,6 +1138,16 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
             f"missing={sorted(expected_sources - set(sources))}, "
             f"extra={sorted(set(sources) - expected_sources)}"
         )
+    for alias, definition in profile_aliases.items():
+        if (
+            not isinstance(alias, str)
+            or not alias
+            or alias in ids
+            or not isinstance(definition, dict)
+            or definition.get("base") not in ids
+            or definition.get("contract") != "current_facade"
+        ):
+            fail(f"invalid current-facade case projection alias {alias}")
     for profile in profiles:
         source = profile["sourceFunction"]
         target = profile.get("targetFunction")
@@ -1160,9 +1178,12 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
         if not isinstance(projector, str) or f'"{projector}"' not in frame_ops or f'"{projector}"' not in translate:
             fail(f"case projection {profile['id']} references unknown projector {projector}")
         facade = facade_by_function[target]
-        if profile.get("inputs") != facade["inputs"]:
+        legacy_dynamic = profile["id"] == "dss_dynamic_plan_v1"
+        expected_inputs = facade["inputs"][:30] if legacy_dynamic else facade["inputs"]
+        expected_results = facade["results"][:16] if legacy_dynamic else facade["results"]
+        if profile.get("inputs") != expected_inputs:
             fail(f"case projection {profile['id']} input contract differs from {target}")
-        if profile.get("results") != facade["results"]:
+        if profile.get("results") != expected_results:
             fail(f"case projection {profile['id']} result contract differs from {target}")
         projector_outputs = profile.get("projectorOutputs")
         if not isinstance(projector_outputs, list) or not projector_outputs:
@@ -1178,7 +1199,7 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
             or len(output_aliases) != len(set(output_aliases))
         ):
             fail(f"case projection {profile['id']} projectorOutputs ids and aliases must be unique")
-        inputs_by_id = {item["id"]: item for item in facade["inputs"]}
+        inputs_by_id = {item["id"]: item for item in profile["inputs"]}
         facade_mappings = []
         for output in projector_outputs:
             required_fields = {
@@ -1235,7 +1256,7 @@ def validate_case_projections(case_projections, study_facades, dataframes, dsa_b
                     f"case projection {profile['id']} projector output {output['id']} "
                     f"has unknown disposition {disposition}"
                 )
-        expected_mappings = [item["id"] for item in facade["inputs"]]
+        expected_mappings = [item["id"] for item in profile["inputs"]]
         if facade_mappings != expected_mappings:
             fail(f"case projection {profile['id']} must map each facade input exactly once and in facade order")
         source_results = profile.get("sourceResults")
@@ -1786,6 +1807,7 @@ def validate_sequence_manifest_contract(label, manifest, profile):
 
 def validate_rssbundles(case_projections, study_facades, dataframes):
     profiles = {profile["id"]: profile for profile in case_projections["profiles"]}
+    profile_aliases = case_projections.get("profileAliases", {})
     facades = {facade["function"]: facade for facade in study_facades["facades"]}
     manifests = sorted(RSSBUNDLES.glob("**/manifest.json"))
     if not manifests:
@@ -1799,9 +1821,23 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
         projection = manifest.get("projection")
         if not isinstance(projection, dict):
             fail(f"{label} lacks a projection contract")
-        profile = profiles.get(projection.get("profile"))
+        profile_id = projection.get("profile")
+        profile = profiles.get(profile_id)
+        alias = profile_aliases.get(profile_id)
+        if profile is None and isinstance(alias, dict):
+            base = profiles.get(alias.get("base"))
+            if base is not None and alias.get("contract") == "current_facade":
+                facade = facades[base["targetFunction"]]
+                profile = dict(base)
+                profile["id"] = profile_id
+                profile["inputs"] = facade["inputs"]
+                profile["results"] = facade["results"]
+                result_names = [result["name"] for result in facade["results"]]
+                profile["sourceResults"] = result_names
+                profile["resultMap"] = {name: name for name in result_names}
+                profile["bundleResultMap"] = {name: name for name in result_names}
         if profile is None:
-            fail(f"{label} references unknown projection profile {projection.get('profile')}")
+            fail(f"{label} references unknown projection profile {profile_id}")
         validate_projector_input_overrides(label, manifest, profile, path.parent)
         for manifest_key, profile_key in (
             ("source_function", "sourceFunction"),
@@ -1814,7 +1850,7 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
         if projection.get("status") != "enabled" or projection.get("stable_diagnostic") != profile["compatibility"]["stableDiagnostic"]:
             fail(f"{label} projection must publish the enabled fail-closed profile status")
         facade = facades[profile["targetFunction"]]
-        for item in facade["inputs"] + facade["results"]:
+        for item in profile["inputs"] + profile["results"]:
             schema_at(dataframes, item["schemaRef"])
         source_results = manifest.get("study", {}).get("results")
         projected_results = projection.get("results")
@@ -1840,14 +1876,14 @@ def validate_rssbundles(case_projections, study_facades, dataframes):
         script = managed.read_text(encoding="utf-8")
         if any(token in script.lower() for token in (".dss", "import_dss", "source_root", "http://", "https://")):
             fail(f"{label} managed entry contains a forbidden path or import token")
-        managed_inputs = facade["inputs"]
+        managed_inputs = profile["inputs"]
         if (
-            profile["targetFunction"] == "ds_network_dynamics"
-            and source_results == [result["name"] for result in facade["results"][:-1]]
-            and facade["results"][-1]["name"] == "monitor"
-            and facade["inputs"][-1]["id"] == "monitor"
+            profile["id"] == "dss_dynamic_plan_v1"
+            and source_results == [result["name"] for result in profile["results"][:-1]]
+            and profile["results"][-1]["name"] == "monitor"
+            and profile["inputs"][-1]["id"] == "monitor"
         ):
-            managed_inputs = facade["inputs"][:-1]
+            managed_inputs = profile["inputs"][:-1]
         expected_arguments = ", ".join(item["alias"] for item in managed_inputs)
         if schema_version == 3:
             aggregates = {
@@ -1908,6 +1944,8 @@ def validate_manifest_result_contract(label, profile, source_results, projected_
         legacy_v12 = canonical_sources[:-1] if canonical_sources[-1] == "monitor" else []
         if source_results not in (canonical_sources, legacy_v12):
             fail(f"{label} dynamic study.results must be the complete V13 or legacy V12 contract")
+    if profile["id"] == "dss_dynamic_plan_v14" and source_results != canonical_sources:
+        fail(f"{label} dynamic V14 study.results must publish the complete V14 contract")
     if not isinstance(projected_results, list) or not projected_results or any(not isinstance(result, dict) for result in projected_results):
         fail(f"{label} projection.results must be a non-empty list of mappings")
     projected_sources = [result.get("source") for result in projected_results]

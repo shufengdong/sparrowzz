@@ -1519,7 +1519,7 @@
         "source_root?",
         "para_or_result_selector"
       ],
-      "behavior": "import and execute one bounded fixed-step local DSS Dynamic or Dynamics lifecycle through the protected V13 runtime with additive Monitor output",
+      "behavior": "import and execute one bounded fixed-step local DSS Dynamic or Dynamics lifecycle; GFM sources select the exact Snapshot handoff and V14 result while GFL sources retain V13 compatibility",
       "default_result": "bus_voltage",
       "results": [
         "bus_voltage",
@@ -1537,7 +1537,9 @@
         "device_state",
         "generator_state",
         "device_protection_connection",
-        "monitor"
+        "monitor",
+        "gfm_state",
+        "island_status"
       ],
       "restriction": "Snapshot initialization may precede Dynamic. Dynamic solves must keep one positive step and a continuous clock. Runtime model mutations, unsupported Set options, DynamicEq/DynOut, VCCS, user DLLs and EMT content are rejected."
     },
@@ -1803,7 +1805,11 @@
       "names": [
         "ds_network_dynamics"
       ],
-      "arity": 30,
+      "arity": 35,
+      "legacy_arities": [
+        29,
+        30
+      ],
       "arguments": [
         "network[20]",
         "timeline",
@@ -1815,9 +1821,14 @@
         "fault",
         "spec",
         "para",
-        "monitor"
+        "monitor",
+        "handoff_bus_phase",
+        "handoff_storage_state",
+        "handoff_control_state",
+        "prelude_island_status",
+        "dynamic_handoff"
       ],
-      "behavior": "run the protected RMS/phasor network dynamic V13 study from 30 DataFrames with additive Monitor output; runtime remains backward compatible with the V12 29-argument, 15-result entry",
+      "behavior": "run the unified protected RMS/phasor network dynamic facade; the 35-input GFM path consumes the exact Snapshot handoff and returns the owner-aware V14 result, while legacy 29/30-input GFL calls retain the V12/V13 contracts",
       "default_result": "bus_voltage",
       "results": [
         "bus_voltage",
@@ -1835,7 +1846,9 @@
         "device_state",
         "generator_state",
         "device_protection_connection",
-        "monitor"
+        "monitor",
+        "gfm_state",
+        "island_status"
       ]
     },
     {
