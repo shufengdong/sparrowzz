@@ -1,9 +1,9 @@
 # Bundle manifests hash the original OpenDSS and data-asset bytes.
-*.dss -text
-*.DSS -text
+*.dss -text whitespace=-trailing-space
+*.DSS -text whitespace=-trailing-space
 *.csv -text whitespace=cr-at-eol
 *.CSV -text
-*.dat -text
-*.txt -text
-*.Txt -text
-*.TXT -text
+*.dat -text whitespace=-trailing-space
+*.txt -text whitespace=-trailing-space
+*.Txt -text whitespace=-trailing-space
+*.TXT -text whitespace=-trailing-space

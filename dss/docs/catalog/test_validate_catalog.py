@@ -269,7 +269,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             self.read("study_facades.json"),
             self.read("dataframes.json"),
         )
-        self.assertEqual(count, 196)
+        self.assertEqual(count, 202)
 
     def sequence_manifest_and_profile(self):
         manifest_path = (
@@ -321,7 +321,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             with self.subTest(name=name), self.assertRaisesRegex(AssertionError, expected):
                 self.validator.validate_sequence_manifest_contract("nev", candidate, profile)
 
-    def test_network_dynamics_catalog_publishes_v13_monitor_additively(self):
+    def test_network_dynamics_catalog_publishes_unified_v14_additively(self):
         functions = self.read("functions.json")
         facades = self.read("study_facades.json")
         projections = self.read("case_projections.json")
@@ -333,36 +333,50 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             if item["id"] == "dss_dynamic_plan_v1"
         )
 
-        self.assertEqual(contract["arity"], 30)
-        self.assertEqual(contract["arguments"][-2:], ["para", "monitor"])
-        self.assertEqual(len(contract["results"]), 16)
-        self.assertEqual(contract["results"][-1], "monitor")
+        self.assertEqual(contract["arity"], 35)
+        self.assertEqual(contract["legacy_arities"], [29, 30])
+        self.assertEqual(
+            contract["arguments"][-5:],
+            ["handoff_bus_phase", "handoff_storage_state", "handoff_control_state", "prelude_island_status", "dynamic_handoff"],
+        )
+        self.assertEqual(len(contract["results"]), 18)
+        self.assertEqual(contract["results"][-2:], ["gfm_state", "island_status"])
         self.assertIn("V12", contract["behavior"])
         self.assertIn("V13", contract["behavior"])
 
-        self.assertIn("V13", facade["title"])
-        self.assertEqual(len(facade["inputs"]), 30)
+        self.assertIn("统一", facade["title"])
+        self.assertEqual(len(facade["inputs"]), 35)
         self.assertEqual(
-            facade["inputs"][-1],
+            facade["inputs"][-5:][0],
             {
-                "id": "monitor",
-                "alias": "monitor_input",
-                "inputKind": "model",
-                "schemaRef": "frames.monitor",
+                "id": "handoff_bus_phase",
+                "alias": "handoff_bus_phase",
+                "inputKind": "data",
+                "schemaRef": "analysis_inputs.dynamic_handoff_bus_phase",
                 "required": True,
-                "position": 30,
-                "description": "Dynamic V13 的 PVSystem/Storage mode 0、1、3 Monitor 定义。",
+                "position": 31,
+                "description": "最终成功 Snapshot 检查点的逐母线逐相复电压。",
             },
         )
-        self.assertEqual(len(facade["results"]), 16)
-        self.assertEqual(facade["results"][-1]["name"], "monitor")
-        self.assertEqual(
-            facade["results"][-1]["schemaRef"],
-            "result_frames.qsts_monitor",
-        )
+        self.assertEqual(len(facade["results"]), 18)
+        self.assertEqual([item["name"] for item in facade["results"][-2:]], ["gfm_state", "island_status"])
         self.assertTrue(any("V12" in item and "29" in item for item in facade["differences"]))
-        self.assertEqual(projection["inputs"], facade["inputs"])
-        self.assertEqual(projection["results"], facade["results"])
+        self.assertEqual(projection["inputs"], facade["inputs"][:30])
+        self.assertEqual(projection["results"], facade["results"][:16])
+        self.assertEqual(
+            {
+                key: value
+                for key, value in projections["profileAliases"]["dss_dynamic_plan_v14"].items()
+                if key != "projectorOutputExtensions"
+            },
+            {"base": "dss_dynamic_plan_v1", "contract": "current_facade"},
+        )
+        extensions = projections["profileAliases"]["dss_dynamic_plan_v14"]["projectorOutputExtensions"]
+        self.assertEqual(
+            [item["targetInput"] for item in extensions],
+            ["handoff_bus_phase", "handoff_storage_state", "handoff_control_state", "prelude_island_status", "dynamic_handoff"],
+        )
+        self.assertEqual([item["position"] for item in extensions], [31, 32, 33, 34, 35])
 
     def test_enabled_case_projections_select_managed_projection_results(self):
         catalog = self.read("case_projections.json")
@@ -377,14 +391,20 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
             {"profile.resultMap(manifest.projection.results)", "manifest.study_sequence.results"},
         )
 
-    def test_native_dynamic_catalog_publishes_v13_monitor(self):
+    def test_rejects_current_facade_alias_projector_extension_drift(self):
+        catalog = self.read("case_projections.json")
+        catalog["profileAliases"]["dss_dynamic_plan_v14"]["projectorOutputExtensions"].pop()
+        self.write("case_projections.json", catalog)
+        self.assert_invalid("projector extensions differ from the facade tail")
+
+    def test_native_dynamic_catalog_publishes_v14_results(self):
         functions = self.read("functions.json")
         dataframes = self.read("dataframes.json")
         contract = self.dsa_contract(functions, "ds_dss_dynamic_plan")
 
-        self.assertIn("V13", contract["behavior"])
-        self.assertEqual(len(contract["results"]), 16)
-        self.assertEqual(contract["results"][-1], "monitor")
+        self.assertIn("V14", contract["behavior"])
+        self.assertEqual(len(contract["results"]), 18)
+        self.assertEqual(contract["results"][-2:], ["gfm_state", "island_status"])
         monitor = dataframes["result_frames"]["qsts_monitor"]
         self.assertIn("ds_network_dynamics", monitor["context"])
         self.assertIn("ds_dss_dynamic_plan", monitor["context"])
@@ -883,7 +903,7 @@ pub(crate) fn monitor_output_frame() -> Result<DataFrame, PolarsError> {
         self.assertEqual(stats["facades"], 18)
         self.assertEqual(stats["models"], 105)
         self.assertEqual(stats["structs"], 10)
-        self.assertEqual(stats["results"], 129)
+        self.assertEqual(stats["results"], 131)
         self.assertEqual(stats["diagnostics"], 0)
 
     def test_rejects_discriminated_schema_without_variants(self):
@@ -937,7 +957,7 @@ class UnifiedExecutionCatalogTests(unittest.TestCase):
         self.assertEqual(execution[1]["arity"], 40)
         self.assertEqual(execution[0]["default_result"], "bus_phase")
         self.assertEqual(execution[1]["default_result"], "bus_phase")
-        self.assertEqual(execution[0]["results"][-1], "island_status")
+        self.assertEqual(execution[0]["results"][-2:], ["island_status", "solve_attempt"])
         self.assertEqual(execution[1]["results"], execution[0]["results"])
 
     def test_unified_execution_para_publishes_solver_card(self):
@@ -993,6 +1013,36 @@ class UnifiedExecutionCatalogTests(unittest.TestCase):
         self.assertEqual(status["columns"][2]["unit"], "s")
         self.assertIn("psa/src/dsa/parse/dss_import/execution/model.rs", status["source"])
 
+    def test_unified_execution_solve_attempt_matches_public_schema(self):
+        attempt = self.read("dataframes.json")["execution_outputs"]["solve_attempt"]["contract"]
+        expected = [
+            ("epoch", "u64", False),
+            ("solve_event_sequence", "u64", False),
+            ("step", "u64", False),
+            ("time", "f64", False),
+            ("outcome", "str", False),
+            ("electrical_rows", "str", False),
+            ("state_commit", "str", False),
+            ("continued", "bool", False),
+            ("recovery_mode", "str", False),
+            ("continuation_source_epoch", "u64", True),
+            ("continuation_source_step", "u64", True),
+            ("reason", "str", True),
+            ("diagnostic_code", "str", True),
+        ]
+        self.assertEqual(
+            [(item["name"], item["dtype"], item["nullable"]) for item in attempt["columns"]],
+            expected,
+        )
+        self.assertEqual(attempt["stableKeys"], ["epoch", "solve_event_sequence", "step"])
+        self.assertEqual(attempt["sortKeys"], ["epoch", "solve_event_sequence", "step"])
+        rules = {rule.get("field"): rule for rule in attempt["rules"] if rule["type"] == "enum"}
+        self.assertEqual(rules["outcome"]["values"], ["SOLVED", "CLASSIFIED_TERMINAL"])
+        self.assertEqual(
+            rules["recovery_mode"]["values"],
+            ["INITIAL", "CONTINUATION", "REMAPPED_CHECKPOINT", "COLD_START"],
+        )
+
     def test_unified_execution_profile_is_the_only_execution_profile(self):
         profiles = self.read("case_projections.json")["profiles"]
         execution = [item for item in profiles if item["projector"] == "project_dss_execution_plan"]
@@ -1009,6 +1059,12 @@ class UnifiedExecutionCatalogTests(unittest.TestCase):
             "result": "ordered profile.bundleResultMap(manifest.study.results)",
         })
         self.assertEqual(profile["resultAvailability"]["island_status"], {
+            "solver": ["newton"],
+            "mode": ["snapshot", "daily", "yearly", "duty", "peakday", "ld1", "ld2"],
+            "solveKind": ["SnapshotOrQsts"],
+            "buffering": "authoritative",
+        })
+        self.assertEqual(profile["resultAvailability"]["solve_attempt"], {
             "solver": ["newton"],
             "mode": ["snapshot", "daily", "yearly", "duty", "peakday", "ld1", "ld2"],
             "solveKind": ["SnapshotOrQsts"],

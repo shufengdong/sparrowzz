@@ -11,6 +11,7 @@
     "str",
     "bool",
     "i32",
+    "i64",
     "u8",
     "u32",
     "u64",
@@ -12762,6 +12763,141 @@
         "shape": "uniform"
       }
     },
+    "dynamic_handoff_bus_phase": {
+      "description": "最终成功 Snapshot 检查点的逐母线逐相复电压。",
+      "contract": {
+        "kind": "data",
+        "rowCount": "one_or_more",
+        "columnPolicy": { "mode": "closed", "unknownColumns": "forbidden" },
+        "columns": [
+          { "name": "bus", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "phase", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "v_re", "dtype": "f64", "required": true, "nullable": false, "unit": "V" },
+          { "name": "v_im", "dtype": "f64", "required": true, "nullable": false, "unit": "V" },
+          { "name": "v_mag", "dtype": "f64", "required": true, "nullable": false, "unit": "V" },
+          { "name": "v_ang", "dtype": "f64", "required": true, "nullable": false, "unit": "rad" }
+        ],
+        "stableKeys": ["bus", "phase"],
+        "sortKeys": ["bus", "phase"],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [],
+        "source": ["psa/src/dsa/dynamics/dataframe.rs::apply_v14_handoff"],
+        "shape": "uniform"
+      }
+    },
+    "dynamic_handoff_storage_state": {
+      "description": "最终成功 Snapshot 检查点的唯一 GFM Storage 状态。",
+      "contract": {
+        "kind": "data",
+        "rowCount": "one",
+        "columnPolicy": { "mode": "closed", "unknownColumns": "forbidden" },
+        "columns": [
+          { "name": "owner_class", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "owner_name", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "soc", "dtype": "f64", "required": true, "nullable": false, "unit": "pu" },
+          { "name": "energy", "dtype": "f64", "required": true, "nullable": false, "unit": "kWh" },
+          { "name": "dispatch_state", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "previous_p", "dtype": "f64", "required": true, "nullable": false, "unit": "W" },
+          { "name": "previous_q", "dtype": "f64", "required": true, "nullable": false, "unit": "var" }
+        ],
+        "stableKeys": ["owner_class", "owner_name"],
+        "sortKeys": ["owner_class", "owner_name"],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [],
+        "source": ["psa/src/dsa/dynamics/dataframe.rs::apply_v14_handoff"],
+        "shape": "uniform"
+      }
+    },
+    "dynamic_handoff_control_state": {
+      "description": "最终成功 Snapshot 检查点的开关、调压器和电容器状态。",
+      "contract": {
+        "kind": "data",
+        "rowCount": "zero_or_more",
+        "columnPolicy": { "mode": "closed", "unknownColumns": "forbidden" },
+        "columns": [
+          { "name": "kind", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "name", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "state", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "position", "dtype": "i64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "value", "dtype": "f64", "required": true, "nullable": false, "unit": "not_applicable" }
+        ],
+        "stableKeys": ["kind", "name", "position"],
+        "sortKeys": ["kind", "name", "position"],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [],
+        "source": ["psa/src/dsa/dynamics/dataframe.rs::apply_v14_handoff"],
+        "shape": "uniform"
+      }
+    },
+    "dynamic_prelude_island_status": {
+      "description": "Dynamic 前两个 Snapshot 屏障的权威逐孤岛状态。",
+      "contract": {
+        "kind": "data",
+        "rowCount": "one_or_more",
+        "columnPolicy": { "mode": "closed", "unknownColumns": "forbidden" },
+        "columns": [
+          { "name": "epoch", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "step", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "time", "dtype": "f64", "required": true, "nullable": false, "unit": "s" },
+          { "name": "island", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "outcome", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "energized", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "converged", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "reference_kind", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "reference_devices", "dtype": "list<str>", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "reason", "dtype": "str", "required": true, "nullable": true, "unit": "not_applicable" },
+          { "name": "p_limited", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "q_limited", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "s_limited", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "i_limited", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "model_identity", "dtype": "str", "required": true, "nullable": true, "unit": "not_applicable" }
+        ],
+        "stableKeys": ["epoch", "step", "island"],
+        "sortKeys": ["epoch", "step", "island"],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [],
+        "source": ["psa/src/dsa/parse/dss_import/execution/dynamic.rs"],
+        "shape": "uniform"
+      }
+    },
+    "dynamic_handoff": {
+      "description": "Snapshot 到 Dynamic 的一行 V14 检查点和来源证书。",
+      "contract": {
+        "kind": "data",
+        "rowCount": "one",
+        "columnPolicy": { "mode": "closed", "unknownColumns": "forbidden" },
+        "columns": [
+          { "name": "revision", "dtype": "u32", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "final_snapshot_sequence", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "dynamic_solve_sequence", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "checkpoint_epoch", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "checkpoint_solve_event_sequence", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "checkpoint_step", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "owner_class", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "owner_name", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "line_model", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "electrical_model", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "source_model", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "numerical_parity", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "locked_source_revision", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "bus_phase_rows", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "storage_state_rows", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "control_state_rows", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "island_status_rows", "dtype": "u64", "required": true, "nullable": false, "unit": "not_applicable" }
+        ],
+        "stableKeys": ["revision"],
+        "sortKeys": ["revision"],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [],
+        "source": ["psa/src/dsa/dynamics/dataframe.rs::apply_v14_handoff"],
+        "shape": "uniform"
+      }
+    },
     "dynamic_timeline": {
       "context": [
         "ds_motor_dynamics",
@@ -19437,6 +19573,45 @@
         "source": [
           "psa/src/dsa/dynamics/network_api.rs"
         ],
+        "shape": "uniform"
+      }
+    },
+    "network_dynamic_v14_gfm_state": {
+      "description": "网络动态 V14 的 GFM 所有者、状态、限幅和来源证据。",
+      "contract": {
+        "kind": "result",
+        "rowCount": "zero_or_more",
+        "columnPolicy": { "mode": "closed", "unknownColumns": "forbidden" },
+        "columns": [
+          { "name": "owner_class", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "owner_name", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "time_s", "dtype": "f64", "required": true, "nullable": false, "unit": "s" },
+          { "name": "mode", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "frequency_hz", "dtype": "f64", "required": true, "nullable": false, "unit": "Hz" },
+          { "name": "angle_rad", "dtype": "f64", "required": true, "nullable": false, "unit": "rad" },
+          { "name": "internal_voltage_pu", "dtype": "f64", "required": true, "nullable": false, "unit": "pu" },
+          { "name": "power_command_w", "dtype": "f64", "required": true, "nullable": false, "unit": "W" },
+          { "name": "accepted_p_w", "dtype": "f64", "required": true, "nullable": false, "unit": "W" },
+          { "name": "accepted_q_var", "dtype": "f64", "required": true, "nullable": false, "unit": "var" },
+          { "name": "terminal_voltage_v", "dtype": "f64", "required": true, "nullable": false, "unit": "V" },
+          { "name": "terminal_current_a", "dtype": "f64", "required": true, "nullable": false, "unit": "A" },
+          { "name": "stored_kwh", "dtype": "f64", "required": true, "nullable": true, "unit": "kWh" },
+          { "name": "soc_pu", "dtype": "f64", "required": true, "nullable": true, "unit": "pu" },
+          { "name": "p_limited", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "q_limited", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "s_limited", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "i_limited", "dtype": "bool", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "electrical_model", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
+          { "name": "source_model", "dtype": "str", "required": true, "nullable": true, "unit": "not_applicable" },
+          { "name": "numerical_parity", "dtype": "bool", "required": true, "nullable": true, "unit": "not_applicable" },
+          { "name": "locked_source_revision", "dtype": "str", "required": true, "nullable": true, "unit": "not_applicable" }
+        ],
+        "stableKeys": ["time_s", "owner_class", "owner_name"],
+        "sortKeys": ["time_s", "owner_class", "owner_name"],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [],
+        "source": ["psa/src/dsa/dynamics/study_output.rs::gfm_state_frame"],
         "shape": "uniform"
       }
     },
@@ -26713,6 +26888,11 @@
         "parquet": "INT32",
         "logical": "Signed 32-bit integer"
       },
+      "i64": {
+        "arrow": "Int64",
+        "parquet": "INT64",
+        "logical": "Signed 64-bit integer"
+      },
       "u8": {
         "arrow": "UInt8",
         "parquet": "INT32/UINT_8",
@@ -31450,6 +31630,183 @@
             "type": "finite",
             "fields": [
               "time"
+            ]
+          }
+        ],
+        "source": [
+          "psa/src/dsa/parse/dss_import/execution/model.rs",
+          "psa/src/dsa/parse/dss_import/execution/runner.rs"
+        ],
+        "shape": "uniform"
+      }
+    },
+    "solve_attempt": {
+      "description": "Authoritative publication ledger with one row for every accepted source solve attempt.",
+      "contract": {
+        "kind": "result",
+        "rowCount": "one_or_more",
+        "columnPolicy": {
+          "mode": "closed",
+          "unknownColumns": "forbidden"
+        },
+        "columns": [
+          {
+            "name": "epoch",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "solve_event_sequence",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "step",
+            "dtype": "u64",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "time",
+            "dtype": "f64",
+            "required": true,
+            "nullable": false,
+            "unit": "s"
+          },
+          {
+            "name": "outcome",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "electrical_rows",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "state_commit",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "continued",
+            "dtype": "bool",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "recovery_mode",
+            "dtype": "str",
+            "required": true,
+            "nullable": false,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "continuation_source_epoch",
+            "dtype": "u64",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "continuation_source_step",
+            "dtype": "u64",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "reason",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "diagnostic_code",
+            "dtype": "str",
+            "required": true,
+            "nullable": true,
+            "unit": "not_applicable"
+          }
+        ],
+        "stableKeys": [
+          "epoch",
+          "solve_event_sequence",
+          "step"
+        ],
+        "sortKeys": [
+          "epoch",
+          "solve_event_sequence",
+          "step"
+        ],
+        "columnAliases": {},
+        "allowedConversions": [],
+        "rules": [
+          {
+            "type": "unique",
+            "fields": [
+              "epoch",
+              "solve_event_sequence",
+              "step"
+            ],
+            "caseInsensitive": []
+          },
+          {
+            "type": "finite",
+            "fields": [
+              "time"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "outcome",
+            "values": [
+              "SOLVED",
+              "CLASSIFIED_TERMINAL"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "electrical_rows",
+            "values": [
+              "FULL"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "state_commit",
+            "values": [
+              "NUMERIC_AND_DECLARATIVE"
+            ]
+          },
+          {
+            "type": "enum",
+            "field": "recovery_mode",
+            "values": [
+              "INITIAL",
+              "CONTINUATION",
+              "REMAPPED_CHECKPOINT",
+              "COLD_START"
+            ]
+          },
+          {
+            "type": "paired_presence",
+            "fields": [
+              "continuation_source_epoch",
+              "continuation_source_step"
             ]
           }
         ],
