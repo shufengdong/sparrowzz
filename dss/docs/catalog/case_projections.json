@@ -10,6 +10,64 @@
     "managedScripts": "DataFrame aliases only",
     "classification": "copied from study_facades.json and validated for equality"
   },
+  "profileAliases": {
+    "dss_dynamic_plan_v14": {
+      "base": "dss_dynamic_plan_v1",
+      "contract": "current_facade",
+      "projectorOutputExtensions": [
+        {
+          "id": "handoff_bus_phase",
+          "alias": "handoff_bus_phase",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_handoff_bus_phase",
+          "required": true,
+          "position": 31,
+          "disposition": "facade_input",
+          "targetInput": "handoff_bus_phase"
+        },
+        {
+          "id": "handoff_storage_state",
+          "alias": "handoff_storage_state",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_handoff_storage_state",
+          "required": true,
+          "position": 32,
+          "disposition": "facade_input",
+          "targetInput": "handoff_storage_state"
+        },
+        {
+          "id": "handoff_control_state",
+          "alias": "handoff_control_state",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_handoff_control_state",
+          "required": true,
+          "position": 33,
+          "disposition": "facade_input",
+          "targetInput": "handoff_control_state"
+        },
+        {
+          "id": "prelude_island_status",
+          "alias": "prelude_island_status",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_prelude_island_status",
+          "required": true,
+          "position": 34,
+          "disposition": "facade_input",
+          "targetInput": "prelude_island_status"
+        },
+        {
+          "id": "dynamic_handoff",
+          "alias": "dynamic_handoff",
+          "inputKind": "data",
+          "schemaRef": "analysis_inputs.dynamic_handoff",
+          "required": true,
+          "position": 35,
+          "disposition": "facade_input",
+          "targetInput": "dynamic_handoff"
+        }
+      ]
+    }
+  },
   "profiles": [
     {
       "id": "dss_static_newton_v1",
@@ -1701,6 +1759,13 @@
           "schemaRef": "execution_outputs.island_status",
           "description": "每个 epoch、step 和 island 的权威 Newton 求解状态及 GFM 限幅证据。",
           "recommended": false
+        },
+        {
+          "id": "solve_attempt",
+          "name": "solve_attempt",
+          "schemaRef": "execution_outputs.solve_attempt",
+          "description": "每个源 Solve 尝试的权威发布状态、恢复方式和 continuation 来源。",
+          "recommended": false
         }
       ],
       "sourceResults": [
@@ -1738,7 +1803,8 @@
         "execution_trace",
         "diagnostics",
         "events",
-        "island_status"
+        "island_status",
+        "solve_attempt"
       ],
       "resultMap": {
         "bus_voltage": "bus_voltage",
@@ -1775,7 +1841,8 @@
         "execution_trace": "execution_trace",
         "diagnostics": "diagnostics",
         "events": "events",
-        "island_status": "island_status"
+        "island_status": "island_status",
+        "solve_attempt": "solve_attempt"
       },
       "resultSelector": {
         "input": "para",
@@ -1785,7 +1852,8 @@
       "bundleResultMap": {
         "voltage": "bus_phase",
         "bus_phase": "bus_phase",
-        "island_status": "island_status"
+        "island_status": "island_status",
+        "solve_attempt": "solve_attempt"
       },
       "projectorOutputs": [
         {
@@ -2241,12 +2309,31 @@
           ],
           "buffering": "authoritative"
         },
+        "solve_attempt": {
+          "solver": [
+            "newton"
+          ],
+          "mode": [
+            "snapshot",
+            "daily",
+            "yearly",
+            "duty",
+            "peakday",
+            "ld1",
+            "ld2"
+          ],
+          "solveKind": [
+            "SnapshotOrQsts"
+          ],
+          "buffering": "authoritative"
+        },
         "execution_trace": {
           "buffering": [
             "streaming"
           ],
           "unavailableWhen": [
             "island_status_requested",
+            "solve_attempt_requested",
             "plan_requires_island_status_v2"
           ],
           "diagnostic": "TENSOREVAL.DSS.EXECUTION.RESULT_UNAVAILABLE"
@@ -2261,12 +2348,14 @@
           ],
           "buffering": "streaming",
           "excludeResults": [
-            "island_status"
+            "island_status",
+            "solve_attempt"
           ]
         },
         "authoritativeBuffered": {
           "triggerAny": [
             "island_status_requested",
+            "solve_attempt_requested",
             "plan_requires_island_status_v2"
           ],
           "solver": [
