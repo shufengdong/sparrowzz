@@ -1505,6 +1505,27 @@
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
+          },
+          {
+            "name": "open_from",
+            "dtype": "list<bool>",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "open_to",
+            "dtype": "list<bool>",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "dss_rdc_ohms",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": true,
+            "unit": "ohm"
           }
         ],
         "stableKeys": [
@@ -2340,7 +2361,10 @@
       "optional": {
         "frequency_hz": "f64",
         "scan_type": "str",
-        "spectrum": "str"
+        "spectrum": "str",
+        "enabled": "bool",
+        "bus2": "str",
+        "terminal_map2": "list<str>"
       },
       "defaults": {
         "frequency_hz": "network base_frequency_hz"
@@ -2405,6 +2429,27 @@
           {
             "name": "spectrum",
             "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "enabled",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "bus2",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "terminal_map2",
+            "dtype": "list<str>",
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
@@ -2913,7 +2958,17 @@
         "open_dss_v_min_pu": "f64",
         "open_dss_v_max_pu": "f64",
         "open_dss_limit_current": "bool",
-        "open_dss_balanced": "bool"
+        "open_dss_balanced": "bool",
+        "gfm_owner_class": "str",
+        "gfm_owner_name": "str",
+        "gfm_approximation": "str",
+        "gfm_electrical_model": "str",
+        "gfm_source_model": "str",
+        "gfm_numerical_parity": "bool",
+        "gfm_locked_source_revision": "str",
+        "gfm_retained_native_fields": "list<str>",
+        "gfm_i_max": "list<f64>",
+        "gfm_amp_limit_gain": "f64"
       },
       "enums": {
         "topology": [
@@ -3325,6 +3380,76 @@
           {
             "name": "open_dss_balanced",
             "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_owner_class",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_owner_name",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_approximation",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_electrical_model",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_source_model",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_numerical_parity",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_locked_source_revision",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_retained_native_fields",
+            "dtype": "list<str>",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_i_max",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "gfm_amp_limit_gain",
+            "dtype": "f64",
             "required": false,
             "nullable": true,
             "unit": "not_applicable"
@@ -4984,7 +5109,15 @@
         "enabled": "bool",
         "dss_initial_state": "str",
         "dss_initial_p_w": "f64",
-        "power_factor": "f64"
+        "power_factor": "f64",
+        "gfm_approximation": "str",
+        "gfm_electrical_model": "str",
+        "gfm_source_model": "str",
+        "gfm_numerical_parity": "bool",
+        "gfm_locked_source_revision": "str",
+        "gfm_retained_native_fields": "list<str>",
+        "gfm_i_max": "list<f64>",
+        "gfm_amp_limit_gain": "f64"
       },
       "note": "RSDss import_dss currently returns this frame empty",
       "contract": {
@@ -5319,6 +5452,62 @@
           },
           {
             "name": "power_factor",
+            "dtype": "f64",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_approximation",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_electrical_model",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_source_model",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_numerical_parity",
+            "dtype": "bool",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_locked_source_revision",
+            "dtype": "str",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_retained_native_fields",
+            "dtype": "list<str>",
+            "required": false,
+            "nullable": true,
+            "unit": "not_applicable"
+          },
+          {
+            "name": "gfm_i_max",
+            "dtype": "list<f64>",
+            "required": false,
+            "nullable": true,
+            "unit": "A"
+          },
+          {
+            "name": "gfm_amp_limit_gain",
             "dtype": "f64",
             "required": false,
             "nullable": true,
@@ -12821,7 +13010,7 @@
           { "name": "name", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
           { "name": "state", "dtype": "str", "required": true, "nullable": false, "unit": "not_applicable" },
           { "name": "position", "dtype": "i64", "required": true, "nullable": false, "unit": "not_applicable" },
-          { "name": "value", "dtype": "f64", "required": true, "nullable": false, "unit": "not_applicable" }
+          { "name": "value", "dtype": "f64", "required": true, "nullable": true, "unit": "not_applicable" }
         ],
         "stableKeys": ["kind", "name", "position"],
         "sortKeys": ["kind", "name", "position"],
