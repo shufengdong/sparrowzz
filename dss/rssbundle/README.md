@@ -75,6 +75,11 @@ V14、Newton、`line_model=exact`、`psa_gfm_approx_v1`、`numerical_parity=fals
 三个入口的 source、原位 bundle 和改名搬移 bundle 均通过 V14 语义审计且三张 Parquet 逐字节一致；
 两次独立生成的 33 个文件也逐字节一致。固定 GFM 发布清单由此达到 15/15。
 
+Item 11 又从同一固定源树统一重建十五例两轮，并完成 30 次原位执行、30 次改名搬移执行和
+270/270 个编排阶段审计；目录保持 848 行、202 个已发布入口、68 个 unsupported 入口和
+578 个非独立入口。独立仓库内同步的记录摘要、机器记录摘要和 `psa_gfm_approx_v1` 边界见
+[`gfm_fifteen_final_audit_completion.md`](gfm_fifteen_final_audit_completion.md)。
+
 上一批新增 [`DG_Prot_Fdr.rssbundle`](IEEETestCases/DG_Protection/DG_Prot_Fdr.rssbundle)，原样保留
 官方 Snapshot、三相 Fault、`Transformer.Tg` 端子 2 开路和全部禁用保护对象。原位置与改名搬移
 执行都输出 26×11 电压表且逐字节一致；显式 `line_model="exact"` 的 26 节点 OpenDSS 门禁最大
