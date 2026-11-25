@@ -14,9 +14,9 @@
     ]
   },
   "source": {
-    "entry": "dss/dss/Examples/Microgrid/GridFormingInverter/GFM_AmpsLimit_123/Run_IEEE123Bus_GFMSnap.DSS",
+    "entry": "dss/Examples/Microgrid/GridFormingInverter/GFM_AmpsLimit_123/Run_IEEE123Bus_GFMSnap.DSS",
     "root": "dss",
-    "tree_sha256": "d24c0e728c35c83f0d534c68d23f9a13a3e566900369e74024a140cd62885117"
+    "tree_sha256": "0ad1c05e9d455d40fddc62531432bfec692164c8c0f63a26467def013379aab2"
   },
   "projection": {
     "source_function": "ds_dss_execution_plan",
@@ -41,49 +41,49 @@
   },
   "files": [
     {
-      "path": "dss/dss/Examples/Microgrid/GridFormingInverter/GFM_AmpsLimit_123/Run_IEEE123Bus_GFMSnap.DSS",
+      "path": "dss/Examples/Microgrid/GridFormingInverter/GFM_AmpsLimit_123/Run_IEEE123Bus_GFMSnap.DSS",
       "role": "dss-entry",
       "sha256": "505b6be8391ff8c62368524e8a365e915d5f934ad3ed5d7fe3a69c214a80c1ed"
     },
     {
-      "path": "dss/dss/IEEETestCases/123Bus/BusCoords.dat",
+      "path": "dss/IEEETestCases/123Bus/BusCoords.dat",
       "role": "data-asset",
       "sha256": "0b409c0e5d99f365c0140bf38280c1d64932032f1ecb8ef83ae54d4ed0d2716f"
     },
     {
-      "path": "dss/dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
+      "path": "dss/IEEETestCases/123Bus/IEEE123Loads.DSS",
       "role": "dss-source",
       "sha256": "fd28f52836205506a1980b52c5a7e12ca585aa626c52a6249502c1c3b2fc2255"
     },
     {
-      "path": "dss/dss/IEEETestCases/123Bus/IEEE123Master.dss",
+      "path": "dss/IEEETestCases/123Bus/IEEE123Master.dss",
       "role": "dss-source",
       "sha256": "c92a69d9b218b1b2646ec7911783826229309038e72f16b848304c0457c0a54d"
     },
     {
-      "path": "dss/dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
+      "path": "dss/IEEETestCases/123Bus/IEEE123Regulators.DSS",
       "role": "dss-source",
       "sha256": "cd6ad77980dc018631ce39faab528afce40b0b9a50a6bc1c9ac8049ffb8207d7"
     },
     {
-      "path": "dss/dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
+      "path": "dss/IEEETestCases/123Bus/IEEELineCodes.DSS",
       "role": "dss-source",
       "sha256": "40ef533dfcb22738edb1125b1e15e4a1a5d41b2cca4a2f969f5d955c9784daeb"
     },
     {
-      "path": "dss/dss/IEEETestCases/123Bus/PVShape.dss",
+      "path": "dss/IEEETestCases/123Bus/PVShape.dss",
       "role": "dss-source",
       "sha256": "12fb209be619df89709877591ffdc630096836b0c12ad314c4e32de626ab26fb"
     },
     {
-      "path": "dss/dss/IEEETestCases/IEEELineCodes.DSS",
+      "path": "dss/IEEETestCases/IEEELineCodes.DSS",
       "role": "dss-source",
       "sha256": "71bc16ef9c6084b9e3bab74fbdf967080b79624683465e1483b787ff160f58b3"
     },
     {
       "path": "main.rss",
       "role": "main-rss",
-      "sha256": "4170dd83fe8736bce44b0c6c34a02b36988d0eced46be4929fae99388fb0b1d0"
+      "sha256": "19c760f1c0071e5fc1ac53c3c7c0e69c2f10b65c03a89c8263e0353c7c2f3344"
     },
     {
       "path": "managed.rss",
