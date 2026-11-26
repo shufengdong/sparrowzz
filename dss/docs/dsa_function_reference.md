@@ -47,6 +47,8 @@ Radial/Newton、WLS/MNMR/MCE、网络动态/电机动态分别是独立门面。
 | `ds_fault_location` | 24 | 不适用 | 固定 1 |
 | `ds_network_dynamics` | V12 兼容 29；V13 规范 30 | `bus_voltage` | 由 `para.result` 决定 |
 | `ds_motor_dynamics` | 28 | `motor_state` | 由 `para.result` 决定 |
+| `ds_dss_study_sequence` | 2 或 3 | 每阶段默认结果 | 由结果字符串或 `para.result` 决定 |
+| `ds_study_sequence` | 48 | 每阶段默认结果 | 由 selector 或 `sequence_request` 决定 |
 
 ## 1. 完整网络参数顺序
 
@@ -336,6 +338,27 @@ RelCalc 只接受 PSA 已限定的互不重叠径向 EnergyMeter 区域、显式
 
 这三个入口只读取本地文件，不提供 URL 变体。它们不会把 Harmonic、AutoAdd 或 RelCalc
 与普通 QSTS 自动拆分或串联；混合生命周期应由上层显式编排。
+
+### 有序 study sequence（`ds_dss_study_sequence` / `ds_study_sequence`）
+
+`ds_dss_study_sequence(path, [source_root], selector_or_para)` 接收本地 `.dss` 路径；
+`ds_study_sequence` 接收投影后的 48 张路径无关 DataFrame。两者共用同一套有序阶段合同：
+
+- selector 语法为 `<index>.<result>`，例如
+  `study_status,0.bus_phase,1.fault_result,2.bus_voltage`；
+- 阶段索引在 selector 中必须非递减；重复、未限定、未知、缺失阶段或逆序选择都会失败；
+- 所有阶段先完整执行，任一阶段失败时不返回部分表；
+- `study_status` 只在显式请求时返回，可使用任意合法阶段索引；
+- 未提供 selector 时，每个产生结果的阶段按源顺序返回一个默认结果；
+- `para` 固定只含 `line_model=exact`；受管调用用 `sequence_request` 的
+  `study_index:u64`、`result:str` 行表达同一选择，同一阶段的多行请求多个结果；
+  空请求为每个结果阶段选择一个默认结果。
+
+受管门面的 `sequence_request`、投影器输出和 schema 以
+[`catalog/study_facades.json`](catalog/study_facades.json) 与
+[`catalog/case_projections.json`](catalog/case_projections.json) 为准；完整的
+`dss_study_sequence_v1` profile 说明见
+[`catalog/README.md`](catalog/README.md#ordered-study-sequence-v1)。
 
 ## 5. 谐波
 
