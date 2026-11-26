@@ -12,7 +12,7 @@ PSA 数值能力和参考证据，只是尚未由 `tensoreval --dss-to-rss` 正�
   公共依赖和其他非独立文件不纳入本报告的数量或结论。
 - 命令：`tensoreval --dss-to-rss --check --source-root <Version8/Distrib> <entry>`。
 - 基线结果：10 个入口转换并自执行成功，249 个独立入口转换失败。
-- 当前结果：191 个入口已经发布 bundle，79 个独立入口尚未发布；`conversion_report.csv`
+- 当前结果：202 个入口已经发布 bundle，68 个独立入口尚未发布；`conversion_report.csv`
   的 `status` 已同步当前发布状态。2,900 步 P174、8-epoch AutoHLT、8,760 点 Ckt7 与两快照
   GFMSnap-B 均已完成
   严格检查、官方路径 bundle 生成、搬移后独立自执行和锁定 OpenDSS 数值比较。

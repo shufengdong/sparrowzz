@@ -94,8 +94,9 @@ bundle manifest schema v2 的 `projection` 包含 `source_function`、`profile`�
 结果卡使用 manifest 的 `results[].target` 写入 profile 声明的 selector；最终输出资源名使用
 `results[].binding`。宿主禁止把 `source.entry` 或 `source.root` 传给受管脚本。
 
-当前 144 个发布案例均为 `enabled`：121 个 radial execution、10 个 Newton execution、
-3 个 fault、3 个 harmonic、6 个 dynamic 和 1 个 Newton static。AutoAdd/RelCalc 的新 bundle
+当前 202 个发布案例均为 `enabled`：171 个 execution plan（136 个 radial、35 个 Newton）、
+10 个 dynamic、9 个 static radial、7 个 study sequence、4 个 Newton static 和 1 个 fault；
+harmonic profile 当前没有发布案例。AutoAdd/RelCalc 的新 bundle
 会发布 `disabled` profile 与 `TENSOREVAL.RSS.BUNDLE.PROJECTION_UNAVAILABLE`，不会生成近似研究。
 
 ## 执行合同与展示字段
