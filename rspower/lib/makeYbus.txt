@@ -40,8 +40,8 @@ fn makeYbus(baseMVA, bus, branch) {
     // MATPOWER's direct coordinate formulation is faster at every size here.
     i = horzcat(range(0, nl),range(0, nl));
     j = range(0,nb);
-    upper = horzcat(Yff', Yft');
-    lower = horzcat(Ytf', Ytt');
+    upper = horzcat(Yff.', Yft.');
+    lower = horzcat(Ytf.', Ytt.');
     Yf = sparse(i, horzcat(f, t), upper, nl, nb);
     Yt = sparse(i, horzcat(f, t), lower, nl, nb);
     Ybus = sparse(horzcat(f,f,t,t), horzcat(f,t,f,t), vertcat(Yff,Yft,Ytf,Ytt), nb, nb) +

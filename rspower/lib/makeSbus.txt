@@ -48,7 +48,7 @@ fn makeSbus(baseMVA, bus, gen) {
     Sbusd = p + i + z;
 
     // form net complex bus power injection vector
-    Sbus = Sbusg' - Sbusd;
+    Sbus = Sbusg.' - Sbusd;
 
     // derivative of net bus injection w.r.t. voltage magnitude
     dSbus_dVm = sparse([], [], [], nb, nb);

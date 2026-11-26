@@ -32,7 +32,7 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     gbus = get_multi(slice(gen, [0], [GEN_BUS-1, GEN_BUS]), on)';         // what buses are they at?(注意索引需-1)
 
     // compute total injected bus powers(计算节点注入功率)
-    Sbus = get_multi(V, gbus-1)' .* conj(select(Ybus, gbus-1) * V );
+    Sbus = get_multi(V, gbus-1).' .* conj(select(Ybus, gbus-1) * V );
 
     // update Qg for generators at PV/slack buses
     gen_QG = set(slice(gen, [0], [QG-1, QG]), off, zeros(length(off), 1));  // zero out off-line Qg(离线发电机QG=0)
@@ -121,8 +121,8 @@ fn pfsoln(baseMVA, bus0, gen0, branch0, Ybus, Yf, Yt, V, ref, pv, pq, mpopt){
     br = find(slice(branch, [0], [BR_STATUS-1, BR_STATUS] ));            // in-service branches
     fbus = get_multi(slice(branch, [0], [F_BUS-1, F_BUS]), br) - 1;
     tbus = get_multi(slice(branch, [0], [T_BUS-1, T_BUS]), br) - 1;
-    Sf = get_multi(V, fbus)' .* conj(select(Yf, br) * V) * baseMVA; // complex power at "from" bus
-    St = get_multi(V, tbus)' .* conj(select(Yt, br) * V) * baseMVA; // complex power injected at "to" bus
+    Sf = get_multi(V, fbus).' .* conj(select(Yf, br) * V) * baseMVA; // complex power at "from" bus
+    St = get_multi(V, tbus).' .* conj(select(Yt, br) * V) * baseMVA; // complex power injected at "to" bus
     branch_PF = set(zeros(size(branch,0), 1), br, real(Sf));
     branch_QF = set(zeros(size(branch,0), 1), br, imag(Sf));
     branch_PT = set(zeros(size(branch,0), 1), br, real(St));

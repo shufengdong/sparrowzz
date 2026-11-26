@@ -53,12 +53,12 @@ fn doSE(baseMVA, bus, gen, branch, Ybus, Yf, Yt, V0, ref, pv, pq) {
 
         // ---------------------- 计算估计测量值 z_est ----------------------
         // 支路潮流计算
-        Sfe = get_multi(V, f)' .* conj(Yf * V);     // 从端潮流
-        Ste = get_multi(V, t)' .* conj(Yt * V);     // 到端潮流
+        Sfe = get_multi(V, f).' .* conj(Yf * V);     // 从端潮流
+        Ste = get_multi(V, t).' .* conj(Yt * V);     // 到端潮流
 
         // 发电机节点注入功率计算
         gbus = slice(gen, [0], [GEN_BUS - 1, GEN_BUS]) - 1;  // 发电机所在母线(索引从“0”开始)
-        Sgbus = get_multi(V, gbus)' .* conj(select(Ybus, gbus) * V);  // 母线注入功率
+        Sgbus = get_multi(V, gbus).' .* conj(select(Ybus, gbus) * V);  // 母线注入功率
         // 发电机输出功率 = 注入功率 + 本地负荷（标幺值）
         Sgen = Sgbus * baseMVA + (select(bus, gbus, PD-1) + 1j * select(bus, gbus, QD-1));
         Sgen = Sgen / baseMVA;

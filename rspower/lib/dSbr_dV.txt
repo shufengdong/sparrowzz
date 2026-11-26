@@ -173,8 +173,8 @@ fn dSbr_dV(branch, Yf, Yt, V, vcart) {
     }
 
     // 返回功率流本身
-    Sf = get_multi(V, f)' .* Ifc;
-    St = get_multi(V, t)' .* Itc;
+    Sf = get_multi(V, f).' .* Ifc;
+    St = get_multi(V, t).' .* Itc;
 
     return (dSf_dV1, dSf_dV2, dSt_dV1, dSt_dV2, Sf, St);
 }
